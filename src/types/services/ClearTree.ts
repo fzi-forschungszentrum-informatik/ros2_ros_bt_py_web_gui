@@ -1,6 +1,6 @@
-export interface ClearTreeRequest { }
+export interface ClearTreeRequest {}
 
 export interface ClearTreeResponse {
-    success: boolean,
-    error_message: string
+  success: boolean;
+  error_message: string;
 }

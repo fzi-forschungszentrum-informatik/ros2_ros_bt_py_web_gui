@@ -1,8 +1,6 @@
-
-
-export interface ContinueRequest { }
+export interface ContinueRequest {}
 
 export interface ContinueResponse {
-    success: boolean;
-    error_message: string;
+  success: boolean;
+  error_message: string;
 }

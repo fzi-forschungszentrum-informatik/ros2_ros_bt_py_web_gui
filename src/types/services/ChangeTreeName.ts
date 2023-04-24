@@ -1,8 +1,8 @@
 export interface ChangeTreeNameRequest {
-    name: string
+  name: string;
 }
 
 export interface ChangeTreeNameResponse {
-    success: boolean,
-    error_message: string
+  success: boolean;
+  error_message: string;
 }
