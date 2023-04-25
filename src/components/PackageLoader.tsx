@@ -46,28 +46,35 @@ export class PackageLoader extends Component<
       collapsible_icon = "fas fa-angle-down";
     } else {
       package_loader = (
-        <div className="form-group">
-          <button
-            id="refresh"
-            className="btn btn-block btn-primary mt-2"
-            onClick={() => this.props.getNodes("")}
-          >
-            Refresh
-          </button>
-          <input
-            type="text"
-            id="package_name"
-            className="form-control mt-2"
-            value={this.state.package_name}
-            onChange={this.handleChange}
-          />
-          <button
-            id="load_package"
-            className="btn btn-block btn-primary mt-2"
-            onClick={() => this.props.getNodes(this.state.package_name)}
-          >
-            Load package
-          </button>
+        <div className="m-2">
+          <div className="d-grid gap-2 mb-2">
+            <button
+              id="refresh"
+              className="btn btn-block btn-primary mt-2"
+              onClick={() => this.props.getNodes("")}
+            >
+              Refresh
+            </button>
+          </div>
+          <div className="input-group mb-3">
+            <input
+              type="text"
+              className="form-control"
+              id="loadPackageForm"
+              aria-describedby="loadPackageFormConfirm"
+              aria-label="Load Package"
+              value={this.state.package_name}
+              onChange={this.handleChange}
+            />
+            <button
+              type="button"
+              className="btn btn-block btn-outline-primary"
+              onClick={() => this.props.getNodes(this.state.package_name)}
+              id="loadPackageFormConfirm"
+            >
+              Load package
+            </button>
+          </div>
         </div>
       );
     }

@@ -454,27 +454,27 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
       <Fragment>
         <button
           onClick={this.newTree.bind(this)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="New tree"
         >
           <i className="fas fa-file show-button-icon"></i>
-          <span className="ml-1 hide-button-text">New</span>
+          <span className="ms-1 hide-button-text">New</span>
         </button>
         <button
           onClick={this.loadFromPackage.bind(this)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Load from package"
         >
           <i className="fas fa-folder show-button-icon"></i>
-          <span className="ml-1 hide-button-text">Load</span>
+          <span className="ms-1 hide-button-text">Load</span>
         </button>
         <button
           onClick={this.saveToPackage.bind(this)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Save to package"
         >
           <i className="fas fa-save show-button-icon"></i>
-          <span className="ml-1 hide-button-text">Save</span>
+          <span className="ms-1 hide-button-text">Save</span>
         </button>
         <div>
           <input
@@ -485,11 +485,11 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
           />
           <button
             onClick={this.openFileDialog.bind(this)}
-            className="btn btn-primary ml-1"
+            className="btn btn-primary ms-1"
             title="Upload"
           >
             <i className="fas fa-file-upload show-button-icon"></i>
-            <span className="ml-1 hide-button-text">Upload</span>
+            <span className="ms-1 hide-button-text">Upload</span>
           </button>
         </div>
         <button
@@ -498,7 +498,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
           title="Download"
         >
           <i className="fas fa-file-download show-button-icon"></i>
-          <span className="ml-1 hide-button-text">Download</span>
+          <span className="ms-1 hide-button-text">Download</span>
         </button>
       </Fragment>
     );

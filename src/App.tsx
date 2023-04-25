@@ -1,6 +1,10 @@
 import React, { Component } from "react";
 
 import "./App.scss";
+import "./style.scss";
+
+import * as bootstrap from "bootstrap";
+
 import "./utils";
 import ROSLIB from "roslib";
 import Fuse from "fuse.js";
@@ -37,7 +41,6 @@ import {
   GetAvailableNodesResponse,
 } from "./types/services/GetAvailableNodes";
 import { TreeExecutionCommands } from "./types/services/ControlTreeExecution";
-import { thresholdScott } from "d3";
 import { error_id } from "./utils";
 
 interface AppState {
@@ -72,13 +75,13 @@ interface AppState {
   publishing_subtrees: boolean;
   last_selected_package: string;
   show_file_modal: string | null;
-  current_time: number | null;
+  current_time: number;
   nodelist_visible: boolean;
   executionbar_visible: boolean;
   running_commands: Set<TreeExecutionCommands>;
   packages_available: boolean;
   messages_available: boolean;
-  node_search: any;
+  node_search: string;
   selected_node_name: string | null;
 }
 
@@ -164,36 +167,19 @@ class App extends Component<AppProps, AppState> {
       publishing_subtrees: false,
       last_selected_package: "",
       show_file_modal: null,
-      current_time: null,
+      current_time: Date.now(),
       nodelist_visible: true,
       executionbar_visible: true,
       running_commands: new Set(),
       packages_available: false,
       messages_available: false,
-      node_search: null,
+      node_search: "",
       selected_node_name: null,
     };
 
     this.nodes_fuse = null;
     this.messagesFuse = null;
     this.packagesFuse = null;
-
-    ros.on("connection", (e: any) => {
-      console.log("Connected to websocket");
-      this.setState({ connected: true });
-    });
-
-    ros.on("close", (e: any) => {
-      this.setState({
-        connected: false,
-        packages_available: false,
-        messages_available: false,
-      });
-      console.log("Connection to websocket closed, reconnecting in 5s");
-      setTimeout(function () {
-        ros.connect(ros_uri);
-      }, 5000);
-    });
 
     this.tree_topic = new ROSLIB.Topic({
       ros: this.state.ros,
@@ -619,6 +605,26 @@ class App extends Component<AppProps, AppState> {
   }
 
   componentDidMount() {
+    ReactModal.setAppElement("body");
+
+    this.state.ros.on("connection", (e: any) => {
+      console.log("Connected to websocket");
+      this.setState({ connected: true });
+    });
+
+    this.state.ros.on("close", (e: any) => {
+      this.setState({
+        connected: false,
+        packages_available: false,
+        messages_available: false,
+      });
+
+      console.log("Connection to websocket closed, reconnecting in 5s");
+      setTimeout(() => {
+        this.state.ros.connect(this.state.ros_uri);
+      }, 5000);
+    });
+
     this.tree_topic.subscribe(this.onTreeUpdate);
     this.debug_topic.subscribe(this.onDebugUpdate);
     this.messages_topic.subscribe(this.onMessagesUpdate);
@@ -1021,30 +1027,25 @@ class App extends Component<AppProps, AppState> {
           </button>
           <div className="available-nodes m-1">
             <PackageLoader
-              key={this.state.bt_namespace}
+              key={this.state.bt_namespace + "PackageLoader"}
               getNodes={this.getNodes}
             />
-            <div className="border rounded mb-2">
-              <div className="form-group row mt-2 mb-2 ml-1 mr-1">
-                <label
-                  htmlFor="nodelist_search"
-                  className="col-sm-2 col-form-label"
-                >
+            <div className="border rounded">
+              <div className="input-group p-2">
+                <label htmlFor="nodelist_search" className="input-group-text">
                   Search:
                 </label>
-                <div className="col-sm-10">
-                  <input
-                    id="nodelist_search"
-                    type="text"
-                    ref={(input) => {
-                      this.nameInput = input;
-                    }}
-                    className="form-control"
-                    value={this.state.node_search}
-                    onChange={this.handleNodeSearch}
-                    onKeyDown={this.handleNodeSearchClear}
-                  />
-                </div>
+                <input
+                  id="nodelist_search"
+                  type="text"
+                  ref={(input) => {
+                    this.nameInput = input;
+                  }}
+                  className="form-control"
+                  value={this.state.node_search}
+                  onChange={this.handleNodeSearch}
+                  onKeyDown={this.handleNodeSearchClear}
+                />
               </div>
             </div>
           </div>
@@ -1081,7 +1082,7 @@ class App extends Component<AppProps, AppState> {
     if (this.state.executionbar_visible) {
       execution_bar = (
         <ExecutionBar
-          key={this.state.bt_namespace}
+          key={this.state.bt_namespace + "ExecutionBar"}
           ros={this.state.ros}
           ros_url={this.state.ros_uri}
           connected={this.state.connected}
@@ -1104,7 +1105,7 @@ class App extends Component<AppProps, AppState> {
       toggle_ui_visibility_text = "Show User Interface";
     }
 
-    let tree_name = null;
+    let tree_name = "";
     let tree_state = "UNKNOWN";
     if (this.state.last_tree_msg) {
       tree_name = this.state.last_tree_msg.name;
@@ -1114,7 +1115,7 @@ class App extends Component<AppProps, AppState> {
     return (
       <div onMouseUp={this.check_dragging} className={dragging_cursor}>
         <ReactModal
-          key={this.state.bt_namespace}
+          key={this.state.bt_namespace + "ReactModal"}
           isOpen={this.state.show_file_modal !== null}
         >
           <FileBrowser
@@ -1140,7 +1141,7 @@ class App extends Component<AppProps, AppState> {
                 <div className="row">
                   <div className="col d-flex align-items-center">
                     <SelectTree
-                      key={this.state.bt_namespace}
+                      key={this.state.bt_namespace + "SelectTree"}
                       ros={this.state.ros}
                       bt_namespace={this.state.bt_namespace}
                       subtreeNames={this.state.subtree_names}
@@ -1177,27 +1178,35 @@ class App extends Component<AppProps, AppState> {
                     >
                       {toggle_ui_visibility_text}
                     </button>
-                    <div>
-                      <label className="form-inline m-1 ml-2">
+                    <div className="d-flex flex-row align-items-center">
+                      <label
+                        className="form-label m-1 ml-2"
+                        htmlFor="treeNameForm"
+                      >
                         Name:
-                        <input
-                          className="ml-1"
-                          type="text"
-                          disabled={true}
-                          value={tree_name!}
-                        />
                       </label>
+                      <input
+                        id="treeNameForm"
+                        className="form-control ml-1"
+                        type="text"
+                        disabled={true}
+                        value={tree_name}
+                      />
                     </div>
-                    <div>
-                      <label className="form-inline m-1 ml-2">
+                    <div className="d-flex flex-row align-items-center">
+                      <label
+                        className="form-label m-1 ml-2"
+                        htmlFor="treeStateForm"
+                      >
                         State:
-                        <input
-                          className="ml-1"
-                          type="text"
-                          disabled={true}
-                          value={tree_state}
-                        />
                       </label>
+                      <input
+                        id="treeStateForm"
+                        className="form-control ml-1"
+                        type="text"
+                        disabled={true}
+                        value={tree_state}
+                      />
                     </div>
                     <Spacer />
                     <SelectEditorSkin changeSkin={this.changeSkin} />
@@ -1206,7 +1215,7 @@ class App extends Component<AppProps, AppState> {
                 <div className="row edit_canvas h-100 pb-2">
                   <div className="col p-0">
                     <D3BehaviorTreeEditor
-                      key={this.state.bt_namespace}
+                      key={this.state.bt_namespace + "BTEditor"}
                       ros={this.state.ros}
                       bt_namespace={this.state.bt_namespace}
                       tree_message={this.state.last_tree_msg}
@@ -1234,7 +1243,7 @@ class App extends Component<AppProps, AppState> {
                       {this.state.selected_edge ? (
                         <BehaviorTreeEdge
                           edge={this.state.selected_edge}
-                          key={this.state.bt_namespace}
+                          key={this.state.bt_namespace + "BTEdge"}
                           ros={this.state.ros}
                           bt_namespace={this.state.bt_namespace}
                           onSelectionChange={this.onEditorSelectionChange}

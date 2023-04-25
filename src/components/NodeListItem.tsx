@@ -117,16 +117,16 @@ export class NodeListItem extends Component<
       node_type = "Leaf";
     }
 
-    let border = "border rounded p-2 mb-2 grab";
+    let border = "border rounded p-2 grab m-2";
     if (this.props.highlighted) {
-      border = "border rounded border-primary p-2 mb-2";
+      border = "border rounded border-primary p-2 m-2";
     }
     return (
       <div
         className={border}
         onClick={this.onClick.bind(this)}
         onMouseDown={this.onMouseDown.bind(this)}
-        onMouseOut={this.onMouseUp.bind(this)}
+        onMouseUp={this.onMouseUp.bind(this)}
       >
         <div className="d-flex justify-content-between">
           <div className="d-flex minw0">

@@ -39,24 +39,26 @@ export class SelectTree extends Component<SelectTreeProps, SelectTreeState> {
       selected = this.props.selected_tree.name;
     }
     return (
-      <div>
-        <label className="form-inline m-1 ml-2">
+      <div className="d-flex flex-row align-items-center">
+        <label className="col-form-label m-1 ms-2" htmlFor="formTree">
           Tree:
-          <select
-            className="custom-select ml-1"
-            value={this.props.subtreeNames.indexOf(selected)}
-            onChange={this.onChange}
-          >
-            <option value="-1">Main Tree</option>
-            <optgroup label="Subtrees">
-              {this.props.subtreeNames.map((name, index) => (
-                <option key={name} value={index}>
-                  {name}
-                </option>
-              ))}
-            </optgroup>
-          </select>
         </label>
+
+        <select
+          id="formTree"
+          className="form-select m-2"
+          value={this.props.subtreeNames.indexOf(selected)}
+          onChange={this.onChange}
+        >
+          <option value="-1">Main Tree</option>
+          <optgroup label="Subtrees">
+            {this.props.subtreeNames.map((name, index) => (
+              <option key={name} value={index}>
+                {name}
+              </option>
+            ))}
+          </optgroup>
+        </select>
       </div>
     );
   }

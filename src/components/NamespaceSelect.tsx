@@ -4,6 +4,7 @@ import {
   ServicesForTypeRequest,
   ServicesForTypeResponse,
 } from "../types/services/ServicesForType";
+import "../App.scss";
 
 interface NamespaceSelectProps {
   ros: ROSLIB.Ros;
@@ -121,63 +122,94 @@ export class NamespaceSelect extends Component<
     let edit = null;
     if (this.state.edit) {
       edit = (
-        <div className="form-inline">
-          <label className="ml-1">
-            Rosbridge Server:
+        <div className="d-flex flex-row align-items-center">
+          <div className="input-group m-1">
+            <label className="input-group-text">Rosbridge Server:</label>
             <input
+              className="form-control"
               type="text"
+              placeholder="Websocket URL"
+              aria-describedby="websocketURL"
+              aria-label="Websocket URL"
               value={this.state.ros_uri}
               onChange={this.changeRosbridgeServer}
             />
             <button
+              type="button"
               onClick={this.saveRosbridgeServer.bind(this)}
-              className="btn btn-primary m-1"
+              className="btn btn-primary"
             >
               Save
             </button>
-          </label>
+          </div>
         </div>
       );
     }
-    let connected_class = "fas fa-wifi connected";
-    let connected_title = "Connected";
-    if (!this.props.connected) {
-      connected_class = "fas fa-wifi disconnected";
-      connected_title = "Disconnected";
-    } else {
-      if (!this.props.packages_available) {
-        connected_class = "fas fa-wifi packages-missing";
-        connected_title +=
-          ", package list not (yet) available. File browser will not work.";
-      } else if (!this.props.messages_available) {
-        connected_class = "fas fa-wifi messages-missing";
-        connected_title +=
-          ", message info not (yet) available. ROS-type autocompletion will not work.";
+
+    let connection_state;
+
+    if (this.props.connected) {
+      if (this.props.messages_available) {
+        if (this.props.packages_available) {
+          connection_state = (
+            <div key="connection_status_connected">
+              <span
+                aria-hidden="true"
+                title="Connected"
+                className="fas fa-wifi connected"
+              />
+            </div>
+          );
+        } else {
+          connection_state = (
+            <div key="connection_status_package">
+              <span
+                aria-hidden="true"
+                title="Connected, package list not (yet) available. File browser will not work."
+                className="fas fa-wifi packages-missing"
+              />
+            </div>
+          );
+        }
+      } else {
+        connection_state = (
+          <div key="connection_status_message">
+            <span
+              aria-hidden="true"
+              title="Connected, message info not (yet) available. ROS-type autocompletion will not work."
+              className="fas fa-wifi messages-missing"
+            />
+          </div>
+        );
       }
+    } else {
+      connection_state = (
+        <div key="connection_status_disconnected">
+          <span
+            aria-hidden="true"
+            title="Disconnected"
+            className="fas fa-wifi disconnected"
+          />
+        </div>
+      );
     }
 
     return (
-      <Fragment>
-        <span
-          aria-hidden="true"
-          title={connected_title}
-          className={connected_class}
-        />
-        <div className="form-inline">
-          <label className="ml-1">
-            Namespace:
-            <select
-              className="custom-select ml-1"
-              value={this.props.currentNamespace}
-              onChange={this.handleNamespaceChange}
-            >
-              {this.state.available_namespaces.map((x) => (
-                <option key={x} value={x}>
-                  {x}
-                </option>
-              ))}
-            </select>
-          </label>
+      <>
+        {connection_state}
+        <div className="d-flex flex-row align-items-center">
+          <label className="ms-1">Namespace:</label>
+          <select
+            className="form-select ms-1"
+            value={this.props.currentNamespace}
+            onChange={this.handleNamespaceChange}
+          >
+            {this.state.available_namespaces.map((x) => (
+              <option key={x} value={x}>
+                {x}
+              </option>
+            ))}
+          </select>
         </div>
         <button
           type="button"
@@ -196,7 +228,7 @@ export class NamespaceSelect extends Component<
           <span className="sr-only">Edit rosbridge server</span>
         </button>
         {edit}
-      </Fragment>
+      </>
     );
   }
 }

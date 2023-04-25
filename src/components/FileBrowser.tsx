@@ -219,7 +219,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     if (results.length > 0) {
       const result_rows = results.map((x, i) => {
         return (
-          <div
+          <li
             className="list-group-item search-result align-items-start"
             onClick={() => this.selectPackageSearchResult(x.package)}
           >
@@ -231,17 +231,18 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                     : ""
                 }
               >
+                <i className="fas fa-cubes mx-1"></i>
                 {x.package}
               </span>
-              <i className="far fa-file-code" title={x.path}></i>
+              <i className="fas fa-file-code" title={x.path}></i>
             </div>
-          </div>
+          </li>
         );
       });
 
       return (
         <div className="mb-2 search-results" ref={(node) => (this.node = node)}>
-          <div className="list-group">{result_rows}</div>
+          <ul className="list-group">{result_rows}</ul>
         </div>
       );
     } else {
@@ -548,17 +549,18 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
       if (this.props.mode === "load") {
         open_save_button = (
           <button
-            className="btn btn-primary w-30 ml-1"
+            className="btn btn-primary w-30 ms-1"
             disabled={!this.state.file_path}
             onClick={this.open}
+            type="button"
           >
-            <i className="far fa-folder-open"></i> Open
+            <i className="fas fa-folder-open"></i> Open
           </button>
         );
       } else if (this.props.mode === "save") {
         write_mode_select = (
           <select
-            className="m-1"
+            className="form-select"
             value={this.state.write_mode}
             onChange={(event) => {
               this.setState({ write_mode: event.target.value });
@@ -573,6 +575,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
           <button
             className="btn btn-primary w-30 m-1"
             disabled={!this.state.file_path}
+            type="button"
             onClick={() => {
               let save_file_path = this.state.file_path;
               if (save_file_path === null) {
@@ -680,55 +683,59 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             }}
           >
-            <i className="far fa-save"></i> Save
+            <i className="fas fa-save"></i> Save
           </button>
         );
       }
 
       package_structure = (
         <div>
-          <button
-            className="btn btn-primary w-30 m-1"
-            onClick={() => {
-              if (tree!.parent === 0) {
-                this.setState({
-                  package_structure: null,
-                  package: "",
-                  selected_package: null,
-                  file_path: null,
-                  selected_file: "",
-                  highlighted: null,
-                });
-              } else {
-                this.setState({
-                  selected_directory: tree!.parent,
-                  file_path: null,
-                  selected_file: "",
-                  highlighted: null,
-                });
-              }
-            }}
-          >
-            <i className="fas fa-arrow-left"></i> Back
-          </button>
-          {open_save_button}
-          <select
-            className="m-1"
-            value={this.state.file_type_filter}
-            onChange={(event) => {
-              this.setState({ file_type_filter: event.target.value });
-            }}
-          >
-            <option value="all">all files</option>
-            <option value=".yaml">.yaml files</option>
-          </select>
-          {write_mode_select}
-          <div>
-            <label>
-              Name:
+          <div className="d-flex flex-row align-items-center m-2">
+            <button
+              type="button"
+              className="btn btn-primary w-60 m-1"
+              onClick={() => {
+                if (tree!.parent === 0) {
+                  this.setState({
+                    package_structure: null,
+                    package: "",
+                    selected_package: null,
+                    file_path: null,
+                    selected_file: "",
+                    highlighted: null,
+                  });
+                } else {
+                  this.setState({
+                    selected_directory: tree!.parent,
+                    file_path: null,
+                    selected_file: "",
+                    highlighted: null,
+                  });
+                }
+              }}
+            >
+              <i className="fas fa-arrow-left"></i> Back
+            </button>
+            {open_save_button}
+            <select
+              className="m-1 form-select"
+              value={this.state.file_type_filter}
+              onChange={(event) => {
+                this.setState({ file_type_filter: event.target.value });
+              }}
+            >
+              <option value="all">all files</option>
+              <option value=".yaml">.yaml files</option>
+            </select>
+            {write_mode_select}
+          </div>
+          <div className="d-flex flex-row align-items-center m-2">
+            <div className="input-group m-1">
+              <label className="input-group-text">Name:</label>
               <input
-                className="ml-1"
+                className="form-control"
                 type="text"
+                placeholder="Tree File Name"
                 ref={(input) => input && input.focus()}
                 onChange={(event) => {
                   const file_path = path.concat(event.target.value);
@@ -741,7 +748,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                 disabled={this.props.mode !== "save"}
                 value={this.state.selected_file}
               />
-            </label>
+            </div>
           </div>
           <p>
             <span
@@ -775,11 +782,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             })}
           </p>
-          <p>
+          <ul className="list-group">
             {tree!.children!.sort(comparePackageContent).map((child) => {
-              let icon = <i className="far fa-file"></i>;
+              let icon = <i className="fas fa-file-code mx-1"></i>;
               if (child.type === "directory") {
-                icon = <i className="far fa-folder"></i>;
+                icon = <i className="fas fa-folder mx-1"></i>;
               }
               if (
                 child.type === "file" &&
@@ -790,9 +797,8 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                 }
               }
               return (
-                <p
-                  className="cursor-pointer"
-                  key={child.item_id}
+                <li
+                  className="cursor-pointer list-group-item"
                   onClick={() => {
                     if (child.type === "file") {
                       const file_path = path.concat(child.name);
@@ -813,19 +819,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                     }
                   }}
                 >
-                  <span
-                    className={
-                      this.state.highlighted === child.item_id
-                        ? "border border-primary"
-                        : ""
-                    }
-                  >
-                    {icon} {child.name}
-                  </span>
-                </p>
+                  {icon} {child.name}
+                </li>
               );
             })}
-          </p>
+          </ul>
         </div>
       );
     }
@@ -843,11 +841,18 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
     let package_name_element = null;
     if (this.state.package_structure) {
-      package_name_element = <span>{this.state.package}</span>;
+      package_name_element = (
+        <input
+          className="form-control"
+          type="text"
+          value={this.state.package}
+          disabled={true}
+        />
+      );
     } else {
       package_name_element = (
         <input
-          className="m-2"
+          className="form-control"
           type="text"
           ref={(input) => input && input.focus()}
           value={this.state.package}
@@ -873,7 +878,10 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
         </div>
         <h2>{title}</h2>
         <div className="d-flex flex-column">
-          <label className="m-1">Package: {package_name_element}</label>
+          <div className="input-group m-1">
+            <label className="input-group-text">Package:</label>
+            {package_name_element}
+          </div>
           {this.renderPackageSearchResults(package_results)}
         </div>
         {package_structure}

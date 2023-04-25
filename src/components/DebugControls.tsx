@@ -139,38 +139,35 @@ export class DebugControls extends Component<
     let debug_controls = null;
     if (this.state.debugging) {
       debug_controls = (
-        <button onClick={this.onClickStep} className="btn btn-primary ml-1">
+        <button onClick={this.onClickStep} className="btn btn-primary ms-1">
           <i className="fas fa-step-forward show-button-icon"></i>
-          <span className="ml-1 hide-button-text-control">Step</span>
+          <span className="ms-1 hide-button-text-control">Step</span>
         </button>
       );
     }
     return (
       <Fragment>
-        <div className="custom-control custom-checkbox m-1">
+        <div className="form-check m-1">
           <input
             type="checkbox"
             id={this.debugCheckID}
-            className="custom-control-input"
+            className="form-check-input"
             checked={this.state.debugging}
             onChange={this.handleDebugChange}
           />
-          <label className="custom-control-label" htmlFor={this.debugCheckID}>
+          <label className="form-check-label" htmlFor={this.debugCheckID}>
             Debug
           </label>
         </div>
-        <div className="custom-control custom-checkbox m-1">
+        <div className="form-check m-1">
           <input
             type="checkbox"
             id={this.publishSubtreesID}
-            className="custom-control-input"
+            className="form-check-input"
             checked={this.state.publishing_subtrees}
             onChange={this.handlePubSubtreesChange}
           />
-          <label
-            className="custom-control-label"
-            htmlFor={this.publishSubtreesID}
-          >
+          <label className="form-check-label" htmlFor={this.publishSubtreesID}>
             Publish Subtrees
           </label>
         </div>

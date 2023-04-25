@@ -10,7 +10,7 @@ export const uuid = () => idx++;
 let error_idx = 0;
 export const error_id = () => error_idx++;
 
-function typesCompatible(a: any, b: any) {
+export function typesCompatible(a: any, b: any) {
   if (a.nodeName === b.nodeName) {
     return false;
   }
@@ -293,7 +293,7 @@ export function getShortDoc(doc: string) {
   }
 }
 
-function uniqueArray(array: any[], property: string) {
+export function uniqueArray(array: any[], property: string) {
   return array.filter((object, position, array) => {
     return (
       array
@@ -304,7 +304,7 @@ function uniqueArray(array: any[], property: string) {
 }
 
 // see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#grouping_objects_by_a_property
-function groupBy(objectArray: any[], property: string) {
+export function groupBy(objectArray: any[], property: string) {
   return objectArray.reduce(function (acc, obj) {
     const key = obj[property];
     if (!acc[key]) {

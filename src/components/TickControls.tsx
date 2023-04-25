@@ -6,6 +6,8 @@ import {
   TreeExecutionCommands,
 } from "../types/services/ControlTreeExecution";
 
+import "../style.scss";
+
 interface TickControlsProps {
   ros: ROSLIB.Ros;
   bt_namespace: string;
@@ -120,55 +122,55 @@ export class TickControls extends Component<
       <Fragment>
         <button
           onClick={this.controlExec.bind(this, 1)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Tick Once"
         >
           <i className={tick_once_classes}></i>
-          <span className="ml-1 hide-button-text-control">Tick Once</span>
+          <span className="ms-1 hide-button-text-control">Tick Once</span>
         </button>
         <button
           onClick={this.controlExec.bind(this, 2)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Tick Periodically"
         >
           <i className={tick_periodically_classes}></i>
-          <span className="ml-1 hide-button-text-control">
+          <span className="ms-1 hide-button-text-control">
             Tick Periodically
           </span>
         </button>
         <button
           onClick={this.controlExec.bind(this, 3)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Tick Until Result"
         >
           <i className={tick_until_result_classes}></i>
-          <span className="ml-1 hide-button-text-control">
+          <span className="ms-1 hide-button-text-control">
             Tick Until Result
           </span>
         </button>
         <button
           onClick={this.controlExec.bind(this, 4)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Stop"
         >
           <i className={stop_classes}></i>
-          <span className="ml-1 hide-button-text-control">Stop</span>
+          <span className="ms-1 hide-button-text-control">Stop</span>
         </button>
         <button
           onClick={this.controlExec.bind(this, 5)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Reset"
         >
           <i className={reset_classes}></i>
-          <span className="ml-1 hide-button-text-control">Reset</span>
+          <span className="ms-1 hide-button-text-control">Reset</span>
         </button>
         <button
           onClick={() => this.controlExec(6)}
-          className="btn btn-primary ml-1"
+          className="btn btn-primary ms-1"
           title="Shutdown"
         >
           <i className={shutdown_classes}></i>
-          <span className="ml-1 hide-button-text-control">Shutdown</span>
+          <span className="ms-1 hide-button-text-control">Shutdown</span>
         </button>
       </Fragment>
     );

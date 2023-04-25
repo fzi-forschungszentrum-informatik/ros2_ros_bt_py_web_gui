@@ -43,10 +43,33 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
     super(props);
 
     if (props.node) {
+      let options_list = this.getDefaultValues(props.node.options);
+
+      // reparse unset_optionrefs
       this.state = {
         name: props.node.name,
         isValid: true,
-        options: this.getDefaultValues(props.node.options),
+        options: options_list.map((x) => {
+          if (x.value.type === "unset_optionref") {
+            const optionTypeName = x.value.value.substring(
+              'Ref to "'.length,
+              x.value.value.length - 1
+            );
+            const optionType = this.state.options.find((x) => {
+              return x.key === optionTypeName;
+            });
+            if (optionType && optionType.value) {
+              return {
+                key: x.key,
+                value: getDefaultValue(optionType.value.value),
+              };
+            }
+          }
+          return {
+            key: x.key,
+            value: x.value,
+          } as ParamData;
+        }),
         inputs: this.getDefaultValues(props.node.inputs, props.node.options),
         outputs: this.getDefaultValues(props.node.outputs, props.node.outputs),
       };
@@ -59,32 +82,6 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
         outputs: [],
       };
     }
-
-    // reparse unset_optionrefs
-    this.setState({
-      options: this.state.options.map((x) => {
-        if (x.value.type === "unset_optionref") {
-          const optionTypeName = x.value.value.substring(
-            'Ref to "'.length,
-            x.value.value.length - 1
-          );
-          const optionType = this.state.options.find((x) => {
-            return x.key === optionTypeName;
-          });
-          if (optionType && optionType.value) {
-            return {
-              key: x.key,
-              value: getDefaultValue(optionType.value.value),
-            };
-          }
-        }
-        return {
-          key: x.key,
-          value: x.value,
-        } as ParamData;
-      }),
-    });
-
     this.add_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node",

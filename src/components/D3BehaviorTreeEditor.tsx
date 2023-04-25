@@ -1,4 +1,3 @@
-// @ts-nocheck
 //TODO: Remove this with proper typing
 import { Component, createRef, Fragment } from "react";
 import {
@@ -15,6 +14,7 @@ import {
   prettyprint_type,
   selectIOGripper,
   getDist,
+  typesCompatible,
 } from "../utils";
 import { MultipleSelection } from "./MultipleSelection";
 import { NewNode } from "./NewNode";
@@ -137,25 +137,34 @@ export class D3BehaviorTreeEditor extends Component<
     this.panRate = 30;
     this.panPerFrame = 10.0;
 
-    this.wire_service = new ROSLIB.Service({
+    this.wire_service = new ROSLIB.Service<
+      WireNodeDataRequest,
+      WireNodeDataResponse
+    >({
       ros: props.ros,
       name: props.bt_namespace + "wire_data",
       serviceType: "ros_bt_py_msgs/WireNodeData",
     });
 
-    this.unwire_service = new ROSLIB.Service({
+    this.unwire_service = new ROSLIB.Service<
+      WireNodeDataRequest,
+      WireNodeDataResponse
+    >({
       ros: props.ros,
       name: props.bt_namespace + "unwire_data",
-      serviceType: "ros_bt_py_msgs/UnwireNodeData",
+      serviceType: "ros_bt_py_msgs/WireNodeData",
     });
 
-    this.move_service = new ROSLIB.Service({
+    this.move_service = new ROSLIB.Service<MoveNodeRequest, MoveNodeResponse>({
       ros: props.ros,
       name: props.bt_namespace + "move_node",
       serviceType: "ros_bt_py_msgs/MoveNode",
     });
 
-    this.replace_service = new ROSLIB.Service({
+    this.replace_service = new ROSLIB.Service<
+      ReplaceNodeRequest,
+      ReplaceNodeResponse
+    >({
       ros: props.ros,
       name: props.bt_namespace + "replace_node",
       serviceType: "ros_bt_py_msgs/ReplaceNode",
@@ -407,8 +416,8 @@ export class D3BehaviorTreeEditor extends Component<
           x="10"
           y="20"
           fill="#FFFFFF"
-          text-anchor="left"
-          alignment-baseline="top"
+          textAnchor="left"
+          alignmentBaseline="top"
           className="cursor-pointer svg-button"
           onClick={this.resetView}
         >
@@ -779,7 +788,7 @@ export class D3BehaviorTreeEditor extends Component<
         if (node._size) {
           //@ts-ignore
           return [
-            node.xSize + this.spacing,
+            node._size.width + this.spacing,
             max_height_by_depth[node.depth] + this.spacing,
           ];
         } else {
@@ -835,7 +844,10 @@ export class D3BehaviorTreeEditor extends Component<
               d.source as FlextreeNode<TrimmedNode>
             );
             //@ts-ignore
-            return [Math.round(parent.x), Math.round(parent.y + parent.ySize)];
+            return [
+              Math.round(parent.x),
+              Math.round(parent.y + parent._size.height),
+            ];
           })
           .target((d: d3.HierarchyLink<TrimmedNode>) => {
             const parent = this.findExistingParent(
@@ -865,7 +877,10 @@ export class D3BehaviorTreeEditor extends Component<
             let source: FlextreeNode<TrimmedNode> =
               d.source as FlextreeNode<TrimmedNode>;
             //@ts-ignore
-            return [Math.round(source.x), Math.round(source.y + source.ySize)];
+            return [
+              Math.round(source.x),
+              Math.round(source.y + source._size.height),
+            ];
           })
           .target(function (d) {
             //@ts-ignore
@@ -889,7 +904,7 @@ export class D3BehaviorTreeEditor extends Component<
         //@ts-ignore
         return (
           "translate(" +
-          Math.round(d.x - d.xSize / 2.0) +
+          Math.round(d.x - d._size.width / 2.0) +
           "," +
           Math.round(d.y) +
           ") scale(1.0)"
@@ -1005,14 +1020,14 @@ export class D3BehaviorTreeEditor extends Component<
               "transform",
               //@ts-ignore
               "translate(" +
-                (d.x - this.spacing - d.xSize * 0.5) +
+                (d.x - this.spacing - d._size.width * 0.5) +
                 "," +
                 d.y +
                 ")"
             )
             .attr("width", this.spacing)
             //@ts-ignore
-            .attr("height", d.ySize)
+            .attr("height", d._size.height)
             .datum({
               position: my_index, // insert before this node
               replace: false,
@@ -1026,11 +1041,11 @@ export class D3BehaviorTreeEditor extends Component<
           .attr(
             "transform",
             //@ts-ignore
-            "translate(" + (d.x + d.xSize * 0.5) + "," + d.y + ")"
+            "translate(" + (d.x + d._size.width * 0.5) + "," + d.y + ")"
           )
           .attr("width", this.spacing)
           //@ts-ignore
-          .attr("height", d.ySize)
+          .attr("height", d._size.height)
           .datum({
             position: my_index + 1, // insert after this node
             replace: false,
@@ -1044,12 +1059,12 @@ export class D3BehaviorTreeEditor extends Component<
           .attr(
             "transform",
             //@ts-ignore
-            "translate(" + (d.x - d.xSize * 0.5) + "," + d.y + ")"
+            "translate(" + (d.x - d._size.width * 0.5) + "," + d.y + ")"
           )
           //@ts-ignore
-          .attr("width", d.xSize)
+          .attr("width", d._size.width)
           //@ts-ignore
-          .attr("height", d.ySize)
+          .attr("height", d._size.height)
           .datum({
             position: -1,
             replace: true, // replace this node
@@ -1064,13 +1079,13 @@ export class D3BehaviorTreeEditor extends Component<
             "transform",
             //@ts-ignore
             "translate(" +
-              (d.x - d.xSize * 0.5) +
+              (d.x - d._size.width * 0.5) +
               "," +
               (d.y - this.spacing * 0.5) +
               ")"
           )
           //@ts-ignore
-          .attr("width", d.xSize)
+          .attr("width", d._size.width)
           .attr("height", this.spacing * 0.45)
           .datum({
             // replace the node at the given index from data, and take
@@ -1095,10 +1110,14 @@ export class D3BehaviorTreeEditor extends Component<
             .attr(
               "transform",
               //@ts-ignore
-              "translate(" + (d.x - d.xSize * 0.5) + "," + (d.y + d.ySize) + ")"
+              "translate(" +
+                (d.x - d._size.width * 0.5) +
+                "," +
+                (d.y + d._size.height) +
+                ")"
             )
             //@ts-ignore
-            .attr("width", d.xSize)
+            .attr("width", d._size.width)
             .attr("height", this.spacing * 0.45)
             .datum({
               // Add as first child of this node
@@ -1169,9 +1188,7 @@ export class D3BehaviorTreeEditor extends Component<
             "inputs",
             /*centered=*/ false
           );
-          let node_data: TrimmedNodeData = {
-            nodeN,
-          };
+
           datum.nodeName = x.data.name;
           datum.key = input.key;
           datum.kind = "input";
@@ -1292,7 +1309,7 @@ export class D3BehaviorTreeEditor extends Component<
         /*right=*/ false,
         this.io_gripper_size,
         //@ts-ignore
-        node.xSize
+        node._size.width
       );
     } else if (data_kind === "outputs") {
       coords = this.getGripperCoords(
@@ -1300,16 +1317,16 @@ export class D3BehaviorTreeEditor extends Component<
         /*right=*/ true,
         this.io_gripper_size,
         //@ts-ignore
-        node.xSize
+        node._size.width
       );
     } else {
       // For things that are neither inputs nor outputs, just draw a
       // line to the center of the node
       coords = {
         //@ts-ignore
-        x: 0.5 * node.xSize,
+        x: 0.5 * node._size.width,
         //@ts-ignore
-        y: 0.5 * node.ySize,
+        y: 0.5 * node._size.height,
       };
     }
 
@@ -1667,7 +1684,7 @@ export class D3BehaviorTreeEditor extends Component<
   canvasIOUpHandler(d, index, group) {
     this.dragging = false;
 
-    if (this.nextWiringSource && this.nextWiringTarget) {
+    if (this.nextWiringSource !== null && this.nextWiringTarget !== null) {
       this.wire_service.callService(
         {
           wirings: [

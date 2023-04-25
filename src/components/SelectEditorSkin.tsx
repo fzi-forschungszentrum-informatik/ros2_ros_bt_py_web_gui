@@ -26,7 +26,7 @@ export class SelectEditorSkin extends Component<
       <div>
         <label className="form-inline m-1">
           <select
-            className="custom-select ml-1"
+            className="form-select ms-1"
             defaultValue="darkmode"
             onChange={this.onChange}
           >
