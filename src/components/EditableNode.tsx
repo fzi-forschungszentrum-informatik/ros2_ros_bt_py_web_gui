@@ -37,7 +37,7 @@ interface EditableNodeProps {
   module: string;
   availableNodes: DocumentedNode[];
   changeCopyMode: (mode: boolean) => void;
-  messagesFuse: Fuse<Message>;
+  messagesFuse: Fuse<Message> | undefined;
   updateValidity: (newValidity: boolean) => void;
   updateValue: (paramType: string, key: string, new_value: any) => void;
   nameChangeHandler: (event: ChangeEvent<HTMLInputElement>) => void;
@@ -111,6 +111,8 @@ export class EditableNode extends Component<
           <div
             className="list-group-item search-result"
             onClick={() => {
+              let replace_regex;
+              let type_name;
               if (
                 (this.props.nodeClass === "Action" ||
                   this.props.nodeClass === "ActionWithDebug") &&
@@ -127,10 +129,10 @@ export class EditableNode extends Component<
                   goal_type: "Goal",
                   result_type: "Result",
                 };
-                var type_name = x.msg.split(".").pop()!;
+                type_name = x.msg.split(".").pop()!;
                 //@ts-ignore
                 const action_name = type_name.replace(action_types[key], "");
-                var replace_regex = new RegExp(type_name, "g");
+                replace_regex = new RegExp(type_name, "g");
                 for (const action_type in action_types) {
                   if (key !== action_type) {
                     //@ts-ignore
@@ -155,10 +157,10 @@ export class EditableNode extends Component<
                   request_type: "Request",
                   response_type: "Response",
                 };
-                var type_name = x.msg.split(".").pop()!;
+                type_name = x.msg.split(".").pop()!;
                 //@ts-ignore
                 const service_name = type_name.replace(service_types[key], "");
-                var replace_regex = new RegExp(type_name + "$");
+                replace_regex = new RegExp(type_name + "$");
                 for (const service_type in service_types) {
                   if (key !== service_type) {
                     //@ts-ignore
@@ -466,7 +468,7 @@ export class EditableNode extends Component<
       // Regular input
       changeHandler = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newTypeName = event.target.value || "";
-        if (this.props.messagesFuse) {
+        if (this.props.messagesFuse !== undefined) {
           const results = this.props.messagesFuse.search(newTypeName);
           const message_results = results.slice(0, 5).map((x) => x.item);
           this.setState({

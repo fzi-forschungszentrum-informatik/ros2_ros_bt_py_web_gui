@@ -42,6 +42,9 @@ import {
 } from "./types/services/GetAvailableNodes";
 import { TreeExecutionCommands } from "./types/services/ControlTreeExecution";
 import { error_id } from "./utils";
+import {AddNodeRequest, AddNodeResponse} from "./types/services/AddNode.ts";
+import {RemoveNodeRequest, RemoveNodeResponse} from "./types/services/RemoveNode.ts";
+import {SetExecutionModeRequest, SetExecutionModeResponse} from "./types/services/SetExecutionMode.ts";
 
 interface AppState {
   bt_namespace: string;
@@ -96,9 +99,9 @@ class App extends Component<AppProps, AppState> {
     GetAvailableNodesRequest,
     GetAvailableNodesResponse
   > | null;
-  add_node_service: ROSLIB.Service<any, any>;
-  remove_node_service: ROSLIB.Service<any, any>;
-  set_execution_mode_service: ROSLIB.Service<any, any>;
+  add_node_service: ROSLIB.Service<AddNodeRequest, AddNodeResponse>;
+  remove_node_service: ROSLIB.Service<RemoveNodeRequest, RemoveNodeResponse>;
+  set_execution_mode_service: ROSLIB.Service<SetExecutionModeRequest, SetExecutionModeResponse>;
   packages_topic: ROSLIB.Topic<Packages>;
   lastTreeUpdate: number | null;
   topicTimeoutID: number | null;

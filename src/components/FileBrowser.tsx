@@ -782,7 +782,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             })}
           </p>
-          <ul className="list-group">
+          <ul className="list-group overflow-auto" style={{height: "60vh"}}>
             {tree!.children!.sort(comparePackageContent).map((child) => {
               let icon = <i className="fas fa-file-code mx-1"></i>;
               if (child.type === "directory") {
@@ -865,25 +865,25 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
     return (
       <div>
-        <div className="d-flex justify-content-between">
-          <button
-            className="btn btn-primary w-30 m-1"
-            onClick={() => {
-              this.props.onChangeFileModal(null);
-            }}
-          >
-            <i className="fas fa-times-circle"></i> Cancel
-          </button>
-          <span className="disconnected">{this.state.error_message}</span>
-        </div>
-        <h2>{title}</h2>
-        <div className="d-flex flex-column">
-          <div className="input-group m-1">
-            <label className="input-group-text">Package:</label>
-            {package_name_element}
+          <div className="d-flex justify-content-between">
+            <button
+              className="btn btn-primary w-30 m-1"
+              onClick={() => {
+                this.props.onChangeFileModal(null);
+              }}
+            >
+              <i className="fas fa-times-circle"></i> Cancel
+            </button>
+            <span className="disconnected">{this.state.error_message}</span>
           </div>
-          {this.renderPackageSearchResults(package_results)}
-        </div>
+          <h2>{title}</h2>
+          <div className="d-flex flex-column">
+            <div className="input-group m-1">
+              <label className="input-group-text">Package:</label>
+              {package_name_element}
+            </div>
+            {this.renderPackageSearchResults(package_results)}
+          </div>
         {package_structure}
       </div>
     );

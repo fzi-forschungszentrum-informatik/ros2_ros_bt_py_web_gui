@@ -1,11 +1,11 @@
 //TODO: Remove this with proper typing
-import { Component, createRef, Fragment } from "react";
+import { Component, createRef } from "react";
 import {
   DocumentedNode,
-  NodeData,
+  NodeData, NodeDataLocation,
   NodeDataWiring,
   NodeMsg,
-  TreeMsg,
+  TreeMsg
 } from "../types/types";
 import * as d3 from "d3";
 import ROSLIB from "roslib";
@@ -16,8 +16,7 @@ import {
   getDist,
   typesCompatible,
 } from "../utils";
-import { MultipleSelection } from "./MultipleSelection";
-import { NewNode } from "./NewNode";
+import { NewNode, NewNodeProps } from "./NewNode";
 import {
   WireNodeDataRequest,
   WireNodeDataResponse,
@@ -31,7 +30,6 @@ import {
   ReplaceNodeRequest,
   ReplaceNodeResponse,
 } from "../types/services/ReplaceNode";
-import { ZoomBehavior } from "d3";
 import { flextree, FlextreeNode } from "d3-flextree";
 
 interface D3BehaviorTreeEditorProps {
@@ -51,9 +49,6 @@ interface D3BehaviorTreeEditorProps {
   onError: (error_message: string) => void;
   skin: string;
 }
-
-interface D3BehaviorTreeEditorState {}
-
 export interface TrimmedNodeData {
   key: string;
   serialized_type: string;
@@ -71,9 +66,36 @@ export interface TrimmedNode {
   options: TrimmedNodeData[];
 }
 
+interface DataEdgePoint {
+  x: number,
+  y: number
+}
+
+interface DataEdgeTerminal extends  DataEdgePoint {
+  gripperSize: number,
+  nodeName: string,
+  key: string,
+  kind: string,
+  type: string
+}
+
+type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]
+
+interface EdgeData {
+  source: NodeDataLocation,
+  target: NodeDataLocation,
+  points: DataEdgePoints
+}
+
+interface DropTarget {
+  replace: boolean,
+  data: TrimmedNode | null,
+  position: number
+}
+
 export class D3BehaviorTreeEditor extends Component<
   D3BehaviorTreeEditorProps,
-  D3BehaviorTreeEditorState
+  Record<string, never>
 > {
   spacing: number;
   min_node_drag_distance: number;
@@ -86,9 +108,9 @@ export class D3BehaviorTreeEditor extends Component<
     startCoords: [number, number];
     domObject: SVGForeignObjectElement;
     data: FlextreeNode<TrimmedNode>;
-  };
+  } | null;
   dragging: boolean;
-  zoomObject?: ZoomBehavior<SVGSVGElement, unknown>;
+  zoomObject?: d3.ZoomBehavior<SVGSVGElement, unknown>;
   dragPanBoundary: number;
   panIntervalID: null;
   panDirection: number[];
@@ -104,8 +126,8 @@ export class D3BehaviorTreeEditor extends Component<
   >;
   svg_ref: React.RefObject<SVGGElement>;
   viewport_ref: React.RefObject<SVGSVGElement>;
-  nodeDropTarget: any;
-  selection: boolean;
+  nodeDropTarget: DropTarget | null;
+  selection: any;
   mouse_moved: boolean;
   start_y?: number;
   start_x?: number;
@@ -115,9 +137,11 @@ export class D3BehaviorTreeEditor extends Component<
     super(props);
 
     this.spacing = 80;
+    this.mouse_moved = false;
+    this.dragStartPos = [0, 0];
 
     this.min_node_drag_distance = 15;
-
+    this.nodeDropTarget = null;
     this.io_gripper_spacing = 10;
     this.io_gripper_size = 15;
     this.max_io_gripper_size = 15;
@@ -210,13 +234,26 @@ export class D3BehaviorTreeEditor extends Component<
       let new_node = null;
       let msg: NodeMsg | null = null;
       if (this.props.dragging_node_list_item) {
-        new_node = new NewNode({ node: this.props.dragging_node_list_item });
+        const new_node_props: NewNodeProps = {
+          availableNodes: [],
+          bt_namespace: this.props.bt_namespace,
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          changeCopyMode: (state) => {},
+          messagesFuse: undefined,
+          onError: this.props.onError,
+          // eslint-disable-next-line @typescript-eslint/no-empty-function
+          onNodeChanged: (state) => {},
+          parents: [],
+          node: this.props.dragging_node_list_item,
+          ros: this.props.ros
+        }
+        new_node = new NewNode(new_node_props);
         msg = new_node.buildNodeMessage();
 
         this.props.onNodeListDragging(null);
       }
 
-      if (msg) {
+      if (msg !== null) {
         let parent_name = "";
         let position = -1;
         if (this.nodeDropTarget && this.nodeDropTarget.data) {
@@ -238,9 +275,14 @@ export class D3BehaviorTreeEditor extends Component<
             if (response.success) {
               console.log("Added node to tree as " + response.actual_node_name);
             } else {
-              this.props.onError(
-                "Failed to add node " + msg.name + ": " + response.error_message
-              );
+              if (msg !== null) {
+
+                this.props.onError(
+                  "Failed to add node " + msg.name + ": " + response.error_message
+                );
+               } else {
+                this.props.onError("failed to add node: " + response.error_message)
+              }
             }
           }
         );
@@ -417,7 +459,7 @@ export class D3BehaviorTreeEditor extends Component<
           y="20"
           fill="#FFFFFF"
           textAnchor="left"
-          alignmentBaseline="top"
+          alignmentBaseline="central"
           className="cursor-pointer svg-button"
           onClick={this.resetView}
         >
@@ -429,8 +471,9 @@ export class D3BehaviorTreeEditor extends Component<
 
   componentDidUpdate(
     prevProps: D3BehaviorTreeEditorProps,
-    prevState: D3BehaviorTreeEditorState
+    prevState: Record<string, never>
   ) {
+    let svg;
     if (
       this.props.tree_message !== prevProps.tree_message &&
       this.props.tree_message !== null
@@ -440,6 +483,7 @@ export class D3BehaviorTreeEditor extends Component<
       // Disable all interaction (except for zooming and panning) when
       // the tree isn't editable
       if (treeIsEditable(this.props.tree_message)) {
+        //TODO: Implement this
       }
     }
     // Hide or show data graph
@@ -454,7 +498,9 @@ export class D3BehaviorTreeEditor extends Component<
     }
 
     if (this.props.selectedNodeNames) {
+      // eslint-disable-next-line @typescript-eslint/no-this-alias
       const that = this;
+
       d3.select(this.svg_ref.current!)
         .selectAll<d3.BaseType, FlextreeNode<TrimmedNode>>(".btnode")
         .each(function (d) {
@@ -473,34 +519,37 @@ export class D3BehaviorTreeEditor extends Component<
 
     if (this.props.dragging_node_list_item) {
       // show drop targets
-      var svg = d3.select(this.svg_ref.current!);
-      var g_droptargets = svg.select("g.drop_targets");
+      svg = d3.select(this.svg_ref.current!);
+      const g_droptargets = svg.select("g.drop_targets");
 
       const number_of_droptargets = g_droptargets
-        .selectAll<d3.BaseType, FlextreeNode<TrimmedNode>>(".drop_target")
+        .selectAll<d3.BaseType, DropTarget>(".drop_target")
         .size();
 
       if (number_of_droptargets === 0) {
         g_droptargets
-          .selectAll<d3.BaseType, FlextreeNode<TrimmedNode>>(
+          .selectAll<d3.BaseType, DropTarget>(
             ".drop_target_root"
           )
           .attr("visibility", "visible");
         this.resetView();
       } else {
         g_droptargets
-          .selectAll<d3.BaseType, FlextreeNode<TrimmedNode>>(
+          .selectAll<d3.BaseType, DropTarget>(
             ".drop_target_root"
           )
           .attr("visibility", "hidden");
       }
       g_droptargets.attr("visibility", "visible");
       g_droptargets
-        .selectAll<d3.BaseType, FlextreeNode<TrimmedNode>>(".drop_target")
+        .selectAll<d3.BaseType, DropTarget>(".drop_target")
         // First ensure all drop targets are visible
         .attr("visibility", "visible")
         // Now hide those that belong to descendants of the node we're dragging
         .filter((x) => {
+          if (x.data === null) {
+            return false;
+          }
           // Hide the left/right drop targets for nodes with
           // max_children children.
           const child_names = x.data.child_names || [];
@@ -510,7 +559,6 @@ export class D3BehaviorTreeEditor extends Component<
           }
 
           // disable replacing
-          // @ts-ignore
           if (x.replace) {
             return true;
           }
@@ -519,17 +567,16 @@ export class D3BehaviorTreeEditor extends Component<
         .attr("visibility", "hidden");
     } else {
       // hide drop targets
-      var svg = d3.select(this.svg_ref.current!);
-      var g_droptargets = svg.select("g.drop_targets");
+      svg = d3.select(this.svg_ref.current!);
+      const g_droptargets = svg.select("g.drop_targets");
       g_droptargets.attr("visibility", "hidden");
       g_droptargets.selectAll(".drop_target").attr("visibility", "hidden");
-
       g_droptargets.selectAll(".drop_target_root").attr("visibility", "hidden");
     }
   }
 
-  drawEverything(tree_msg: TreeMsg) {
-    if (!tree_msg) {
+  drawEverything(tree_msg: TreeMsg | null) {
+    if (tree_msg === null) {
       return;
     }
 
@@ -571,22 +618,20 @@ export class D3BehaviorTreeEditor extends Component<
       trimmed_nodes.push(forest_root);
     }
     // Update the visual tree
-    const parents = {};
-    const node_dict = {};
+    const parents: Record<string, string> = {};
+    const node_dict: Record<string, TrimmedNode> = {};
     // Find parents for all nodes once
     (function () {
       for (const i in trimmed_nodes) {
         const node = trimmed_nodes[i];
-        // @ts-ignore
         node_dict[node.name] = node;
         for (const j in node.child_names) {
-          // @ts-ignore
           parents[node.child_names[j]] = node.name;
         }
       }
     })();
 
-    const root = d3
+    const root: d3.HierarchyNode<TrimmedNode> = d3
       .stratify<TrimmedNode>()
       .id((node) => {
         return node.name;
@@ -594,7 +639,6 @@ export class D3BehaviorTreeEditor extends Component<
       .parentId((node) => {
         // undefined if it has no parent - does that break the layout?
         if (node.name in parents) {
-          //@ts-ignore
           return parents[node.name];
         } else if (node.name === forest_root.name) {
           return undefined;
@@ -619,16 +663,16 @@ export class D3BehaviorTreeEditor extends Component<
       );
     });
 
-    const svg = d3.select<SVGGElement, unknown>(this.svg_ref.current!);
+    const svg = d3.select<SVGGElement, never>(this.svg_ref.current!);
 
-    const container = d3.select<SVGSVGElement, unknown>(
+    const container = d3.select<SVGSVGElement, never>(
       this.viewport_ref.current!
     );
     const width = container.attr("width"),
       height = container.attr("height");
 
-    const g_vertex = svg.selectAll<SVGGElement, unknown>("g.vertices");
-    const g_data = svg.selectAll<SVGGElement, unknown>("g.data_graph");
+    const g_vertex = svg.selectAll<SVGGElement, never>("g.vertices");
+    const g_data = svg.selectAll<SVGGElement, never>("g.data_graph");
 
     const node = g_vertex
       .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(
@@ -674,7 +718,9 @@ export class D3BehaviorTreeEditor extends Component<
       unknown
     >
   ) {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
+
     const fo = selection
       .append("foreignObject")
       .attr("class", function (d) {
@@ -686,7 +732,7 @@ export class D3BehaviorTreeEditor extends Component<
       })
       .on("dblclick", this.nodeDoubleClickHandler.bind(this));
 
-    const div = fo
+    fo
       .append("xhtml:body")
       .attr("class", "btnode p-2")
       .style("min-height", (d) => {
@@ -738,13 +784,13 @@ export class D3BehaviorTreeEditor extends Component<
   }
 
   layoutNodes(
-    svg: d3.Selection<SVGGElement, unknown, null, undefined>,
+    svg: d3.Selection<SVGGElement, never, null, undefined>,
     width: string,
     height: string,
     root: d3.HierarchyNode<TrimmedNode>
   ) {
     const g_edge = svg.select<SVGGElement>("g.edges");
-    const g_vertex = svg.selectAll<SVGGElement, unknown>("g.vertices");
+    const g_vertex = svg.selectAll<SVGGElement, never>("g.vertices");
 
     const nodes_without_forest_root = root
       .descendants()
@@ -752,14 +798,14 @@ export class D3BehaviorTreeEditor extends Component<
     // k is the zoom level - we need to apply this to the values we get
     // from getBoundingClientRect, or we get fun scaling effects.
     const zoom = d3.zoomTransform(
-      d3.select<SVGSVGElement, unknown>(this.viewport_ref.current!).node()!
+      d3.select<SVGSVGElement, never>(this.viewport_ref.current!).node()!
     ).k;
 
     // Find the maximum size of all the nodes, for layout purposes
     const max_size = [0, 0];
     const max_height_by_depth = Array(root.height + 1).fill(0.0);
     g_vertex
-      .selectAll<HTMLBodyElement, FlextreeNode<TrimmedNode>>(".btnode")
+      .selectAll<HTMLBodyElement, d3.HierarchyNode<TrimmedNode>>(".btnode")
       .data(nodes_without_forest_root, (x) => x.id!)
       .each(function (d, index) {
         const rect = this.getBoundingClientRect();
@@ -767,6 +813,9 @@ export class D3BehaviorTreeEditor extends Component<
         rect.y /= zoom;
         rect.width /= zoom;
         rect.height /= zoom;
+
+        // TODO: Find a better way to handle this: size_ is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         d._size = rect;
         max_height_by_depth[d.depth] = Math.max(
@@ -784,10 +833,15 @@ export class D3BehaviorTreeEditor extends Component<
 
     const tree = flextree<TrimmedNode>({}).nodeSize(
       (node: d3.HierarchyNode<TrimmedNode>) => {
+        // TODO: Find a better way to handle this: size_ is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         if (node._size) {
-          //@ts-ignore
           return [
+
+            // TODO: Find a better way to handle this: size_ is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
             node._size.width + this.spacing,
             max_height_by_depth[node.depth] + this.spacing,
           ];
@@ -800,12 +854,15 @@ export class D3BehaviorTreeEditor extends Component<
     // Move new nodes to their starting positions
     g_vertex
       .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>(".node")
-      // @ts-ignore
+
+      // TODO: Find a better way to handle this: _entering is not an official attribute of HierarchyNode, but exists in practice!
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
       .filter((d) => d._entering)
       .attr("transform", (d: FlextreeNode<TrimmedNode>) => {
         // Start at parent position
         const p = this.findExistingParent(d);
-        //@ts-ignore
+
         return (
           "translate(" +
           Math.round(p.x) +
@@ -843,9 +900,11 @@ export class D3BehaviorTreeEditor extends Component<
             const parent = this.findExistingParent(
               d.source as FlextreeNode<TrimmedNode>
             );
-            //@ts-ignore
             return [
               Math.round(parent.x),
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
               Math.round(parent.y + parent._size.height),
             ];
           })
@@ -853,7 +912,6 @@ export class D3BehaviorTreeEditor extends Component<
             const parent = this.findExistingParent(
               d.target as FlextreeNode<TrimmedNode>
             );
-            //@ts-ignore
             return [Math.round(parent.x), Math.round(parent.y)];
           })
       )
@@ -862,6 +920,8 @@ export class D3BehaviorTreeEditor extends Component<
     g_vertex
       .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>(".node")
       .each(function (d) {
+        // TODO: Find a better way to handle this: _entering is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         d._entering = false;
       });
@@ -874,15 +934,19 @@ export class D3BehaviorTreeEditor extends Component<
         d3
           .linkVertical<d3.HierarchyLink<TrimmedNode>, [number, number]>()
           .source(function (d) {
-            let source: FlextreeNode<TrimmedNode> =
+            const source: FlextreeNode<TrimmedNode> =
               d.source as FlextreeNode<TrimmedNode>;
-            //@ts-ignore
             return [
               Math.round(source.x),
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
               Math.round(source.y + source._size.height),
             ];
           })
           .target(function (d) {
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             return [Math.round(d.target.x), Math.round(d.target.y)];
           })
@@ -901,15 +965,21 @@ export class D3BehaviorTreeEditor extends Component<
       .duration(250)
       .attr("transform", function (d) {
         // animate to actual position
-        //@ts-ignore
         return (
           "translate(" +
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
           Math.round(d.x - d._size.width / 2.0) +
           "," +
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
           Math.round(d.y) +
           ") scale(1.0)"
         );
       });
+
     node
       .selectAll<HTMLBodyElement, FlextreeNode<TrimmedNode>>(".btnode")
       .transition()
@@ -947,6 +1017,8 @@ export class D3BehaviorTreeEditor extends Component<
   }
 
   findExistingParent(d: FlextreeNode<TrimmedNode>): FlextreeNode<TrimmedNode> {
+    // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     //@ts-ignore
     while (d._entering && d.parent && d.parent._size) {
       d = d.parent;
@@ -998,7 +1070,7 @@ export class D3BehaviorTreeEditor extends Component<
     // 2. Move dropped node to this node's position
     d3.select<SVGGElement, any>(this.svg_ref.current!)
       .select<SVGGElement>("g.vertices")
-      .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>(".node")
+      .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(".node")
       .each((d) => {
         // No drop options at the root of the tree (__forest_root)!
         if (!d.parent) {
@@ -1018,21 +1090,28 @@ export class D3BehaviorTreeEditor extends Component<
             .attr("class", "drop_target")
             .attr(
               "transform",
-              //@ts-ignore
               "translate(" +
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
                 (d.x - this.spacing - d._size.width * 0.5) +
                 "," +
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
                 d.y +
                 ")"
             )
             .attr("width", this.spacing)
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             .attr("height", d._size.height)
             .datum({
               position: my_index, // insert before this node
               replace: false,
               data: d.parent.data,
-            });
+            } as DropTarget);
         }
         // Right drop target
         g_droptargets
@@ -1040,17 +1119,21 @@ export class D3BehaviorTreeEditor extends Component<
           .attr("class", "drop_target")
           .attr(
             "transform",
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             "translate(" + (d.x + d._size.width * 0.5) + "," + d.y + ")"
           )
           .attr("width", this.spacing)
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           .attr("height", d._size.height)
           .datum({
             position: my_index + 1, // insert after this node
             replace: false,
             data: d.parent.data,
-          });
+          } as DropTarget);
 
         // Center drop target (on a node)
         g_droptargets
@@ -1058,18 +1141,24 @@ export class D3BehaviorTreeEditor extends Component<
           .attr("class", "drop_target")
           .attr(
             "transform",
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             "translate(" + (d.x - d._size.width * 0.5) + "," + d.y + ")"
           )
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           .attr("width", d._size.width)
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           .attr("height", d._size.height)
           .datum({
             position: -1,
             replace: true, // replace this node
             data: d.data,
-          });
+          } as DropTarget);
 
         // Top drop target
         g_droptargets
@@ -1077,13 +1166,20 @@ export class D3BehaviorTreeEditor extends Component<
           .attr("class", "drop_target")
           .attr(
             "transform",
-            //@ts-ignore
             "translate(" +
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
               (d.x - d._size.width * 0.5) +
               "," +
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
               (d.y - this.spacing * 0.5) +
               ")"
           )
+          // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
           .attr("width", d._size.width)
           .attr("height", this.spacing * 0.45)
@@ -1093,7 +1189,7 @@ export class D3BehaviorTreeEditor extends Component<
             position: my_index,
             replace: true,
             data: d.parent.data,
-          });
+          } as DropTarget);
 
         //Bottom drop target
         const child_names = d.data.child_names || [];
@@ -1109,13 +1205,20 @@ export class D3BehaviorTreeEditor extends Component<
             .attr("class", "drop_target")
             .attr(
               "transform",
-              //@ts-ignore
               "translate(" +
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
                 (d.x - d._size.width * 0.5) +
                 "," +
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
                 (d.y + d._size.height) +
                 ")"
             )
+            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
             .attr("width", d._size.width)
             .attr("height", this.spacing * 0.45)
@@ -1124,18 +1227,19 @@ export class D3BehaviorTreeEditor extends Component<
               position: 0,
               replace: false,
               data: d.data,
-            });
+            } as DropTarget);
         }
       });
 
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     g_droptargets
-      .selectAll(".drop_target")
+      .selectAll<d3.BaseType, DropTarget>(".drop_target")
       .attr("opacity", 0.2)
-      .on("mouseover", function (d, index, group) {
+      .on("mouseover", (d, index, group) => {
         that.dropTargetDefaultMouseoverHandler(this, d);
       })
-      .on("mouseout", function (d, index, group) {
+      .on("mouseout", (d, index, group) => {
         that.dropTargetDefaultMouseoutHandler(this, d);
       });
 
@@ -1159,7 +1263,7 @@ export class D3BehaviorTreeEditor extends Component<
         position: -1,
         replace: true, // replace this node
         data: null,
-      })
+      } as DropTarget)
       .on("mouseover", function (d, index, group) {
         that.dropTargetDefaultMouseoverHandler(this, d);
       })
@@ -1169,15 +1273,15 @@ export class D3BehaviorTreeEditor extends Component<
   }
 
   drawDataGraph(
-    g_data: d3.Selection<SVGGElement, unknown, SVGGElement, unknown>,
+    g_data: d3.Selection<SVGGElement, never, SVGGElement, unknown>,
     data: d3.HierarchyNode<TrimmedNode>[],
     wirings: NodeDataWiring[]
   ) {
     const edges = g_data.select<SVGGElement>("g.data_edges");
     const vertices = g_data.select<SVGGElement>("g.data_vertices");
 
-    const input_vertex_data = [];
-    const output_vertex_data = [];
+    const input_vertex_data: DataEdgePoints = [];
+    const output_vertex_data: DataEdgePoints = [];
     data.forEach((x) => {
       Array.prototype.push.apply(
         input_vertex_data,
@@ -1220,7 +1324,7 @@ export class D3BehaviorTreeEditor extends Component<
     this.drawDataEdges(
       edges,
       wirings.map(
-        function (wiring) {
+        (wiring) => {
           const start = this.getIOCoords(
             data,
             wiring.source.node_name,
@@ -1229,7 +1333,7 @@ export class D3BehaviorTreeEditor extends Component<
             /*centered=*/ true
           );
 
-          const two = {
+          const two: DataEdgePoint = {
             x: start.x,
             y: start.y - 2,
           };
@@ -1250,7 +1354,7 @@ export class D3BehaviorTreeEditor extends Component<
             /*centered=*/ true
           );
 
-          const three = {
+          const three: DataEdgePoint = {
             x: target.x,
             y: target.y - 2,
           };
@@ -1276,13 +1380,13 @@ export class D3BehaviorTreeEditor extends Component<
             },
             points: [start, two, three, target],
           };
-        }.bind(this)
+        }
       )
     );
   }
 
-  getIOCoords(node_data, node_name, data_kind, data_key, centered) {
-    const node = node_data.find((d) => d.data.name === node_name);
+  getIOCoords(node_data: d3.HierarchyNode<TrimmedNode>[], node_name: string, data_kind: string, data_key: string, centered: boolean): DataEdgeTerminal {
+    const node = node_data.find((d) => d.data.name === node_name)!;
     return this.getIOCoordsFromNode(node, data_key, data_kind, centered);
   }
 
@@ -1291,23 +1395,24 @@ export class D3BehaviorTreeEditor extends Component<
     data_key: string,
     data_kind: string,
     centered: boolean
-  ) {
+  ): DataEdgeTerminal {
     centered = centered || false;
 
     if (!node) {
       // Shouldn't really happen...
-      return { x: 0, y: 0, gripperSize: 0 };
+      return { x: 0, y: 0, gripperSize: 0, key: "", kind: "", nodeName: "", type: "" };
     }
 
     let coords = null;
-    const inputs = [];
-    const outputs = [];
 
     if (data_kind === "inputs") {
       coords = this.getGripperCoords(
         node.data.inputs.findIndex((x) => x.key === data_key) || 0,
         /*right=*/ false,
         this.io_gripper_size,
+
+        // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         node._size.width
       );
@@ -1316,6 +1421,8 @@ export class D3BehaviorTreeEditor extends Component<
         node.data.outputs.findIndex((x) => x.key === data_key) || 0,
         /*right=*/ true,
         this.io_gripper_size,
+        // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         node._size.width
       );
@@ -1323,8 +1430,12 @@ export class D3BehaviorTreeEditor extends Component<
       // For things that are neither inputs nor outputs, just draw a
       // line to the center of the node
       coords = {
+        // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         x: 0.5 * node._size.width,
+        // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         //@ts-ignore
         y: 0.5 * node._size.height,
       };
@@ -1335,18 +1446,22 @@ export class D3BehaviorTreeEditor extends Component<
       coords.y += this.io_gripper_size * 0.5;
     }
     return {
+      key: "", kind: "", nodeName: "", type: "",
+      // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       x: node.x + coords.x,
+      // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       y: node.y + coords.y,
-      gripperSize: this.io_gripper_size,
+      gripperSize: this.io_gripper_size
     };
   }
-
-  drawDataEdges(edge_selection, edge_data) {
+  drawDataEdges(edge_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>, edge_data: EdgeData[]) {
     let link = edge_selection
-      .selectAll(".data-link")
-      .data(
+      .selectAll<SVGPathElement, EdgeData>(".data-link")
+      .data<EdgeData>(
         edge_data,
         (d) => JSON.stringify(d.source) + JSON.stringify(d.target)
       );
@@ -1361,9 +1476,9 @@ export class D3BehaviorTreeEditor extends Component<
       .on("mouseout", this.DataEdgeDefaultMouseoutHandler)
       .merge(link);
 
-    link.transition().attr("d", function (d) {
+    link.transition().attr("d", (d) => {
       const lineGen = d3
-        .line()
+        .line<DataEdgePoint | DataEdgeTerminal>()
         .x((d) => d.x)
         .y((d) => d.y)
         .curve(d3.curveCatmullRom.alpha(0.9));
@@ -1371,9 +1486,9 @@ export class D3BehaviorTreeEditor extends Component<
     });
   }
 
-  drawDataVerts(vertex_selection, input_vertex_data, output_vertex_data) {
+  drawDataVerts(vertex_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>, input_vertex_data: DataEdgeTerminal[], output_vertex_data: DataEdgeTerminal[]) {
     let groups = vertex_selection
-      .selectAll(".gripper-group")
+      .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
       .data(
         input_vertex_data.concat(output_vertex_data),
         (d) => d.nodeName + d.kind + d.key
@@ -1392,7 +1507,7 @@ export class D3BehaviorTreeEditor extends Component<
       return "translate(" + Math.round(d.x) + ", " + Math.round(d.y) + ")";
     });
 
-    let grippers = groups.selectAll(".gripper").data((d) => [d]);
+    let grippers = groups.selectAll<SVGRectElement, DataEdgeTerminal>(".gripper").data((d) => [d]);
     grippers.exit().remove();
 
     grippers = grippers
@@ -1404,7 +1519,7 @@ export class D3BehaviorTreeEditor extends Component<
       .on("mousedown", this.IOGripperMousedownHandler.bind(this))
       .merge(grippers);
 
-    let labels = groups.selectAll(".label").data((d) => [d]);
+    let labels = groups.selectAll<SVGTextElement, DataEdgeTerminal>(".label").data((d) => [d]);
     labels.exit().remove();
 
     labels = labels
@@ -1778,7 +1893,7 @@ export class D3BehaviorTreeEditor extends Component<
       this.dragging = true;
       // Hide all drop targets that would lead to appending the dragged
       // node to its own subtree
-      var d = this.draggedNode.data;
+      const d = this.draggedNode.data;
       const parentName = d.parent ? d.parent.data.name || "" : "";
       const my_index = d.parent!.children!.findIndex(
         (x) => x.data.name == d.data.name
@@ -1793,7 +1908,7 @@ export class D3BehaviorTreeEditor extends Component<
       g_droptargets.attr("visibility", "visible");
 
       g_droptargets
-        .selectAll<any, FlextreeNode<TrimmedNode>>(".drop_target")
+        .selectAll<any, FlextreeNode<DropTarget>>(".drop_target")
         // First ensure all drop targets are visible
         .attr("visibility", "visible")
         // Now hide those that belong to descendants of the node we're dragging
@@ -1837,12 +1952,12 @@ export class D3BehaviorTreeEditor extends Component<
   }
 
   canvasNodeDragUpHandler(
-    d: FlextreeNode<TrimmedNode>,
+    d: d3.HierarchyNode<TrimmedNode>,
     index: number,
     group: any
   ) {
     if (this.dragging) {
-      if (this.nodeDropTarget) {
+      if (this.nodeDropTarget !== null) {
         // Calculate the final index to move the dropped node to.
         //
         // If the target is in the same parent node, and after the
@@ -2003,7 +2118,7 @@ export class D3BehaviorTreeEditor extends Component<
       .on("mouseup.drag_node", null);
   }
 
-  nodeClickHandler(d: FlextreeNode<TrimmedNode>, index: number, group: any) {
+  nodeClickHandler(d: d3.HierarchyNode<TrimmedNode>, index: number, group: any) {
     if (d3.event.shiftKey) {
       this.props.onMultipleSelectionChange(
         Array.from(new Set(this.props.selectedNodeNames.concat([d.data.name])))
@@ -2015,7 +2130,7 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  nodeDoubleClickHandler(d: FlextreeNode<TrimmedNode>, index: any, group: any) {
+  nodeDoubleClickHandler(d: d3.HierarchyNode<TrimmedNode>, index: any, group: any) {
     if (
       d.data.module === "ros_bt_py.nodes.subtree" &&
       d.data.node_class === "Subtree"
@@ -2044,7 +2159,7 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  nodeMousedownHandler(d: FlextreeNode<TrimmedNode>, domObject: any) {
+  nodeMousedownHandler(d: d3.HierarchyNode<TrimmedNode>, domObject: any) {
     if ((d3.event.buttons & 1) != 1) {
       return;
     }
@@ -2074,12 +2189,12 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  dropTargetDefaultMouseoverHandler(domElement: any, datum: TrimmedNode) {
+  dropTargetDefaultMouseoverHandler(domElement: any, datum: DropTarget) {
     this.nodeDropTarget = datum;
     d3.select(domElement).attr("opacity", 0.8);
   }
 
-  dropTargetDefaultMouseoutHandler(domElement: any, datum: TrimmedNode) {
+  dropTargetDefaultMouseoutHandler(domElement: any, datum: DropTarget) {
     this.nodeDropTarget = null;
     d3.select(domElement).attr("opacity", 0.2);
   }

@@ -11,13 +11,13 @@ import React from "react";
 import ROSLIB from "roslib";
 import { AddNodeRequest, AddNodeResponse } from "../types/services/AddNode";
 
-interface NewNodeProps {
+export interface NewNodeProps {
   ros: ROSLIB.Ros;
   bt_namespace: string;
   node: DocumentedNode;
   availableNodes: DocumentedNode[];
   parents: NodeMsg[];
-  messagesFuse: Fuse<Message>;
+  messagesFuse: Fuse<Message> | undefined;
   onError: (error_message: string) => void;
   onNodeChanged: (state: boolean) => void;
   changeCopyMode: (state: boolean) => void;
@@ -28,7 +28,7 @@ interface ParamData {
   value: { type: string; value: any };
 }
 
-interface NewNodeState {
+export interface NewNodeState {
   name: string;
   isValid: boolean;
   options: ParamData[];
@@ -43,7 +43,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
     super(props);
 
     if (props.node) {
-      let options_list = this.getDefaultValues(props.node.options);
+      const options_list = this.getDefaultValues(props.node.options);
 
       // reparse unset_optionrefs
       this.state = {
