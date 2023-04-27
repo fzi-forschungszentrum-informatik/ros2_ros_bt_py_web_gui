@@ -1,4 +1,4 @@
-export interface ContinueRequest {}
+export type ContinueRequest = Record<string, never>;
 
 export interface ContinueResponse {
   success: boolean;

@@ -1,4 +1,4 @@
-import { ChangeEvent, Component, KeyboardEvent } from "react";
+import React, { ChangeEvent, Component, KeyboardEvent } from "react";
 import { Package, TreeMsg } from "../types/types";
 import Fuse from "fuse.js";
 import ROSLIB from "roslib";
@@ -229,7 +229,9 @@ export class MultipleSelection extends Component<
     }
   }
 
-  updateValidity() {}
+  updateValidity() {
+    // do nothing.
+  }
 
   // FIXME this is temporary...!!!
   setFilename(event: ChangeEvent<HTMLInputElement>) {

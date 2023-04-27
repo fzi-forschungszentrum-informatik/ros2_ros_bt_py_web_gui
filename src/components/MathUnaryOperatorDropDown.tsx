@@ -1,4 +1,4 @@
-import { ChangeEvent, Component } from "react";
+import React, { ChangeEvent, Component } from "react";
 
 interface MathUnaryOperatorDropDownProps {
   json: any;

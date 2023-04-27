@@ -1,4 +1,4 @@
-import { ChangeEvent, Component } from "react";
+import React, { ChangeEvent, Component } from "react";
 
 interface PackageLoaderProps {
   getNodes: (package_name: string) => void;

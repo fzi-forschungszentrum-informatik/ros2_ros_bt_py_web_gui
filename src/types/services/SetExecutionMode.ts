@@ -5,4 +5,4 @@ export interface SetExecutionModeRequest {
   collect_node_diagnostics: boolean;
 }
 
-export interface SetExecutionModeResponse {}
+export type SetExecutionModeResponse = Record<string, never>;

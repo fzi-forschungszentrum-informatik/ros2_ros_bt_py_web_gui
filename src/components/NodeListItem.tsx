@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import { getShortDoc, prettyprint_type } from "../utils";
 import { DocumentedNode, NodeData } from "../types/types";
 

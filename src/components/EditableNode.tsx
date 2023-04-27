@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Fragment, KeyboardEventHandler } from "react";
+import React, { ChangeEvent, Fragmen } from "react";
 import { Component } from "react";
 import ROSLIB from "roslib";
 import { DropDown } from "./DropDown";
@@ -130,12 +130,13 @@ export class EditableNode extends Component<
                   result_type: "Result",
                 };
                 type_name = x.msg.split(".").pop()!;
-                //@ts-ignore
-                const action_name = type_name.replace(action_types[key], "");
+                const action_name = type_name.replace(
+                  action_types[key as keyof typeof action_types],
+                  ""
+                );
                 replace_regex = new RegExp(type_name, "g");
                 for (const action_type in action_types) {
                   if (key !== action_type) {
-                    //@ts-ignore
                     this.updateValue(
                       "options",
                       action_type,
@@ -158,12 +159,13 @@ export class EditableNode extends Component<
                   response_type: "Response",
                 };
                 type_name = x.msg.split(".").pop()!;
-                //@ts-ignore
-                const service_name = type_name.replace(service_types[key], "");
+                const service_name = type_name.replace(
+                  service_types[key as keyof typeof service_types],
+                  ""
+                );
                 replace_regex = new RegExp(type_name + "$");
                 for (const service_type in service_types) {
                   if (key !== service_type) {
-                    //@ts-ignore
                     this.updateValue(
                       "options",
                       service_type,
@@ -387,8 +389,12 @@ export class EditableNode extends Component<
     onNewValue: (new_value: any) => void
   ) {
     const valueType = paramItem.value.type;
-    let changeHandler = (_event: React.ChangeEvent<HTMLInputElement>) => {};
-    let keyPressHandler = (_event: React.KeyboardEvent<HTMLInputElement>) => {};
+    let changeHandler = (_event: React.ChangeEvent<HTMLInputElement>) => {
+      // do nothing.
+    };
+    let keyPressHandler = (_event: React.KeyboardEvent<HTMLInputElement>) => {
+      // do nothing.
+    };
 
     if (valueType === "int") {
       // Number input with integer increments

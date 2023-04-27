@@ -1,4 +1,4 @@
-import { ChangeEvent, Component } from "react";
+import React, { ChangeEvent, Component } from "react";
 import ROSLIB from "roslib";
 import { Package, PackageStructure, TreeMsg } from "../types/types";
 import Fuse from "fuse.js";

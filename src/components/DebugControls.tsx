@@ -1,4 +1,4 @@
-import { ChangeEvent, Component, Fragment } from "react";
+import React, { ChangeEvent, Component, Fragment } from "react";
 import ROSLIB from "roslib";
 import { DebugSettings } from "../types/types";
 import {

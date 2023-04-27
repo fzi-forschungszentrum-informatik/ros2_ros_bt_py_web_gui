@@ -1,13 +1,13 @@
-import { ChangeEvent, Component } from "react";
+import React, { ChangeEvent, Component } from "react";
 import { EditableNode } from "./EditableNode";
 import { DocumentedNode, Message, NodeData, NodeMsg } from "../types/types";
 import Fuse from "fuse.js";
 import {
+  ValueTypes,
   getDefaultValue,
   prettyprint_type,
   python_builtin_types,
 } from "../utils";
-import React from "react";
 import ROSLIB from "roslib";
 import { AddNodeRequest, AddNodeResponse } from "../types/services/AddNode";
 
@@ -25,7 +25,7 @@ export interface NewNodeProps {
 
 interface ParamData {
   key: string;
-  value: { type: string; value: any };
+  value: { type: string; value: ValueTypes };
 }
 
 export interface NewNodeState {
@@ -146,7 +146,9 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
           options={this.state.options}
           inputs={this.state.inputs}
           outputs={this.state.outputs}
-          nodeClassChangeHandler={(event) => {}}
+          nodeClassChangeHandler={(_event) => {
+            // do nothing.
+          }}
         />
       </div>
     );

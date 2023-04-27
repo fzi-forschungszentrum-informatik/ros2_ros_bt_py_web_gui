@@ -1,4 +1,4 @@
-import { Component } from "react";
+import React, { Component } from "react";
 import { NodeListItem } from "./NodeListItem";
 import { DocumentedNode, NodeMsg } from "../types/types";
 

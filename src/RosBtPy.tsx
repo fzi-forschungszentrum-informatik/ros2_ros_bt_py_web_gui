@@ -9,7 +9,7 @@ import "./utils";
 import ROSLIB from "roslib";
 import Fuse from "fuse.js";
 
-import * as ReactModal from "react-modal";
+import ReactModal from "react-modal";
 
 import { MultipleSelection } from "./components/MultipleSelection";
 import { NewNode } from "./components/NewNode";
@@ -42,9 +42,15 @@ import {
 } from "./types/services/GetAvailableNodes";
 import { TreeExecutionCommands } from "./types/services/ControlTreeExecution";
 import { error_id } from "./utils";
-import {AddNodeRequest, AddNodeResponse} from "./types/services/AddNode.ts";
-import {RemoveNodeRequest, RemoveNodeResponse} from "./types/services/RemoveNode.ts";
-import {SetExecutionModeRequest, SetExecutionModeResponse} from "./types/services/SetExecutionMode.ts";
+import { AddNodeRequest, AddNodeResponse } from "./types/services/AddNode";
+import {
+  RemoveNodeRequest,
+  RemoveNodeResponse,
+} from "./types/services/RemoveNode";
+import {
+  SetExecutionModeRequest,
+  SetExecutionModeResponse,
+} from "./types/services/SetExecutionMode";
 
 interface AppState {
   bt_namespace: string;
@@ -90,7 +96,7 @@ interface AppState {
 
 interface AppProps {}
 
-class App extends Component<AppProps, AppState> {
+export class RosBtPyApp extends Component<AppProps, AppState> {
   nodes_fuse: Fuse<DocumentedNode> | null;
   tree_topic: ROSLIB.Topic<TreeMsg>;
   debug_topic: ROSLIB.Topic<DebugInfo>;
@@ -101,7 +107,10 @@ class App extends Component<AppProps, AppState> {
   > | null;
   add_node_service: ROSLIB.Service<AddNodeRequest, AddNodeResponse>;
   remove_node_service: ROSLIB.Service<RemoveNodeRequest, RemoveNodeResponse>;
-  set_execution_mode_service: ROSLIB.Service<SetExecutionModeRequest, SetExecutionModeResponse>;
+  set_execution_mode_service: ROSLIB.Service<
+    SetExecutionModeRequest,
+    SetExecutionModeResponse
+  >;
   packages_topic: ROSLIB.Topic<Packages>;
   lastTreeUpdate: number | null;
   topicTimeoutID: number | null;
@@ -302,12 +311,14 @@ class App extends Component<AppProps, AppState> {
       }
       if (setup_and_shutdown) {
         this.set_execution_mode_service.callService(
-          new ROSLIB.ServiceRequest({
+          {
             single_step: false,
             publish_subtrees: true,
             collect_performance_data: false,
-          }),
-          function (response: any) {}.bind(this)
+          } as SetExecutionModeRequest,
+          (_response: SetExecutionModeResponse) => {
+            console.debug("Set execution mode response received!");
+          }
         );
       }
     }
@@ -688,16 +699,12 @@ class App extends Component<AppProps, AppState> {
           }
 
           this.add_node_service.callService(
-            new ROSLIB.ServiceRequest({
+            {
               parent_name: parent,
               node: this.state.copied_node,
               allow_rename: true,
-            }),
-            (response: {
-              success: any;
-              actual_node_name: string;
-              error_message: string;
-            }) => {
+            } as AddNodeRequest,
+            (response: AddNodeResponse) => {
               if (response.success) {
                 console.log(
                   "Added node to tree as " + response.actual_node_name
@@ -737,11 +744,11 @@ class App extends Component<AppProps, AppState> {
 
           if (window.confirm(remove_nodes_text)) {
             this.remove_node_service.callService(
-              new ROSLIB.ServiceRequest({
+              {
                 node_name: this.state.selected_node.name,
                 remove_children: remove_children,
-              }),
-              (response: { success: any; error_message: string }) => {
+              } as RemoveNodeRequest,
+              (response: RemoveNodeResponse) => {
                 if (response.success) {
                   console.log("Removed node from tree");
                   this.onEditorSelectionChange(null);
@@ -878,7 +885,7 @@ class App extends Component<AppProps, AppState> {
       return;
     }
 
-    let doc_node = new_selected_node as DocumentedNode;
+    const doc_node = new_selected_node as DocumentedNode;
 
     this.setState((prevState, props) => ({
       copy_node: true,
@@ -1280,4 +1287,4 @@ class App extends Component<AppProps, AppState> {
   }
 }
 
-export default App;
+export default RosBtPyApp;

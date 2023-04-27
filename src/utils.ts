@@ -1,6 +1,5 @@
-import { FlextreeNode } from "d3-flextree";
-import { NodeData, TreeMsg } from "./types/types";
-import { TrimmedNode } from "./components/D3BehaviorTreeEditor";
+import { NodeData, NodeDataLocation, TreeMsg } from "./types/types";
+import { DataEdgeTerminal } from "./components/D3BehaviorTreeEditor";
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
 let idx = 0;
@@ -10,7 +9,7 @@ export const uuid = () => idx++;
 let error_idx = 0;
 export const error_id = () => error_idx++;
 
-export function typesCompatible(a: any, b: any) {
+export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   if (a.nodeName === b.nodeName) {
     return false;
   }
@@ -86,10 +85,23 @@ export function prettyprint_type(jsonpickled_type: string) {
   return "Unknown type object: " + jsonpickled_type;
 }
 
+export type ValueTypes = string | boolean | number | [] | Record<string, never> | { "py/reduce": ({ "py/type": string; } | { "py/tuple": never[][]; } | null)[]} | {
+  "py/object": string,
+  logger_level: number,
+} | {
+  "py/object": string,
+  operator: string,
+} | {
+  "py/object": string,
+  operand_type: string,
+} | {"py/object": string,
+enum_value: string,
+field_names: string[],}
+
 export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
-): { type: string; value: any } {
+): { type: string; value: ValueTypes } {
   if (typeName === "type") {
     return {
       type: "type",
@@ -135,7 +147,13 @@ export function getDefaultValue(
       "OptionRef(".length,
       typeName.length - 1
     );
-    const optionType = options!.find((x) => {
+    if (options === null) {
+      return {
+        type: "unset_optionref",
+        value: 'Ref to "' + optionTypeName + '"',
+      };
+    }
+    const optionType = options.find((x) => {
       return x.key === optionTypeName;
     });
     if (optionType) {
@@ -158,22 +176,6 @@ export function getDefaultValue(
           null,
         ],
       },
-    };
-  } else if (
-    typeName === "CapabilityType" ||
-    typeName === "bt_capabilities.nodes.capability.CapabilityType"
-  ) {
-    return {
-      type: "bt_capabilities.nodes.capability.CapabilityType",
-      value: { capability: "" },
-    };
-  } else if (
-    typeName === "ImplementationType" ||
-    typeName === "bt_capabilities.nodes.capability.ImplementationType"
-  ) {
-    return {
-      type: "bt_capabilities.nodes.capability.ImplementationType",
-      value: { implementation: "" },
     };
   } else if (typeName === "ros_bt_py.ros_helpers.LoggerLevel") {
     return {
@@ -244,21 +246,21 @@ export function treeIsEditable(tree_msg: TreeMsg) {
 
 export function selectIOGripper(
   vertex_selection: d3.Selection<
-    d3.BaseType,
-    FlextreeNode<TrimmedNode>,
+    SVGGElement,
+    unknown,
     d3.BaseType,
     unknown
   >,
-  data: any
+  data: NodeDataLocation
 ) {
   return vertex_selection
-    .selectAll(
+    .selectAll<SVGGElement, DataEdgeTerminal>(
       "." +
         data.data_kind.substring(0, data.data_kind.length - 1) +
         "-gripper-group"
     )
-    .filter((d: any) => d.nodeName === data.node_name)
-    .filter((d: any) => d.key === data.data_key);
+    .filter((d: DataEdgeTerminal) => d.nodeName === data.node_name)
+    .filter((d: DataEdgeTerminal) => d.key === data.data_key);
 }
 
 export function getMessageType(str: string) {
@@ -291,26 +293,4 @@ export function getShortDoc(doc: string) {
       return doc.substring(0, index).trim();
     }
   }
-}
-
-export function uniqueArray(array: any[], property: string) {
-  return array.filter((object, position, array) => {
-    return (
-      array
-        .map((mapObject) => mapObject[property])
-        .indexOf(object[property]) === position
-    );
-  });
-}
-
-// see: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/Reduce#grouping_objects_by_a_property
-export function groupBy(objectArray: any[], property: string) {
-  return objectArray.reduce(function (acc, obj) {
-    const key = obj[property];
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(obj);
-    return acc;
-  }, {});
 }

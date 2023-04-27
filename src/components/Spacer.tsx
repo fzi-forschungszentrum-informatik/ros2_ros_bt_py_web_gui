@@ -1,6 +1,6 @@
-import { Component, Fragment } from "react";
+import React, { Component, Fragment } from "react";
 
-interface SpacerProps {}
+type SpacerProps = Record<string, never>;
 
 export class Spacer extends Component<SpacerProps> {
   constructor(props: SpacerProps) {

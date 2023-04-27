@@ -1,4 +1,4 @@
-import { ChangeEvent, Component } from "react";
+import React, { ChangeEvent, Component } from "react";
 import { EditableNode } from "./EditableNode";
 import { DocumentedNode, Message, NodeData, NodeMsg } from "../types/types";
 import ROSLIB from "roslib";
@@ -37,8 +37,8 @@ interface SelectedNodeProps {
 interface ParamData {
   key: string;
   value: {
-    type: any;
-    value: any;
+    type: string;
+    value: unknown;
   };
 }
 

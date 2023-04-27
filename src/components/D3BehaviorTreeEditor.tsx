@@ -1,11 +1,12 @@
 //TODO: Remove this with proper typing
-import { Component, createRef } from "react";
+import React, { Component, createRef } from "react";
 import {
   DocumentedNode,
-  NodeData, NodeDataLocation,
+  NodeData,
+  NodeDataLocation,
   NodeDataWiring,
   NodeMsg,
-  TreeMsg
+  TreeMsg,
 } from "../types/types";
 import * as d3 from "d3";
 import ROSLIB from "roslib";
@@ -42,7 +43,7 @@ interface D3BehaviorTreeEditorProps {
   onSelectionChange: (new_selected_node_name: string | null) => void;
   onMultipleSelectionChange: (new_selected_node_names: string[] | null) => void;
   selectedNodeNames: string[];
-  onSelectedEdgeChange: (new_selected_edge: any) => void;
+  onSelectedEdgeChange: (new_selected_edge: EdgeData | null) => void;
   showDataGraph: boolean;
   onSelectedTreeChange: (is_subtree: boolean, name: string) => void;
   onNodeListDragging: (dragging: DocumentedNode | null) => void;
@@ -66,31 +67,31 @@ export interface TrimmedNode {
   options: TrimmedNodeData[];
 }
 
-interface DataEdgePoint {
-  x: number,
-  y: number
+export interface DataEdgePoint {
+  x: number;
+  y: number;
 }
 
-interface DataEdgeTerminal extends  DataEdgePoint {
-  gripperSize: number,
-  nodeName: string,
-  key: string,
-  kind: string,
-  type: string
+export interface DataEdgeTerminal extends DataEdgePoint {
+  gripperSize: number;
+  nodeName: string;
+  key: string;
+  kind: string;
+  type: string;
 }
 
-type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]
+type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[];
 
 interface EdgeData {
-  source: NodeDataLocation,
-  target: NodeDataLocation,
-  points: DataEdgePoints
+  source: NodeDataLocation;
+  target: NodeDataLocation;
+  points: DataEdgePoints;
 }
 
 interface DropTarget {
-  replace: boolean,
-  data: TrimmedNode | null,
-  position: number
+  replace: boolean;
+  data: TrimmedNode | null;
+  position: number;
 }
 
 export class D3BehaviorTreeEditor extends Component<
@@ -102,17 +103,17 @@ export class D3BehaviorTreeEditor extends Component<
   io_gripper_spacing: number;
   io_gripper_size: number;
   max_io_gripper_size: number;
-  nextWiringSource: null;
-  nextWiringTarget: null;
+  nextWiringSource: DataEdgeTerminal | null;
+  nextWiringTarget: DataEdgeTerminal | null;
   draggedNode: {
     startCoords: [number, number];
     domObject: SVGForeignObjectElement;
-    data: FlextreeNode<TrimmedNode>;
+    data: d3.HierarchyNode<TrimmedNode>;
   } | null;
   dragging: boolean;
   zoomObject?: d3.ZoomBehavior<SVGSVGElement, unknown>;
   dragPanBoundary: number;
-  panIntervalID: null;
+  panIntervalID: number | null;
   panDirection: number[];
   panRate: number;
   panPerFrame: number;
@@ -127,7 +128,7 @@ export class D3BehaviorTreeEditor extends Component<
   svg_ref: React.RefObject<SVGGElement>;
   viewport_ref: React.RefObject<SVGSVGElement>;
   nodeDropTarget: DropTarget | null;
-  selection: any;
+  selection: boolean;
   mouse_moved: boolean;
   start_y?: number;
   start_x?: number;
@@ -151,6 +152,8 @@ export class D3BehaviorTreeEditor extends Component<
 
     this.draggedNode = null;
     this.dragging = false;
+
+    this.selection = false;
 
     // ### Pan and zoom stuff ###
     // Begin panning if the mouse is less than this away from the
@@ -211,7 +214,9 @@ export class D3BehaviorTreeEditor extends Component<
 
   componentDidMount() {
     // Give Viewport pan / zoom
-    const viewport = d3.select<SVGSVGElement, any>(this.viewport_ref.current!);
+    const viewport = d3.select<SVGSVGElement, unknown>(
+      this.viewport_ref.current!
+    );
     const width = viewport.node()!.getBoundingClientRect().width;
     const height = viewport.node()!.getBoundingClientRect().height;
     const viewport_x = viewport.node()!.getBoundingClientRect().x;
@@ -221,7 +226,7 @@ export class D3BehaviorTreeEditor extends Component<
       console.log("mouseup before zoom");
     });
 
-    this.zoomObject = d3.zoom<SVGSVGElement, any>();
+    this.zoomObject = d3.zoom<SVGSVGElement, unknown>();
     const container = d3.select(this.svg_ref.current!);
 
     this.zoomObject.filter(function () {
@@ -245,8 +250,8 @@ export class D3BehaviorTreeEditor extends Component<
           onNodeChanged: (state) => {},
           parents: [],
           node: this.props.dragging_node_list_item,
-          ros: this.props.ros
-        }
+          ros: this.props.ros,
+        };
         new_node = new NewNode(new_node_props);
         msg = new_node.buildNodeMessage();
 
@@ -276,12 +281,16 @@ export class D3BehaviorTreeEditor extends Component<
               console.log("Added node to tree as " + response.actual_node_name);
             } else {
               if (msg !== null) {
-
                 this.props.onError(
-                  "Failed to add node " + msg.name + ": " + response.error_message
+                  "Failed to add node " +
+                    msg.name +
+                    ": " +
+                    response.error_message
                 );
-               } else {
-                this.props.onError("failed to add node: " + response.error_message)
+              } else {
+                this.props.onError(
+                  "failed to add node: " + response.error_message
+                );
               }
             }
           }
@@ -528,16 +537,12 @@ export class D3BehaviorTreeEditor extends Component<
 
       if (number_of_droptargets === 0) {
         g_droptargets
-          .selectAll<d3.BaseType, DropTarget>(
-            ".drop_target_root"
-          )
+          .selectAll<d3.BaseType, DropTarget>(".drop_target_root")
           .attr("visibility", "visible");
         this.resetView();
       } else {
         g_droptargets
-          .selectAll<d3.BaseType, DropTarget>(
-            ".drop_target_root"
-          )
+          .selectAll<d3.BaseType, DropTarget>(".drop_target_root")
           .attr("visibility", "hidden");
       }
       g_droptargets.attr("visibility", "visible");
@@ -732,8 +737,7 @@ export class D3BehaviorTreeEditor extends Component<
       })
       .on("dblclick", this.nodeDoubleClickHandler.bind(this));
 
-    fo
-      .append("xhtml:body")
+    fo.append("xhtml:body")
       .attr("class", "btnode p-2")
       .style("min-height", (d) => {
         // We need to ensure a minimum height, in case the node body
@@ -838,7 +842,6 @@ export class D3BehaviorTreeEditor extends Component<
         //@ts-ignore
         if (node._size) {
           return [
-
             // TODO: Find a better way to handle this: size_ is not an official attribute of HierarchyNode, but exists in practice!
             // eslint-disable-next-line @typescript-eslint/ban-ts-comment
             //@ts-ignore
@@ -849,6 +852,9 @@ export class D3BehaviorTreeEditor extends Component<
           return [1, 1];
         }
       }
+      // TODO: Find a better way to handle this: _entering is not an official attribute of HierarchyNode, but exists in practice!
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
     )(root);
 
     // Move new nodes to their starting positions
@@ -1070,7 +1076,9 @@ export class D3BehaviorTreeEditor extends Component<
     // 2. Move dropped node to this node's position
     d3.select<SVGGElement, any>(this.svg_ref.current!)
       .select<SVGGElement>("g.vertices")
-      .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(".node")
+      .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(
+        ".node"
+      )
       .each((d) => {
         // No drop options at the root of the tree (__forest_root)!
         if (!d.parent) {
@@ -1091,14 +1099,14 @@ export class D3BehaviorTreeEditor extends Component<
             .attr(
               "transform",
               "translate(" +
-              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+                // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
                 (d.x - this.spacing - d._size.width * 0.5) +
                 "," +
-              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+                // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
                 d.y +
                 ")"
             )
@@ -1167,14 +1175,14 @@ export class D3BehaviorTreeEditor extends Component<
           .attr(
             "transform",
             "translate(" +
-            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
               (d.x - d._size.width * 0.5) +
               "," +
-            // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-            //@ts-ignore
+              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+              //@ts-ignore
               (d.y - this.spacing * 0.5) +
               ")"
           )
@@ -1206,14 +1214,14 @@ export class D3BehaviorTreeEditor extends Component<
             .attr(
               "transform",
               "translate(" +
-              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+                // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
                 (d.x - d._size.width * 0.5) +
                 "," +
-              // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
-              // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-              //@ts-ignore
+                // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                //@ts-ignore
                 (d.y + d._size.height) +
                 ")"
             )
@@ -1234,12 +1242,12 @@ export class D3BehaviorTreeEditor extends Component<
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const that = this;
     g_droptargets
-      .selectAll<d3.BaseType, DropTarget>(".drop_target")
+      .selectAll<SVGRectElement, DropTarget>(".drop_target")
       .attr("opacity", 0.2)
-      .on("mouseover", (d, index, group) => {
+      .on("mouseover", function (d, index, group) {
         that.dropTargetDefaultMouseoverHandler(this, d);
       })
-      .on("mouseout", (d, index, group) => {
+      .on("mouseout", function (d, index, group) {
         that.dropTargetDefaultMouseoutHandler(this, d);
       });
 
@@ -1280,8 +1288,8 @@ export class D3BehaviorTreeEditor extends Component<
     const edges = g_data.select<SVGGElement>("g.data_edges");
     const vertices = g_data.select<SVGGElement>("g.data_vertices");
 
-    const input_vertex_data: DataEdgePoints = [];
-    const output_vertex_data: DataEdgePoints = [];
+    const input_vertex_data: DataEdgeTerminal[] = [];
+    const output_vertex_data: DataEdgeTerminal[] = [];
     data.forEach((x) => {
       Array.prototype.push.apply(
         input_vertex_data,
@@ -1323,69 +1331,73 @@ export class D3BehaviorTreeEditor extends Component<
 
     this.drawDataEdges(
       edges,
-      wirings.map(
-        (wiring) => {
-          const start = this.getIOCoords(
-            data,
-            wiring.source.node_name,
-            wiring.source.data_kind,
-            wiring.source.data_key,
-            /*centered=*/ true
-          );
+      wirings.map((wiring) => {
+        const start = this.getIOCoords(
+          data,
+          wiring.source.node_name,
+          wiring.source.data_kind,
+          wiring.source.data_key,
+          /*centered=*/ true
+        );
 
-          const two: DataEdgePoint = {
-            x: start.x,
-            y: start.y - 2,
-          };
+        const two: DataEdgePoint = {
+          x: start.x,
+          y: start.y - 2,
+        };
 
-          if (wiring.source.data_kind === "inputs") {
-            two.x = two.x - 10;
-          } else if (wiring.source.data_kind === "outputs") {
-            two.x = two.x + 10;
-          } else {
-            // two.y = two.y - 10;
-          }
-
-          const target = this.getIOCoords(
-            data,
-            wiring.target.node_name,
-            wiring.target.data_kind,
-            wiring.target.data_key,
-            /*centered=*/ true
-          );
-
-          const three: DataEdgePoint = {
-            x: target.x,
-            y: target.y - 2,
-          };
-
-          if (wiring.target.data_kind === "inputs") {
-            three.x = three.x - 10;
-          } else if (wiring.target.data_kind === "outputs") {
-            three.x = three.x + 10;
-          } else {
-            // three.y = three.y - 10;
-          }
-
-          return {
-            source: {
-              node_name: wiring.source.node_name,
-              data_kind: wiring.source.data_kind,
-              data_key: wiring.source.data_key,
-            },
-            target: {
-              node_name: wiring.target.node_name,
-              data_kind: wiring.target.data_kind,
-              data_key: wiring.target.data_key,
-            },
-            points: [start, two, three, target],
-          };
+        if (wiring.source.data_kind === "inputs") {
+          two.x = two.x - 10;
+        } else if (wiring.source.data_kind === "outputs") {
+          two.x = two.x + 10;
+        } else {
+          // two.y = two.y - 10;
         }
-      )
+
+        const target = this.getIOCoords(
+          data,
+          wiring.target.node_name,
+          wiring.target.data_kind,
+          wiring.target.data_key,
+          /*centered=*/ true
+        );
+
+        const three: DataEdgePoint = {
+          x: target.x,
+          y: target.y - 2,
+        };
+
+        if (wiring.target.data_kind === "inputs") {
+          three.x = three.x - 10;
+        } else if (wiring.target.data_kind === "outputs") {
+          three.x = three.x + 10;
+        } else {
+          // three.y = three.y - 10;
+        }
+
+        return {
+          source: {
+            node_name: wiring.source.node_name,
+            data_kind: wiring.source.data_kind,
+            data_key: wiring.source.data_key,
+          },
+          target: {
+            node_name: wiring.target.node_name,
+            data_kind: wiring.target.data_kind,
+            data_key: wiring.target.data_key,
+          },
+          points: [start, two, three, target],
+        };
+      })
     );
   }
 
-  getIOCoords(node_data: d3.HierarchyNode<TrimmedNode>[], node_name: string, data_kind: string, data_key: string, centered: boolean): DataEdgeTerminal {
+  getIOCoords(
+    node_data: d3.HierarchyNode<TrimmedNode>[],
+    node_name: string,
+    data_kind: string,
+    data_key: string,
+    centered: boolean
+  ): DataEdgeTerminal {
     const node = node_data.find((d) => d.data.name === node_name)!;
     return this.getIOCoordsFromNode(node, data_key, data_kind, centered);
   }
@@ -1400,7 +1412,15 @@ export class D3BehaviorTreeEditor extends Component<
 
     if (!node) {
       // Shouldn't really happen...
-      return { x: 0, y: 0, gripperSize: 0, key: "", kind: "", nodeName: "", type: "" };
+      return {
+        x: 0,
+        y: 0,
+        gripperSize: 0,
+        key: "",
+        kind: "",
+        nodeName: "",
+        type: "",
+      };
     }
 
     let coords = null;
@@ -1446,7 +1466,10 @@ export class D3BehaviorTreeEditor extends Component<
       coords.y += this.io_gripper_size * 0.5;
     }
     return {
-      key: "", kind: "", nodeName: "", type: "",
+      key: "",
+      kind: "",
+      nodeName: "",
+      type: "",
       // TODO: Find a better way to handle this: _size is not an official attribute of HierarchyNode, but exists in practice!
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
@@ -1455,28 +1478,74 @@ export class D3BehaviorTreeEditor extends Component<
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       //@ts-ignore
       y: node.y + coords.y,
-      gripperSize: this.io_gripper_size
+      gripperSize: this.io_gripper_size,
     };
   }
-  drawDataEdges(edge_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>, edge_data: EdgeData[]) {
-    let link = edge_selection
+  drawDataEdges(
+    edge_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>,
+    edge_data: EdgeData[]
+  ) {
+    const link1 = edge_selection
       .selectAll<SVGPathElement, EdgeData>(".data-link")
       .data<EdgeData>(
         edge_data,
         (d) => JSON.stringify(d.source) + JSON.stringify(d.target)
       );
-    link.exit().remove();
+    link1.exit().remove();
 
-    link = link
+    const link2 = link1
       .enter()
       .append("path")
       .attr("class", "data-link")
-      .on("click", this.DataEdgeDefaultClickHandler.bind(this))
-      .on("mouseover", this.DataEdgeDefaultMouseoverHandler)
-      .on("mouseout", this.DataEdgeDefaultMouseoutHandler)
-      .merge(link);
+      .on("click", (d, index, groups) => {
+        this.props.onSelectedEdgeChange(d);
+        d3.event.preventDefault();
+        d3.event.stopPropagation();
+      })
+      .on("mouseover", function (d, _index, _groups) {
+        if (
+          this.parentNode === null ||
+          this.parentElement!.parentElement === null
+        ) {
+          return;
+        }
+        const vertex_parent = this.parentNode.parentNode as SVGGElement;
 
-    link.transition().attr("d", (d) => {
+        const vertex_selection = d3
+          .select(vertex_parent)
+          .select<SVGGElement>("g.data_vertices");
+        d3.select(this).classed("data-hover", true);
+
+        // select source gripper
+        selectIOGripper(vertex_selection, d.source).dispatch("mouseover");
+
+        // select target gripper
+        selectIOGripper(vertex_selection, d.target).dispatch("mouseover");
+      })
+      .on("mouseout", function (d, _index, _groups) {
+        if (
+          this.parentNode === null ||
+          this.parentElement!.parentElement === null
+        ) {
+          return;
+        }
+        const vertex_parent = this.parentNode.parentNode as SVGGElement;
+
+        const vertex_selection = d3
+          .select(vertex_parent)
+          .select<SVGGElement>("g.data_vertices");
+
+        d3.select(this).classed("data-hover", false);
+
+        // deselect source gripper
+        selectIOGripper(vertex_selection, d.source).dispatch("mouseout");
+
+        // deselect target gripper
+        selectIOGripper(vertex_selection, d.target).dispatch("mouseout");
+      })
+      .merge(link1);
+
+    link2.transition().attr("d", (d) => {
       const lineGen = d3
         .line<DataEdgePoint | DataEdgeTerminal>()
         .x((d) => d.x)
@@ -1486,7 +1555,11 @@ export class D3BehaviorTreeEditor extends Component<
     });
   }
 
-  drawDataVerts(vertex_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>, input_vertex_data: DataEdgeTerminal[], output_vertex_data: DataEdgeTerminal[]) {
+  drawDataVerts(
+    vertex_selection: d3.Selection<SVGGElement, never, SVGGElement, unknown>,
+    input_vertex_data: DataEdgeTerminal[],
+    output_vertex_data: DataEdgeTerminal[]
+  ) {
     let groups = vertex_selection
       .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
       .data(
@@ -1499,15 +1572,33 @@ export class D3BehaviorTreeEditor extends Component<
       .enter()
       .append("g")
       .attr("class", (d) => "gripper-group " + d.kind + "-gripper-group")
-      .on("mouseover.highlight", this.IOGroupDefaultMouseoverHandler)
-      .on("mouseout.highlight", this.IOGroupDefaultMouseoutHandler)
+      .on(
+        "mouseover.highlight",
+        function (_datum: DataEdgeTerminal, _index: number, _groups) {
+          d3.select(this)
+            .classed("data-hover", true)
+            .selectAll(".label")
+            .attr("visibility", "visible");
+        }
+      )
+      .on(
+        "mouseout.highlight",
+        function (_datum: DataEdgeTerminal, _index: number, _groups) {
+          d3.select(this)
+            .classed("data-hover", false)
+            .selectAll(".label")
+            .attr("visibility", "hidden");
+        }
+      )
       .merge(groups);
 
     groups.transition().attr("transform", function (d) {
       return "translate(" + Math.round(d.x) + ", " + Math.round(d.y) + ")";
     });
 
-    let grippers = groups.selectAll<SVGRectElement, DataEdgeTerminal>(".gripper").data((d) => [d]);
+    let grippers = groups
+      .selectAll<SVGRectElement, DataEdgeTerminal>(".gripper")
+      .data((d) => [d]);
     grippers.exit().remove();
 
     grippers = grippers
@@ -1519,7 +1610,9 @@ export class D3BehaviorTreeEditor extends Component<
       .on("mousedown", this.IOGripperMousedownHandler.bind(this))
       .merge(grippers);
 
-    let labels = groups.selectAll<SVGTextElement, DataEdgeTerminal>(".label").data((d) => [d]);
+    let labels = groups
+      .selectAll<SVGTextElement, DataEdgeTerminal>(".label")
+      .data((d) => [d]);
     labels.exit().remove();
 
     labels = labels
@@ -1570,76 +1663,19 @@ export class D3BehaviorTreeEditor extends Component<
       .attr("dy", (d) => Math.round(0.5 * d.gripperSize) + 10);
   }
 
-  IOGroupDefaultMouseoverHandler(d, index, group) {
-    d3.select(this)
-      .classed("data-hover", true)
-      .selectAll(".label")
-      .attr("visibility", "visible");
-  }
-
-  IOGroupDefaultMouseoutHandler(d, index, group) {
-    d3.select(this)
-      .classed("data-hover", false)
-      .selectAll(".label")
-      .attr("visibility", "hidden");
-  }
-
-  IOGroupDraggingMouseoverHandler(d, index, group) {
-    if (d.kind === "input") {
-      this.nextWiringTarget = d;
-    } else if (d.kind === "output") {
-      this.nextWiringSource = d;
-    }
-  }
-
-  IOGroupDraggingMouseoutHandler(d, index, group) {
-    if (d.kind === "input") {
-      this.nextWiringTarget = null;
-    } else if (d.kind === "output") {
-      this.nextWiringSource = null;
-    }
-  }
-
-  DataEdgeDefaultMouseoverHandler(d, index, group) {
-    const vertex_selection = d3
-      .select(this.parentNode.parentNode)
-      .select("g.data_vertices");
-    d3.select(this).classed("data-hover", true);
-
-    // select source gripper
-    selectIOGripper(vertex_selection, d.source).dispatch("mouseover");
-
-    // select target gripper
-    selectIOGripper(vertex_selection, d.target).dispatch("mouseover");
-  }
-
-  DataEdgeDefaultMouseoutHandler(d, index, group) {
-    const vertex_selection = d3
-      .select(this.parentNode.parentNode)
-      .select("g.data_vertices");
-
-    d3.select(this).classed("data-hover", false);
-
-    // deselect source gripper
-    selectIOGripper(vertex_selection, d.source).dispatch("mouseout");
-
-    // deselect target gripper
-    selectIOGripper(vertex_selection, d.target).dispatch("mouseout");
-  }
-
-  DataEdgeDefaultClickHandler(d, index, group) {
-    this.props.onSelectedEdgeChange(d);
-    d3.event.preventDefault();
-    d3.event.stopPropagation();
-  }
-
-  IOGripperMousedownHandler(datum, index, group) {
+  IOGripperMousedownHandler(
+    datum: DataEdgeTerminal,
+    index: number,
+    _group: SVGPathElement[] | ArrayLike<SVGPathElement>
+  ) {
     if ((d3.event.buttons & 1) != 1) {
       return;
     }
     // Remove mouseover / out listeners from all gripper-groups, then add new ones
     const svg_sel = d3.select(this.svg_ref.current!);
-    const io_grippers = svg_sel.selectAll(".gripper-group");
+    const io_grippers = svg_sel.selectAll<SVGGElement, DataEdgeTerminal>(
+      ".gripper-group"
+    );
 
     io_grippers.on("mouseover", null).on("mouseout", null);
 
@@ -1666,8 +1702,20 @@ export class D3BehaviorTreeEditor extends Component<
     io_grippers
       .filter((d) => typesCompatible(d, datum))
       .classed("compatible", true)
-      .on("mouseover.drag", this.IOGroupDraggingMouseoverHandler.bind(this))
-      .on("mouseout.drag", this.IOGroupDraggingMouseoutHandler.bind(this))
+      .on("mouseover.drag", (d: DataEdgeTerminal, _index: number, _groups) => {
+        if (d.kind === "input") {
+          this.nextWiringTarget = d;
+        } else if (d.kind === "output") {
+          this.nextWiringSource = d;
+        }
+      })
+      .on("mouseout.drag", (d: DataEdgeTerminal, _index: number, _groups) => {
+        if (d.kind === "input") {
+          this.nextWiringTarget = null;
+        } else if (d.kind === "output") {
+          this.nextWiringSource = null;
+        }
+      })
       .selectAll(".label")
       .attr("visibility", "visible");
 
@@ -1684,7 +1732,11 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  canvasMousemovePanHandler(d, index, group) {
+  canvasMousemovePanHandler(
+    _d: unknown,
+    _index: number,
+    _group: SVGSVGElement[] | ArrayLike<SVGSVGElement>
+  ) {
     // Don't do anything unless we're currently dragging something
     if (!this.dragging) {
       if (this.panIntervalID !== null) {
@@ -1696,8 +1748,8 @@ export class D3BehaviorTreeEditor extends Component<
     }
 
     const viewport = d3.select(this.viewport_ref.current!);
-    const width = viewport.node().getBoundingClientRect().width;
-    const height = viewport.node().getBoundingClientRect().height;
+    const width = viewport.node()!.getBoundingClientRect().width;
+    const height = viewport.node()!.getBoundingClientRect().height;
 
     const mouseCoords = d3.mouse(this.viewport_ref.current!);
 
@@ -1760,13 +1812,17 @@ export class D3BehaviorTreeEditor extends Component<
     }
 
     d3.select(this.viewport_ref.current!).call(
-      this.zoomObject.translateBy,
+      this.zoomObject!.translateBy,
       this.panDirection[0],
       this.panDirection[1]
     );
   }
 
-  canvasIOMoveHandler(d, index, group) {
+  canvasIOMoveHandler(
+    d: unknown,
+    index: number,
+    group: SVGSVGElement[] | ArrayLike<SVGSVGElement>
+  ) {
     if ((d3.event.buttons & 1) === 0) {
       this.canvasIOUpHandler(d, index, group);
       return;
@@ -1774,7 +1830,9 @@ export class D3BehaviorTreeEditor extends Component<
 
     let drawingLine = d3
       .select(this.svg_ref.current!)
-      .selectAll(".drawing-indicator")
+      .selectAll<SVGPathElement, { start: number; end: number }>(
+        ".drawing-indicator"
+      )
       .data(
         [
           {
@@ -1796,7 +1854,11 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.preventDefault();
   }
 
-  canvasIOUpHandler(d, index, group) {
+  canvasIOUpHandler(
+    _d: unknown,
+    _index: number,
+    _group: SVGSVGElement[] | ArrayLike<SVGSVGElement>
+  ) {
     this.dragging = false;
 
     if (this.nextWiringSource !== null && this.nextWiringTarget !== null) {
@@ -1857,9 +1919,47 @@ export class D3BehaviorTreeEditor extends Component<
       .attr("visibility", "hidden");
 
     d3.select(this.svg_ref.current!)
-      .selectAll(".data-link")
-      .on("mouseover", this.DataEdgeDefaultMouseoverHandler)
-      .on("mouseout", this.DataEdgeDefaultMouseoutHandler);
+      .selectAll<SVGPathElement, EdgeData>(".data-link")
+      .on("mouseover", function (d, index, groups) {
+        if (
+          this.parentNode === null ||
+          this.parentNode.parentElement === null
+        ) {
+          return;
+        }
+
+        const vertex_selection = d3
+          .select(this.parentNode.parentElement)
+          .select<SVGGElement>("g.data_vertices");
+        d3.select(this).classed("data-hover", true);
+
+        // select source gripper
+        selectIOGripper(vertex_selection, d.source).dispatch("mouseover");
+
+        // select target gripper
+        selectIOGripper(vertex_selection, d.target).dispatch("mouseover");
+      })
+      .on("mouseout", function (d, _index, _groups) {
+        if (
+          this.parentNode === null ||
+          this.parentElement!.parentElement === null
+        ) {
+          return;
+        }
+        const vertex_parent = this.parentNode.parentElement!;
+
+        const vertex_selection = d3
+          .select(vertex_parent)
+          .select<SVGGElement>("g.data_vertices");
+
+        d3.select(this).classed("data-hover", false);
+
+        // deselect source gripper
+        selectIOGripper(vertex_selection, d.source).dispatch("mouseout");
+
+        // deselect target gripper
+        selectIOGripper(vertex_selection, d.target).dispatch("mouseout");
+      });
 
     // Also remove listeners from the background
     d3.select(this.viewport_ref.current!)
@@ -1908,11 +2008,14 @@ export class D3BehaviorTreeEditor extends Component<
       g_droptargets.attr("visibility", "visible");
 
       g_droptargets
-        .selectAll<any, FlextreeNode<DropTarget>>(".drop_target")
+        .selectAll<any, DropTarget>(".drop_target")
         // First ensure all drop targets are visible
         .attr("visibility", "visible")
         // Now hide those that belong to descendants of the node we're dragging
         .filter((x) => {
+          if (x.data === null) {
+            return false;
+          }
           // Hide drop targets of children
           if (all_children.indexOf(x.data.name) >= 0) {
             return true;
@@ -1952,9 +2055,9 @@ export class D3BehaviorTreeEditor extends Component<
   }
 
   canvasNodeDragUpHandler(
-    d: d3.HierarchyNode<TrimmedNode>,
+    d: unknown,
     index: number,
-    group: any
+    group: SVGSVGElement[] | ArrayLike<SVGSVGElement>
   ) {
     if (this.dragging) {
       if (this.nodeDropTarget !== null) {
@@ -1963,6 +2066,9 @@ export class D3BehaviorTreeEditor extends Component<
         // If the target is in the same parent node, and after the
         // current index of the dropped node, subtract one from the
         // target index to make the behavior more intuitive
+        if (this.nodeDropTarget.data === null || this.draggedNode === null) {
+          return;
+        }
 
         if (
           this.nodeDropTarget.position > 0 &&
@@ -2018,6 +2124,13 @@ export class D3BehaviorTreeEditor extends Component<
             } as MoveNodeRequest,
             (response) => {
               if (response.success) {
+                if (
+                  this.nodeDropTarget === null ||
+                  this.nodeDropTarget.data === null ||
+                  this.draggedNode === null
+                ) {
+                  return;
+                }
                 console.log(
                   "Successfully removed dropped node from its parent!"
                 );
@@ -2032,6 +2145,14 @@ export class D3BehaviorTreeEditor extends Component<
                     new_child_index: -1,
                   } as MoveNodeRequest,
                   (response) => {
+                    if (
+                      this.nodeDropTarget === null ||
+                      this.nodeDropTarget.data === null ||
+                      this.draggedNode === null
+                    ) {
+                      return;
+                    }
+
                     if (response.success) {
                       console.log(
                         "Successfully moved old node to be a child of dropped node, " +
@@ -2045,6 +2166,13 @@ export class D3BehaviorTreeEditor extends Component<
                           new_child_index: this.nodeDropTarget.position,
                         } as MoveNodeRequest,
                         (response) => {
+                          if (
+                            this.nodeDropTarget === null ||
+                            this.nodeDropTarget.data === null
+                          ) {
+                            return;
+                          }
+
                           if (response.success) {
                             console.log(
                               "Successfully moved dropped node to the place " +
@@ -2080,8 +2208,8 @@ export class D3BehaviorTreeEditor extends Component<
         ) {
           this.replace_service.callService(
             {
-              old_node_name: this.nodeDropTarget.data.name,
-              new_node_name: this.draggedNode.data.data.name,
+              old_node_name: this.nodeDropTarget.data!.name,
+              new_node_name: this.draggedNode!.data.data.name,
             } as ReplaceNodeRequest,
             (response) => {
               if (response.success) {
@@ -2118,7 +2246,11 @@ export class D3BehaviorTreeEditor extends Component<
       .on("mouseup.drag_node", null);
   }
 
-  nodeClickHandler(d: d3.HierarchyNode<TrimmedNode>, index: number, group: any) {
+  nodeClickHandler(
+    d: d3.HierarchyNode<TrimmedNode>,
+    index: number,
+    group: any
+  ) {
     if (d3.event.shiftKey) {
       this.props.onMultipleSelectionChange(
         Array.from(new Set(this.props.selectedNodeNames.concat([d.data.name])))
@@ -2130,7 +2262,11 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  nodeDoubleClickHandler(d: d3.HierarchyNode<TrimmedNode>, index: any, group: any) {
+  nodeDoubleClickHandler(
+    d: d3.HierarchyNode<TrimmedNode>,
+    index: any,
+    group: any
+  ) {
     if (
       d.data.module === "ros_bt_py.nodes.subtree" &&
       d.data.node_class === "Subtree"
@@ -2189,12 +2325,18 @@ export class D3BehaviorTreeEditor extends Component<
     d3.event.stopPropagation();
   }
 
-  dropTargetDefaultMouseoverHandler(domElement: any, datum: DropTarget) {
+  dropTargetDefaultMouseoverHandler(
+    domElement: SVGRectElement,
+    datum: DropTarget
+  ) {
     this.nodeDropTarget = datum;
     d3.select(domElement).attr("opacity", 0.8);
   }
 
-  dropTargetDefaultMouseoutHandler(domElement: any, datum: DropTarget) {
+  dropTargetDefaultMouseoutHandler(
+    domElement: SVGRectElement,
+    datum: DropTarget
+  ) {
     this.nodeDropTarget = null;
     d3.select(domElement).attr("opacity", 0.2);
   }
