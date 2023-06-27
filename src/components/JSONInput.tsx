@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-nocheck
 // TODO: Remove this whenever this can be typed!
 
@@ -26,7 +27,7 @@ interface JSONInputProps {
 
 interface JSONInputState {
   is_valid: boolean;
-  json: string | Object;
+  json: string | object;
   message_type: string;
   field_names: string[];
   pyobjectstring: string | null;
@@ -86,14 +87,17 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
   }
 
   getJSONfromPyObject(
-    pyobject: Object,
+    pyobject: object,
     field_names: string[]
-  ): { json: Object; counter: number } {
+  ): { json: object; counter: number } {
     const json = {};
     let counter = 0;
+    // eslint-disable-next-line no-prototype-builtins
     if (pyobject.hasOwnProperty("py/state")) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Unsafe accessor
       for (let i = 0; i < pyobject["py/state"].length; i++) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Unsafe accessor
         const value = pyobject["py/state"][i];
         if (typeof value === "object" && !Array.isArray(value)) {
@@ -101,10 +105,12 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
             value,
             field_names.slice(counter + 1)
           );
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore: Unsafe accessor
           json[field_names[counter]] = response.json;
           counter += response.counter + 1;
         } else {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore: Unsafe accessor
           json[field_names[counter]] = value;
           counter += 1;
@@ -114,21 +120,26 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
     return { json: json, counter: counter };
   }
 
-  getPyObjectFromJSON(pyobject: Object, json: Object) {
+  getPyObjectFromJSON(pyobject: object, json: object) {
     const keys = Object.keys(json);
+    // eslint-disable-next-line no-prototype-builtins
     if (pyobject.hasOwnProperty("py/state")) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Unsafe accessor
       for (let i = 0; i < pyobject["py/state"].length; i++) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Unsafe accessor
         const value = pyobject["py/state"][i];
         if (typeof value === "object" && !Array.isArray(value)) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore: Unsafe accessor
-          let key: keyof ObjectWithPyState = keys[i];
+          const key: keyof ObjectWithPyState = keys[i];
           pyobject["py/state"][i] = this.getPyObjectFromJSON(
             pyobject["py/state"][i],
             json[key]
           );
         } else {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore: Unsafe accessor
           pyobject["py/state"][i] = json[keys[i]];
         }
@@ -137,7 +148,7 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
     return pyobject;
   }
 
-  updateMessageType(message_type: string, json: Object, just_mounted: boolean) {
+  updateMessageType(message_type: string, json: object, just_mounted: boolean) {
     let type_changed = true;
     if (this.state.message_type === message_type) {
       type_changed = false;
@@ -194,12 +205,16 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
 
   componentDidUpdate(prevProps: JSONInputProps, prevState: JSONInputState) {
     if (JSON.stringify(this.props.json) != JSON.stringify(prevProps.json)) {
+      // eslint-disable-next-line no-prototype-builtins
       if (this.props.json && this.props.json.hasOwnProperty("py/state")) {
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore: Unsafe accessor
         if (
+          // eslint-disable-next-line no-prototype-builtins
           this.props.json.hasOwnProperty("py/object") &&
           this.props.json["py/object"] != this.state.message_type
         ) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore: Unsafe accessor
           this.updateMessageType(
             this.props.json["py/object"],
