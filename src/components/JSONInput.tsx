@@ -8,6 +8,9 @@ import {
   GetMessageFieldsResponse,
 } from "../types/services/GetMessageFields";
 import JSONEditor from "jsoneditor";
+
+import "jsoneditor/dist/jsoneditor.min.css";
+
 import { getMessageType } from "../utils";
 
 interface JSONInputProps {

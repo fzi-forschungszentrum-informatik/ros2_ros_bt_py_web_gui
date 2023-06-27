@@ -91,3 +91,47 @@ export interface PackageStructure {
   type: string;
   children?: PackageStructure[];
 }
+
+export type PyType = { "py/type": string };
+export type PyTuple = { "py/tuple": never[][] };
+export type PyLogger = {
+  "py/object": string;
+  logger_level: number;
+};
+export type PyOperator = {
+  "py/object": string;
+  operator: string;
+};
+export type PyOperand = {
+  "py/object": string;
+  operand_type: string;
+};
+export type PyEnum = {
+  "py/object": string;
+  enum_value: string;
+  field_names: string[];
+};
+
+export type PyReduce = { "py/reduce": (PyType | PyTuple | null)[] };
+
+export type ValueTypes =
+  | string
+  | boolean
+  | number
+  | []
+  | Record<string, never>
+  | PyReduce
+  | PyLogger
+  | PyOperator
+  | PyOperand
+  | PyEnum;
+
+export type ParamType = {
+  type: string;
+  value: ValueTypes;
+};
+
+export interface ParamData {
+  key: string;
+  value: ParamType;
+}

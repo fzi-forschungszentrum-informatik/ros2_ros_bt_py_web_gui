@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Fragmen } from "react";
+import React, { ChangeEvent, Fragment } from "react";
 import { Component } from "react";
 import ROSLIB from "roslib";
 import { DropDown } from "./DropDown";
@@ -12,7 +12,14 @@ import {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse,
 } from "../types/services/GetMessageFields";
-import { DocumentedNode, Message, NodeData } from "../types/types";
+import {
+  DocumentedNode,
+  Message,
+  NodeData,
+  ParamData,
+  PyEnum,
+  ValueTypes,
+} from "../types/types";
 
 import Fuse from "fuse.js";
 import {
@@ -24,11 +31,6 @@ import {
   uuid,
 } from "../utils";
 
-interface ParamData {
-  key: string;
-  value: { type: string; value: any };
-}
-
 interface EditableNodeProps {
   ros: ROSLIB.Ros;
   bt_namespace: string;
@@ -39,7 +41,7 @@ interface EditableNodeProps {
   changeCopyMode: (mode: boolean) => void;
   messagesFuse: Fuse<Message> | undefined;
   updateValidity: (newValidity: boolean) => void;
-  updateValue: (paramType: string, key: string, new_value: any) => void;
+  updateValue: (paramType: string, key: string, new_value: ValueTypes) => void;
   nameChangeHandler: (event: ChangeEvent<HTMLInputElement>) => void;
   nodeClassChangeHandler: (event: ChangeEvent<HTMLSelectElement>) => void;
   options: ParamData[];
@@ -103,7 +105,7 @@ export class EditableNode extends Component<
   renderSearchResults(
     results: Message[],
     key: string,
-    onNewValue: (new_value: any) => void
+    onNewValue: (new_value: ValueTypes) => void
   ) {
     if (results.length > 0 && this.state.results_at_key === key) {
       const result_rows = results.map((x) => {
@@ -129,6 +131,8 @@ export class EditableNode extends Component<
                   goal_type: "Goal",
                   result_type: "Result",
                 };
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 type_name = x.msg.split(".").pop()!;
                 const action_name = type_name.replace(
                   action_types[key as keyof typeof action_types],
@@ -158,6 +162,7 @@ export class EditableNode extends Component<
                   request_type: "Request",
                   response_type: "Response",
                 };
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 type_name = x.msg.split(".").pop()!;
                 const service_name = type_name.replace(
                   service_types[key as keyof typeof service_types],
@@ -215,15 +220,13 @@ export class EditableNode extends Component<
     }
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   onFocus(_event: React.FocusEvent) {
     this.props.changeCopyMode(false);
   }
 
   render() {
-    const compareKeys = function (
-      a: { key: string; value: { type: any; value: any } },
-      b: { key: string; value: { type: any; value: any } }
-    ) {
+    const compareKeys = function (a: ParamData, b: ParamData) {
       if (a.key === b.key) {
         return 0;
       }
@@ -308,13 +311,13 @@ export class EditableNode extends Component<
     );
   }
 
-  handleOptionWirings(_paramType: string, key: string, new_value: string) {
+  handleOptionWirings(_paramType: string, key: string, new_value: unknown) {
     if (
       this.props.module === "ros_bt_py.ros_nodes.enum" &&
       this.props.nodeClass === "Enum"
     ) {
       if (key == "ros_message_type") {
-        const message = getMessageType(new_value);
+        const message = getMessageType(new_value as string);
         this.get_message_constant_fields_service.callService(
           {
             message_type: message.message_type,
@@ -327,10 +330,15 @@ export class EditableNode extends Component<
             );
 
             if (response.success) {
-              obj.value["field_names"] = response.field_names;
-              obj.value["enum_value"] = response.field_names[0];
+              const val: PyEnum = obj.value as PyEnum;
+              val.field_names = response.field_names;
+              val.enum_value = response.field_names[0];
             }
-            this.props.updateValue("options", "constant_name", obj.value);
+            this.props.updateValue(
+              "options",
+              "constant_name",
+              obj.value as string
+            );
           }
         );
       }
@@ -355,7 +363,7 @@ export class EditableNode extends Component<
           });
           if (optionType) {
             if (optionType.key == key) {
-              const message = getMessageType(new_value);
+              const message = getMessageType(new_value as string);
               this.get_message_fields_service.callService(
                 {
                   message_type: message.message_type,
@@ -375,7 +383,7 @@ export class EditableNode extends Component<
     }
   }
 
-  updateValue(paramType: string, key: string, new_value: string) {
+  updateValue(paramType: string, key: string, new_value: ValueTypes) {
     if (paramType.toLowerCase() === "options") {
       this.handleOptionWirings(paramType, key, new_value);
     }
@@ -386,12 +394,14 @@ export class EditableNode extends Component<
   inputForValue(
     paramItem: ParamData,
     onValidityChange: (new_validity: boolean) => void,
-    onNewValue: (new_value: any) => void
+    onNewValue: (new_value: ValueTypes) => void
   ) {
     const valueType = paramItem.value.type;
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let changeHandler = (_event: React.ChangeEvent<HTMLInputElement>) => {
       // do nothing.
     };
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     let keyPressHandler = (_event: React.KeyboardEvent<HTMLInputElement>) => {
       // do nothing.
     };
@@ -417,7 +427,7 @@ export class EditableNode extends Component<
               onChange={changeHandler}
               placeholder="integer"
               step="1.0"
-              value={paramItem.value.value}
+              value={paramItem.value.value as number}
             ></input>
           </label>
         </div>
@@ -445,7 +455,7 @@ export class EditableNode extends Component<
               onChange={changeHandler}
               onFocus={this.onFocus}
               placeholder="float"
-              value={paramItem.value.value}
+              value={paramItem.value.value as number}
             ></input>
           </label>
         </div>
@@ -463,7 +473,7 @@ export class EditableNode extends Component<
             <input
               type="text"
               className="form-control mt-2"
-              value={paramItem.value.value}
+              value={paramItem.value.value as string}
               onFocus={this.onFocus}
               onChange={changeHandler}
             />
@@ -503,7 +513,7 @@ export class EditableNode extends Component<
             <input
               type="text"
               className="form-control mt-2"
-              value={paramItem.value.value}
+              value={paramItem.value.value as string}
               onChange={changeHandler}
               onFocus={this.onFocus}
               onKeyPress={keyPressHandler}
@@ -529,7 +539,7 @@ export class EditableNode extends Component<
             type="checkbox"
             id={checkID}
             className="custom-control-input"
-            checked={paramItem.value.value}
+            checked={paramItem.value.value as boolean}
             onFocus={this.onFocus}
             onChange={changeHandler}
           />
@@ -546,7 +556,7 @@ export class EditableNode extends Component<
             <input
               type="text"
               className="form-control mt-2"
-              value={paramItem.value.value}
+              value={paramItem.value.value as string}
               disabled={true}
             />
           </label>
@@ -558,7 +568,7 @@ export class EditableNode extends Component<
           <label className="d-block">
             {paramItem.key}&nbsp;
             <JSONInput
-              json={paramItem.value.value}
+              json={paramItem.value.value as string}
               message_type={paramItem.value.type}
               ros={this.props.ros}
               bt_namespace={this.props.bt_namespace}
@@ -576,7 +586,7 @@ export class EditableNode extends Component<
           <label className="d-block">
             {paramItem.key}
             <JSONInput
-              json={paramItem.value.value}
+              json={paramItem.value.value as string}
               message_type={paramItem.value.type}
               ros={this.props.ros}
               bt_namespace={this.props.bt_namespace}
@@ -594,7 +604,7 @@ export class EditableNode extends Component<
           <label className="d-block">
             {paramItem.key}
             <JSONInput
-              json={paramItem.value.value}
+              json={paramItem.value.value as string}
               message_type={paramItem.value.type}
               ros={this.props.ros}
               bt_namespace={this.props.bt_namespace}
@@ -698,7 +708,7 @@ export class EditableNode extends Component<
           <label className="d-block">
             {paramItem.key}
             <JSONInput
-              json={paramItem.value.value}
+              json={paramItem.value.value as string}
               message_type={paramItem.value.type}
               ros={this.props.ros}
               bt_namespace={this.props.bt_namespace}
@@ -728,7 +738,7 @@ export class EditableNode extends Component<
             {paramItem.key}{" "}
             <span className="text-muted">(type: {valueType})</span>
           </h5>
-          <span>{paramItem.value.value}</span>
+          <span>{paramItem.value.value as string}</span>
         </Fragment>
       );
     } else if (valueType === "type") {
@@ -738,7 +748,7 @@ export class EditableNode extends Component<
             {paramItem.key}{" "}
             <span className="text-muted">(type: {valueType})</span>
           </h5>
-          <pre>{paramItem.value.value}</pre>
+          <pre>{paramItem.value.value as string}</pre>
         </Fragment>
       );
     } else if (valueType === "boolean" || valueType === "bool") {
@@ -758,7 +768,7 @@ export class EditableNode extends Component<
             {paramItem.key}{" "}
             <span className="text-muted">(type: {valueType})</span>
           </h5>
-          <pre className="text-muted">{paramItem.value.value}</pre>
+          <pre className="text-muted">{paramItem.value.value as string}</pre>
         </Fragment>
       );
     } else {
@@ -779,8 +789,10 @@ export class EditableNode extends Component<
     const param_rows = params.map((x) => {
       return (
         <div className="list-group-item" key={name + x.key}>
-          {this.inputForValue(x, this.props.updateValidity, (newVal: any) =>
-            this.updateValue(name, x.key, newVal)
+          {this.inputForValue(
+            x,
+            this.props.updateValidity,
+            (newVal: ValueTypes) => this.updateValue(name, x.key, newVal)
           )}
         </div>
       );

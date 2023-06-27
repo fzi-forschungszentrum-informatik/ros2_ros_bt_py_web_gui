@@ -1,4 +1,4 @@
-import { NodeData, NodeDataLocation, TreeMsg } from "./types/types";
+import { NodeData, NodeDataLocation, TreeMsg, ValueTypes } from "./types/types";
 import { DataEdgeTerminal } from "./components/D3BehaviorTreeEditor";
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
@@ -84,19 +84,6 @@ export function prettyprint_type(jsonpickled_type: string) {
 
   return "Unknown type object: " + jsonpickled_type;
 }
-
-export type ValueTypes = string | boolean | number | [] | Record<string, never> | { "py/reduce": ({ "py/type": string; } | { "py/tuple": never[][]; } | null)[]} | {
-  "py/object": string,
-  logger_level: number,
-} | {
-  "py/object": string,
-  operator: string,
-} | {
-  "py/object": string,
-  operand_type: string,
-} | {"py/object": string,
-enum_value: string,
-field_names: string[],}
 
 export function getDefaultValue(
   typeName: string,
@@ -245,12 +232,7 @@ export function treeIsEditable(tree_msg: TreeMsg) {
 }
 
 export function selectIOGripper(
-  vertex_selection: d3.Selection<
-    SVGGElement,
-    unknown,
-    d3.BaseType,
-    unknown
-  >,
+  vertex_selection: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
   data: NodeDataLocation
 ) {
   return vertex_selection

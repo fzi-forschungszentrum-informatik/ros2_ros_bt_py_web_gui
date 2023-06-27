@@ -692,10 +692,11 @@ export class D3BehaviorTreeEditor extends Component<
 
     node.exit().remove();
 
-    const node1 = node
-      .enter()
-      .call(this.drawNodes.bind(this))
-      //.merge(node)
+    const node1 = node.enter().call(this.drawNodes.bind(this));
+    const node2 = g_vertex
+      .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(
+        ".node"
+      )
       .selectAll<HTMLBodyElement, d3.HierarchyNode<TrimmedNode>>(".btnode")
       .data(
         (x) => [x],
@@ -711,7 +712,7 @@ export class D3BehaviorTreeEditor extends Component<
 
       this.drawDropTargets();
 
-      this.drawDataGraph(g_data, node1.data(), tree_msg.data_wirings);
+      this.drawDataGraph(g_data, node2.data(), tree_msg.data_wirings);
     }, 100);
   }
 
@@ -757,7 +758,7 @@ export class D3BehaviorTreeEditor extends Component<
     selection: d3.Selection<
       HTMLBodyElement,
       d3.HierarchyNode<TrimmedNode>,
-      d3.EnterElement,
+      SVGForeignObjectElement,
       d3.HierarchyNode<TrimmedNode>
     >
   ) {
@@ -1288,11 +1289,11 @@ export class D3BehaviorTreeEditor extends Component<
     const edges = g_data.select<SVGGElement>("g.data_edges");
     const vertices = g_data.select<SVGGElement>("g.data_vertices");
 
-    const input_vertex_data: DataEdgeTerminal[] = [];
-    const output_vertex_data: DataEdgeTerminal[] = [];
+    let input_vertex_data: DataEdgeTerminal[] = [];
+    let output_vertex_data: DataEdgeTerminal[] = [];
     data.forEach((x) => {
-      Array.prototype.push.apply(
-        input_vertex_data,
+      console.log("Data Vertex:", x);
+      input_vertex_data = input_vertex_data.concat(
         x.data.inputs.map((input) => {
           const datum = this.getIOCoordsFromNode(
             x,
@@ -1309,8 +1310,7 @@ export class D3BehaviorTreeEditor extends Component<
         })
       );
 
-      Array.prototype.push.apply(
-        output_vertex_data,
+      output_vertex_data = output_vertex_data.concat(
         x.data.outputs.map((output) => {
           const datum = this.getIOCoordsFromNode(
             x,
@@ -1326,6 +1326,8 @@ export class D3BehaviorTreeEditor extends Component<
         })
       );
     });
+    console.log("Input vertex data:", input_vertex_data);
+    console.log("Output vertex data:", output_vertex_data);
 
     this.drawDataVerts(vertices, input_vertex_data, output_vertex_data);
 
@@ -1567,6 +1569,7 @@ export class D3BehaviorTreeEditor extends Component<
         (d) => d.nodeName + d.kind + d.key
       );
     groups.exit().remove();
+    console.log(groups);
 
     groups = groups
       .enter()

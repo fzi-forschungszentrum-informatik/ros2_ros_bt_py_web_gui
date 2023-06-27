@@ -1,6 +1,17 @@
 import React, { ChangeEvent, Component } from "react";
 import { EditableNode } from "./EditableNode";
-import { DocumentedNode, Message, NodeData, NodeMsg } from "../types/types";
+import {
+  DocumentedNode,
+  Message,
+  NodeData,
+  NodeMsg,
+  ParamData,
+  PyEnum,
+  PyLogger,
+  PyOperand,
+  PyOperator,
+  ValueTypes,
+} from "../types/types";
 import ROSLIB from "roslib";
 import Fuse from "fuse.js";
 import {
@@ -32,14 +43,6 @@ interface SelectedNodeProps {
   onNodeChanged: (state: boolean) => void;
   changeCopyMode: (mode: boolean) => void;
   onEditorSelectionChange: (new_selected_node_name: string | null) => void;
-}
-
-interface ParamData {
-  key: string;
-  value: {
-    type: string;
-    value: unknown;
-  };
 }
 
 interface SelectedNodeState {
@@ -80,7 +83,7 @@ export class SelectedNode extends Component<
             .replace(/^unicode$/, "string"),
           value: json_value,
         },
-      };
+      } as ParamData;
     };
     if (props.node) {
       this.state = {
@@ -181,7 +184,7 @@ export class SelectedNode extends Component<
           serialized_type: "",
         };
         if (x.value.type === "type") {
-          if (python_builtin_types.indexOf(x.value.value) >= 0) {
+          if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
             x.value.value = "__builtin__." + x.value.value;
             //x.value.value = 'builtins.' + x.value.value;
           }
@@ -189,7 +192,12 @@ export class SelectedNode extends Component<
             "py/type": x.value.value,
           });
         } else if (x.value.type.startsWith("__")) {
-          x.value.value["py/object"] = x.value.type.substring("__".length);
+          const val = x.value.value as
+            | PyLogger
+            | PyOperator
+            | PyOperand
+            | PyEnum;
+          val["py/object"] = x.value.type.substring("__".length);
           option.serialized_value = JSON.stringify(x.value.value);
         } else {
           option.serialized_value = JSON.stringify(x.value.value);
@@ -212,7 +220,7 @@ export class SelectedNode extends Component<
       return {
         key: x.key,
         value: getDefaultValue(prettyprint_type(x.serialized_value), options),
-      };
+      } as ParamData;
     });
   }
 
@@ -332,15 +340,21 @@ export class SelectedNode extends Component<
             serialized_value: "",
           };
           if (x.value.type === "type") {
-            if (python_builtin_types.indexOf(x.value.value) >= 0) {
-              x.value.value = "__builtin__." + x.value.value;
+            if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
+              x.value.value = ("__builtin__." + x.value.value) as string;
             }
             option.serialized_value = JSON.stringify({
               "py/type": x.value.value,
             });
           } else if (x.value.type.startsWith("__")) {
-            x.value.value["py/object"] = x.value.type.substring("__".length);
-            option.serialized_value = JSON.stringify(x.value.value);
+            const val = x.value.value as
+              | PyOperand
+              | PyLogger
+              | PyOperator
+              | PyOperand
+              | PyEnum;
+            val["py/object"] = x.value.type.substring("__".length);
+            option.serialized_value = JSON.stringify(val);
           } else {
             option.serialized_value = JSON.stringify(x.value.value);
           }
@@ -416,7 +430,7 @@ export class SelectedNode extends Component<
     this.setState({ isValid: newValidity || false });
   }
 
-  updateValue(paramType: string, key: string, new_value: string) {
+  updateValue(paramType: string, key: string, new_value: ValueTypes) {
     this.props.onNodeChanged(true);
     const map_fun = function (x: ParamData) {
       if (x.key === key) {
@@ -494,14 +508,13 @@ export class SelectedNode extends Component<
               (opt) => opt.key === refData[1]
             );
             if (optionType) {
+              const opt_value = optionType.value.value as string;
               // Get a default value for the type indicated by the
               // referenced option
               return {
                 key: current_item.key,
                 value: getDefaultValue(
-                  optionType.value.value
-                    .replace("__builtin__.", "")
-                    .replace("builtins.", "")
+                  opt_value.replace("__builtin__.", "").replace("builtins.", "")
                 ),
               };
             }

@@ -1,9 +1,19 @@
 import React, { ChangeEvent, Component } from "react";
 import { EditableNode } from "./EditableNode";
-import { DocumentedNode, Message, NodeData, NodeMsg } from "../types/types";
+import {
+  DocumentedNode,
+  Message,
+  NodeData,
+  NodeMsg,
+  ValueTypes,
+  ParamData,
+  PyEnum,
+  PyLogger,
+  PyOperand,
+  PyOperator,
+} from "../types/types";
 import Fuse from "fuse.js";
 import {
-  ValueTypes,
   getDefaultValue,
   prettyprint_type,
   python_builtin_types,
@@ -21,11 +31,6 @@ export interface NewNodeProps {
   onError: (error_message: string) => void;
   onNodeChanged: (state: boolean) => void;
   changeCopyMode: (state: boolean) => void;
-}
-
-interface ParamData {
-  key: string;
-  value: { type: string; value: ValueTypes };
 }
 
 export interface NewNodeState {
@@ -51,9 +56,10 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
         isValid: true,
         options: options_list.map((x) => {
           if (x.value.type === "unset_optionref") {
-            const optionTypeName = x.value.value.substring(
+            const optionref: string = x.value.value as string;
+            const optionTypeName = optionref.substring(
               'Ref to "'.length,
-              x.value.value.length - 1
+              optionref.length - 1
             );
             const optionType = this.state.options.find((x) => {
               return x.key === optionTypeName;
@@ -61,7 +67,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
             if (optionType && optionType.value) {
               return {
                 key: x.key,
-                value: getDefaultValue(optionType.value.value),
+                value: getDefaultValue(optionType.value.value as string),
               };
             }
           }
@@ -196,14 +202,17 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
           serialized_type: "",
         };
         if (x.value.type === "type") {
-          if (python_builtin_types.indexOf(x.value.value) >= 0) {
+          if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
             x.value.value = "__builtin__." + x.value.value;
           }
           option.serialized_value = JSON.stringify({
             "py/type": x.value.value,
           });
         } else if (x.value.type.startsWith("__")) {
-          x.value.value["py/object"] = x.value.type.substring("__".length);
+          const py_value: PyLogger | PyOperator | PyOperand | PyEnum = x.value
+            .value as PyLogger | PyOperator | PyOperand | PyEnum;
+          py_value["py/object" as keyof typeof py_value] =
+            x.value.type.substring("__".length);
           option.serialized_value = JSON.stringify(x.value.value);
         } else {
           option.serialized_value = JSON.stringify(x.value.value);

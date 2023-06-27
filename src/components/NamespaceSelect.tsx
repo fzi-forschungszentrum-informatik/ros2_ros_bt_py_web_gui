@@ -4,8 +4,6 @@ import {
   ServicesForTypeRequest,
   ServicesForTypeResponse,
 } from "../types/services/ServicesForType";
-import "../App.scss";
-
 interface NamespaceSelectProps {
   ros: ROSLIB.Ros;
   ros_url: string;

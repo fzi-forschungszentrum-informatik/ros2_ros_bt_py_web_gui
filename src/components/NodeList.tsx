@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 import { NodeListItem } from "./NodeListItem";
-import { DocumentedNode, NodeMsg } from "../types/types";
+import { DocumentedNode } from "../types/types";
 
 interface NodeListProps {
   availableNodes: DocumentedNode[];
