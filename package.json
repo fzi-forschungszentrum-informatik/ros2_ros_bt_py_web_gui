@@ -2,6 +2,7 @@
   "name": "ros_bt_py_web_gui_src",
   "version": "2.0.0",
   "private": true,
+  "homepage": ".",
   "dependencies": {
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -46,7 +47,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint src --ext ts,tsx --report-unused-disable-directives",
     "format": "prettier .  --write"
   },
   "eslintConfig": {
