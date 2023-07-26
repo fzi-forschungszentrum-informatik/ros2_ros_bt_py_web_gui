@@ -91,7 +91,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
     this.add_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node",
-      serviceType: "ros_bt_py_msgs/AddNode",
+      serviceType: "ros_bt_py_interfaces/srv/AddNode",
     });
 
     this.selectRef = React.createRef();

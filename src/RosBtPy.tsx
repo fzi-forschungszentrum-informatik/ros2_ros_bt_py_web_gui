@@ -196,19 +196,19 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.tree_topic = new ROSLIB.Topic({
       ros: this.state.ros,
       name: this.state.bt_namespace + "tree",
-      messageType: "ros_bt_py_msgs/Tree",
+      messageType: "ros_bt_py_interfaces/msg/Tree",
     });
 
     this.debug_topic = new ROSLIB.Topic({
       ros: this.state.ros,
       name: this.state.bt_namespace + "debug/debug_info",
-      messageType: "ros_bt_py_msgs/DebugInfo",
+      messageType: "ros_bt_py_interfaces/msg/DebugInfo",
     });
 
     this.messages_topic = new ROSLIB.Topic({
       ros: this.state.ros,
       name: this.state.bt_namespace + "messages",
-      messageType: "ros_bt_py_msgs/Messages",
+      messageType: "ros_bt_py_interfaces/msg/Messages",
     });
 
     this.get_nodes_service = null;
@@ -218,7 +218,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
         this.get_nodes_service = new ROSLIB.Service({
           ros: this.state.ros,
           name: this.state.bt_namespace + "get_available_nodes",
-          serviceType: "ros_bt_py_msgs/GetAvailableNodes",
+          serviceType: "ros_bt_py_interfaces/srv/GetAvailableNodes",
         });
         this.setState({ current_time: Date.now() });
       }
@@ -227,25 +227,25 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.add_node_service = new ROSLIB.Service({
       ros: this.state.ros,
       name: this.state.bt_namespace + "add_node",
-      serviceType: "ros_bt_py_msgs/AddNode",
+      serviceType: "ros_bt_py_interfaces/srv/AddNode",
     });
 
     this.remove_node_service = new ROSLIB.Service({
       ros: this.state.ros,
       name: this.state.bt_namespace + "remove_node",
-      serviceType: "ros_bt_py_msgs/RemoveNode",
+      serviceType: "ros_bt_py_interfaces/srv/RemoveNode",
     });
 
     this.set_execution_mode_service = new ROSLIB.Service({
       ros: this.state.ros,
       name: this.state.bt_namespace + "debug/set_execution_mode",
-      serviceType: "ros_bt_py_msgs/SetExecutionMode",
+      serviceType: "ros_bt_py_interfaces/srv/SetExecutionMode",
     });
 
     this.packages_topic = new ROSLIB.Topic<Packages>({
       ros: this.state.ros,
       name: this.state.bt_namespace + "packages",
-      messageType: "ros_bt_py_msgs/Packages",
+      messageType: "ros_bt_py_interfaces/msg/Packages",
     });
 
     this.lastTreeUpdate = null;
@@ -496,25 +496,25 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       this.tree_topic = new ROSLIB.Topic({
         ros: this.state.ros,
         name: namespace + "tree",
-        messageType: "ros_bt_py_msgs/Tree",
+        messageType: "ros_bt_py_interfaces/msg/Tree",
       });
 
       this.debug_topic = new ROSLIB.Topic({
         ros: this.state.ros,
         name: namespace + "debug/debug_info",
-        messageType: "ros_bt_py_msgs/DebugInfo",
+        messageType: "ros_bt_py_interfaces/msg/DebugInfo",
       });
 
       this.messages_topic = new ROSLIB.Topic({
         ros: this.state.ros,
         name: namespace + "messages",
-        messageType: "ros_bt_py_msgs/Messages",
+        messageType: "ros_bt_py_interfaces/msg/Messages",
       });
 
       this.packages_topic = new ROSLIB.Topic({
         ros: this.state.ros,
         name: namespace + "packages",
-        messageType: "ros_bt_py_msgs/Packages",
+        messageType: "ros_bt_py_interfaces/msg/Packages",
       });
 
       // Subscribe again
@@ -531,7 +531,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
           this.get_nodes_service = new ROSLIB.Service({
             ros: this.state.ros,
             name: namespace + "get_available_nodes",
-            serviceType: "ros_bt_py_msgs/GetAvailableNodes",
+            serviceType: "ros_bt_py_interfaces/srv/GetAvailableNodes",
           });
           this.setState({ current_time: Date.now() });
         }
@@ -540,19 +540,19 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       this.add_node_service = new ROSLIB.Service({
         ros: this.state.ros,
         name: namespace + "add_node",
-        serviceType: "ros_bt_py_msgs/AddNode",
+        serviceType: "ros_bt_py_interfaces/srv/AddNode",
       });
 
       this.remove_node_service = new ROSLIB.Service({
         ros: this.state.ros,
         name: namespace + "remove_node",
-        serviceType: "ros_bt_py_msgs/RemoveNode",
+        serviceType: "ros_bt_py_interfaces/srv/RemoveNode",
       });
 
       this.set_execution_mode_service = new ROSLIB.Service({
         ros: this.state.ros,
         name: namespace + "debug/set_execution_mode",
-        serviceType: "ros_bt_py_msgs/SetExecutionMode",
+        serviceType: "ros_bt_py_interfaces/srv/SetExecutionMode",
       });
 
       this.setState({ bt_namespace: namespace });

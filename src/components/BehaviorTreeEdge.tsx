@@ -29,7 +29,7 @@ export class BehaviorTreeEdge extends Component<BehaviorTreeEdgeProperties> {
     this.unwireClient = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "unwire_data",
-      serviceType: "ros_bt_py_msgs/WireNodeData",
+      serviceType: "ros_bt_py_interfaces/srv/WireNodeData",
     });
   }
 

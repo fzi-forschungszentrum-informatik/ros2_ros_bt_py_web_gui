@@ -123,19 +123,19 @@ export class SelectedNode extends Component<
     this.set_options_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "set_options",
-      serviceType: "ros_bt_py_msgs/SetOptions",
+      serviceType: "ros_bt_py_interfaces/srv/SetOptions",
     });
 
     this.remove_node_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "remove_node",
-      serviceType: "ros_bt_py_msgs/RemoveNode",
+      serviceType: "ros_bt_py_interfaces/srv/RemoveNode",
     });
 
     this.morph_node_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "morph_node",
-      serviceType: "ros_bt_py_msgs/MorphNode",
+      serviceType: "ros_bt_py_interfaces/srv/MorphNode",
     });
   }
 

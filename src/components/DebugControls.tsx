@@ -44,19 +44,19 @@ export class DebugControls extends Component<
     this.debug_settings_sub = new ROSLIB.Topic({
       ros: props.ros,
       name: props.bt_namespace + "debug/debug_settings",
-      messageType: "ros_bt_py_msgs/DebugSettings",
+      messageType: "ros_bt_py_interfaces/msg/DebugSettings",
     });
 
     this.set_execution_mode_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "debug/set_execution_mode",
-      serviceType: "ros_bt_py_msgs/SetExecutionMode",
+      serviceType: "ros_bt_py_interfaces/srv/SetExecutionMode",
     });
 
     this.step_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "debug/continue",
-      serviceType: "ros_bt_py_msgs/Continue",
+      serviceType: "ros_bt_py_interfaces/srv/Continue",
     });
 
     this.debugCheckID = "debug_" + uuid();

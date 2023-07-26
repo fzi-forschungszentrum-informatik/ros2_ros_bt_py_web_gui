@@ -43,7 +43,7 @@ export class TickControls extends Component<
     this.tick_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "control_tree_execution",
-      serviceType: "ros_bt_py_msgs/ControlTreeExecution",
+      serviceType: "ros_bt_py_interfaces/srv/ControlTreeExecution",
     });
   }
 

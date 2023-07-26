@@ -101,43 +101,43 @@ export class MultipleSelection extends Component<
     this.generate_subtree_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "generate_subtree",
-      serviceType: "ros_bt_py_msgs/GenerateSubtree",
+      serviceType: "ros_bt_py_interfaces/srv/GenerateSubtree",
     });
 
     this.add_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node",
-      serviceType: "ros_bt_py_msgs/AddNode",
+      serviceType: "ros_bt_py_interfaces/srv/AddNode",
     });
 
     this.add_node_at_index_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node_at_index",
-      serviceType: "ros_bt_py_msgs/AddNodeAtIndex",
+      serviceType: "ros_bt_py_interfaces/srv/AddNodeAtIndex",
     });
 
     this.move_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "move_node",
-      serviceType: "ros_bt_py_msgs/MoveNode",
+      serviceType: "ros_bt_py_interfaces/srv/MoveNode",
     });
 
     this.remove_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "remove_node",
-      serviceType: "ros_bt_py_msgs/RemoveNode",
+      serviceType: "ros_bt_py_interfaces/srv/RemoveNode",
     });
 
     this.wire_data_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "wire_data",
-      serviceType: "ros_bt_py_msgs/WireNodeData",
+      serviceType: "ros_bt_py_interfaces/srv/WireNodeData",
     });
 
     this.unwire_data_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "unwire_data",
-      serviceType: "ros_bt_py_msgs/WireNodeData",
+      serviceType: "ros_bt_py_interfaces/srv/WireNodeData",
     });
   }
 

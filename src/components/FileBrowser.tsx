@@ -96,37 +96,37 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     this.get_package_structure_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "get_package_structure",
-      serviceType: "ros_bt_py_msgs/GetPackageStructure",
+      serviceType: "ros_bt_py_interfaces/srv/GetPackageStructure",
     });
 
     this.check_node_versions_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "check_node_versions",
-      serviceType: "ros_bt_py_msgs/MigrateTree",
+      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
     });
 
     this.migrate_tree_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "migrate_tree",
-      serviceType: "ros_bt_py_msgs/MigrateTree",
+      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
     });
 
     this.load_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "load_tree",
-      serviceType: "ros_bt_py_msgs/LoadTree",
+      serviceType: "ros_bt_py_interfaces/srv/LoadTree",
     });
 
     this.save_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "save_tree",
-      serviceType: "ros_bt_py_msgs/SaveTree",
+      serviceType: "ros_bt_py_interfaces/srv/SaveTree",
     });
 
     this.change_tree_name_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "change_tree_name",
-      serviceType: "ros_bt_py_msgs/ChangeTreeName",
+      serviceType: "ros_bt_py_interfaces/srv/ChangeTreeName",
     });
 
     if (this.props.last_selected_package !== "") {

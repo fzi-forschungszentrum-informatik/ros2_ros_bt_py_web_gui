@@ -170,7 +170,7 @@ export class D3BehaviorTreeEditor extends Component<
     >({
       ros: props.ros,
       name: props.bt_namespace + "wire_data",
-      serviceType: "ros_bt_py_msgs/WireNodeData",
+      serviceType: "ros_bt_py_interfaces/srv/WireNodeData",
     });
 
     this.unwire_service = new ROSLIB.Service<
@@ -179,13 +179,13 @@ export class D3BehaviorTreeEditor extends Component<
     >({
       ros: props.ros,
       name: props.bt_namespace + "unwire_data",
-      serviceType: "ros_bt_py_msgs/WireNodeData",
+      serviceType: "ros_bt_py_interfaces/srv/WireNodeData",
     });
 
     this.move_service = new ROSLIB.Service<MoveNodeRequest, MoveNodeResponse>({
       ros: props.ros,
       name: props.bt_namespace + "move_node",
-      serviceType: "ros_bt_py_msgs/MoveNode",
+      serviceType: "ros_bt_py_interfaces/srv/MoveNode",
     });
 
     this.replace_service = new ROSLIB.Service<
@@ -194,13 +194,13 @@ export class D3BehaviorTreeEditor extends Component<
     >({
       ros: props.ros,
       name: props.bt_namespace + "replace_node",
-      serviceType: "ros_bt_py_msgs/ReplaceNode",
+      serviceType: "ros_bt_py_interfaces/srv/ReplaceNode",
     });
 
     this.add_node_at_index_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node_at_index",
-      serviceType: "ros_bt_py_msgs/AddNodeAtIndex",
+      serviceType: "ros_bt_py_interfaces/srv/AddNodeAtIndex",
     });
 
     this.svg_ref = createRef();

@@ -61,7 +61,7 @@ export class NamespaceSelect extends Component<
       // publish one of these, and also offer the corresponding
       // editing and runtime control services.
       {
-        type: "ros_bt_py_msgs/AddNode",
+        type: "ros_bt_py_interfaces/srv/AddNode",
       } as ServicesForTypeRequest,
       (response: ServicesForTypeResponse) => {
         const namespaces = response.services.map(

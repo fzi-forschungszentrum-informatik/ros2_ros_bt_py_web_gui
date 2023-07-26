@@ -88,13 +88,13 @@ export class EditableNode extends Component<
     this.get_message_fields_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "get_message_fields",
-      serviceType: "ros_bt_py_msgs/GetMessageFields",
+      serviceType: "ros_bt_py_interfaces/srv/GetMessageFields",
     });
 
     this.get_message_constant_fields_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "get_message_constant_fields",
-      serviceType: "ros_bt_py_msgs/GetMessageFields",
+      serviceType: "ros_bt_py_interfaces/srv/GetMessageFields",
     });
   }
 

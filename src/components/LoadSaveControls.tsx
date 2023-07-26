@@ -59,43 +59,43 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
     this.load_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "load_tree",
-      serviceType: "ros_bt_py_msgs/LoadTree",
+      serviceType: "ros_bt_py_interfaces/srv/LoadTree",
     });
 
     this.check_node_versions_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "check_node_versions",
-      serviceType: "ros_bt_py_msgs/MigrateTree",
+      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
     });
 
     this.migrate_tree_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "migrate_tree",
-      serviceType: "ros_bt_py_msgs/MigrateTree",
+      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
     });
 
     this.fix_yaml_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "fix_yaml",
-      serviceType: "ros_bt_py_msgs/FixYaml",
+      serviceType: "ros_bt_py_interfaces/srv/FixYaml",
     });
 
     this.clear_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "clear",
-      serviceType: "ros_bt_py_msgs/ClearTree",
+      serviceType: "ros_bt_py_interfaces/srv/ClearTree",
     });
 
     this.save_tree_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "save_tree",
-      serviceType: "ros_bt_py_msgs/SaveTree",
+      serviceType: "ros_bt_py_interfaces/srv/SaveTree",
     });
 
     this.control_tree_execution_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "control_tree_execution",
-      serviceType: "ros_bt_py_msgs/ControlTreeExecution",
+      serviceType: "ros_bt_py_interfaces/srv/ControlTreeExecution",
     });
   }
 
