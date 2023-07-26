@@ -1,11 +1,11 @@
-import { TreeMsg } from "../types"
+import { TreeMsg } from "../types";
 
 export interface GenerateSubtreeRequest {
-    nodes: string[]
+  nodes: string[];
 }
 
 export interface GenerateSubtreeResponse {
-    tree: TreeMsg,
-    success: boolean,
-    error_message: string
+  tree: TreeMsg;
+  success: boolean;
+  error_message: string;
 }

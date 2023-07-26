@@ -1,7 +1,7 @@
 export interface ServicesForTypeRequest {
-    type: string
+  type: string;
 }
 
 export interface ServicesForTypeResponse {
-    services: string[]
+  services: string[];
 }
