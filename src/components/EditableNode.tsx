@@ -199,10 +199,80 @@ export class EditableNode extends Component<
         return (
           <div
             className="list-group-item search-result"
-            tabIndex={0}
-            onClick={onClickHandler}
-            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
-              return event.keyCode != 13 || onClickHandler();
+            onClick={() => {
+              let replace_regex;
+              let type_name;
+              if (
+                this.props.nodeClass === "Action" &&
+                this.props.module === "ros_bt_py.nodes.action"
+              ) {
+                const action_types: {
+                  action_type: string;
+                  feedback_type: string;
+                  goal_type: string;
+                  result_type: string;
+                } = {
+                  action_type: "Action",
+                  feedback_type: "Feedback",
+                  goal_type: "Goal",
+                  result_type: "Result",
+                };
+
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                type_name = x.msg.split(".").pop()!;
+                const action_name = type_name.replace(
+                  action_types[key as keyof typeof action_types],
+                  ""
+                );
+                replace_regex = new RegExp(type_name, "g");
+                for (const action_type in action_types) {
+                  if (key !== action_type) {
+                    this.updateValue(
+                      "options",
+                      action_type,
+                      x.msg.replace(
+                        replace_regex,
+                        action_name +
+                          action_types[action_type as keyof typeof action_types]
+                      )
+                    );
+                  }
+                }
+              } else if (
+                (this.props.nodeClass === "Service" ||
+                  this.props.nodeClass === "ServiceInput") &&
+                this.props.module === "ros_bt_py.nodes.service"
+              ) {
+                const service_types = {
+                  service_type: "",
+                  request_type: "Request",
+                  response_type: "Response",
+                };
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                type_name = x.msg.split(".").pop()!;
+                const service_name = type_name.replace(
+                  service_types[key as keyof typeof service_types],
+                  ""
+                );
+                replace_regex = new RegExp(type_name + "$");
+                for (const service_type in service_types) {
+                  if (key !== service_type) {
+                    this.updateValue(
+                      "options",
+                      service_type,
+                      x.msg.replace(
+                        replace_regex,
+                        service_name +
+                          service_types[
+                            service_type as keyof typeof service_types
+                          ]
+                      )
+                    );
+                  }
+                }
+              }
+              this.selectMessageResult(x);
+              onNewValue(x.msg);
             }}
           >
             {x.msg}

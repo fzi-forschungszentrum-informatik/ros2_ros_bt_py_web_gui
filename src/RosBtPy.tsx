@@ -367,9 +367,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   onSubtreeStatesUpdate(msg: SubtreeStates) {
     this.last_received_subtree_msg = msg;
     this.setState({
-      subtree_names: msg.subtrees
-        .map((x: { name: any }) => x.name)
-        .sort(),
+      subtree_names: msg.subtrees.map((x: { name: any }) => x.name).sort(),
     });
     if (this.state.selected_tree.is_subtree) {
       const selectedSubtree = msg.subtrees.find(
