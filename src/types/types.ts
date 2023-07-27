@@ -5,7 +5,7 @@ export interface NodeData {
 }
 
 export interface BoolMsg {
-  data: boolean
+  data: boolean;
 }
 
 export interface NodeMsg {
@@ -45,7 +45,7 @@ export interface TreeMsg {
 }
 
 export interface SubtreeStates {
-  subtrees: TreeMsg[]
+  subtrees: TreeMsg[];
 }
 
 export interface Package {
