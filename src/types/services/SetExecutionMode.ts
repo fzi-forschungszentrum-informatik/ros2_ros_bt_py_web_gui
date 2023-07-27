@@ -28,9 +28,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 export interface SetExecutionModeRequest {
-  single_step: boolean;
-  collect_performance_data: boolean;
   publish_subtrees: boolean;
+  collect_performance_data: boolean;
   collect_node_diagnostics: boolean;
 }
 

@@ -30,11 +30,11 @@
 import { Component, ReactNode } from "react";
 import { TreeExecutionCommands } from "../types/services/ControlTreeExecution";
 import { TreeMsg } from "../types/types";
-import { DebugControls } from "./DebugControls";
 import { LoadSaveControls } from "./LoadSaveControls";
 import { NamespaceSelect } from "./NamespaceSelect";
 import { Spacer } from "./Spacer";
 import { TickControls } from "./TickControls";
+import { SubtreeControls } from "./SubtreeControls";
 
 interface ExecutionBarProps {
   ros: ROSLIB.Ros;
@@ -80,7 +80,7 @@ export class ExecutionBar extends Component<
           onNamespaceChange={this.props.onNamespaceChange}
           onError={this.props.onError}
         />
-        <DebugControls
+        <SubtreeControls
           ros={this.props.ros}
           bt_namespace={this.props.currentNamespace}
           onError={this.props.onError}

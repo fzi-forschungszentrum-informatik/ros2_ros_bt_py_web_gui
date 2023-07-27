@@ -1024,11 +1024,6 @@ export class D3BehaviorTreeEditor extends Component<
           case "FAILED": {
             return "#dc3545";
           }
-          case "DEBUG_PRE_TICK":
-          case "DEBUG_POST_TICK":
-          case "DEBUG_TICK": {
-            return "#17a2b8";
-          }
           case "SHUTDOWN": {
             return "#7c1e27";
           }
