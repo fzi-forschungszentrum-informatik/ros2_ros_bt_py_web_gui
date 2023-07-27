@@ -25,7 +25,6 @@ import { BehaviorTreeEdge } from "./components/BehaviorTreeEdge";
 import { ErrorHistory } from "./components/ErrorHistory";
 import { FileBrowser } from "./components/FileBrowser";
 import {
-  DebugInfo,
   DocumentedNode,
   Error,
   Message,
@@ -34,6 +33,7 @@ import {
   NodeMsg,
   Package,
   Packages,
+  SubtreeStates,
   TreeMsg,
 } from "./types/types";
 import {
@@ -99,7 +99,7 @@ interface AppProps {}
 export class RosBtPyApp extends Component<AppProps, AppState> {
   nodes_fuse: Fuse<DocumentedNode> | null;
   tree_topic: ROSLIB.Topic<TreeMsg>;
-  debug_topic: ROSLIB.Topic<DebugInfo>;
+  subtree_states_topic: ROSLIB.Topic<SubtreeStates>;
   messages_topic: ROSLIB.Topic<Messages>;
   get_nodes_service: ROSLIB.Service<
     GetAvailableNodesRequest,
@@ -116,10 +116,10 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   topicTimeoutID: number | null;
   newMsgDelay: number;
   last_received_tree_msg?: TreeMsg;
-  last_received_debug_msg!: DebugInfo;
   messages: Message[];
   messagesFuse: Fuse<Message> | null;
   last_received_packages_msg?: Packages;
+  last_received_subtree_msg?: SubtreeStates;
   packages: Package[];
   packagesFuse: Fuse<Package> | null;
   last_tree_update?: number;
@@ -199,10 +199,10 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       messageType: "ros_bt_py_interfaces/msg/Tree",
     });
 
-    this.debug_topic = new ROSLIB.Topic({
+    this.subtree_states_topic = new ROSLIB.Topic({
       ros: this.state.ros,
-      name: this.state.bt_namespace + "debug/debug_info",
-      messageType: "ros_bt_py_interfaces/msg/DebugInfo",
+      name: this.state.bt_namespace + "subtree_states",
+      messageType: "ros_bt_py_interfaces/msg/SubtreeStates",
     });
 
     this.messages_topic = new ROSLIB.Topic({
@@ -238,7 +238,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     this.set_execution_mode_service = new ROSLIB.Service({
       ros: this.state.ros,
-      name: this.state.bt_namespace + "debug/set_execution_mode",
+      name: this.state.bt_namespace + "set_execution_mode",
       serviceType: "ros_bt_py_interfaces/srv/SetExecutionMode",
     });
 
@@ -270,7 +270,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.onSelectedPackageChange = this.onSelectedPackageChange.bind(this);
     this.onSelectedEdgeChange = this.onSelectedEdgeChange.bind(this);
     this.onTreeUpdate = this.onTreeUpdate.bind(this);
-    this.onDebugUpdate = this.onDebugUpdate.bind(this);
+    this.onSubtreeStatesUpdate = this.onSubtreeStatesUpdate.bind(this);
     this.onMessagesUpdate = this.onMessagesUpdate.bind(this);
     this.findPossibleParents = this.findPossibleParents.bind(this);
     this.onSelectedTreeChange = this.onSelectedTreeChange.bind(this);
@@ -312,7 +312,6 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       if (setup_and_shutdown) {
         this.set_execution_mode_service.callService(
           {
-            single_step: false,
             publish_subtrees: true,
             collect_performance_data: false,
           } as SetExecutionModeRequest,
@@ -328,15 +327,15 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     }
   }
 
-  onDebugUpdate(msg: DebugInfo) {
-    this.last_received_debug_msg = msg;
+  onSubtreeStatesUpdate(msg: SubtreeStates) {
+    this.last_received_subtree_msg = msg;
     this.setState({
-      subtree_names: msg.subtree_states
+      subtree_names: msg.subtrees
         .map((x: { name: any }) => x.name)
         .sort(),
     });
     if (this.state.selected_tree.is_subtree) {
-      const selectedSubtree = msg.subtree_states.find(
+      const selectedSubtree = msg.subtrees.find(
         (x: { name: any }) => x.name === this.state.selected_tree.name
       );
       if (selectedSubtree) {
@@ -463,9 +462,9 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     // Find the correct tree message (if any) to set for the new
     // selected tree
     let tree_msg = undefined;
-    if (is_subtree) {
-      tree_msg = this.last_received_debug_msg.subtree_states.find(
-        (x: { name: any }) => x.name === name
+    if (is_subtree && this.last_received_subtree_msg) {
+      tree_msg = this.last_received_subtree_msg.subtrees.find(
+        (x: TreeMsg) => x.name === name
       );
     } else {
       tree_msg = this.last_received_tree_msg;
@@ -499,10 +498,10 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
         messageType: "ros_bt_py_interfaces/msg/Tree",
       });
 
-      this.debug_topic = new ROSLIB.Topic({
+      this.subtree_states_topic = new ROSLIB.Topic({
         ros: this.state.ros,
-        name: namespace + "debug/debug_info",
-        messageType: "ros_bt_py_interfaces/msg/DebugInfo",
+        name: namespace + "subtree_states",
+        messageType: "ros_bt_py_interfaces/msg/SubtreeStates",
       });
 
       this.messages_topic = new ROSLIB.Topic({
@@ -519,7 +518,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
       // Subscribe again
       this.tree_topic.subscribe(this.onTreeUpdate);
-      this.debug_topic.subscribe(this.onDebugUpdate);
+      this.subtree_states_topic.subscribe(this.onSubtreeStatesUpdate);
       this.messages_topic.subscribe(this.onMessagesUpdate);
       this.packages_topic.subscribe(this.onPackagesUpdate);
 
@@ -551,7 +550,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
       this.set_execution_mode_service = new ROSLIB.Service({
         ros: this.state.ros,
-        name: namespace + "debug/set_execution_mode",
+        name: namespace + "set_execution_mode",
         serviceType: "ros_bt_py_interfaces/srv/SetExecutionMode",
       });
 
@@ -640,7 +639,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     });
 
     this.tree_topic.subscribe(this.onTreeUpdate);
-    this.debug_topic.subscribe(this.onDebugUpdate);
+    this.subtree_states_topic.subscribe(this.onSubtreeStatesUpdate);
     this.messages_topic.subscribe(this.onMessagesUpdate);
     this.packages_topic.subscribe(this.onPackagesUpdate);
 
@@ -769,7 +768,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
   componentWillUnmount() {
     this.tree_topic.unsubscribe(this.onTreeUpdate);
-    this.debug_topic.unsubscribe(this.onDebugUpdate);
+    this.subtree_states_topic.unsubscribe(this.onSubtreeStatesUpdate);
     this.messages_topic.unsubscribe(this.onMessagesUpdate);
     this.packages_topic.unsubscribe(this.onPackagesUpdate);
   }

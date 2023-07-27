@@ -4,6 +4,10 @@ export interface NodeData {
   serialized_type: string;
 }
 
+export interface BoolMsg {
+  data: boolean
+}
+
 export interface NodeMsg {
   module: string;
   node_class: string;
@@ -40,10 +44,8 @@ export interface TreeMsg {
   public_node_data: NodeDataLocation;
 }
 
-export interface DebugInfo {
-  current_recursion_depth: number;
-  max_recursion_depth: number;
-  subtree_states: TreeMsg[];
+export interface SubtreeStates {
+  subtrees: TreeMsg[]
 }
 
 export interface Package {
@@ -74,14 +76,6 @@ export interface Error {
   id: number;
   time: number;
   text: string;
-}
-
-export interface DebugSettings {
-  single_step: boolean;
-  collect_performance_data: boolean;
-  publish_subtrees: boolean;
-  collect_node_diagnostics: boolean;
-  breakpoint_names: string[];
 }
 
 export interface PackageStructure {

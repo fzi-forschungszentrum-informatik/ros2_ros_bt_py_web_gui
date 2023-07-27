@@ -588,10 +588,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                   save_file_path += this.state.file_type_filter;
                 }
               }
-              const debug_file_path =
-                "package://" + this.state.package + "/" + save_file_path;
-              console.log("saving... ", debug_file_path);
-
+              
               let overwrite = false;
               let rename = false;
               if (this.state.write_mode === "overwrite") {

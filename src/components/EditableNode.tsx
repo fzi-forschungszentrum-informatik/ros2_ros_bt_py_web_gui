@@ -116,8 +116,7 @@ export class EditableNode extends Component<
               let replace_regex;
               let type_name;
               if (
-                (this.props.nodeClass === "Action" ||
-                  this.props.nodeClass === "ActionWithDebug") &&
+                (this.props.nodeClass === "Action") &&
                 this.props.module === "ros_bt_py.nodes.action"
               ) {
                 const action_types: {
