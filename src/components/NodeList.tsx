@@ -29,7 +29,8 @@ export class NodeList extends Component<NodeListProps, NodeListState> {
   }
 
   toggleNodeListCollapsed(event: React.MouseEvent<HTMLDivElement>) {
-    this.setState({ node_list_collapsed: !this.state.node_list_collapsed });
+    const previous_state = this.state.node_list_collapsed;
+    this.setState({ node_list_collapsed: !previous_state });
     event.stopPropagation();
   }
 
@@ -55,11 +56,13 @@ export class NodeList extends Component<NodeListProps, NodeListState> {
     };
 
     let nodes = this.props.availableNodes.sort(byName);
+    nodes = nodes.sort(moduleThenName);
+
     if (this.props.filtered_nodes && this.props.filtered_nodes.length > 0) {
       nodes = this.props.filtered_nodes;
     }
 
-    let items: JSX.Element[] | null = nodes.sort(moduleThenName).map((node) => {
+    let items: JSX.Element[] | null = nodes.map((node) => {
       let highlighted = false;
       if (
         this.props.dragging_node_list_item &&
@@ -95,7 +98,10 @@ export class NodeList extends Component<NodeListProps, NodeListState> {
               onClick={this.toggleNodeListCollapsed.bind(this)}
               className="text-center cursor-pointer font-weight-bold m-2"
             >
-              Node List <i className={node_list_collapsible_icon}></i>
+              Node List{" "}
+              <i key={node_list_collapsible_icon}>
+                <span className={node_list_collapsible_icon} />
+              </i>
             </div>
             {items}
           </div>

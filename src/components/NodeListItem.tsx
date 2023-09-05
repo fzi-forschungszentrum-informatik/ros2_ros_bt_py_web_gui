@@ -142,10 +142,9 @@ export class NodeListItem extends Component<
             ></i>
           </div>
           <div className="d-flex minw0">
-            <i
-              onClick={this.toggleCollapsed.bind(this)}
-              className={collapsible_icon}
-            ></i>
+            <i onClick={this.toggleCollapsed.bind(this)} key={collapsible_icon}>
+              <span className={collapsible_icon} />
+            </i>
           </div>
         </div>
         <h5
