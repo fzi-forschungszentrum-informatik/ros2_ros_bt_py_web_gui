@@ -322,6 +322,7 @@ export class EditableNode extends Component<
           {
             message_type: message.message_type,
             service: message.service,
+            action: message.action,
           } as GetMessageFieldsRequest,
           (response: GetMessageFieldsResponse) => {
             const obj = getDefaultValue(
@@ -368,6 +369,7 @@ export class EditableNode extends Component<
                 {
                   message_type: message.message_type,
                   service: message.service,
+                  action: message.action,
                 } as GetMessageFieldsRequest,
                 (response: GetMessageFieldsResponse) => {
                   if (response.success) {

@@ -1,6 +1,7 @@
 export interface GetMessageFieldsRequest {
   message_type: string;
   service: boolean;
+  action: boolean;
 }
 
 export interface GetMessageFieldsResponse {

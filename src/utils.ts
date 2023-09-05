@@ -247,12 +247,18 @@ export function selectIOGripper(
 
 export function getMessageType(str: string) {
   let message_type = str;
-  const msg_string = ".msg._";
+  const msg_string = ".msg.";
   let first_index = message_type.indexOf(msg_string);
   let service = false;
+  let action = false;
   if (first_index == -1) {
-    first_index = message_type.indexOf(".srv._");
-    service = true;
+    first_index = message_type.indexOf(".srv.");
+    if (first_index == -1) {
+      first_index = message_type.indexOf(".action.");
+      action = true;
+    } else {
+      service = true;
+    }
   }
   const package_name = message_type.substr(0, first_index);
   const second_index = message_type.indexOf(
@@ -261,7 +267,7 @@ export function getMessageType(str: string) {
   );
   const message_name = message_type.substr(second_index + 1);
   message_type = package_name + "/" + message_name;
-  return { message_type: message_type, service: service };
+  return { message_type: message_type, service: service, action: action };
 }
 
 export function getShortDoc(doc: string) {

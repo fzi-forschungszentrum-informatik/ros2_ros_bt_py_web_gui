@@ -165,6 +165,7 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
           {
             message_type: message.message_type,
             service: message.service,
+            action: message.action,
           } as GetMessageFieldsRequest,
           (response: GetMessageFieldsResponse) => {
             if (response.success) {
