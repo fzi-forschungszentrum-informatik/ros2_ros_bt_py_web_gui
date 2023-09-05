@@ -484,14 +484,17 @@ export class D3BehaviorTreeEditor extends Component<
   ) {
     let svg;
     if (
-      this.props.tree_message !== prevProps.tree_message &&
-      this.props.tree_message !== null
+      this.props.tree_message !== prevProps.tree_message ||
+      this.props.tree_message === null
     ) {
       this.drawEverything(this.props.tree_message);
 
       // Disable all interaction (except for zooming and panning) when
       // the tree isn't editable
-      if (treeIsEditable(this.props.tree_message)) {
+      if (
+        this.props.tree_message !== null &&
+        treeIsEditable(this.props.tree_message)
+      ) {
         //TODO: Implement this
       }
     }
@@ -582,6 +585,7 @@ export class D3BehaviorTreeEditor extends Component<
 
   drawEverything(tree_msg: TreeMsg | null) {
     if (tree_msg === null) {
+      this.drawDropTargets();
       return;
     }
 
@@ -1292,7 +1296,6 @@ export class D3BehaviorTreeEditor extends Component<
     let input_vertex_data: DataEdgeTerminal[] = [];
     let output_vertex_data: DataEdgeTerminal[] = [];
     data.forEach((x) => {
-      console.log("Data Vertex:", x);
       input_vertex_data = input_vertex_data.concat(
         x.data.inputs.map((input) => {
           const datum = this.getIOCoordsFromNode(
@@ -1326,8 +1329,6 @@ export class D3BehaviorTreeEditor extends Component<
         })
       );
     });
-    console.log("Input vertex data:", input_vertex_data);
-    console.log("Output vertex data:", output_vertex_data);
 
     this.drawDataVerts(vertices, input_vertex_data, output_vertex_data);
 
@@ -1569,7 +1570,6 @@ export class D3BehaviorTreeEditor extends Component<
         (d) => d.nodeName + d.kind + d.key
       );
     groups.exit().remove();
-    console.log(groups);
 
     groups = groups
       .enter()
