@@ -245,29 +245,35 @@ export function selectIOGripper(
     .filter((d: DataEdgeTerminal) => d.key === data.data_key);
 }
 
-export function getMessageType(str: string) {
-  let message_type = str;
-  const msg_string = ".msg.";
-  let first_index = message_type.indexOf(msg_string);
+export function getMessageType(str: string): {
+  message_type: string;
+  service: boolean;
+  action: boolean;
+} {
+  const message_parts = str.split(".");
+  if (message_parts.length < 3) {
+    console.error("Invalid message passed");
+    return { message_type: str, action: false, service: false };
+  }
+
+  let new_message_parts = message_parts;
   let service = false;
   let action = false;
-  if (first_index == -1) {
-    first_index = message_type.indexOf(".srv.");
-    if (first_index == -1) {
-      first_index = message_type.indexOf(".action.");
-      action = true;
-    } else {
-      service = true;
+  if (message_parts[1] === "srv") {
+    service = true;
+    if (message_parts.length === 5) {
+      new_message_parts = message_parts.slice(0, 4);
+      new_message_parts[3] = new_message_parts[3] + "_" + message_parts[4];
+    }
+  } else if (message_parts[1] === "action") {
+    action = true;
+    if (message_parts.length === 5) {
+      new_message_parts = message_parts.slice(0, 4);
+      new_message_parts[3] = new_message_parts[3] + "_" + message_parts[4];
     }
   }
-  const package_name = message_type.substr(0, first_index);
-  const second_index = message_type.indexOf(
-    ".",
-    first_index + msg_string.length
-  );
-  const message_name = message_type.substr(second_index + 1);
-  message_type = package_name + "/" + message_name;
-  return { message_type: message_type, service: service, action: action };
+  const message_name = new_message_parts.join("/");
+  return { message_type: message_name, service: service, action: action };
 }
 
 export function getShortDoc(doc: string) {

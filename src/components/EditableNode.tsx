@@ -113,78 +113,59 @@ export class EditableNode extends Component<
           <div
             className="list-group-item search-result"
             onClick={() => {
-              let replace_regex;
-              let type_name;
-              if (
-                (this.props.nodeClass === "Action" ||
-                  this.props.nodeClass === "ActionWithDebug") &&
-                this.props.module === "ros_bt_py.nodes.action"
-              ) {
-                const action_types: {
-                  action_type: string;
-                  feedback_type: string;
-                  goal_type: string;
-                  result_type: string;
-                } = {
-                  action_type: "Action",
-                  feedback_type: "Feedback",
-                  goal_type: "Goal",
-                  result_type: "Result",
-                };
+              const type_names = x.msg.split(".");
 
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                type_name = x.msg.split(".").pop()!;
-                const action_name = type_name.replace(
-                  action_types[key as keyof typeof action_types],
-                  ""
-                );
-                replace_regex = new RegExp(type_name, "g");
-                for (const action_type in action_types) {
-                  if (key !== action_type) {
-                    this.updateValue(
-                      "options",
-                      action_type,
-                      x.msg.replace(
-                        replace_regex,
-                        action_name +
-                          action_types[action_type as keyof typeof action_types]
-                      )
-                    );
+              if (type_names.length >= 3) {
+                const full_type_name = type_names.slice(0, 3).join(".");
+
+                if (
+                  (this.props.nodeClass === "Action" ||
+                    this.props.nodeClass === "ActionWithDebug") &&
+                  this.props.module === "ros_bt_py.ros_nodes.action"
+                ) {
+                  const action_types: {
+                    action_type: string;
+                    feedback_type: string;
+                    goal_type: string;
+                    result_type: string;
+                  } = {
+                    action_type: "",
+                    feedback_type: ".Feedback",
+                    goal_type: ".Goal",
+                    result_type: ".Result",
+                  };
+
+                  for (const action_type in action_types) {
+                    const updated_value =
+                      full_type_name +
+                      action_types[action_type as keyof typeof action_types];
+
+                    if (key !== action_type) {
+                      this.updateValue("options", action_type, updated_value);
+                    }
                   }
-                }
-              } else if (
-                (this.props.nodeClass === "Service" ||
-                  this.props.nodeClass === "ServiceInput") &&
-                this.props.module === "ros_bt_py.nodes.service"
-              ) {
-                const service_types = {
-                  service_type: "",
-                  request_type: "Request",
-                  response_type: "Response",
-                };
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                type_name = x.msg.split(".").pop()!;
-                const service_name = type_name.replace(
-                  service_types[key as keyof typeof service_types],
-                  ""
-                );
-                replace_regex = new RegExp(type_name + "$");
-                for (const service_type in service_types) {
-                  if (key !== service_type) {
-                    this.updateValue(
-                      "options",
-                      service_type,
-                      x.msg.replace(
-                        replace_regex,
-                        service_name +
-                          service_types[
-                            service_type as keyof typeof service_types
-                          ]
-                      )
-                    );
+                } else if (
+                  (this.props.nodeClass === "Service" ||
+                    this.props.nodeClass === "ServiceInput") &&
+                  this.props.module === "ros_bt_py.ros_nodes.service"
+                ) {
+                  const service_types = {
+                    service_type: "",
+                    request_type: ".Request",
+                    response_type: ".Response",
+                  };
+
+                  for (const service_type in service_types) {
+                    const updated_value =
+                      full_type_name +
+                      service_types[service_type as keyof typeof service_types];
+                    if (key !== service_type) {
+                      this.updateValue("options", service_type, updated_value);
+                    }
                   }
                 }
               }
+
               this.selectMessageResult(x);
               onNewValue(x.msg);
             }}
@@ -365,9 +346,10 @@ export class EditableNode extends Component<
           if (optionType) {
             if (optionType.key == key) {
               const message = getMessageType(new_value as string);
+              const message_name = message.message_type.replaceAll(".", "/");
               this.get_message_fields_service.callService(
                 {
-                  message_type: message.message_type,
+                  message_type: message_name,
                   service: message.service,
                   action: message.action,
                 } as GetMessageFieldsRequest,
@@ -774,7 +756,6 @@ export class EditableNode extends Component<
         </Fragment>
       );
     } else {
-      console.log("item with non-basic type: ", paramItem);
       return (
         <Fragment>
           <h5>

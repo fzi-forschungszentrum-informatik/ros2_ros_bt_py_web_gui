@@ -48,20 +48,19 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
     super(props);
 
     if (props.node) {
-      const options_list = this.getDefaultValues(props.node.options);
+      const default_options = this.getDefaultValues(props.node.options);
 
-      // reparse unset_optionrefs
       this.state = {
         name: props.node.name,
         isValid: true,
-        options: options_list.map((x) => {
+        options: default_options.map((x) => {
           if (x.value.type === "unset_optionref") {
             const optionref: string = x.value.value as string;
             const optionTypeName = optionref.substring(
               'Ref to "'.length,
               optionref.length - 1
             );
-            const optionType = this.state.options.find((x) => {
+            const optionType = default_options.find((x) => {
               return x.key === optionTypeName;
             });
             if (optionType && optionType.value) {
@@ -88,6 +87,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
         outputs: [],
       };
     }
+
     this.add_node_service = new ROSLIB.Service({
       ros: props.ros,
       name: props.bt_namespace + "add_node",
