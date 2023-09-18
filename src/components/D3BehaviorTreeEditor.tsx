@@ -1097,7 +1097,7 @@ export class D3BehaviorTreeEditor extends Component<
         // Only add the "insert before" target for the first node.
         // Without this if, we'd get overlapping drop targets for
         // this.after and next_child.before
-        if (my_index == 0) {
+        if (my_index === 0) {
           g_droptargets
             .append("rect")
             .attr("class", "drop_target ib")
@@ -2025,8 +2025,8 @@ export class D3BehaviorTreeEditor extends Component<
           }
           // Hide the left/right drop targets
           if (
-            x.data.name === parentName
-            //&&(x.position == my_index || x.position == my_index + 1)
+            x.data.name === parentName &&
+            (x.position == my_index || x.position == my_index + 1)
           ) {
             return true;
           }
