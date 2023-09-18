@@ -1100,7 +1100,7 @@ export class D3BehaviorTreeEditor extends Component<
         if (my_index === 0) {
           g_droptargets
             .append("rect")
-            .attr("class", "drop_target ib")
+            .attr("class", "drop_target")
             .attr(
               "transform",
               "translate(" +
