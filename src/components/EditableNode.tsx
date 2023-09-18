@@ -109,65 +109,71 @@ export class EditableNode extends Component<
   ) {
     if (results.length > 0 && this.state.results_at_key === key) {
       const result_rows = results.map((x) => {
+        const onClickHandler = () => {
+          const type_names = x.msg.split(".");
+
+          if (type_names.length >= 3) {
+            const full_type_name = type_names.slice(0, 3).join(".");
+
+            if (
+              (this.props.nodeClass === "Action" ||
+                this.props.nodeClass === "ActionWithDebug") &&
+              this.props.module === "ros_bt_py.ros_nodes.action"
+            ) {
+              const action_types: {
+                action_type: string;
+                feedback_type: string;
+                goal_type: string;
+                result_type: string;
+              } = {
+                action_type: "",
+                feedback_type: ".Feedback",
+                goal_type: ".Goal",
+                result_type: ".Result",
+              };
+
+              for (const action_type in action_types) {
+                const updated_value =
+                  full_type_name +
+                  action_types[action_type as keyof typeof action_types];
+
+                if (key !== action_type) {
+                  this.updateValue("options", action_type, updated_value);
+                }
+              }
+            } else if (
+              (this.props.nodeClass === "Service" ||
+                this.props.nodeClass === "ServiceInput") &&
+              this.props.module === "ros_bt_py.ros_nodes.service"
+            ) {
+              const service_types = {
+                service_type: "",
+                request_type: ".Request",
+                response_type: ".Response",
+              };
+
+              for (const service_type in service_types) {
+                const updated_value =
+                  full_type_name +
+                  service_types[service_type as keyof typeof service_types];
+                if (key !== service_type) {
+                  this.updateValue("options", service_type, updated_value);
+                }
+              }
+            }
+          }
+
+          this.selectMessageResult(x);
+          onNewValue(x.msg);
+        };
+
         return (
           <div
             className="list-group-item search-result"
-            onClick={() => {
-              const type_names = x.msg.split(".");
-
-              if (type_names.length >= 3) {
-                const full_type_name = type_names.slice(0, 3).join(".");
-
-                if (
-                  (this.props.nodeClass === "Action" ||
-                    this.props.nodeClass === "ActionWithDebug") &&
-                  this.props.module === "ros_bt_py.ros_nodes.action"
-                ) {
-                  const action_types: {
-                    action_type: string;
-                    feedback_type: string;
-                    goal_type: string;
-                    result_type: string;
-                  } = {
-                    action_type: "",
-                    feedback_type: ".Feedback",
-                    goal_type: ".Goal",
-                    result_type: ".Result",
-                  };
-
-                  for (const action_type in action_types) {
-                    const updated_value =
-                      full_type_name +
-                      action_types[action_type as keyof typeof action_types];
-
-                    if (key !== action_type) {
-                      this.updateValue("options", action_type, updated_value);
-                    }
-                  }
-                } else if (
-                  (this.props.nodeClass === "Service" ||
-                    this.props.nodeClass === "ServiceInput") &&
-                  this.props.module === "ros_bt_py.ros_nodes.service"
-                ) {
-                  const service_types = {
-                    service_type: "",
-                    request_type: ".Request",
-                    response_type: ".Response",
-                  };
-
-                  for (const service_type in service_types) {
-                    const updated_value =
-                      full_type_name +
-                      service_types[service_type as keyof typeof service_types];
-                    if (key !== service_type) {
-                      this.updateValue("options", service_type, updated_value);
-                    }
-                  }
-                }
-              }
-
-              this.selectMessageResult(x);
-              onNewValue(x.msg);
+            tabIndex={0}
+            onClick={onClickHandler}
+            onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+              return event.keyCode != 13 || onClickHandler();
             }}
           >
             {x.msg}
