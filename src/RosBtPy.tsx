@@ -1122,11 +1122,18 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       tree_state = this.state.last_tree_msg.state;
     }
 
+    const modal_style: ReactModal.Styles = {
+      overlay: {
+        zIndex: 1050,
+      },
+    };
+
     return (
       <div onMouseUp={this.check_dragging} className={dragging_cursor}>
         <ReactModal
           key={this.state.bt_namespace + "ReactModal"}
           isOpen={this.state.show_file_modal !== null}
+          style={modal_style}
         >
           <FileBrowser
             ros={this.state.ros}
