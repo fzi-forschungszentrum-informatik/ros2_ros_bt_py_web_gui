@@ -18,6 +18,7 @@ import {
 } from "../types/services/ClearTree";
 import { TreeMsg } from "../types/types";
 import jsyaml from "js-yaml";
+import { FileBrowserMode } from "./FileBrowser";
 
 interface LoadSaveControlsProps {
   ros: ROSLIB.Ros;
@@ -26,7 +27,7 @@ interface LoadSaveControlsProps {
   onError: (error_message: string) => void;
   onNewRunningCommand: (command: TreeExecutionCommands) => void;
   onRunningCommandCompleted: (command: TreeExecutionCommands) => void;
-  onChangeFileModal: (mode: string | null) => void;
+  onChangeFileModal: (mode: FileBrowserMode) => void;
 }
 
 export class LoadSaveControls extends Component<LoadSaveControlsProps> {
@@ -138,7 +139,9 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                       (response: LoadTreeResponse) => {
                         if (response.success) {
                           console.log("called LoadTree service successfully");
-                          this.props.onChangeFileModal(null);
+                          this.props.onChangeFileModal(
+                            FileBrowserMode.DISABLED
+                          );
                         } else {
                           if (
                             response.error_message.startsWith(
@@ -164,7 +167,9 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                                     console.log(
                                       "called LoadTree service successfully"
                                     );
-                                    this.props.onChangeFileModal(null);
+                                    this.props.onChangeFileModal(
+                                      FileBrowserMode.DISABLED
+                                    );
                                   } else {
                                     this.setState({
                                       error_message: response.error_message,
@@ -215,7 +220,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
               (response: LoadTreeResponse) => {
                 if (response.success) {
                   console.log("called LoadTree service successfully");
-                  this.props.onChangeFileModal(null);
+                  this.props.onChangeFileModal(FileBrowserMode.DISABLED);
                 } else {
                   console.log("err:", response.error_message);
 
@@ -241,7 +246,9 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                         (response: LoadTreeResponse) => {
                           if (response.success) {
                             console.log("called LoadTree service successfully");
-                            this.props.onChangeFileModal(null);
+                            this.props.onChangeFileModal(
+                              FileBrowserMode.DISABLED
+                            );
                           } else {
                             this.setState({
                               error_message: response.error_message,
@@ -410,7 +417,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
   }
 
   loadFromPackage(event: React.MouseEvent<HTMLButtonElement>) {
-    this.props.onChangeFileModal("load");
+    this.props.onChangeFileModal(FileBrowserMode.LOAD);
   }
 
   saveToPackage(event: React.MouseEvent<HTMLButtonElement>) {
@@ -429,7 +436,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
       (response: ControlTreeExecutionResponse) => {
         this.props.onRunningCommandCompleted(6);
         if (response.success) {
-          this.props.onChangeFileModal("save");
+          this.props.onChangeFileModal(FileBrowserMode.SAVE);
         } else {
           this.props.onError(
             "Could not shutdown tree before saving:" + response.error_message
@@ -441,7 +448,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                 response.error_message
             )
           ) {
-            this.props.onChangeFileModal("save");
+            this.props.onChangeFileModal(FileBrowserMode.SAVE);
           }
         }
       }

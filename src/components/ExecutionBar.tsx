@@ -6,6 +6,7 @@ import { LoadSaveControls } from "./LoadSaveControls";
 import { NamespaceSelect } from "./NamespaceSelect";
 import { Spacer } from "./Spacer";
 import { TickControls } from "./TickControls";
+import { FileBrowserMode } from "./FileBrowser";
 
 interface ExecutionBarProps {
   ros: ROSLIB.Ros;
@@ -23,7 +24,7 @@ interface ExecutionBarProps {
   onNewRunningCommand: (command: TreeExecutionCommands) => void;
   onRunningCommandCompleted: (command: TreeExecutionCommands) => void;
   onPublishingSubtreesChange: (enable: boolean) => void;
-  onChangeFileModal: (mode: string | null) => void;
+  onChangeFileModal: (mode: FileBrowserMode) => void;
 }
 
 interface ExecutionBarState {}

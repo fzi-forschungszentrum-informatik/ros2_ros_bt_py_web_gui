@@ -23,7 +23,7 @@ import { SelectTree } from "./components/SelectTree";
 import { D3BehaviorTreeEditor } from "./components/D3BehaviorTreeEditor";
 import { BehaviorTreeEdge } from "./components/BehaviorTreeEdge";
 import { ErrorHistory } from "./components/ErrorHistory";
-import { FileBrowser } from "./components/FileBrowser";
+import { FileBrowser, FileBrowserMode } from "./components/FileBrowser";
 import {
   DebugInfo,
   DocumentedNode,
@@ -52,6 +52,11 @@ import {
   SetExecutionModeResponse,
 } from "./types/services/SetExecutionMode";
 
+/**
+ * State maintained by the ros_bt_py web application.
+ * State contains changeing variables during the runtime of the app.
+ * Any change to the state will cause a re-render of the app.
+ */
 interface AppState {
   bt_namespace: string;
   ros_uri: string;
@@ -83,7 +88,7 @@ interface AppState {
   connected: boolean;
   publishing_subtrees: boolean;
   last_selected_package: string;
-  show_file_modal: string | null;
+  show_file_modal: FileBrowserMode;
   current_time: number;
   nodelist_visible: boolean;
   executionbar_visible: boolean;
@@ -94,6 +99,9 @@ interface AppState {
   selected_node_name: string | null;
 }
 
+/**
+ * Properties of the App, which are static.
+ */
 interface AppProps {}
 
 export class RosBtPyApp extends Component<AppProps, AppState> {
@@ -178,7 +186,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       connected: false,
       publishing_subtrees: false,
       last_selected_package: "",
-      show_file_modal: null,
+      show_file_modal: FileBrowserMode.DISABLED,
       current_time: Date.now(),
       nodelist_visible: true,
       executionbar_visible: true,
@@ -646,10 +654,13 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     document.body.addEventListener(
       "keydown",
-      (e: { keyCode: number; ctrlKey: any; metaKey: any; shiftKey: any }) => {
-        if (this.state.show_file_modal && e.keyCode == 27) {
+      (e: KeyboardEvent) => {
+        if (
+          this.state.show_file_modal !== FileBrowserMode.DISABLED &&
+          e.key === "Escape"
+        ) {
           // 27 = ESC
-          this.setState({ show_file_modal: null });
+          this.setState({ show_file_modal: FileBrowserMode.DISABLED });
         }
         if (
           this.state.copy_node &&
@@ -818,7 +829,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.setState({ dragging_node_list_item: dragging });
   }
 
-  onChangeFileModal(mode: string | null) {
+  onChangeFileModal(mode: FileBrowserMode) {
     this.setState({ show_file_modal: mode });
   }
 
@@ -1126,7 +1137,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       <div onMouseUp={this.check_dragging} className={dragging_cursor}>
         <ReactModal
           key={this.state.bt_namespace + "ReactModal"}
-          isOpen={this.state.show_file_modal !== null}
+          isOpen={this.state.show_file_modal !== FileBrowserMode.DISABLED}
         >
           <FileBrowser
             ros={this.state.ros}

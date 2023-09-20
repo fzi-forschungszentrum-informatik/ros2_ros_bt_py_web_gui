@@ -17,19 +17,48 @@ import {
   GetPackageStructureResponse,
 } from "../types/services/GetPackageStructure";
 
+/**
+ *Available modes of the FileBrowser.
+ */
+export enum FileBrowserMode {
+  /** Load a tree using the FileBrowser. */
+  LOAD = 0,
+  /** Save a tree using the FileBrowser. */
+  SAVE = 1,
+  /** Disable the file browser. */
+  DISABLED = 2,
+}
+
+/**
+ * Propertis of the FileBrowser that are set on creation as static attributes.
+ */
 interface FileBrowserProps {
+  /** Refernce to the ROS lib for service calls. */
   ros: ROSLIB.Ros;
+  /** ROS namespace of the BT library node */
   bt_namespace: string;
+  /** Fuzzy search instance for packages. */
   packagesFuse: Fuse<Package>;
+  /** If a package list has been received from the BT library. */
   packages_available: boolean;
+  /** Callback function to report an error in the web GUI. */
   onError: (error_message: string) => void;
-  mode: string | null;
+  /** The mode of the file modal, either save or load. */
+  mode: FileBrowserMode;
+  /** The last ROS message containing the behavior tree. */
   tree_message: TreeMsg | null;
+  /** Last package that was selected in the FileBrowser. */
   last_selected_package: string;
-  onChangeFileModal: (mode: string | null) => void;
+  /** Callback to report if the file modal should be opened over the regular GUI. */
+  onChangeFileModal: (mode: FileBrowserMode) => void;
+  /** Callback to report a change in the selected package. */
   onSelectedPackageChange: (new_selected_package_name: string) => void;
 }
 
+/**
+ * The state of the FileBrowser component.
+ * State changes cause re-renders.
+ */
 interface FileBrowserState {
   package: string;
   selected_package: string | null;
@@ -46,25 +75,41 @@ interface FileBrowserState {
   error_message: string | null;
 }
 
+/**
+ * File browser that allows to load and save trees to packages and absolute file paths.
+ */
 export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
+  /** ROS service call to get the structure of available ROS packages */
   get_package_structure_service?: ROSLIB.Service<
     GetPackageStructureRequest,
     GetPackageStructureResponse
   >;
+
+  /** ROS service to check if the loaded version of a node is the most current */
   check_node_versions_service?: ROSLIB.Service<
     MigrateTreeRequest,
     MigrateTreeResponse
   >;
+
+  /** ROS service to migrate a tree to the newest node versions. */
   migrate_tree_service?: ROSLIB.Service<
     MigrateTreeRequest,
     MigrateTreeResponse
   >;
+
+  /** ROS service to load a tree from a URI */
   load_service?: ROSLIB.Service<LoadTreeRequest, LoadTreeResponse>;
+
+  /** ROS service to save a tree to a URI */
   save_service?: ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>;
+
+  /** ROS service to change the name of a loaded tree */
   change_tree_name_service?: ROSLIB.Service<
     ChangeTreeNameRequest,
     ChangeTreeNameResponse
   >;
+
+  /** Currently selected node from the search results. */
   node?: HTMLDivElement | null;
 
   constructor(props: FileBrowserProps) {
@@ -134,6 +179,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     }
   }
 
+  /**
+   * Search for the package after the input values in the search bar changed.
+   *
+   * @param event Change event containing the newly selected value from the input.
+   */
   searchPackageName(event: ChangeEvent<HTMLInputElement>) {
     if (this.props.packagesFuse) {
       const results = this.props.packagesFuse
@@ -148,9 +198,13 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     });
   }
 
+  /**
+   * Highlight a new package after arrow input or select the current package.
+   *
+   * @param event Keyboard event within the packages list.
+   */
   keyPressHandler(event: React.KeyboardEvent<HTMLInputElement>) {
-    if (event.keyCode == 38 || event.keyCode == 40) {
-      // up or down arrow
+    if (["ArrowUp", "ArrowDown"].includes(event.key)) {
       if (
         this.state.package_results &&
         this.state.package_results.length !== 0
@@ -184,6 +238,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     }
   }
 
+  /**
+   * Handle the selection of a package during the search.
+   *
+   * @param result The identifier of the package that was selected in the search.
+   */
   selectPackageSearchResult(result: string) {
     this.setState({
       package: result,
@@ -206,8 +265,8 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
           });
           this.props.onSelectedPackageChange(result);
         } else {
-          console.log(
-            "error getting package structure: ",
+          console.error(
+            "Faled to get package structure: ",
             response.error_message
           );
         }
@@ -215,6 +274,12 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     );
   }
 
+  /**
+   * Render a list of package search results to be represented in the available package list.
+   *
+   * @param results List of packages received as search results.
+   * @returns HTML representing the list of packages to be displayed in the list.
+   */
   renderPackageSearchResults(results: Package[]) {
     if (results.length > 0) {
       const result_rows = results.map((x, i) => {
@@ -250,12 +315,13 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     }
   }
 
+  /**
+   * Load a tree from the package and file_path specified in the Component state.
+   */
   open() {
     const msg = {
       path: "package://" + this.state.package + "/" + this.state.file_path,
     };
-
-    console.log("loading... ", msg.path);
 
     // do a version check before loading
     this.check_node_versions_service!.callService(
@@ -264,9 +330,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
       } as MigrateTreeRequest,
       (response: MigrateTreeResponse) => {
         if (response.success) {
-          console.log("called check version service successfully");
           if (response.migrated) {
-            console.log("migration needed");
             if (
               window.confirm(
                 "The tree you want to load needs to be migrated, should this be tried?"
@@ -278,7 +342,6 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                 } as MigrateTreeRequest,
                 (response: MigrateTreeResponse) => {
                   if (response.success) {
-                    console.log("called MigrateTree service successfully");
                     this.load_service!.callService(
                       {
                         tree: response.tree,
@@ -286,8 +349,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                       } as LoadTreeRequest,
                       (response: LoadTreeResponse) => {
                         if (response.success) {
-                          console.log("called LoadTree service successfully");
-                          this.props.onChangeFileModal(null);
+                          this.props.onChangeFileModal(
+                            FileBrowserMode.DISABLED
+                          );
                         } else {
                           if (
                             response.error_message.startsWith(
@@ -310,10 +374,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                                 } as LoadTreeRequest,
                                 (response: LoadTreeResponse) => {
                                   if (response.success) {
-                                    console.log(
-                                      "called LoadTree service successfully"
+                                    this.props.onChangeFileModal(
+                                      FileBrowserMode.DISABLED
                                     );
-                                    this.props.onChangeFileModal(null);
                                   } else {
                                     this.setState({
                                       error_message: response.error_message,
@@ -363,10 +426,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               } as LoadTreeRequest,
               (response: LoadTreeResponse) => {
                 if (response.success) {
-                  console.log("called LoadTree service successfully");
-                  this.props.onChangeFileModal(null);
+                  this.props.onChangeFileModal(FileBrowserMode.DISABLED);
                 } else {
-                  console.log("err:", response.error_message);
+                  console.error("Failed to load tree:", response.error_message);
 
                   if (
                     response.error_message.startsWith(
@@ -389,8 +451,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                         } as LoadTreeRequest,
                         (response: LoadTreeResponse) => {
                           if (response.success) {
-                            console.log("called LoadTree service successfully");
-                            this.props.onChangeFileModal(null);
+                            this.props.onChangeFileModal(
+                              FileBrowserMode.DISABLED
+                            );
                           } else {
                             this.setState({
                               error_message: response.error_message,
@@ -429,7 +492,14 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     );
   }
 
-  search(item_id: number, parent: PackageStructure) {
+  /**
+   * Find a item as a child of the given parent in the folder structure.
+   *
+   * @param item_id The name of the file in a folder structure to find.
+   * @param parent The parent directory from which to start the search.
+   * @returns The child package element with the specified id or null if not found.
+   */
+  search(item_id: number, parent: PackageStructure): PackageStructure | null {
     const stack = [parent];
     while (stack.length > 0) {
       const node = stack.pop()!;
@@ -443,6 +513,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     return stack.pop() || null;
   }
 
+  /**
+   * Render the current state of the component as JSX elements.
+   *
+   * @returns JSX description of the FileBrowser.
+   */
   render() {
     const comparePackageNames = function (a: Package, b: Package) {
       if (a.package === b.package) {
@@ -546,7 +621,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
       let open_save_button = null;
       let write_mode_select = null;
-      if (this.props.mode === "load") {
+      if (this.props.mode === FileBrowserMode.LOAD) {
         open_save_button = (
           <button
             className="btn btn-primary w-30 ms-1"
@@ -557,7 +632,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
             <i className="fas fa-folder-open"></i> Open
           </button>
         );
-      } else if (this.props.mode === "save") {
+      } else if (this.props.mode === FileBrowserMode.SAVE) {
         write_mode_select = (
           <select
             className="form-select"
@@ -618,7 +693,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                 (response: SaveTreeResponse) => {
                   if (response.success) {
                     console.log("called SaveTree service successfully");
-                    this.props.onChangeFileModal(null);
+                    this.props.onChangeFileModal(FileBrowserMode.DISABLED);
                   } else {
                     if (
                       this.state.write_mode === "ask" &&
@@ -637,7 +712,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                               console.log(
                                 "called SaveTree service successfully"
                               );
-                              this.props.onChangeFileModal(null);
+                              this.props.onChangeFileModal(
+                                FileBrowserMode.DISABLED
+                              );
                               const change_tree_name_request = {
                                 name: this.state.selected_file,
                               } as ChangeTreeNameRequest;
@@ -745,7 +822,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                     selected_file: event.target.value,
                   });
                 }}
-                disabled={this.props.mode !== "save"}
+                disabled={this.props.mode !== FileBrowserMode.SAVE}
                 value={this.state.selected_file}
               />
             </div>
@@ -782,7 +859,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             })}
           </p>
-          <ul className="list-group overflow-auto" style={{height: "60vh"}}>
+          <ul className="list-group overflow-auto" style={{ height: "60vh" }}>
             {tree!.children!.sort(comparePackageContent).map((child) => {
               let icon = <i className="fas fa-file-code mx-1"></i>;
               if (child.type === "directory") {
@@ -829,9 +906,9 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     }
 
     let title = null;
-    if (this.props.mode === "save") {
+    if (this.props.mode === FileBrowserMode.SAVE) {
       title = "Save tree to package";
-    } else if (this.props.mode === "load") {
+    } else if (this.props.mode === FileBrowserMode.LOAD) {
       title = "Load tree from package";
     }
 
@@ -865,25 +942,25 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
     return (
       <div>
-          <div className="d-flex justify-content-between">
-            <button
-              className="btn btn-primary w-30 m-1"
-              onClick={() => {
-                this.props.onChangeFileModal(null);
-              }}
-            >
-              <i className="fas fa-times-circle"></i> Cancel
-            </button>
-            <span className="disconnected">{this.state.error_message}</span>
+        <div className="d-flex justify-content-between">
+          <button
+            className="btn btn-primary w-30 m-1"
+            onClick={() => {
+              this.props.onChangeFileModal(FileBrowserMode.DISABLED);
+            }}
+          >
+            <i className="fas fa-times-circle"></i> Cancel
+          </button>
+          <span className="disconnected">{this.state.error_message}</span>
+        </div>
+        <h2>{title}</h2>
+        <div className="d-flex flex-column">
+          <div className="input-group m-1">
+            <label className="input-group-text">Package:</label>
+            {package_name_element}
           </div>
-          <h2>{title}</h2>
-          <div className="d-flex flex-column">
-            <div className="input-group m-1">
-              <label className="input-group-text">Package:</label>
-              {package_name_element}
-            </div>
-            {this.renderPackageSearchResults(package_results)}
-          </div>
+          {this.renderPackageSearchResults(package_results)}
+        </div>
         {package_structure}
       </div>
     );
