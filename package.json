@@ -43,7 +43,7 @@
     "sass": "^1.62.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "react-scripts start --host",
     "build": "CI= react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",

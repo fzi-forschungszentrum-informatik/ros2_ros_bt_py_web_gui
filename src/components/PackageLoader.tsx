@@ -84,7 +84,10 @@ export class PackageLoader extends Component<
           onClick={this.toggleCollapsed.bind(this)}
           className="text-center cursor-pointer font-weight-bold m-2"
         >
-          Package Loader <i className={collapsible_icon}></i>
+          Package Loader{" "}
+          <i key={collapsible_icon}>
+            <span className={collapsible_icon} />
+          </i>
         </div>
         {package_loader}
       </div>

@@ -59,6 +59,7 @@ export interface Packages {
 export interface Message {
   msg: string;
   service: boolean;
+  action: boolean;
 }
 
 export interface Messages {

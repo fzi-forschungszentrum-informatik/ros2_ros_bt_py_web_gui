@@ -93,26 +93,13 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
     const json = {};
     let counter = 0;
     // eslint-disable-next-line no-prototype-builtins
-    if (pyobject.hasOwnProperty("py/state")) {
+    if (pyobject.hasOwnProperty("py/object")) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Unsafe accessor
-      for (let i = 0; i < pyobject["py/state"].length; i++) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Unsafe accessor
-        const value = pyobject["py/state"][i];
-        if (typeof value === "object" && !Array.isArray(value)) {
-          const response = this.getJSONfromPyObject(
-            value,
-            field_names.slice(counter + 1)
-          );
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Unsafe accessor
-          json[field_names[counter]] = response.json;
-          counter += response.counter + 1;
-        } else {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Unsafe accessor
-          json[field_names[counter]] = value;
+      for (const field_name of field_names) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (pyobject.hasOwnProperty("_" + field_name)) {
+          json[field_name] = pyobject["_" + field_name];
           counter += 1;
         }
       }
@@ -123,25 +110,13 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
   getPyObjectFromJSON(pyobject: object, json: object) {
     const keys = Object.keys(json);
     // eslint-disable-next-line no-prototype-builtins
-    if (pyobject.hasOwnProperty("py/state")) {
+    if (pyobject.hasOwnProperty("py/object")) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Unsafe accessor
-      for (let i = 0; i < pyobject["py/state"].length; i++) {
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore: Unsafe accessor
-        const value = pyobject["py/state"][i];
-        if (typeof value === "object" && !Array.isArray(value)) {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Unsafe accessor
-          const key: keyof ObjectWithPyState = keys[i];
-          pyobject["py/state"][i] = this.getPyObjectFromJSON(
-            pyobject["py/state"][i],
-            json[key]
-          );
-        } else {
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          // @ts-ignore: Unsafe accessor
-          pyobject["py/state"][i] = json[keys[i]];
+      for (const key of keys) {
+        // eslint-disable-next-line no-prototype-builtins
+        if (pyobject.hasOwnProperty("_" + key)) {
+          pyobject["_" + key] = json[key];
         }
       }
     }
@@ -165,6 +140,7 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
           {
             message_type: message.message_type,
             service: message.service,
+            action: message.action,
           } as GetMessageFieldsRequest,
           (response: GetMessageFieldsResponse) => {
             if (response.success) {
@@ -172,15 +148,17 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
 
               let new_value;
               if (type_changed) {
-                new_value = this.getJSONfromPyObject(
-                  JSON.parse(response.fields),
-                  response.field_names
-                ).json;
+                //new_value = this.getJSONfromPyObject(
+                //  JSON.parse(response.fields),
+                //  response.field_names
+                //).json;
+                new_value = JSON.parse(response.fields);
               } else {
-                new_value = this.getJSONfromPyObject(
-                  json,
-                  response.field_names
-                ).json;
+                //new_value = this.getJSONfromPyObject(
+                //  json,
+                //  response.field_names
+                //).json;
+                new_value = json;
               }
 
               this.setState({
@@ -233,15 +211,15 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
         json: JSON.stringify(json),
         is_valid: true,
       });
-      if (this.props.output == "pickled") {
-        const reconstructed = this.getPyObjectFromJSON(
-          JSON.parse(this.state.pyobjectstring!),
-          json
-        );
-        this.props.onNewValue(reconstructed);
-      } else {
-        this.props.onNewValue(json);
-      }
+      //if (this.props.output == "pickled") {
+      //  const reconstructed = this.getPyObjectFromJSON(
+      //    JSON.parse(this.state.pyobjectstring!),
+      //    json
+      //  );
+      // this.props.onNewValue(reconstructed);
+      //} else {
+      this.props.onNewValue(json);
+      //}
 
       this.props.onValidityChange(true);
     } catch (e) {

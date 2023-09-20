@@ -348,70 +348,88 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   }
 
   onMessagesUpdate(msg: Messages) {
-    console.log("received list of messages");
     this.messages = [];
     for (let i = 0; i < msg.messages.length; i++) {
       const components = msg.messages[i].msg.split("/");
-      if (components.length == 2) {
+
+      if (components.length == 3) {
         if (msg.messages[i].service) {
           this.messages.push({
-            msg: components[0] + ".srv._" + components[1] + "." + components[1],
+            msg: components[0] + ".srv." + components[2],
             service: true,
+            action: false,
           });
           this.messages.push({
-            msg:
-              components[0] +
-              ".srv._" +
-              components[1] +
-              "." +
-              components[1] +
-              "Request",
-            service: true,
+            msg: components[0] + ".srv." + components[2] + ".Request",
+            action: true,
+            service: false,
           });
           this.messages.push({
-            msg:
-              components[0] +
-              ".srv._" +
-              components[1] +
-              "." +
-              components[1] +
-              "Response",
-            service: true,
+            msg: components[0] + ".srv." + components[2] + ".Response",
+            action: true,
+            service: false,
+          });
+        } else if (msg.messages[i].action) {
+          this.messages.push({
+            msg: components[0] + ".action." + components[2],
+            action: true,
+            service: false,
+          });
+          this.messages.push({
+            msg: components[0] + ".action." + components[2] + ".Goal",
+            action: true,
+            service: false,
+          });
+          this.messages.push({
+            msg: components[0] + ".action." + components[2] + ".Result",
+            action: true,
+            service: false,
+          });
+          this.messages.push({
+            msg: components[0] + ".action." + components[2] + ".Feedback",
+            action: true,
+            service: false,
           });
         } else {
           this.messages.push({
-            msg: components[0] + ".msg._" + components[1] + "." + components[1],
+            msg: components[0] + ".msg." + components[2],
             service: false,
+            action: false,
           });
         }
       }
     }
     const options = {
       shouldSort: true,
-      threshold: 0.6,
+      threshold: 0.3,
       location: 0,
       distance: 100,
-      maxPatternLength: 32,
-      minMatchCharLength: 1,
+      maxPatternLength: 200,
+      minMatchCharLength: 3,
       keys: ["msg"],
+      isCaseSensitive: false,
+      ignoreLocation: true,
+      useExtendedSearch: true,
     };
     this.messagesFuse = new Fuse(this.messages, options);
     this.setState({ messages_available: true });
   }
 
   onPackagesUpdate(msg: Packages) {
-    console.log("received list of packages");
     this.last_received_packages_msg = msg;
     this.packages = msg.packages;
 
     const options = {
       shouldSort: true,
-      threshold: 0.6,
+      threshold: 0.3,
       location: 0,
       distance: 100,
-      maxPatternLength: 32,
-      minMatchCharLength: 1,
+      maxPatternLength: 200,
+      minMatchCharLength: 3,
       keys: ["package", "path"],
+      isCaseSensitive: false,
+      ignoreLocation: true,
+      useExtendedSearch: true,
     };
     this.packagesFuse = new Fuse(this.packages, options);
 
@@ -491,7 +509,6 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   }
 
   onNamespaceChange(namespace: string) {
-    console.log("Namespace changed to: ", namespace);
     if (namespace !== this.state.bt_namespace) {
       this.tree_topic = new ROSLIB.Topic({
         ros: this.state.ros,
@@ -588,12 +605,14 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
             this.setState({ available_nodes: response.available_nodes });
             const options = {
               shouldSort: true,
-              threshold: 0.6,
+              threshold: 0.3,
               location: 0,
-              distance: 100,
-              maxPatternLength: 32,
-              minMatchCharLength: 1,
+              distance: 20,
+              maxPatternLength: 100,
+              minMatchCharLength: 3,
               keys: ["node_class", "node_type", "module", "tags"],
+              ignoreLocation: true,
+              useExtendedSearch: true,
             };
             const nodes = response.available_nodes.map(
               (node: DocumentedNode) => {
@@ -622,7 +641,6 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     ReactModal.setAppElement("body");
 
     this.state.ros.on("connection", (e: any) => {
-      console.log("Connected to websocket");
       this.setState({ connected: true });
     });
 
@@ -697,7 +715,6 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
               }
             }
           }
-
           this.add_node_service.callService(
             {
               parent_name: parent,

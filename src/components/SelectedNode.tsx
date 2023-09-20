@@ -324,7 +324,6 @@ export class SelectedNode extends Component<
   }
 
   updateNode() {
-    console.log("updating node");
     if (this.set_options_service === undefined) {
       console.error("SetOptions service is undefined!");
       return;
@@ -363,7 +362,6 @@ export class SelectedNode extends Component<
       } as SetOptionsRequest,
       (response: SetOptionsResponse) => {
         if (response.success) {
-          console.log("Updated node!");
           this.props.onNodeChanged(false);
           this.props.onEditorSelectionChange(this.state.name); // FIXME: is there a more elegant way for the "update" case?
         } else {
