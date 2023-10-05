@@ -69,7 +69,7 @@ export class NodeListItem extends Component<
     return <div className="list-group-item mt-1">Tags: {bubbles}</div>;
   }
 
-  onClick(event: React.MouseEvent<HTMLDivElement>) {
+  onClick(event?: React.MouseEvent<HTMLDivElement>) {
     this.props.onSelectionChange(this.props.node);
   }
 
@@ -127,6 +127,10 @@ export class NodeListItem extends Component<
         onClick={this.onClick.bind(this)}
         onMouseDown={this.onMouseDown.bind(this)}
         onMouseUp={this.onMouseUp.bind(this)}
+        tabIndex={0}
+        onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
+          return event.keyCode != 13 || this.onClick();
+        }}
       >
         <div className="d-flex justify-content-between">
           <div className="d-flex minw0">

@@ -221,6 +221,13 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
         return (
           <li
             className="list-group-item search-result align-items-start"
+            tabIndex={0}
+            onKeyDown={(event: React.KeyboardEvent<HTMLLIElement>) => {
+              return (
+                event.keyCode !== 13 ||
+                this.selectPackageSearchResult(x.package)
+              );
+            }}
             onClick={() => this.selectPackageSearchResult(x.package)}
           >
             <div className="d-flex w-100 justify-content-between">
@@ -782,7 +789,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             })}
           </p>
-          <ul className="list-group overflow-auto" style={{height: "60vh"}}>
+          <ul className="list-group overflow-auto" style={{ height: "60vh" }}>
             {tree!.children!.sort(comparePackageContent).map((child) => {
               let icon = <i className="fas fa-file-code mx-1"></i>;
               if (child.type === "directory") {
@@ -796,27 +803,33 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                   return null;
                 }
               }
+              const onClickHandler = () => {
+                if (child.type === "file") {
+                  const file_path = path.concat(child.name);
+                  const relative_path = file_path.join("/");
+                  this.setState({
+                    file_path: relative_path,
+                    selected_file: child.name,
+                    highlighted: child.item_id,
+                  });
+                } else {
+                  if (child.type === "directory") {
+                    this.setState({
+                      selected_directory: child.item_id,
+                      file_path: null,
+                      selected_file: "",
+                    });
+                  }
+                }
+              };
+
               return (
                 <li
                   className="cursor-pointer list-group-item"
-                  onClick={() => {
-                    if (child.type === "file") {
-                      const file_path = path.concat(child.name);
-                      const relative_path = file_path.join("/");
-                      this.setState({
-                        file_path: relative_path,
-                        selected_file: child.name,
-                        highlighted: child.item_id,
-                      });
-                    } else {
-                      if (child.type === "directory") {
-                        this.setState({
-                          selected_directory: child.item_id,
-                          file_path: null,
-                          selected_file: "",
-                        });
-                      }
-                    }
+                  onClick={onClickHandler}
+                  tabIndex={0}
+                  onKeyDown={(event: React.KeyboardEvent<HTMLLIElement>) => {
+                    return event.keyCode !== 13 || onClickHandler();
                   }}
                 >
                   {icon} {child.name}
@@ -865,25 +878,25 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
     return (
       <div>
-          <div className="d-flex justify-content-between">
-            <button
-              className="btn btn-primary w-30 m-1"
-              onClick={() => {
-                this.props.onChangeFileModal(null);
-              }}
-            >
-              <i className="fas fa-times-circle"></i> Cancel
-            </button>
-            <span className="disconnected">{this.state.error_message}</span>
+        <div className="d-flex justify-content-between">
+          <button
+            className="btn btn-primary w-30 m-1"
+            onClick={() => {
+              this.props.onChangeFileModal(null);
+            }}
+          >
+            <i className="fas fa-times-circle"></i> Cancel
+          </button>
+          <span className="disconnected">{this.state.error_message}</span>
+        </div>
+        <h2>{title}</h2>
+        <div className="d-flex flex-column">
+          <div className="input-group m-1">
+            <label className="input-group-text">Package:</label>
+            {package_name_element}
           </div>
-          <h2>{title}</h2>
-          <div className="d-flex flex-column">
-            <div className="input-group m-1">
-              <label className="input-group-text">Package:</label>
-              {package_name_element}
-            </div>
-            {this.renderPackageSearchResults(package_results)}
-          </div>
+          {this.renderPackageSearchResults(package_results)}
+        </div>
         {package_structure}
       </div>
     );
