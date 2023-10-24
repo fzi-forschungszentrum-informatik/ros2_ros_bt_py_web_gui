@@ -7,7 +7,6 @@ import {
   ChangeTreeNameResponse,
 } from "../types/services/ChangeTreeName";
 import { LoadTreeRequest, LoadTreeResponse } from "../types/services/LoadTree";
-import { SaveTreeRequest, SaveTreeResponse } from "../types/services/SaveTree";
 import {
   MigrateTreeRequest,
   MigrateTreeResponse,
@@ -17,20 +16,19 @@ import {
   GetPackageStructureResponse,
 } from "../types/services/GetPackageStructure";
 
-interface FileBrowserProps {
+interface LoadPackageFileBrowserProps {
   ros: ROSLIB.Ros;
   bt_namespace: string;
   packagesFuse: Fuse<Package>;
   packages_available: boolean;
   onError: (error_message: string) => void;
-  mode: string | null;
   tree_message: TreeMsg | null;
   last_selected_package: string;
   onChangeFileModal: (mode: string | null) => void;
   onSelectedPackageChange: (new_selected_package_name: string) => void;
 }
 
-interface FileBrowserState {
+interface LoadPackageFileBrowserState {
   package: string;
   selected_package: string | null;
   package_results: Package[];
@@ -46,28 +44,23 @@ interface FileBrowserState {
   error_message: string | null;
 }
 
-export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
+export class LoadPackageFileBrowser extends Component<
+  LoadPackageFileBrowserProps,
+  LoadPackageFileBrowserState
+> {
   get_package_structure_service?: ROSLIB.Service<
     GetPackageStructureRequest,
     GetPackageStructureResponse
   >;
-  check_node_versions_service?: ROSLIB.Service<
-    MigrateTreeRequest,
-    MigrateTreeResponse
-  >;
-  migrate_tree_service?: ROSLIB.Service<
-    MigrateTreeRequest,
-    MigrateTreeResponse
-  >;
+
   load_service?: ROSLIB.Service<LoadTreeRequest, LoadTreeResponse>;
-  save_service?: ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>;
   change_tree_name_service?: ROSLIB.Service<
     ChangeTreeNameRequest,
     ChangeTreeNameResponse
   >;
   node?: HTMLDivElement | null;
 
-  constructor(props: FileBrowserProps) {
+  constructor(props: LoadPackageFileBrowserProps) {
     super(props);
 
     this.state = {
@@ -99,28 +92,10 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
       serviceType: "ros_bt_py_interfaces/srv/GetPackageStructure",
     });
 
-    this.check_node_versions_service = new ROSLIB.Service({
-      ros: this.props.ros,
-      name: this.props.bt_namespace + "check_node_versions",
-      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
-    });
-
-    this.migrate_tree_service = new ROSLIB.Service({
-      ros: this.props.ros,
-      name: this.props.bt_namespace + "migrate_tree",
-      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
-    });
-
     this.load_service = new ROSLIB.Service({
       ros: this.props.ros,
       name: this.props.bt_namespace + "load_tree",
       serviceType: "ros_bt_py_interfaces/srv/LoadTree",
-    });
-
-    this.save_service = new ROSLIB.Service({
-      ros: this.props.ros,
-      name: this.props.bt_namespace + "save_tree",
-      serviceType: "ros_bt_py_interfaces/srv/SaveTree",
     });
 
     this.change_tree_name_service = new ROSLIB.Service({
@@ -258,91 +233,43 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
     console.log("loading... ", msg.path);
 
     // do a version check before loading
-    this.check_node_versions_service!.callService(
+    this.load_service!.callService(
       {
         tree: msg,
-      } as MigrateTreeRequest,
-      (response: MigrateTreeResponse) => {
+        permissive: false,
+      } as LoadTreeRequest,
+      (response: LoadTreeResponse) => {
         if (response.success) {
-          console.log("called check version service successfully");
-          if (response.migrated) {
-            console.log("migration needed");
+          console.log("called LoadTree service successfully");
+          this.props.onChangeFileModal(null);
+        } else {
+          if (
+            response.error_message.startsWith(
+              "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
+            ) ||
+            response.error_message.startsWith(
+              "AttributeError, maybe a ROS Message definition changed."
+            )
+          ) {
+            this.props.onError(response.error_message);
             if (
               window.confirm(
-                "The tree you want to load needs to be migrated, should this be tried?"
+                "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
               )
             ) {
-              this.migrate_tree_service!.callService(
+              this.load_service!.callService(
                 {
                   tree: msg,
-                } as MigrateTreeRequest,
-                (response: MigrateTreeResponse) => {
+                  permissive: true,
+                } as LoadTreeRequest,
+                (response: LoadTreeResponse) => {
                   if (response.success) {
-                    console.log("called MigrateTree service successfully");
-                    this.load_service!.callService(
-                      {
-                        tree: response.tree,
-                        permissive: false,
-                      } as LoadTreeRequest,
-                      (response: LoadTreeResponse) => {
-                        if (response.success) {
-                          console.log("called LoadTree service successfully");
-                          this.props.onChangeFileModal(null);
-                        } else {
-                          if (
-                            response.error_message.startsWith(
-                              "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
-                            ) ||
-                            response.error_message.startsWith(
-                              "AttributeError, maybe a ROS Message definition changed."
-                            )
-                          ) {
-                            this.props.onError(response.error_message);
-                            if (
-                              window.confirm(
-                                "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
-                              )
-                            ) {
-                              this.load_service!.callService(
-                                {
-                                  tree: msg,
-                                  permissive: true,
-                                } as LoadTreeRequest,
-                                (response: LoadTreeResponse) => {
-                                  if (response.success) {
-                                    console.log(
-                                      "called LoadTree service successfully"
-                                    );
-                                    this.props.onChangeFileModal(null);
-                                  } else {
-                                    this.setState({
-                                      error_message: response.error_message,
-                                    });
-                                  }
-                                },
-                                (failed) => {
-                                  this.setState({
-                                    error_message:
-                                      "Error loading tree, is your yaml file correct? ",
-                                  });
-                                }
-                              );
-                            }
-                          }
-                          this.setState({
-                            error_message: response.error_message,
-                          });
-                        }
-                      },
-                      (failed) => {
-                        this.setState({
-                          error_message:
-                            "Error loading tree, is your yaml file correct? ",
-                        });
-                      }
-                    );
+                    console.log("called LoadTree service successfully");
+                    this.props.onChangeFileModal(null);
                   } else {
-                    this.setState({ error_message: response.error_message });
+                    this.setState({
+                      error_message: response.error_message,
+                    });
                   }
                 },
                 (failed) => {
@@ -352,73 +279,11 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
                   });
                 }
               );
-            } else {
-              this.setState({ error_message: response.error_message });
             }
-          } else {
-            this.load_service!.callService(
-              {
-                tree: msg,
-                permissive: false,
-              } as LoadTreeRequest,
-              (response: LoadTreeResponse) => {
-                if (response.success) {
-                  console.log("called LoadTree service successfully");
-                  this.props.onChangeFileModal(null);
-                } else {
-                  console.log("err:", response.error_message);
-
-                  if (
-                    response.error_message.startsWith(
-                      "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
-                    ) ||
-                    response.error_message.startsWith(
-                      "AttributeError, maybe a ROS Message definition changed."
-                    )
-                  ) {
-                    this.props.onError(response.error_message);
-                    if (
-                      window.confirm(
-                        "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
-                      )
-                    ) {
-                      this.load_service!.callService(
-                        {
-                          tree: msg,
-                          permissive: true,
-                        } as LoadTreeRequest,
-                        (response: LoadTreeResponse) => {
-                          if (response.success) {
-                            console.log("called LoadTree service successfully");
-                            this.props.onChangeFileModal(null);
-                          } else {
-                            this.setState({
-                              error_message: response.error_message,
-                            });
-                          }
-                        },
-                        (failed) => {
-                          this.setState({
-                            error_message:
-                              "Error loading tree, is your yaml file correct? ",
-                          });
-                        }
-                      );
-                    }
-                  }
-                  this.setState({ error_message: response.error_message });
-                }
-              },
-              (failed) => {
-                this.setState({
-                  error_message:
-                    "Error loading tree, is your yaml file correct? ",
-                });
-              }
-            );
           }
-        } else {
-          this.setState({ error_message: response.error_message });
+          this.setState({
+            error_message: response.error_message,
+          });
         }
       },
       (failed) => {
@@ -544,149 +409,16 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
         }
       }
 
-      let open_save_button = null;
-      let write_mode_select = null;
-      if (this.props.mode === "load") {
-        open_save_button = (
-          <button
-            className="btn btn-primary w-30 ms-1"
-            disabled={!this.state.file_path}
-            onClick={this.open}
-            type="button"
-          >
-            <i className="fas fa-folder-open"></i> Open
-          </button>
-        );
-      } else if (this.props.mode === "save") {
-        write_mode_select = (
-          <select
-            className="form-select"
-            value={this.state.write_mode}
-            onChange={(event) => {
-              this.setState({ write_mode: event.target.value });
-            }}
-          >
-            <option value="ask">ask before overwrite</option>
-            <option value="overwrite">overwrite file</option>
-            <option value="rename">rename file</option>
-          </select>
-        );
-        open_save_button = (
-          <button
-            className="btn btn-primary w-30 m-1"
-            disabled={!this.state.file_path}
-            type="button"
-            onClick={() => {
-              let save_file_path = this.state.file_path;
-              if (save_file_path === null) {
-                return;
-              }
-
-              if (this.state.file_type_filter !== "all") {
-                // check if the file_path ends with the extension in file_type_filter
-                if (!save_file_path.endsWith(this.state.file_type_filter)) {
-                  save_file_path += this.state.file_type_filter;
-                }
-              }
-              const debug_file_path =
-                "package://" + this.state.package + "/" + save_file_path;
-              console.log("saving... ", debug_file_path);
-
-              let overwrite = false;
-              let rename = false;
-              if (this.state.write_mode === "overwrite") {
-                overwrite = true;
-                rename = false;
-              } else if (this.state.write_mode === "rename") {
-                overwrite = false;
-                rename = true;
-              } else if (this.state.write_mode === "ask") {
-                overwrite = false;
-                rename = false;
-              }
-
-              const request = {
-                filename: save_file_path,
-                package: this.state.package,
-                tree: this.props.tree_message,
-                allow_overwrite: overwrite,
-                allow_rename: rename,
-              } as SaveTreeRequest;
-
-              this.save_service!.callService(
-                request,
-                (response: SaveTreeResponse) => {
-                  if (response.success) {
-                    console.log("called SaveTree service successfully");
-                    this.props.onChangeFileModal(null);
-                  } else {
-                    if (
-                      this.state.write_mode === "ask" &&
-                      response.error_message === "Overwrite not allowed"
-                    ) {
-                      if (
-                        window.confirm(
-                          "Do you want to overwrite " + save_file_path + "?"
-                        )
-                      ) {
-                        request.allow_overwrite = true;
-                        this.save_service!.callService(
-                          request,
-                          (response: SaveTreeResponse) => {
-                            if (response.success) {
-                              console.log(
-                                "called SaveTree service successfully"
-                              );
-                              this.props.onChangeFileModal(null);
-                              const change_tree_name_request = {
-                                name: this.state.selected_file,
-                              } as ChangeTreeNameRequest;
-                              this.change_tree_name_service!.callService(
-                                change_tree_name_request,
-                                (
-                                  change_tree_name_response: ChangeTreeNameResponse
-                                ) => {
-                                  if (change_tree_name_response.success) {
-                                    console.log(
-                                      "Successfully changed tree name"
-                                    );
-                                  } else {
-                                    console.log("Could not change tree name");
-                                  }
-                                }
-                              );
-                            } else {
-                              this.setState({
-                                error_message: response.error_message,
-                              });
-                            }
-                          },
-                          (failed) => {
-                            this.setState({
-                              error_message: "Error saving tree",
-                            });
-                          }
-                        );
-                      } else {
-                        this.setState({
-                          error_message: response.error_message,
-                        });
-                      }
-                    } else {
-                      this.setState({ error_message: response.error_message });
-                    }
-                  }
-                },
-                (failed) => {
-                  this.setState({ error_message: "Error saving tree" });
-                }
-              );
-            }}
-          >
-            <i className="fas fa-save"></i> Save
-          </button>
-        );
-      }
+      const open_save_button = (
+        <button
+          className="btn btn-primary w-30 ms-1"
+          disabled={!this.state.file_path}
+          onClick={this.open}
+          type="button"
+        >
+          <i className="fas fa-folder-open"></i> Open
+        </button>
+      );
 
       package_structure = (
         <div>
@@ -727,28 +459,6 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               <option value="all">all files</option>
               <option value=".yaml">.yaml files</option>
             </select>
-            {write_mode_select}
-          </div>
-          <div className="d-flex flex-row align-items-center m-2">
-            <div className="input-group m-1">
-              <label className="input-group-text">Name:</label>
-              <input
-                className="form-control"
-                type="text"
-                placeholder="Tree File Name"
-                ref={(input) => input && input.focus()}
-                onChange={(event) => {
-                  const file_path = path.concat(event.target.value);
-                  const relative_path = file_path.join("/");
-                  this.setState({
-                    file_path: relative_path,
-                    selected_file: event.target.value,
-                  });
-                }}
-                disabled={this.props.mode !== "save"}
-                value={this.state.selected_file}
-              />
-            </div>
           </div>
           <p>
             <span
@@ -782,7 +492,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
               );
             })}
           </p>
-          <ul className="list-group overflow-auto" style={{height: "60vh"}}>
+          <ul className="list-group overflow-auto" style={{ height: "60vh" }}>
             {tree!.children!.sort(comparePackageContent).map((child) => {
               let icon = <i className="fas fa-file-code mx-1"></i>;
               if (child.type === "directory") {
@@ -828,12 +538,7 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
       );
     }
 
-    let title = null;
-    if (this.props.mode === "save") {
-      title = "Save tree to package";
-    } else if (this.props.mode === "load") {
-      title = "Load tree from package";
-    }
+    let title = "Load tree from package";
 
     if (!this.props.packages_available) {
       title += ". Please wait, package list is loading...";
@@ -865,25 +570,25 @@ export class FileBrowser extends Component<FileBrowserProps, FileBrowserState> {
 
     return (
       <div>
-          <div className="d-flex justify-content-between">
-            <button
-              className="btn btn-primary w-30 m-1"
-              onClick={() => {
-                this.props.onChangeFileModal(null);
-              }}
-            >
-              <i className="fas fa-times-circle"></i> Cancel
-            </button>
-            <span className="disconnected">{this.state.error_message}</span>
+        <div className="d-flex justify-content-between">
+          <button
+            className="btn btn-primary w-30 m-1"
+            onClick={() => {
+              this.props.onChangeFileModal(null);
+            }}
+          >
+            <i className="fas fa-times-circle"></i> Cancel
+          </button>
+          <span className="disconnected">{this.state.error_message}</span>
+        </div>
+        <h2>{title}</h2>
+        <div className="d-flex flex-column">
+          <div className="input-group m-1">
+            <label className="input-group-text">Package:</label>
+            {package_name_element}
           </div>
-          <h2>{title}</h2>
-          <div className="d-flex flex-column">
-            <div className="input-group m-1">
-              <label className="input-group-text">Package:</label>
-              {package_name_element}
-            </div>
-            {this.renderPackageSearchResults(package_results)}
-          </div>
+          {this.renderPackageSearchResults(package_results)}
+        </div>
         {package_structure}
       </div>
     );
