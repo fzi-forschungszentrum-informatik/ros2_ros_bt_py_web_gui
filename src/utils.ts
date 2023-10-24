@@ -1,5 +1,10 @@
 import { NodeData, NodeDataLocation, TreeMsg, ValueTypes } from "./types/types";
 import { DataEdgeTerminal } from "./components/D3BehaviorTreeEditor";
+import {
+  GetMessageFieldsRequest,
+  GetMessageFieldsType,
+} from "./types/services/GetMessageFields";
+import { pack } from "d3";
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
 let idx = 0;
@@ -245,35 +250,99 @@ export function selectIOGripper(
     .filter((d: DataEdgeTerminal) => d.key === data.data_key);
 }
 
-export function getMessageType(str: string): {
-  message_type: string;
-  service: boolean;
-  action: boolean;
-} {
-  const message_parts = str.split(".");
+export function getMessageType(str: string): GetMessageFieldsRequest | null {
+  let message_parts = str.split(".");
+  let dot_delimter = true;
   if (message_parts.length < 3) {
-    console.error("Invalid message passed");
-    return { message_type: str, action: false, service: false };
+    dot_delimter = false;
+    message_parts = str.split("/");
+    if (message_parts.length < 3) {
+      console.error("Invalid message passed");
+      return null;
+    }
   }
+  const package_name = message_parts[0];
+  const general_message_type = message_parts[1];
 
-  let new_message_parts = message_parts;
   let service = false;
   let action = false;
-  if (message_parts[1] === "srv") {
-    service = true;
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4);
-      new_message_parts[3] = new_message_parts[3] + "_" + message_parts[4];
+  switch (general_message_type) {
+    case "srv":
+      service = true;
+      break;
+    case "action":
+      action = true;
+      break;
+    case "msg":
+      break;
+    default:
+      console.error("Invalid general message type: " + general_message_type);
+      return null;
+  }
+
+  let message_name: string;
+  let detail_type: string | null = null;
+  if (message_parts[2].startsWith("_")) {
+    const message_name_candidate = message_parts[3];
+    const message_name_candidate_splits = message_name_candidate.split("_");
+    switch (message_name_candidate_splits.length) {
+      case 1:
+        message_name = message_name_candidate;
+        break;
+      case 2:
+        message_name = message_name_candidate_splits[0];
+        detail_type = message_name_candidate_splits[1];
+        break;
+      default:
+        console.error("Message name contains invalid characters!");
+        return null;
     }
-  } else if (message_parts[1] === "action") {
-    action = true;
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4);
-      new_message_parts[3] = new_message_parts[3] + "_" + message_parts[4];
+  } else {
+    message_name = message_parts[2];
+  }
+
+  if (detail_type === null) {
+    if (message_parts.length < 4 && (action || service)) {
+      console.error("Missing detail type name!");
+      return null;
+    }
+    if (!dot_delimter) {
+      detail_type = message_parts[3];
     }
   }
-  const message_name = new_message_parts.join("/");
-  return { message_type: message_name, service: service, action: action };
+
+  let type = GetMessageFieldsType.MESSAGE;
+  if (detail_type !== null) {
+    switch (detail_type) {
+      case "Request":
+        type = GetMessageFieldsType.REQUEST;
+        break;
+      case "Response":
+        type = GetMessageFieldsType.RESPONSE;
+        break;
+      case "Goal":
+        type = GetMessageFieldsType.GOAL;
+        break;
+      case "Feedback":
+        type = GetMessageFieldsType.FEEDBACK;
+        break;
+      case "Result":
+        type = GetMessageFieldsType.RESULT;
+        break;
+      default:
+        console.error("Invalid detail type!");
+        return null;
+    }
+  }
+
+  const message_type_parts = [package_name, general_message_type, message_name];
+
+  return {
+    message_type: message_type_parts.join("/"),
+    action: action,
+    service: service,
+    type: type,
+  } as GetMessageFieldsRequest;
 }
 
 export function getShortDoc(doc: string) {

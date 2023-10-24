@@ -11,6 +11,7 @@ import { MathUnaryOperatorDropDown } from "./MathUnaryOperatorDropDown";
 import {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse,
+  GetMessageFieldsType,
 } from "../types/services/GetMessageFields";
 import {
   DocumentedNode,
@@ -299,12 +300,17 @@ export class EditableNode extends Component<
     ) {
       if (key == "ros_message_type") {
         const message = getMessageType(new_value as string);
+        if (message === null) {
+          const obj = getDefaultValue("ros_bt_py.ros_helpers.EnumValue", null);
+          this.props.updateValue(
+            "options",
+            "constant_name",
+            obj.value as string
+          );
+          return;
+        }
         this.get_message_constant_fields_service.callService(
-          {
-            message_type: message.message_type,
-            service: message.service,
-            action: message.action,
-          } as GetMessageFieldsRequest,
+          message,
           (response: GetMessageFieldsResponse) => {
             const obj = getDefaultValue(
               "ros_bt_py.ros_helpers.EnumValue",
@@ -346,13 +352,21 @@ export class EditableNode extends Component<
           if (optionType) {
             if (optionType.key == key) {
               const message = getMessageType(new_value as string);
-              const message_name = message.message_type.replaceAll(".", "/");
+              if (message === null) {
+                return;
+              }
+              console.error(
+                "Request: " +
+                  message.message_type +
+                  " Action: " +
+                  message.action +
+                  " Service: " +
+                  message.service +
+                  " Detail Type: " +
+                  message.type
+              );
               this.get_message_fields_service.callService(
-                {
-                  message_type: message_name,
-                  service: message.service,
-                  action: message.action,
-                } as GetMessageFieldsRequest,
+                message,
                 (response: GetMessageFieldsResponse) => {
                   if (response.success) {
                     const obj = JSON.parse(response.fields);

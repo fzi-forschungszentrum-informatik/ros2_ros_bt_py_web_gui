@@ -7,6 +7,7 @@ import ROSLIB from "roslib";
 import {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse,
+  GetMessageFieldsType,
 } from "../types/services/GetMessageFields";
 import JSONEditor from "jsoneditor";
 
@@ -88,18 +89,46 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
 
   getJSONfromPyObject(
     pyobject: object,
-    field_names: string[]
+    field_names: string[] | null
   ): { json: object; counter: number } {
     const json = {};
     let counter = 0;
+    if (field_names === null) {
+      field_names = Object.getOwnPropertyNames(pyobject);
+      field_names = field_names.map((x) => {
+        x.trimStart().replace(/^,/, "");
+      });
+    }
     // eslint-disable-next-line no-prototype-builtins
     if (pyobject.hasOwnProperty("py/object")) {
       // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore: Unsafe accessor
       for (const field_name of field_names) {
+        if (field_name === "py/object") {
+          continue;
+        }
         // eslint-disable-next-line no-prototype-builtins
         if (pyobject.hasOwnProperty("_" + field_name)) {
-          json[field_name] = pyobject["_" + field_name];
+          const value = pyobject["_" + field_name];
+          // eslint-disable-next-line no-prototype-builtins
+          if (value.hasOwnProperty("py/object")) {
+            json[field_name] = this.getJSONfromPyObject(value, null).json;
+          } else {
+            json[field_name] = value;
+          }
+
+          counter += 1;
+        }
+        // eslint-disable-next-line no-prototype-builtins
+        if (pyobject.hasOwnProperty(field_name)) {
+          const value = pyobject[field_name];
+          // eslint-disable-next-line no-prototype-builtins
+          if (value.hasOwnProperty("py/object")) {
+            json[field_name] = this.getJSONfromPyObject(value, null).json;
+          } else {
+            json[field_name] = value;
+          }
+
           counter += 1;
         }
       }
@@ -133,32 +162,31 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
     }
     if (this.props.ros) {
       const message = getMessageType(message_type);
+      if (message === null) {
+        return;
+      }
       if (message.message_type == "/dict") {
         console.log("message is a dict, no request possible");
       } else {
         this.get_message_fields_service.callService(
-          {
-            message_type: message.message_type,
-            service: message.service,
-            action: message.action,
-          } as GetMessageFieldsRequest,
+          message,
           (response: GetMessageFieldsResponse) => {
             if (response.success) {
               this.setState({ pyobjectstring: response.fields });
 
               let new_value;
               if (type_changed) {
-                //new_value = this.getJSONfromPyObject(
-                //  JSON.parse(response.fields),
-                //  response.field_names
-                //).json;
-                new_value = JSON.parse(response.fields);
+                new_value = this.getJSONfromPyObject(
+                  JSON.parse(response.fields),
+                  response.field_names
+                ).json;
+                //new_value = JSON.parse(response.fields);
               } else {
-                //new_value = this.getJSONfromPyObject(
-                //  json,
-                //  response.field_names
-                //).json;
-                new_value = json;
+                new_value = this.getJSONfromPyObject(
+                  json,
+                  response.field_names
+                ).json;
+                //new_value = json;
               }
 
               this.setState({
