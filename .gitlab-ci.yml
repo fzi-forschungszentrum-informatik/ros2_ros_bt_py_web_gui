@@ -13,9 +13,9 @@ build:
       - .npmrc
     policy: push
   script:
-    - npm install
-    - npm run lint
-    - npm run build
+    - yarn install
+    - yarn lint
+    - yarn build
   artifacts:
     expire_in: 1 week
     paths:

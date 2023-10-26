@@ -3,8 +3,6 @@ import React, { Component } from "react";
 import "./RosBtPy.scss";
 import "./style.scss";
 
-import * as bootstrap from "bootstrap";
-
 import "./utils";
 import ROSLIB from "roslib";
 import Fuse from "fuse.js";
@@ -431,7 +429,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       location: 0,
       distance: 100,
       maxPatternLength: 200,
-      minMatchCharLength: 3,
+      minMatchCharLength: 0,
       keys: ["package", "path"],
       isCaseSensitive: false,
       ignoreLocation: true,

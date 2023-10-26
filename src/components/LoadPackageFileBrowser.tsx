@@ -66,7 +66,11 @@ export class LoadPackageFileBrowser extends Component<
     this.state = {
       package: "",
       selected_package: null,
-      package_results: [],
+      package_results: this.props.packagesFuse
+        .search("")
+        .flatMap<Package>((x) => {
+          return x.item;
+        }),
       show_hidden: false,
       package_structure: null,
       selected_directory: undefined,
@@ -564,6 +568,7 @@ export class LoadPackageFileBrowser extends Component<
           disabled={false}
           onChange={this.searchPackageName}
           onKeyDown={this.keyPressHandler}
+          placeholder="Seach Package Name"
         />
       );
     }

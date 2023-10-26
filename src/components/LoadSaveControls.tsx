@@ -335,22 +335,40 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
           <i className="fas fa-file show-button-icon"></i>
           <span className="ms-1 hide-button-text">New</span>
         </button>
-        <button
-          onClick={this.loadFromPackage.bind(this)}
-          className="btn btn-primary ms-1"
-          title="Load from package"
-        >
-          <i className="fas fa-folder-tree show-button-icon"></i>
-          <span className="ms-1 hide-button-text">Package</span>
-        </button>
-        <button
-          onClick={this.loadFromFile.bind(this)}
-          className="btn btn-primary ms-1"
-          title="Load from file"
-        >
-          <i className="fas fa-folder-open show-button-icon"></i>
-          <span className="ms-1 hide-button-text">File</span>
-        </button>
+        <div className="btn-group" role="group">
+          <button
+            id="btnGroupDrop1"
+            type="button"
+            className="btn btn-primary dropdown-toggle ms-1"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="fas fa-folder-tree show-button-icon"></i>
+            <span className="ms-1 hide-button-text">Load</span>
+          </button>
+          <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <li>
+              <button
+                onClick={this.loadFromPackage.bind(this)}
+                className="dropdown-item btn btn-primary ms-1"
+                title="Load from package"
+              >
+                <i className="fas fa-folder-tree show-button-icon"></i>
+                <span className="ms-1 hide-button-text">Package</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={this.loadFromFile.bind(this)}
+                className="dropdown-item btn btn-primary ms-1"
+                title="Load from file"
+              >
+                <i className="fas fa-folder-open show-button-icon"></i>
+                <span className="ms-1 hide-button-text">File</span>
+              </button>
+            </li>
+          </ul>
+        </div>
         <button
           onClick={this.saveToPackage.bind(this)}
           className="btn btn-primary ms-1"

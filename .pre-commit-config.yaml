@@ -17,7 +17,7 @@ repos:
       - id: no-commit-to-branch
         args: [--branch, main]
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: "v8.39.0" # Use the sha / tag you want to point at
+    rev: "v8.52.0" # Use the sha / tag you want to point at
     hooks:
       - id: eslint
         files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
