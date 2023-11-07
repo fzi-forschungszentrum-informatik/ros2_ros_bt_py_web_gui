@@ -1,12 +1,11 @@
-<script setup lang="ts">
-</script>
+<script setup lang="ts"></script>
 
 <template>
-    <div class="spacer"></div>
+  <div class="spacer"></div>
 </template>
 
 <style lang="scss">
 .spacer {
-    margin-left: auto;
+  margin-left: auto;
 }
 </style>

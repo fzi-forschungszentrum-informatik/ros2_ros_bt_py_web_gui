@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import ExecutionBar from './components/ExecutionBar.vue';
+import ExecutionBar from './components/ExecutionBar.vue'
 </script>
 
 <template>
@@ -10,8 +10,7 @@ import ExecutionBar from './components/ExecutionBar.vue';
   <main>
     <div>
       <div className="container-fluid">
-        <div className="row row-height">
-        </div>
+        <div className="row row-height"></div>
       </div>
     </div>
   </main>
@@ -80,9 +79,11 @@ import ExecutionBar from './components/ExecutionBar.vue';
   color: #eff0f4;
 }
 
-.node_class {}
+.node_class {
+}
 
-.node_module {}
+.node_module {
+}
 
 .maxw0 {
   max-width: 0;
@@ -178,7 +179,8 @@ border: solid;
   height: 100%;
 }
 
-.edit_canvas {}
+.edit_canvas {
+}
 
 .top-bar {
   height: 6vh;
@@ -227,7 +229,8 @@ path.data-hover {
   pointer-events: none;
 }
 
-#editor_viewport {}
+#editor_viewport {
+}
 
 .darkmode {
   background: #34393c;
@@ -252,12 +255,12 @@ path.data-hover {
   border-right: solid;
 }
 
-#nodelist_container>.hide_button {
+#nodelist_container > .hide_button {
   margin-left: -10px;
   margin-top: 5px;
 }
 
-#main_pane>.hide_button {
+#main_pane > .hide_button {
   position: absolute;
   margin-left: -10px;
   margin-top: 5px;

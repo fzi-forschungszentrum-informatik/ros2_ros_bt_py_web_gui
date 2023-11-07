@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import DebugControls from './DebugControls.vue';
-import LoadSaveControls from './LoadSaveControls.vue';
-import NamespaceSelect from './NamespaceSelect.vue';
-import ExecutionBarSpacer from './ExecutionBarSpacer.vue';
-import TickControls from './TickControls.vue';
-
-
+import DebugControls from './DebugControls.vue'
+import LoadSaveControls from './LoadSaveControls.vue'
+import NamespaceSelect from './NamespaceSelect.vue'
+import ExecutionBarSpacer from './ExecutionBarSpacer.vue'
+import TickControls from './TickControls.vue'
 </script>
 
 <template>

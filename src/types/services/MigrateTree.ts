@@ -1,12 +1,12 @@
-import type { TreeMsg } from "../types";
+import type { TreeMsg } from '../types'
 
 export type MigrateTreeRequest = {
-  tree: TreeMsg;
+  tree: TreeMsg
 }
 
 export type MigrateTreeResponse = {
-  tree: TreeMsg;
-  migrated: boolean;
-  success: boolean;
-  error_message: string;
+  tree: TreeMsg
+  migrated: boolean
+  success: boolean
+  error_message: string
 }

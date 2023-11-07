@@ -23,5 +23,13 @@ export const useEditorStore = defineStore('editor', () => {
     running_commands.value.delete(command)
   }
 
-  return { publish_subtrees, debug, running_commands, runNewCommand, removeRunningCommand, enableSubtreePublishing, enableDebugging }
+  return {
+    publish_subtrees,
+    debug,
+    running_commands,
+    runNewCommand,
+    removeRunningCommand,
+    enableSubtreePublishing,
+    enableDebugging
+  }
 })

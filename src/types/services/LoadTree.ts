@@ -1,11 +1,11 @@
-import type{ TreeMsg } from "../types";
+import type { TreeMsg } from '../types'
 
 export type LoadTreeRequest = {
-  tree: TreeMsg;
-  permissive: boolean;
+  tree: TreeMsg
+  permissive: boolean
 }
 
 export type LoadTreeResponse = {
-  success: boolean;
-  error_message: string;
+  success: boolean
+  error_message: string
 }
