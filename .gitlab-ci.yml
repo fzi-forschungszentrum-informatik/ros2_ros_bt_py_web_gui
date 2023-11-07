@@ -1,0 +1,22 @@
+image: node:18
+
+stages:
+  - build
+
+build:
+  stage: build
+  cache:
+    key: build-cache
+    paths:
+      - node_modules/
+      - lib/
+      - .npmrc
+    policy: push
+  script:
+    - yarn install
+    - yarn lint
+    - yarn build
+  artifacts:
+    expire_in: 1 week
+    paths:
+      - build
