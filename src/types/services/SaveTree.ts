@@ -2,7 +2,8 @@ import { TreeMsg } from "../types";
 
 export interface SaveTreeRequest {
   filename: string;
-  package: string;
+  filepath: string;
+  storage_path: string;
   tree: TreeMsg;
   allow_overwrite: boolean;
   allow_rename: boolean;

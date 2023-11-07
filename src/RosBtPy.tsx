@@ -3,8 +3,6 @@ import React, { Component } from "react";
 import "./RosBtPy.scss";
 import "./style.scss";
 
-import * as bootstrap from "bootstrap";
-
 import "./utils";
 import ROSLIB from "roslib";
 import Fuse from "fuse.js";
@@ -23,7 +21,7 @@ import { SelectTree } from "./components/SelectTree";
 import { D3BehaviorTreeEditor } from "./components/D3BehaviorTreeEditor";
 import { BehaviorTreeEdge } from "./components/BehaviorTreeEdge";
 import { ErrorHistory } from "./components/ErrorHistory";
-import { FileBrowser } from "./components/FileBrowser";
+import { LoadPackageFileBrowser } from "./components/LoadPackageFileBrowser";
 import {
   DebugInfo,
   DocumentedNode,
@@ -51,6 +49,8 @@ import {
   SetExecutionModeRequest,
   SetExecutionModeResponse,
 } from "./types/services/SetExecutionMode";
+import { SaveFileBrowser } from "./components/SaveFileBrowser";
+import { LoadFileBrowser } from "./components/LoadFileBrowser";
 
 interface AppState {
   bt_namespace: string;
@@ -83,6 +83,7 @@ interface AppState {
   connected: boolean;
   publishing_subtrees: boolean;
   last_selected_package: string;
+  last_selected_storage_folder: string;
   show_file_modal: string | null;
   current_time: number;
   nodelist_visible: boolean;
@@ -178,6 +179,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       connected: false,
       publishing_subtrees: false,
       last_selected_package: "",
+      last_selected_storage_folder: "",
       show_file_modal: null,
       current_time: Date.now(),
       nodelist_visible: true,
@@ -268,6 +270,8 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.onEditorSelectionChange = this.onEditorSelectionChange.bind(this);
     this.onMultipleSelectionChange = this.onMultipleSelectionChange.bind(this);
     this.onSelectedPackageChange = this.onSelectedPackageChange.bind(this);
+    this.onSelectedStorageFolderChange =
+      this.onSelectedStorageFolderChange.bind(this);
     this.onSelectedEdgeChange = this.onSelectedEdgeChange.bind(this);
     this.onTreeUpdate = this.onTreeUpdate.bind(this);
     this.onDebugUpdate = this.onDebugUpdate.bind(this);
@@ -425,7 +429,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       location: 0,
       distance: 100,
       maxPatternLength: 200,
-      minMatchCharLength: 3,
+      minMatchCharLength: 0,
       keys: ["package", "path"],
       isCaseSensitive: false,
       ignoreLocation: true,
@@ -861,6 +865,13 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     return;
   }
 
+  onSelectedStorageFolderChange(new_selected_storage_folder_name: string) {
+    this.setState({
+      last_selected_storage_folder: new_selected_storage_folder_name,
+    });
+    return;
+  }
+
   onEditorSelectionChange(new_selected_node_name: string | null) {
     if (
       this.state.node_changed &&
@@ -1145,6 +1156,48 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       },
     };
 
+    let modal_content = null;
+    console.log(this.state.show_file_modal);
+    if (this.state.show_file_modal === "save") {
+      modal_content = (
+        <SaveFileBrowser
+          ros={this.state.ros}
+          bt_namespace={this.state.bt_namespace}
+          onError={this.onError}
+          tree_message={this.state.last_tree_msg}
+          last_selected_folder={this.state.last_selected_storage_folder}
+          onChangeFileModal={this.onChangeFileModal}
+          onSelectedStorageFolderChange={this.onSelectedStorageFolderChange}
+        />
+      );
+    } else if (this.state.show_file_modal === "load") {
+      modal_content = (
+        <LoadPackageFileBrowser
+          ros={this.state.ros}
+          bt_namespace={this.state.bt_namespace}
+          packagesFuse={this.packagesFuse!}
+          packages_available={this.state.packages_available}
+          onError={this.onError}
+          tree_message={this.state.last_tree_msg}
+          last_selected_package={this.state.last_selected_package}
+          onChangeFileModal={this.onChangeFileModal}
+          onSelectedPackageChange={this.onSelectedPackageChange}
+        />
+      );
+    } else if (this.state.show_file_modal === "load_file") {
+      modal_content = (
+        <LoadFileBrowser
+          ros={this.state.ros}
+          bt_namespace={this.state.bt_namespace}
+          onError={this.onError}
+          tree_message={this.state.last_tree_msg}
+          last_selected_folder={this.state.last_selected_storage_folder}
+          onChangeFileModal={this.onChangeFileModal}
+          onSelectedStorageFolderChange={this.onSelectedStorageFolderChange}
+        />
+      );
+    }
+
     return (
       <div onMouseUp={this.check_dragging} className={dragging_cursor}>
         <ReactModal
@@ -1152,18 +1205,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
           isOpen={this.state.show_file_modal !== null}
           style={modal_style}
         >
-          <FileBrowser
-            ros={this.state.ros}
-            bt_namespace={this.state.bt_namespace}
-            packagesFuse={this.packagesFuse!}
-            packages_available={this.state.packages_available}
-            onError={this.onError}
-            mode={this.state.show_file_modal}
-            tree_message={this.state.last_tree_msg}
-            last_selected_package={this.state.last_selected_package}
-            onChangeFileModal={this.onChangeFileModal}
-            onSelectedPackageChange={this.onSelectedPackageChange}
-          />
+          {modal_content}
         </ReactModal>
         {execution_bar}
         <div className="container-fluid">

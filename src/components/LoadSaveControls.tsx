@@ -33,14 +33,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
   fileref: React.RefObject<HTMLInputElement>;
   fileReader: FileReader;
   load_service?: ROSLIB.Service<LoadTreeRequest, LoadTreeResponse>;
-  check_node_versions_service?: ROSLIB.Service<
-    MigrateTreeRequest,
-    MigrateTreeResponse
-  >;
-  migrate_tree_service?: ROSLIB.Service<
-    MigrateTreeRequest,
-    MigrateTreeResponse
-  >;
+
   fix_yaml_service?: ROSLIB.Service<FixYamlRequest, FixYamlResponse>;
   clear_service?: ROSLIB.Service<ClearTreeRequest, ClearTreeResponse>;
   save_tree_service?: ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>;
@@ -60,18 +53,6 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
       ros: this.props.ros,
       name: this.props.bt_namespace + "load_tree",
       serviceType: "ros_bt_py_interfaces/srv/LoadTree",
-    });
-
-    this.check_node_versions_service = new ROSLIB.Service({
-      ros: this.props.ros,
-      name: this.props.bt_namespace + "check_node_versions",
-      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
-    });
-
-    this.migrate_tree_service = new ROSLIB.Service({
-      ros: this.props.ros,
-      name: this.props.bt_namespace + "migrate_tree",
-      serviceType: "ros_bt_py_interfaces/srv/MigrateTree",
     });
 
     this.fix_yaml_service = new ROSLIB.Service({
@@ -109,91 +90,44 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
 
   loadTreeMsg(msg: TreeMsg) {
     // do a version check before loading
-    this.check_node_versions_service!.callService(
+
+    this.load_service!.callService(
       {
         tree: msg,
-      } as MigrateTreeRequest,
-      (response: MigrateTreeResponse) => {
+        permissive: false,
+      } as LoadTreeRequest,
+      (response: LoadTreeResponse) => {
         if (response.success) {
-          console.log("called check version service successfully");
-          if (response.migrated) {
-            console.log("migration needed");
+          console.log("called LoadTree service successfully");
+          this.props.onChangeFileModal(null);
+        } else {
+          if (
+            response.error_message.startsWith(
+              "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
+            ) ||
+            response.error_message.startsWith(
+              "AttributeError, maybe a ROS Message definition changed."
+            )
+          ) {
+            this.props.onError(response.error_message);
             if (
               window.confirm(
-                "The tree you want to load needs to be migrated, should this be tried?"
+                "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
               )
             ) {
-              this.migrate_tree_service!.callService(
+              this.load_service!.callService(
                 {
                   tree: msg,
-                } as MigrateTreeRequest,
-                (response: MigrateTreeResponse) => {
+                  permissive: true,
+                } as LoadTreeRequest,
+                (response: LoadTreeResponse) => {
                   if (response.success) {
-                    console.log("called MigrateTree service successfully");
-                    this.load_service!.callService(
-                      {
-                        tree: response.tree,
-                        permissive: false,
-                      } as LoadTreeRequest,
-                      (response: LoadTreeResponse) => {
-                        if (response.success) {
-                          console.log("called LoadTree service successfully");
-                          this.props.onChangeFileModal(null);
-                        } else {
-                          if (
-                            response.error_message.startsWith(
-                              "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
-                            ) ||
-                            response.error_message.startsWith(
-                              "AttributeError, maybe a ROS Message definition changed."
-                            )
-                          ) {
-                            this.props.onError(response.error_message);
-                            if (
-                              window.confirm(
-                                "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
-                              )
-                            ) {
-                              this.load_service!.callService(
-                                {
-                                  tree: msg,
-                                  permissive: true,
-                                } as LoadTreeRequest,
-                                (response: LoadTreeResponse) => {
-                                  if (response.success) {
-                                    console.log(
-                                      "called LoadTree service successfully"
-                                    );
-                                    this.props.onChangeFileModal(null);
-                                  } else {
-                                    this.setState({
-                                      error_message: response.error_message,
-                                    });
-                                  }
-                                },
-                                (failed) => {
-                                  this.setState({
-                                    error_message:
-                                      "Error loading tree, is your yaml file correct? ",
-                                  });
-                                }
-                              );
-                            }
-                          }
-                          this.setState({
-                            error_message: response.error_message,
-                          });
-                        }
-                      },
-                      (failed) => {
-                        this.setState({
-                          error_message:
-                            "Error loading tree, is your yaml file correct? ",
-                        });
-                      }
-                    );
+                    console.log("called LoadTree service successfully");
+                    this.props.onChangeFileModal(null);
                   } else {
-                    this.setState({ error_message: response.error_message });
+                    this.setState({
+                      error_message: response.error_message,
+                    });
                   }
                 },
                 (failed) => {
@@ -203,73 +137,11 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                   });
                 }
               );
-            } else {
-              this.setState({ error_message: response.error_message });
             }
-          } else {
-            this.load_service!.callService(
-              {
-                tree: msg,
-                permissive: false,
-              } as LoadTreeRequest,
-              (response: LoadTreeResponse) => {
-                if (response.success) {
-                  console.log("called LoadTree service successfully");
-                  this.props.onChangeFileModal(null);
-                } else {
-                  console.log("err:", response.error_message);
-
-                  if (
-                    response.error_message.startsWith(
-                      "Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,"
-                    ) ||
-                    response.error_message.startsWith(
-                      "AttributeError, maybe a ROS Message definition changed."
-                    )
-                  ) {
-                    this.props.onError(response.error_message);
-                    if (
-                      window.confirm(
-                        "The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!"
-                      )
-                    ) {
-                      this.load_service!.callService(
-                        {
-                          tree: msg,
-                          permissive: true,
-                        } as LoadTreeRequest,
-                        (response: LoadTreeResponse) => {
-                          if (response.success) {
-                            console.log("called LoadTree service successfully");
-                            this.props.onChangeFileModal(null);
-                          } else {
-                            this.setState({
-                              error_message: response.error_message,
-                            });
-                          }
-                        },
-                        (failed) => {
-                          this.setState({
-                            error_message:
-                              "Error loading tree, is your yaml file correct? ",
-                          });
-                        }
-                      );
-                    }
-                  }
-                  this.setState({ error_message: response.error_message });
-                }
-              },
-              (failed) => {
-                this.setState({
-                  error_message:
-                    "Error loading tree, is your yaml file correct? ",
-                });
-              }
-            );
           }
-        } else {
-          this.setState({ error_message: response.error_message });
+          this.setState({
+            error_message: response.error_message,
+          });
         }
       },
       (failed) => {
@@ -413,6 +285,10 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
     this.props.onChangeFileModal("load");
   }
 
+  loadFromFile(event: React.MouseEvent<HTMLButtonElement>) {
+    this.props.onChangeFileModal("load_file");
+  }
+
   saveToPackage(event: React.MouseEvent<HTMLButtonElement>) {
     this.props.onNewRunningCommand(6);
     this.control_tree_execution_service!.callService(
@@ -459,14 +335,40 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
           <i className="fas fa-file show-button-icon"></i>
           <span className="ms-1 hide-button-text">New</span>
         </button>
-        <button
-          onClick={this.loadFromPackage.bind(this)}
-          className="btn btn-primary ms-1"
-          title="Load from package"
-        >
-          <i className="fas fa-folder show-button-icon"></i>
-          <span className="ms-1 hide-button-text">Load</span>
-        </button>
+        <div className="btn-group" role="group">
+          <button
+            id="btnGroupDrop1"
+            type="button"
+            className="btn btn-primary dropdown-toggle ms-1"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+          >
+            <i className="fas fa-folder-tree show-button-icon"></i>
+            <span className="ms-1 hide-button-text">Load</span>
+          </button>
+          <ul className="dropdown-menu" aria-labelledby="btnGroupDrop1">
+            <li>
+              <button
+                onClick={this.loadFromPackage.bind(this)}
+                className="dropdown-item btn btn-primary ms-1"
+                title="Load from package"
+              >
+                <i className="fas fa-folder-tree show-button-icon"></i>
+                <span className="ms-1 hide-button-text">Package</span>
+              </button>
+            </li>
+            <li>
+              <button
+                onClick={this.loadFromFile.bind(this)}
+                className="dropdown-item btn btn-primary ms-1"
+                title="Load from file"
+              >
+                <i className="fas fa-folder-open show-button-icon"></i>
+                <span className="ms-1 hide-button-text">File</span>
+              </button>
+            </li>
+          </ul>
+        </div>
         <button
           onClick={this.saveToPackage.bind(this)}
           className="btn btn-primary ms-1"
