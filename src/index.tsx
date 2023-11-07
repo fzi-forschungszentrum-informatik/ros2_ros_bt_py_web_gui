@@ -8,9 +8,8 @@ import "./index.scss";
 import "@fortawesome/fontawesome-free/js/fontawesome";
 import "@fortawesome/fontawesome-free/js/solid";
 
-import Popper from "@popperjs/core";
-import * as bootstrap from "bootstrap";
-import "bootstrap/dist/js/bootstrap.bundle.min";
+import "@popperjs/core";
+import "bootstrap";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement

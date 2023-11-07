@@ -1,5 +1,5 @@
-import React, { ChangeEvent, Component, KeyboardEvent } from "react";
-import { Package, TreeMsg } from "../types/types";
+import { ChangeEvent, Component, KeyboardEvent } from "react";
+import { NodeDataWiring, Package, TreeMsg } from "../types/types";
 import Fuse from "fuse.js";
 import ROSLIB from "roslib";
 import {
@@ -32,7 +32,7 @@ interface MultipleSelectionProps {
   onError: (error_message: string) => void;
   onSelectionChange: (new_selected_node_name: string | null) => void;
   onMultipleSelectionChange: (new_selected_node_names: string[] | null) => void;
-  onSelectedEdgeChange: (new_selected_edge: string | null) => void;
+  onSelectedEdgeChange: (new_selected_edge: NodeDataWiring | null) => void;
 }
 
 interface MultipleSelectionState {
@@ -49,9 +49,6 @@ export class MultipleSelection extends Component<
   MultipleSelectionProps,
   MultipleSelectionState
 > {
-  buildNodeMessage(): any {
-    throw new Error("Method not implemented.");
-  }
   generate_subtree_service: ROSLIB.Service<
     GenerateSubtreeRequest,
     GenerateSubtreeResponse
@@ -146,7 +143,7 @@ export class MultipleSelection extends Component<
   }
 
   componentDidUpdate(
-    prevProps: MultipleSelectionProps,
+    _prevProps: MultipleSelectionProps,
     prevState: MultipleSelectionState
   ) {
     if (prevState.package != this.state.package) {
@@ -164,7 +161,7 @@ export class MultipleSelection extends Component<
     }
   };
 
-  onClickCreateSubtree(event: React.MouseEvent<HTMLButtonElement>) {
+  onClickCreateSubtree() {
     this.generate_subtree_service.callService(
       {
         nodes: this.props.selectedNodeNames,
@@ -248,13 +245,10 @@ export class MultipleSelection extends Component<
 
   render() {
     let create_subtree_text = "Create subtree from selected ";
-    let create_capability_text = "Create capability from selected ";
     if (this.props.selectedNodeNames.length > 1) {
       create_subtree_text += "nodes";
-      create_capability_text += "nodes";
     } else {
       create_subtree_text += "node";
-      create_capability_text += "node";
     }
 
     return (

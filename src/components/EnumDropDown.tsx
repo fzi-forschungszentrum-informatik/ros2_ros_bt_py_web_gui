@@ -38,10 +38,7 @@ export class EnumDropDown extends Component<
     };
   }
 
-  componentDidUpdate(
-    prevProps: EnumDropDownProps,
-    prevState: EnumDropDownState
-  ) {
+  componentDidUpdate(prevProps: EnumDropDownProps) {
     if (JSON.stringify(this.props.json) != JSON.stringify(prevProps.json)) {
       let enum_value = "";
       let field_names = [];

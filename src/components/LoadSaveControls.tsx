@@ -2,10 +2,6 @@ import React, { ChangeEvent, Component, Fragment, createRef } from "react";
 import ROSLIB from "roslib";
 import { LoadTreeRequest, LoadTreeResponse } from "../types/services/LoadTree";
 import {
-  MigrateTreeRequest,
-  MigrateTreeResponse,
-} from "../types/services/MigrateTree";
-import {
   ControlTreeExecutionRequest,
   ControlTreeExecutionResponse,
   TreeExecutionCommands,
@@ -130,7 +126,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
                     });
                   }
                 },
-                (failed) => {
+                () => {
                   this.setState({
                     error_message:
                       "Error loading tree, is your yaml file correct? ",
@@ -144,7 +140,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
           });
         }
       },
-      (failed) => {
+      () => {
         this.setState({
           error_message: "Error loading tree, is your yaml file correct? ",
         });
@@ -152,7 +148,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
     );
   }
 
-  handleFileRead(event: ProgressEvent<FileReader>) {
+  handleFileRead() {
     let msgs: TreeMsg[] = [];
     try {
       if (this.fileReader.result === null) {
@@ -232,7 +228,7 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
     this.fileReader.readAsText(event.target.files![0]);
   }
 
-  saveTree(_event: React.MouseEvent<HTMLButtonElement>) {
+  saveTree() {
     this.props.onNewRunningCommand(6);
     this.control_tree_execution_service!.callService(
       {
@@ -281,15 +277,15 @@ export class LoadSaveControls extends Component<LoadSaveControlsProps> {
     );
   }
 
-  loadFromPackage(event: React.MouseEvent<HTMLButtonElement>) {
+  loadFromPackage() {
     this.props.onChangeFileModal("load");
   }
 
-  loadFromFile(event: React.MouseEvent<HTMLButtonElement>) {
+  loadFromFile() {
     this.props.onChangeFileModal("load_file");
   }
 
-  saveToPackage(event: React.MouseEvent<HTMLButtonElement>) {
+  saveToPackage() {
     this.props.onNewRunningCommand(6);
     this.control_tree_execution_service!.callService(
       {

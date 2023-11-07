@@ -453,7 +453,7 @@ export class SaveFileBrowser extends Component<
                             });
                           }
                         },
-                        (failed) => {
+                        () => {
                           this.setState({
                             error_message: "Error saving tree",
                           });
@@ -469,7 +469,7 @@ export class SaveFileBrowser extends Component<
                   }
                 }
               },
-              (failed) => {
+              () => {
                 this.setState({ error_message: "Error saving tree" });
               }
             );

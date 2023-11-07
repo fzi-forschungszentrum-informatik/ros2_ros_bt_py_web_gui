@@ -181,7 +181,7 @@ export class JSONInput extends Component<JSONInputProps, JSONInputState> {
     this.editor!.destroy();
   }
 
-  componentDidUpdate(prevProps: JSONInputProps, prevState: JSONInputState) {
+  componentDidUpdate(prevProps: JSONInputProps) {
     if (JSON.stringify(this.props.json) != JSON.stringify(prevProps.json)) {
       // eslint-disable-next-line no-prototype-builtins
       if (this.props.json && this.props.json.hasOwnProperty("py/state")) {

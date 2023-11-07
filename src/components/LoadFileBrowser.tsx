@@ -15,10 +15,6 @@ import {
   ChangeTreeNameRequest,
   ChangeTreeNameResponse,
 } from "../types/services/ChangeTreeName";
-import {
-  MigrateTreeRequest,
-  MigrateTreeResponse,
-} from "../types/services/MigrateTree";
 
 interface LoadFileBrowserProps {
   ros: ROSLIB.Ros;
@@ -317,7 +313,7 @@ export class LoadFileBrowser extends Component<
                     });
                   }
                 },
-                (failed) => {
+                () => {
                   this.setState({
                     error_message:
                       "Error loading tree, is your yaml file correct? ",
@@ -331,7 +327,7 @@ export class LoadFileBrowser extends Component<
           });
         }
       },
-      (failed) => {
+      () => {
         this.setState({
           error_message: "Error loading tree, is your yaml file correct? ",
         });
