@@ -1,4 +1,4 @@
-import React, { Component, Fragment } from "react";
+import { Component, Fragment } from "react";
 
 type SpacerProps = Record<string, never>;
 

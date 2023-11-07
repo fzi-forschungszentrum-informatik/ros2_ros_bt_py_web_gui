@@ -8,10 +8,6 @@ import {
 } from "../types/services/ChangeTreeName";
 import { LoadTreeRequest, LoadTreeResponse } from "../types/services/LoadTree";
 import {
-  MigrateTreeRequest,
-  MigrateTreeResponse,
-} from "../types/services/MigrateTree";
-import {
   GetPackageStructureRequest,
   GetPackageStructureResponse,
 } from "../types/services/GetPackageStructure";
@@ -283,7 +279,7 @@ export class LoadPackageFileBrowser extends Component<
                     });
                   }
                 },
-                (failed) => {
+                () => {
                   this.setState({
                     error_message:
                       "Error loading tree, is your yaml file correct? ",
@@ -297,7 +293,7 @@ export class LoadPackageFileBrowser extends Component<
           });
         }
       },
-      (failed) => {
+      () => {
         this.setState({
           error_message: "Error loading tree, is your yaml file correct? ",
         });

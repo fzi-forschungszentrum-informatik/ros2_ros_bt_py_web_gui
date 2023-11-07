@@ -5,7 +5,6 @@ import {
   Message,
   NodeData,
   NodeMsg,
-  ValueTypes,
   ParamData,
   PyEnum,
   PyLogger,
@@ -152,7 +151,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
           options={this.state.options}
           inputs={this.state.inputs}
           outputs={this.state.outputs}
-          nodeClassChangeHandler={(_event) => {
+          nodeClassChangeHandler={() => {
             // do nothing.
           }}
         />
@@ -262,7 +261,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
           ),
         ])
         .filter((x) => x[1] === key);
-      this.setState((prevState, props) => {
+      this.setState((prevState) => {
         const new_options = prevState.options.map(map_fun);
         // update the options in our state that are references to
         // the changed key - this will discard any values entered
@@ -290,11 +289,11 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
         return { options: resolved_options };
       });
     } else if (paramType.toLowerCase() === "inputs") {
-      this.setState((prevState, props) => {
+      this.setState((prevState) => {
         return { inputs: prevState.inputs.map(map_fun) };
       });
     } else if (paramType.toLowerCase() === "outputs") {
-      this.setState((prevState, props) => {
+      this.setState((prevState) => {
         return { outputs: prevState.outputs.map(map_fun) };
       });
     }

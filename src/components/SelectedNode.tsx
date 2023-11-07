@@ -1,4 +1,4 @@
-import React, { ChangeEvent, Component } from "react";
+import { ChangeEvent, Component } from "react";
 import { EditableNode } from "./EditableNode";
 import {
   DocumentedNode,
@@ -224,7 +224,7 @@ export class SelectedNode extends Component<
     });
   }
 
-  onClickDelete(_event: React.MouseEvent<HTMLButtonElement>) {
+  onClickDelete() {
     if (!window.confirm("Really delete node " + this.props.node.name + "?")) {
       // Do nothing if user doesn't confirm
       return;
@@ -254,7 +254,7 @@ export class SelectedNode extends Component<
     );
   }
 
-  onClickDeleteWithChildren(_event: React.MouseEvent<HTMLButtonElement>) {
+  onClickDeleteWithChildren() {
     if (
       !window.confirm(
         "Really delete node " +
@@ -290,7 +290,7 @@ export class SelectedNode extends Component<
     );
   }
 
-  onClickUpdate(_event: React.MouseEvent<HTMLButtonElement>) {
+  onClickUpdate() {
     if (this.state.isMorphed) {
       console.log("morphing node");
       const msg = this.buildNodeMessage();
@@ -489,7 +489,7 @@ export class SelectedNode extends Component<
           ),
         ])
         .filter((x) => x[1] === key);
-      this.setState((prevState, _props) => {
+      this.setState((prevState) => {
         // Replace the option value
         const new_options = prevState.options.map(map_fun);
 
@@ -538,11 +538,11 @@ export class SelectedNode extends Component<
         return newState;
       });
     } else if (paramType.toLowerCase() === "inputs") {
-      this.setState((prevState, _props) => {
+      this.setState((prevState) => {
         return { inputs: prevState.inputs.map(map_fun) };
       });
     } else if (paramType.toLowerCase() === "outputs") {
-      this.setState((prevState, _props) => {
+      this.setState((prevState) => {
         return { outputs: prevState.outputs.map(map_fun) };
       });
     }

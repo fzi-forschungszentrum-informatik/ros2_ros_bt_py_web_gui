@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import { Component } from "react";
 
 import "./RosBtPy.scss";
 import "./style.scss";
@@ -320,7 +320,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
             publish_subtrees: true,
             collect_performance_data: false,
           } as SetExecutionModeRequest,
-          (_response: SetExecutionModeResponse) => {
+          () => {
             console.debug("Set execution mode response received!");
           }
         );
@@ -335,13 +335,11 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   onDebugUpdate(msg: DebugInfo) {
     this.last_received_debug_msg = msg;
     this.setState({
-      subtree_names: msg.subtree_states
-        .map((x: { name: any }) => x.name)
-        .sort(),
+      subtree_names: msg.subtree_states.map((x: TreeMsg) => x.name).sort(),
     });
     if (this.state.selected_tree.is_subtree) {
       const selectedSubtree = msg.subtree_states.find(
-        (x: { name: any }) => x.name === this.state.selected_tree.name
+        (x: TreeMsg) => x.name === this.state.selected_tree.name
       );
       if (selectedSubtree) {
         this.updateTreeMsg(selectedSubtree);
@@ -458,7 +456,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.setState({ publishing_subtrees: enable });
   }
 
-  updateTreeMsg(msg: any) {
+  updateTreeMsg(msg: TreeMsg) {
     // Clear any timers for previously received messages (see below)
     if (this.topicTimeoutID) {
       window.clearTimeout(this.topicTimeoutID);
@@ -487,7 +485,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     let tree_msg = undefined;
     if (is_subtree) {
       tree_msg = this.last_received_debug_msg.subtree_states.find(
-        (x: { name: any }) => x.name === name
+        (x: TreeMsg) => x.name === name
       );
     } else {
       tree_msg = this.last_received_tree_msg;
@@ -644,11 +642,11 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   componentDidMount() {
     ReactModal.setAppElement("body");
 
-    this.state.ros.on("connection", (e: any) => {
+    this.state.ros.on("connection", () => {
       this.setState({ connected: true });
     });
 
-    this.state.ros.on("close", (e: any) => {
+    this.state.ros.on("close", () => {
       this.setState({
         connected: false,
         packages_available: false,
@@ -668,7 +666,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     document.body.addEventListener(
       "keydown",
-      (e: { keyCode: number; ctrlKey: any; metaKey: any; shiftKey: any }) => {
+      (e: KeyboardEvent) => {
         if (this.state.show_file_modal && e.keyCode == 27) {
           // 27 = ESC
           this.setState({ show_file_modal: null });
@@ -901,7 +899,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     }
 
     const new_selected_node = this.state.last_tree_msg!.nodes.find(
-      (x: { name: any }) => x.name === new_selected_node_name
+      (x: NodeMsg) => x.name === new_selected_node_name
     );
 
     if (!new_selected_node) {
@@ -915,7 +913,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     const doc_node = new_selected_node as DocumentedNode;
 
-    this.setState((prevState, props) => ({
+    this.setState((prevState) => ({
       copy_node: true,
       selected_node: doc_node,
       selected_node_names: [new_selected_node_name],
@@ -932,7 +930,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.setState({ node_changed: state });
   }
 
-  onSelectedEdgeChange(new_selected_edge: any) {
+  onSelectedEdgeChange(new_selected_edge: NodeDataWiring | null) {
     this.setState({ selected_edge: new_selected_edge });
   }
 
@@ -1056,7 +1054,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
             className="hide_button btn btn-outline-primary btn-sm"
             title="Hide nodelist"
             onClick={() => {
-              this.setState((prevstate: any, props: any) => ({
+              this.setState(() => ({
                 nodelist_visible: false,
               }));
             }}
@@ -1105,7 +1103,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
           className="hide_button btn btn-outline-primary btn-sm"
           title="Show nodelist"
           onClick={() => {
-            this.setState((prevstate: any, props: any) => ({
+            this.setState(() => ({
               nodelist_visible: true,
             }));
           }}
@@ -1228,11 +1226,9 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
                     <button
                       className="btn btn-primary m-1"
                       onClick={() => {
-                        this.setState(
-                          (prevstate: { showDataGraph: any }, props: any) => ({
-                            showDataGraph: !prevstate.showDataGraph,
-                          })
-                        );
+                        this.setState((prevstate: AppState) => ({
+                          showDataGraph: !prevstate.showDataGraph,
+                        }));
                       }}
                     >
                       Toggle Data Graph
@@ -1240,16 +1236,10 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
                     <button
                       className="btn btn-primary m-1"
                       onClick={() => {
-                        this.setState(
-                          (
-                            prevstate: { executionbar_visible: any },
-                            props: any
-                          ) => ({
-                            executionbar_visible:
-                              !prevstate.executionbar_visible,
-                            nodelist_visible: !prevstate.executionbar_visible,
-                          })
-                        );
+                        this.setState((prevstate: AppState) => ({
+                          executionbar_visible: !prevstate.executionbar_visible,
+                          nodelist_visible: !prevstate.executionbar_visible,
+                        }));
                       }}
                     >
                       {toggle_ui_visibility_text}

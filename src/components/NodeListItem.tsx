@@ -69,7 +69,7 @@ export class NodeListItem extends Component<
     return <div className="list-group-item mt-1">Tags: {bubbles}</div>;
   }
 
-  onClick(event?: React.MouseEvent<HTMLDivElement>) {
+  onClick() {
     this.props.onSelectionChange(this.props.node);
   }
 
@@ -79,7 +79,7 @@ export class NodeListItem extends Component<
     event.stopPropagation();
   }
 
-  onMouseUp(event: React.MouseEvent<HTMLDivElement>) {
+  onMouseUp() {
     this.props.onDragging(null);
   }
 
