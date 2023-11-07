@@ -242,11 +242,11 @@ export class D3BehaviorTreeEditor extends Component<
         const new_node_props: NewNodeProps = {
           availableNodes: [],
           bt_namespace: this.props.bt_namespace,
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+
           changeCopyMode: () => {},
           messagesFuse: undefined,
           onError: this.props.onError,
-          // eslint-disable-next-line @typescript-eslint/no-empty-function
+
           onNodeChanged: () => {},
           parents: [],
           node: this.props.dragging_node_list_item,
