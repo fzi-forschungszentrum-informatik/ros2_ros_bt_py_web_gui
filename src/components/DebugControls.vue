@@ -1,42 +1,49 @@
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
-import { useErrorReportsStore } from '@/stores/error_list'
 import { useROSStore } from '@/stores/ros'
 import type { ContinueRequest, ContinueResponse } from '@/types/services/Continue'
-import type {
-  SetExecutionModeRequest,
-  SetExecutionModeResponse
-} from '@/types/services/SetExecutionMode'
+import type { SetExecutionModeRequest } from '@/types/services/SetExecutionMode'
 import type { DebugSettings } from '@/types/types'
 import { uuid } from '@/utils'
-import { onMounted, onUnmounted, onUpdated, ref } from 'vue'
+import { onMounted, ref } from 'vue'
+import { notify } from '@kyvg/vue3-notification'
 
 const debug_check_id = 'debug_' + uuid()
 const publish_subtrees_id = 'publish_subtrees_' + uuid()
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
-const error_store = useErrorReportsStore()
 
 const debugging = ref<boolean>(false)
 const publish_subtrees = ref<boolean>(false)
 
 function onNewDebugSettingsMsg(msg: DebugSettings) {
-  console.log(msg)
   editor_store.enableDebugging(msg.single_step)
   editor_store.enableSubtreePublishing(msg.publish_subtrees)
 }
 
 function onClickStep() {
   if (ros_store.step_service === undefined) {
-    error_store.reportError('Step service not available!')
+    notify({
+      title: 'Service not available!',
+      text: 'Step ROS service is not connected!',
+      type: 'error'
+    })
     return
   }
   ros_store.step_service.callService({} as ContinueRequest, (response: ContinueResponse) => {
     if (response.success) {
       console.log('stepped successfully')
+      notify({
+        title: 'Step performed!',
+        type: 'success'
+      })
     } else {
-      error_store.reportError(response.error_message)
+      notify({
+        title: 'Step Service Error',
+        text: response.error_message,
+        type: 'error'
+      })
     }
   })
 }
@@ -45,7 +52,11 @@ function handleDebugChange(event: Event) {
   const target = event.target as HTMLInputElement
 
   if (ros_store.set_execution_mode_service === undefined) {
-    error_store.reportError('SetExecutionMode service not available!')
+    notify({
+      title: 'Service not available!',
+      text: 'SetExecutionMode ROS service is not connected!',
+      type: 'error'
+    })
     return
   }
 
@@ -56,8 +67,12 @@ function handleDebugChange(event: Event) {
       publish_subtrees: publish_subtrees.value,
       collect_performance_data: true
     } as SetExecutionModeRequest,
-    (_response: SetExecutionModeResponse) => {
-      console.log('Set execution mode')
+    () => {
+      notify({
+        title: 'Settings updated',
+        text: 'BT execution settings updated!',
+        type: 'info'
+      })
     }
   )
   debugging.value = enable
@@ -67,7 +82,11 @@ function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
 
   if (ros_store.set_execution_mode_service === undefined) {
-    error_store.reportError('SetExecutionMode service not available!')
+    notify({
+      title: 'Service not available!',
+      text: 'SetExecutionMode ROS service is not connected!',
+      type: 'error'
+    })
     return
   }
   const enable = target.checked
@@ -78,8 +97,12 @@ function handlePubSubtreesChange(event: Event) {
       publish_subtrees: enable,
       collect_performance_data: true
     } as SetExecutionModeRequest,
-    (_response: SetExecutionModeResponse) => {
-      console.log('Set execution mode')
+    () => {
+      notify({
+        title: 'Settings updated',
+        text: 'BT execution settings updated!',
+        type: 'info'
+      })
     }
   )
   publish_subtrees.value = enable
@@ -87,36 +110,35 @@ function handlePubSubtreesChange(event: Event) {
 
 const debug_subscribed = ref<boolean>(false)
 
-ros_store.$onAction(({ name, store, args, after, onError }) => {
-  if (name !== 'changeNamespace') {
-    return
-  }
-
-  after((result) => {
-    if (ros_store.debug_settings_sub === undefined) {
-      debug_subscribed.value = false
-      return
-    } else {
-      if (!debug_subscribed.value) {
-        console.log('subscribed!')
-        ros_store.debug_settings_sub.subscribe(onNewDebugSettingsMsg)
-        debug_subscribed.value = true
-      }
-    }
-  })
-})
-
-onMounted(() => {
+/**
+ * Manage the subscription to the debug settings topic.
+ * If the topic subsciber is present and we are not currently subscribed, we will subscribe.
+ */
+function updateDebugSubscription() {
   if (ros_store.debug_settings_sub === undefined) {
     debug_subscribed.value = false
     return
   } else {
     if (!debug_subscribed.value) {
-      console.log('subscribed on mount!')
       ros_store.debug_settings_sub.subscribe(onNewDebugSettingsMsg)
       debug_subscribed.value = true
     }
   }
+}
+
+ros_store.$onAction(({ name, after }) => {
+  if (name !== 'changeNamespace') {
+    return
+  }
+
+  after(() => {
+    debug_subscribed.value = false
+    updateDebugSubscription()
+  })
+})
+
+onMounted(() => {
+  updateDebugSubscription()
 })
 </script>
 

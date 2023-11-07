@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
-import { useErrorReportsStore } from '@/stores/error_list'
 import { useROSStore } from '@/stores/ros'
 import type {
   ControlTreeExecutionRequest,
   ControlTreeExecutionResponse,
   TreeExecutionCommands
 } from '@/types/services/ControlTreeExecution'
+import { notify } from '@kyvg/vue3-notification'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
-const error_store = useErrorReportsStore()
 
 function controlExec(command: TreeExecutionCommands) {
   editor_store.runNewCommand(command)
@@ -25,10 +24,13 @@ function controlExec(command: TreeExecutionCommands) {
     } as ControlTreeExecutionRequest,
     (response: ControlTreeExecutionResponse) => {
       if (response.success) {
-        console.log('called ControlTreeExecution service successfully')
         editor_store.removeRunningCommand(command)
       } else {
-        error_store.reportError(response.error_message)
+        notify({
+          title: 'Sending tree execution command failed!',
+          type: 'error',
+          text: response.error_message
+        })
       }
     }
   )

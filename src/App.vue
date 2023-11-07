@@ -13,6 +13,7 @@ import ExecutionBar from './components/ExecutionBar.vue'
         <div className="row row-height"></div>
       </div>
     </div>
+    <notifications animation-type="velocity" />
   </main>
 </template>
 
@@ -77,12 +78,6 @@ import ExecutionBar from './components/ExecutionBar.vue'
   border-width: 6px;
   border-color: #4e5666;
   color: #eff0f4;
-}
-
-.node_class {
-}
-
-.node_module {
 }
 
 .maxw0 {
@@ -179,9 +174,6 @@ border: solid;
   height: 100%;
 }
 
-.edit_canvas {
-}
-
 .top-bar {
   height: 6vh;
   width: 100%;
@@ -227,9 +219,6 @@ path.data-hover {
 
 .drawing-indicator {
   pointer-events: none;
-}
-
-#editor_viewport {
 }
 
 .darkmode {

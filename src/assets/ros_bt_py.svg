@@ -9,7 +9,7 @@
    id="SVGRoot"
    sodipodi:docname="ros_bt_py.svg"
    inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
-   inkscape:export-filename="/home/doberacker/Pictures/ros_bt_py.png"
+   inkscape:export-filename="ros_bt_py.png"
    inkscape:export-xdpi="96.000008"
    inkscape:export-ydpi="96.000008"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
@@ -27,8 +27,8 @@
      inkscape:document-units="px"
      showgrid="true"
      inkscape:zoom="0.97764852"
-     inkscape:cx="235.7698"
-     inkscape:cy="275.66144"
+     inkscape:cx="177.46664"
+     inkscape:cy="274.63858"
      inkscape:window-width="2560"
      inkscape:window-height="1404"
      inkscape:window-x="0"
@@ -86,8 +86,8 @@
        inkscape:export-ydpi="103.81882"><tspan
          x="50"
          y="362.96256"
-         id="tspan995"><tspan
-           style="font-style:italic;font-weight:bold;font-stretch:condensed;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold Italic Condensed';text-align:justify;fill:#31475e"
-           id="tspan993">BT</tspan></tspan></text>
+         id="tspan1520"><tspan
+           style="font-style:italic;font-weight:bold;font-stretch:condensed;font-family:'Noto Sans';-inkscape-font-specification:'Noto Sans Bold Italic Condensed';text-align:justify"
+           id="tspan1518">BT</tspan></tspan></text>
   </g>
 </svg>

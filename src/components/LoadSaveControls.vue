@@ -1,11 +1,9 @@
 <script setup lang="ts">
-import { useErrorReportsStore } from '@/stores/error_list'
 import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import { h, ref, type Ref, type VNodeRef } from 'vue'
 
 const ros_store = useROSStore()
-const error_store = useErrorReportsStore()
 
 const fileref = ref<VNodeRef>()
 fileref.value = ref(h('input'))

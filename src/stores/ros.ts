@@ -89,7 +89,10 @@ export const useROSStore = defineStore('ros', () => {
   }
 
   function destroyROSServices() {
-    debug_settings_sub.value = undefined
+    if (debug_settings_sub.value) {
+      debug_settings_sub.value.removeAllListeners()
+      debug_settings_sub.value = undefined
+    }
     set_execution_mode_service.value = undefined
     services_for_type_service.value = undefined
     step_service.value = undefined

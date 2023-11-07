@@ -4,6 +4,7 @@ import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
 } from '@/types/services/ServicesForType'
+import { notify } from '@kyvg/vue3-notification'
 import { useROSStore } from '../stores/ros'
 const ros = useROSStore()
 
@@ -15,9 +16,13 @@ function handleNamespaceChange(event: Event) {
   ros.changeNamespace(target.value)
 }
 
-function updateAvailableNamespaces(_event: Event) {
+function updateAvailableNamespaces() {
   if (ros.services_for_type_service === undefined) {
-    console.error('ServiceForTypeService not available!')
+    notify({
+      title: 'Service not available!',
+      text: 'ServiceForType ROS service is not connected!',
+      type: 'error'
+    })
     return
   }
   ros.services_for_type_service.callService(
@@ -41,7 +46,7 @@ function updateAvailableNamespaces(_event: Event) {
   )
 }
 
-function editRosbridgeServer(_event: Event) {
+function editRosbridgeServer() {
   edit_rosbridge_server.value = !edit_rosbridge_server.value
 }
 
@@ -50,7 +55,7 @@ function changeRosbridgeServer(event: Event) {
   new_url.value = target.value
 }
 
-function saveRosbridgeServer(_event: Event) {
+function saveRosbridgeServer() {
   ros.connect(new_url.value)
 }
 </script>
