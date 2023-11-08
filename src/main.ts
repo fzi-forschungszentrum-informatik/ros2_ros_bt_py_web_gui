@@ -10,6 +10,9 @@ import App from './App.vue'
 import Notifications from '@kyvg/vue3-notification'
 import velocity from 'velocity-animate'
 
+import { createVfm } from 'vue-final-modal'
+import 'vue-final-modal/style.css'
+
 /* import the fontawesome core */
 import { library } from '@fortawesome/fontawesome-svg-core'
 
@@ -52,9 +55,11 @@ library.add(
 )
 
 const app = createApp(App)
+const vfm = createVfm()
 
 app.use(createPinia())
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(Notifications, { velocity })
+app.use(vfm)
 
 app.mount('#root')

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import ExecutionBar from './components/ExecutionBar.vue'
+import { ModalsContainer } from 'vue-final-modal'
 </script>
 
 <template>
@@ -14,6 +15,7 @@ import ExecutionBar from './components/ExecutionBar.vue'
       </div>
     </div>
     <notifications animation-type="velocity" />
+    <ModalsContainer />
   </main>
 </template>
 

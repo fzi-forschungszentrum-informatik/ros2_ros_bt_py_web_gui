@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
+import { notify } from '@kyvg/vue3-notification'
 import { h, ref, type Ref, type VNodeRef } from 'vue'
 
 const ros_store = useROSStore()
@@ -16,6 +17,10 @@ function newTree() {
   ) {
     if (ros_store.clear_tree_service === undefined) {
       console.warn('Clear tree service undefined!')
+      notify({
+        title: 'ClearTree service not available!',
+        type: 'warn'
+      })
       return
     }
     ros_store.clear_tree_service.callService(
@@ -24,11 +29,19 @@ function newTree() {
         if (response.success) {
           console.log('called ClearTree service successfully')
         } else {
-          error_store.reportError(response.error_message)
+          notify({
+            title: 'ClearTree service call not successful!',
+            type: 'warn',
+            text: response.error_message
+          })
         }
       },
       (failed) => {
-        error_store.reportError('Error clearing tree ' + failed)
+        notify({
+          title: 'ClearTree service call failed!',
+          type: 'error',
+          text: failed
+        })
       }
     )
   }
@@ -38,7 +51,7 @@ function loadFromPackage() {}
 
 function saveToPackage() {}
 
-function loadTree(event: Event) {}
+function loadTree() {}
 
 function openFileDialog() {
   if (fileref.value === undefined) {
