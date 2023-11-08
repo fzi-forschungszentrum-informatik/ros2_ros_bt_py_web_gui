@@ -1,17 +1,30 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import { type DocumentedNode, type TreeMsg } from '@/types/types'
+import type { DebugInfo, DocumentedNode, TreeMsg } from '@/types/types'
 import { useNodesStore } from './nodes'
+import { notify } from '@kyvg/vue3-notification'
 
 export enum EditorSelectionSource {
   NODELIST = 'nodelist'
+}
+
+export enum EditorSkin {
+  DARK = 'darkmode',
+  LIGHT = 'lightmode'
+}
+
+export type SelectedSubtree = {
+  name: string
+  is_subtree: boolean
+  tree: TreeMsg | undefined
 }
 
 export const useEditorStore = defineStore('editor', () => {
   const nodes_store = useNodesStore()
 
   const tree = ref<TreeMsg | undefined>(undefined)
+  const debug_info = ref<DebugInfo | undefined>(undefined)
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -26,6 +39,18 @@ export const useEditorStore = defineStore('editor', () => {
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NODELIST)
 
   const filtered_nodes = ref<DocumentedNode[]>([])
+
+  const show_data_graph = ref<boolean>(true)
+
+  const skin = ref<EditorSkin>(EditorSkin.DARK)
+
+  const selected_subtree = ref<SelectedSubtree>({
+    name: '',
+    is_subtree: false,
+    tree: undefined
+  })
+
+  const subtree_names = ref<string[]>([])
 
   function enableSubtreePublishing(enable: boolean) {
     publish_subtrees.value = enable
@@ -79,6 +104,36 @@ export const useEditorStore = defineStore('editor', () => {
     dragging_node.value = undefined
   }
 
+  function enableShowDataGraph(enable: boolean) {
+    show_data_graph.value = enable
+  }
+
+  function setEditorSkin(new_skin: EditorSkin) {
+    skin.value = new_skin
+  }
+
+  function selectSubtree(name: string, is_subtree: boolean) {
+    let tree_msg = undefined
+    if (is_subtree) {
+      if (debug_info.value === undefined) {
+        notify({
+          title: 'No Subtree Information received!',
+          type: 'error'
+        })
+        return
+      }
+      tree_msg = debug_info.value.subtree_states.find((x: TreeMsg) => x.name === name)
+    } else {
+      tree_msg = tree.value
+    }
+
+    selected_subtree.value = {
+      name: name,
+      is_subtree: is_subtree,
+      tree: tree_msg
+    }
+  }
+
   return {
     tree,
     publish_subtrees,
@@ -98,6 +153,13 @@ export const useEditorStore = defineStore('editor', () => {
     clearFilteredNodes,
     nodeListSelectionChange,
     startDragging,
-    stopDragging
+    stopDragging,
+    show_data_graph,
+    enableShowDataGraph,
+    skin,
+    setEditorSkin,
+    selected_subtree,
+    selectSubtree,
+    subtree_names
   }
 })
