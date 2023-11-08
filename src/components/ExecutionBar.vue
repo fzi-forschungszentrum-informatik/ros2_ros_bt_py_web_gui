@@ -2,7 +2,7 @@
 import DebugControls from './DebugControls.vue'
 import LoadSaveControls from './LoadSaveControls.vue'
 import NamespaceSelect from './NamespaceSelect.vue'
-import Spacer from './Spacer.vue'
+import Spacer from './RightAlignSpacer.vue'
 import TickControls from './TickControls.vue'
 </script>
 
