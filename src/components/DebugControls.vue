@@ -108,22 +108,12 @@ function handlePubSubtreesChange(event: Event) {
   publish_subtrees.value = enable
 }
 
-const debug_subscribed = ref<boolean>(false)
-
 /**
  * Manage the subscription to the debug settings topic.
  * If the topic subsciber is present and we are not currently subscribed, we will subscribe.
  */
 function updateDebugSubscription() {
-  if (ros_store.debug_settings_sub === undefined) {
-    debug_subscribed.value = false
-    return
-  } else {
-    if (!debug_subscribed.value) {
-      ros_store.debug_settings_sub.subscribe(onNewDebugSettingsMsg)
-      debug_subscribed.value = true
-    }
-  }
+  ros_store.debug_settings_sub.subscribe(onNewDebugSettingsMsg)
 }
 
 ros_store.$onAction(({ name, after }) => {
@@ -132,7 +122,6 @@ ros_store.$onAction(({ name, after }) => {
   }
 
   after(() => {
-    debug_subscribed.value = false
     updateDebugSubscription()
   })
 })

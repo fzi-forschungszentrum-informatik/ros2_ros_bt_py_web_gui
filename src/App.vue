@@ -5,14 +5,15 @@ import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { onBeforeMount, onMounted, ref } from 'vue'
+import PackageLoader from './components/PackageLoader.vue'
 import type { Messages, Packages } from './types/types'
+import { useEditorStore } from './stores/editor'
+import NodeList from './components/NodeList.vue'
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
-
-const packages_subscribed = ref<boolean>(false)
-const messages_subscribed = ref<boolean>(false)
+const editor_store = useEditorStore()
 
 function onNewPackagesMsg(msg: Packages) {
   if (!packages_store.packages_available) {
@@ -22,15 +23,7 @@ function onNewPackagesMsg(msg: Packages) {
 }
 
 function updatePackagesSubscription() {
-  if (ros_store.packages_sub === undefined) {
-    packages_subscribed.value = false
-    return
-  } else {
-    if (!packages_subscribed.value) {
-      ros_store.packages_sub.subscribe(onNewPackagesMsg)
-      packages_subscribed.value = true
-    }
-  }
+  ros_store.packages_sub.subscribe(onNewPackagesMsg)
 }
 
 function onNewMessagesMsg(msg: Messages) {
@@ -41,38 +34,39 @@ function onNewMessagesMsg(msg: Messages) {
 }
 
 function updateMessagesSubscription() {
-  if (ros_store.messages_sub === undefined) {
-    messages_subscribed.value = false
-    return
-  } else {
-    if (!messages_subscribed.value) {
-      ros_store.messages_sub.subscribe(onNewMessagesMsg)
-      messages_subscribed.value = true
-    }
+  ros_store.messages_sub.subscribe(onNewMessagesMsg)
+}
+
+function handleNodeSearch(event: Event) {
+  const target = event.target as HTMLInputElement
+  node_search.value = target.value
+  editor_store.filterNodes(target.value)
+}
+
+function handleNodeSearchClear(event: KeyboardEvent) {
+  if (event.key == 'Escape') {
+    node_search.value = ''
+    editor_store.clearFilteredNodes()
   }
 }
 
+const nodelist_visible = ref<boolean>(true)
+const nodelist_input_ref = ref<HTMLInputElement>()
+const node_search = ref<string>('')
+
 ros_store.$onAction(({ name, after }) => {
-  if (name !== 'changeNamespace') {
+  if (name !== 'changeNamespace' && name != 'hasConnected') {
     return
   }
 
   after(() => {
-    messages_subscribed.value = false
-    packages_subscribed.value = false
     updateMessagesSubscription()
     updatePackagesSubscription()
   })
 })
 
-onBeforeMount(() => {
-  ros_store.connect()
-})
-
 onMounted(() => {
-  messages_subscribed.value = false
-  packages_subscribed.value = false
-
+  ros_store.connect()
   updateMessagesSubscription()
   updatePackagesSubscription()
 })
@@ -85,8 +79,62 @@ onMounted(() => {
 
   <main>
     <div>
-      <div className="container-fluid">
-        <div className="row row-height"></div>
+      <div class="container-fluid">
+        <div class="row row-height">
+          <div class="col scroll-col" id="nodelist_container" v-if="nodelist_visible">
+            <button
+              class="hide_button btn btn-outline-primary btn-sm"
+              title="Hide nodelist"
+              @click="
+                () => {
+                  nodelist_visible = !nodelist_visible
+                }
+              "
+            >
+              <font-awesome-icon
+                icon="fa-solid fa-angle-double-left"
+                aria-hidden="true"
+                class="show-button-icon"
+              />
+            </button>
+            <div class="available-nodes m-1">
+              <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
+              <div class="border rounded">
+                <div class="input-group p-2">
+                  <label for="nodelist_search" class="input-group-text"> Search: </label>
+                  <input
+                    id="nodelist_search"
+                    type="text"
+                    ref="nodelist_input_ref"
+                    class="form-control"
+                    v-bind:value="node_search"
+                    @change="handleNodeSearch"
+                    @keydown="handleNodeSearchClear"
+                  />
+                </div>
+              </div>
+            </div>
+            <NodeList></NodeList>
+          </div>
+          <div class="col scroll-col" id="main_pane">
+            <button
+              v-if="!nodelist_visible"
+              class="hide_button btn btn-outline-primary btn-sm"
+              title="Show nodelist"
+              @click="
+                () => {
+                  nodelist_visible = !nodelist_visible
+                }
+              "
+            >
+              <font-awesome-icon
+                icon="fa-solid fa-angle-double-right"
+                aria-hidden="true"
+                class="show-button-icon"
+              />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
     <notifications animation-type="velocity" />

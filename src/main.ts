@@ -38,7 +38,12 @@ import {
   faSave,
   faStepForward,
   faFolderOpen,
-  faFolderTree
+  faFolderTree,
+  faAngleDoubleLeft,
+  faAngleUp,
+  faAngleDown,
+  faAngleDoubleRight,
+  faQuestionCircle
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -57,7 +62,12 @@ library.add(
   faSave,
   faStepForward,
   faFolderOpen,
-  faFolderTree
+  faFolderTree,
+  faAngleDoubleLeft,
+  faAngleDoubleRight,
+  faAngleUp,
+  faAngleDown,
+  faQuestionCircle
 )
 
 const app = createApp(App)

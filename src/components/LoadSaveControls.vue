@@ -335,7 +335,7 @@ function handleFileRead() {
 }
 
 function saveTree() {
-  if (ros_store.control_tree_execution_service === undefined) {
+  if (!ros_store.connected) {
     notify({
       title: 'Service not available!',
       text: 'ControlTreeExecution ROS service is not connected.',
@@ -349,7 +349,6 @@ function saveTree() {
       command: TreeExecutionCommands.SHUTDOWN
     } as ControlTreeExecutionRequest,
     (response: ControlTreeExecutionResponse) => {
-      editor_store.removeRunningCommand(TreeExecutionCommands.SHUTDOWN)
       if (response.success) {
         notify({
           title: 'Tree shutdown successful!',
