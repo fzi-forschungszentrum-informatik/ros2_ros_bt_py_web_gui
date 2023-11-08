@@ -1,6 +1,81 @@
 <script setup lang="ts">
 import ExecutionBar from './components/ExecutionBar.vue'
 import { ModalsContainer } from 'vue-final-modal'
+import { useROSStore } from './stores/ros'
+import { useMessasgeStore } from './stores/message'
+import { usePackageStore } from './stores/package'
+import { onBeforeMount, onMounted, ref } from 'vue'
+import type { Messages, Packages } from './types/types'
+
+const ros_store = useROSStore()
+const messages_store = useMessasgeStore()
+const packages_store = usePackageStore()
+
+const packages_subscribed = ref<boolean>(false)
+const messages_subscribed = ref<boolean>(false)
+
+function onNewPackagesMsg(msg: Packages) {
+  if (!packages_store.packages_available) {
+    packages_store.arePackagesAvailable(true)
+  }
+  packages_store.updateAvailablePackages(msg.packages)
+}
+
+function updatePackagesSubscription() {
+  if (ros_store.packages_sub === undefined) {
+    packages_subscribed.value = false
+    return
+  } else {
+    if (!packages_subscribed.value) {
+      ros_store.packages_sub.subscribe(onNewPackagesMsg)
+      packages_subscribed.value = true
+    }
+  }
+}
+
+function onNewMessagesMsg(msg: Messages) {
+  if (!messages_store.messages_available) {
+    messages_store.areMessagesAvailable(true)
+  }
+  messages_store.updateAvailableMessages(msg.messages)
+}
+
+function updateMessagesSubscription() {
+  if (ros_store.messages_sub === undefined) {
+    messages_subscribed.value = false
+    return
+  } else {
+    if (!messages_subscribed.value) {
+      ros_store.messages_sub.subscribe(onNewMessagesMsg)
+      messages_subscribed.value = true
+    }
+  }
+}
+
+ros_store.$onAction(({ name, after }) => {
+  if (name !== 'changeNamespace') {
+    return
+  }
+
+  after(() => {
+    messages_subscribed.value = false
+    packages_subscribed.value = false
+    updateMessagesSubscription()
+    updatePackagesSubscription()
+  })
+})
+
+onBeforeMount(() => {
+  ros_store.connect()
+})
+
+onMounted(() => {
+  messages_subscribed.value = false
+  packages_subscribed.value = false
+
+  updateMessagesSubscription()
+  updatePackagesSubscription()
+})
 </script>
 
 <template>

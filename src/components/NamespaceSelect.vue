@@ -6,18 +6,22 @@ import type {
 } from '@/types/services/ServicesForType'
 import { notify } from '@kyvg/vue3-notification'
 import { useROSStore } from '../stores/ros'
-const ros = useROSStore()
+import { useMessasgeStore } from '@/stores/message'
+import { usePackageStore } from '@/stores/package'
+const ros_store = useROSStore()
+const messages_store = useMessasgeStore()
+const packages_store = usePackageStore()
 
 let edit_rosbridge_server = ref<boolean>(false)
-let new_url = ref<string>(ros.url)
+let new_url = ref<string>(ros_store.url)
 
 function handleNamespaceChange(event: Event) {
   const target = event.target as HTMLSelectElement
-  ros.changeNamespace(target.value)
+  ros_store.changeNamespace(target.value)
 }
 
 function updateAvailableNamespaces() {
-  if (ros.services_for_type_service === undefined) {
+  if (ros_store.services_for_type_service === undefined) {
     notify({
       title: 'Service not available!',
       text: 'ServiceForType ROS service is not connected!',
@@ -25,7 +29,7 @@ function updateAvailableNamespaces() {
     })
     return
   }
-  ros.services_for_type_service.callService(
+  ros_store.services_for_type_service.callService(
     // Search for all Tree topics - we expect each BT node to
     // publish one of these, and also offer the corresponding
     // editing and runtime control services.
@@ -38,9 +42,9 @@ function updateAvailableNamespaces() {
         // namespace
         (x) => x.substr(0, x.lastIndexOf('/')) + '/'
       )
-      ros.setAvailableNamespaces(namespaces)
-      if (ros.namespace === '' && namespaces.length > 0) {
-        ros.changeNamespace(namespaces[0])
+      ros_store.setAvailableNamespaces(namespaces)
+      if (ros_store.namespace === '' && namespaces.length > 0) {
+        ros_store.changeNamespace(namespaces[0])
       }
     }
   )
@@ -56,14 +60,17 @@ function changeRosbridgeServer(event: Event) {
 }
 
 function saveRosbridgeServer() {
-  ros.connect(new_url.value)
+  ros_store.setUrl(new_url.value)
+  ros_store.connect()
 }
 </script>
 
 <template>
   <div
     key="connection_status_connected"
-    v-if="ros.connected && ros.packages_available && ros.messages_available"
+    v-if="
+      ros_store.connected && packages_store.packages_available && messages_store.messages_available
+    "
   >
     <font-awesome-icon
       icon="fa-solid fa-wifi"
@@ -72,7 +79,10 @@ function saveRosbridgeServer() {
       title="Connected"
     />
   </div>
-  <div key="connection_status_package" v-else-if="ros.connected && ros.messages_available">
+  <div
+    key="connection_status_package"
+    v-else-if="ros_store.connected && messages_store.messages_available"
+  >
     <font-awesome-icon
       icon="fa-solid fa-wifi"
       aria-hidden="true"
@@ -80,7 +90,7 @@ function saveRosbridgeServer() {
       title="Connected, package list not (yet) available. File browser will not work."
     />
   </div>
-  <div key="connection_status_message" v-else-if="ros.connected">
+  <div key="connection_status_message" v-else-if="ros_store.connected">
     <font-awesome-icon
       icon="fa-solid fa-wifi"
       aria-hidden="true"
@@ -98,9 +108,13 @@ function saveRosbridgeServer() {
   </div>
   <div class="d-flex flex-row align-items-center">
     <label class="ms-1">Namespace:</label>
-    <select class="form-select ms-1" v-bind:value="ros.namespace" @change="handleNamespaceChange">
+    <select
+      class="form-select ms-1"
+      v-bind:value="ros_store.namespace"
+      @change="handleNamespaceChange"
+    >
       <option
-        v-for="namespace in ros.available_namespaces"
+        v-for="namespace in ros_store.available_namespaces"
         v-bind:key="namespace"
         v-bind:value="namespace"
       >

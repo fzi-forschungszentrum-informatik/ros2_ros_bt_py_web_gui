@@ -18,6 +18,7 @@ import TickControls from './TickControls.vue'
 
 <style lang="scss">
 .control-bar {
+  width: 100%;
   background: #bebebe;
 }
 </style>

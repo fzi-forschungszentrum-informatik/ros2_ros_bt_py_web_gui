@@ -3,35 +3,92 @@ import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import { notify } from '@kyvg/vue3-notification'
 import { h, ref, type Ref, type VNodeRef } from 'vue'
+import { useModal } from 'vue-final-modal'
+import LoadPackageModal from './modals/LoadFileModal.vue'
+import SaveFileModal from './modals/SaveFileModal.vue'
+import LoadFileModal from './modals/LoadFileModal.vue'
+import { useEditorStore } from '@/stores/editor'
+import {
+  TreeExecutionCommands,
+  type ControlTreeExecutionRequest,
+  type ControlTreeExecutionResponse
+} from '@/types/services/ControlTreeExecution'
+import jsyaml from 'js-yaml'
+import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
+import type { TreeMsg } from '@/types/types'
+import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
 
 const ros_store = useROSStore()
+const editor_store = useEditorStore()
 
 const fileref = ref<VNodeRef>()
 fileref.value = ref(h('input'))
 
+const file_reader = new FileReader()
+
+const loadPackageModalHandle = useModal({
+  component: LoadPackageModal,
+  attrs: {
+    onConfirm() {
+      loadPackageModalHandle.close()
+    }
+  },
+  slots: {
+    default: '<p>UseModal: The content of the modal</p>'
+  }
+})
+
+const loadFileModalHandle = useModal({
+  component: LoadFileModal,
+  attrs: {
+    onConfirm() {
+      loadFileModalHandle.close()
+    }
+  },
+  slots: {
+    default: '<p>UseModal: The content of the modal</p>'
+  }
+})
+
+const saveFileModalHandle = useModal({
+  component: SaveFileModal,
+  attrs: {
+    onConfirm() {
+      saveFileModalHandle.close()
+    }
+  },
+  slots: {
+    default: '<p>UseModal: The content of the modal</p>'
+  }
+})
+
 function newTree() {
+  if (ros_store.clear_tree_service === undefined) {
+    notify({
+      title: 'Service not available!',
+      text: 'ClearTree ROS service not available.',
+      type: 'error'
+    })
+    return
+  }
   if (
     window.confirm(
       'Do you want to create a new tree? Warning: This will discard the tree that is loaded at the moment.'
     )
   ) {
-    if (ros_store.clear_tree_service === undefined) {
-      console.warn('Clear tree service undefined!')
-      notify({
-        title: 'ClearTree service not available!',
-        type: 'warn'
-      })
-      return
-    }
     ros_store.clear_tree_service.callService(
       {} as ClearTreeRequest,
       (response: ClearTreeResponse) => {
         if (response.success) {
           console.log('called ClearTree service successfully')
+          notify({
+            title: 'Created new tree successfully!',
+            type: 'success'
+          })
         } else {
           notify({
-            title: 'ClearTree service call not successful!',
-            type: 'warn',
+            title: 'Could not create new tree!',
+            type: 'error',
             text: response.error_message
           })
         }
@@ -47,11 +104,76 @@ function newTree() {
   }
 }
 
-function loadFromPackage() {}
+function loadFromPackage() {
+  loadPackageModalHandle.open()
+}
 
-function saveToPackage() {}
+function loadFromFile() {
+  loadFileModalHandle.open()
+}
 
-function loadTree() {}
+function saveToFile() {
+  if (ros_store.control_tree_execution_service === undefined) {
+    notify({
+      title: 'Service not available!',
+      text: 'ControlTreeExecution ROS service is not connected.',
+      type: 'error'
+    })
+    return
+  }
+  editor_store.runNewCommand(TreeExecutionCommands.SHUTDOWN)
+  ros_store.control_tree_execution_service.callService(
+    {
+      command: TreeExecutionCommands.SHUTDOWN
+    } as ControlTreeExecutionRequest,
+    (response: ControlTreeExecutionResponse) => {
+      editor_store.removeRunningCommand(TreeExecutionCommands.SHUTDOWN)
+      if (response.success) {
+        notify({
+          title: 'Tree shutdown successful!',
+          type: 'success'
+        })
+        saveFileModalHandle.open()
+      } else {
+        notify({
+          title: 'Failed to shutdown tree, cannot save now!',
+          text: response.error_message,
+          type: 'error'
+        })
+      }
+    },
+    (failed) => {
+      notify({
+        title: 'Calling ControlTreeExecution ROS service failed!',
+        text: failed,
+        type: 'error'
+      })
+    }
+  )
+}
+
+function downloadURI(uri: string, name: string) {
+  const link = document.createElement('a')
+  link.download = name
+  link.href = uri
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
+
+function loadTree(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  file_reader.onloadend = handleFileRead
+  if (target.files === null) {
+    notify({
+      title: 'File selection is null!',
+      type: 'error'
+    })
+    return
+  }
+  file_reader.readAsText(target.files[0])
+}
 
 function openFileDialog() {
   if (fileref.value === undefined) {
@@ -62,7 +184,214 @@ function openFileDialog() {
   input_element.value.click()
 }
 
-function saveTree() {}
+function loadTreeMsg(msg: TreeMsg) {
+  // do a version check before loading
+  if (ros_store.load_tree_service === undefined) {
+    notify({
+      title: 'Service is unavailable!',
+      text: 'LoadTree service is not connected!',
+      type: 'error'
+    })
+    return
+  }
+  ros_store.load_tree_service.callService(
+    {
+      tree: msg,
+      permissive: false
+    } as LoadTreeRequest,
+    (response: LoadTreeResponse) => {
+      if (response.success) {
+        notify({
+          title: 'Loaded tree successfully!',
+          type: 'success'
+        })
+      } else {
+        if (
+          response.error_message.startsWith(
+            'Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,'
+          ) ||
+          response.error_message.startsWith(
+            'AttributeError, maybe a ROS Message definition changed.'
+          )
+        ) {
+          notify({
+            title: 'Loaded tree has invalid input/output/option typings!',
+            type: 'warn'
+          })
+          if (
+            window.confirm(
+              'The tree you want to load seems to have nodes with invalid options, do you want to load it in permissive mode? WARNING: this will probably change some option values!'
+            )
+          ) {
+            if (ros_store.load_tree_service === undefined) {
+              notify({
+                title: 'Service is unavailable!',
+                text: 'LoadTree service is not connected!',
+                type: 'error'
+              })
+              return
+            }
+            ros_store.load_tree_service.callService(
+              {
+                tree: msg,
+                permissive: true
+              } as LoadTreeRequest,
+              (response: LoadTreeResponse) => {
+                if (response.success) {
+                  notify({
+                    title: 'Loaded tree successfully!',
+                    type: 'success'
+                  })
+                } else {
+                  notify({
+                    title: 'Failed to load tree!',
+                    text: response.error_message,
+                    type: 'error'
+                  })
+                }
+              },
+              (failed) => {
+                notify({
+                  title: 'Failed to call load tree service!',
+                  text: failed,
+                  type: 'error'
+                })
+              }
+            )
+          }
+        }
+        notify({
+          title: 'Failed to load tree!',
+          text: response.error_message,
+          type: 'error'
+        })
+      }
+    },
+    (failed) => {
+      notify({
+        title: 'Failed to call load tree service!',
+        text: failed,
+        type: 'error'
+      })
+    }
+  )
+}
+
+function handleFileRead() {
+  let msgs: TreeMsg[] = []
+  try {
+    if (file_reader.result === null) {
+      notify({
+        title: 'Content of selected reads as null!',
+        type: 'error'
+      })
+      return
+    }
+    const file_text: string = file_reader.result as string
+    msgs = jsyaml.loadAll(file_text) as TreeMsg[]
+    let msg: TreeMsg | null = null
+    for (let i = 0; i < msgs.length; i++) {
+      if (msgs[i] != null) {
+        msg = msgs[i]
+      }
+    }
+
+    loadTreeMsg(msg!)
+  } catch (e) {
+    if (ros_store.fix_yaml_service === undefined) {
+      notify({
+        title: 'Service is unavailable!',
+        text: 'FixYaml service is not connected!',
+        type: 'error'
+      })
+      return
+    }
+    // try fixing the YAML error
+    ros_store.fix_yaml_service.callService(
+      {
+        broken_yaml: file_reader.result
+      } as FixYamlRequest,
+      (response: FixYamlResponse) => {
+        if (response.success) {
+          msgs = jsyaml.loadAll(response.fixed_yaml) as TreeMsg[]
+          let msg = null
+          for (let i = 0; i < msgs.length; i++) {
+            if (msgs[i] != null) {
+              msg = msgs[i]
+            }
+          }
+          loadTreeMsg(msg!)
+        }
+      },
+      (failed: string) => {
+        notify({
+          title: 'Failed to call FixYaml service!',
+          text: failed,
+          type: 'error'
+        })
+      }
+    )
+  }
+}
+
+function saveTree() {
+  if (ros_store.control_tree_execution_service === undefined) {
+    notify({
+      title: 'Service not available!',
+      text: 'ControlTreeExecution ROS service is not connected.',
+      type: 'error'
+    })
+    return
+  }
+  editor_store.runNewCommand(TreeExecutionCommands.SHUTDOWN)
+  ros_store.control_tree_execution_service.callService(
+    {
+      command: TreeExecutionCommands.SHUTDOWN
+    } as ControlTreeExecutionRequest,
+    (response: ControlTreeExecutionResponse) => {
+      editor_store.removeRunningCommand(TreeExecutionCommands.SHUTDOWN)
+      if (response.success) {
+        notify({
+          title: 'Tree shutdown successful!',
+          type: 'success'
+        })
+        const tree = editor_store.tree
+        if (tree === undefined) {
+          notify({
+            title: 'Tree is undefined, cannot save!',
+            type: 'error'
+          })
+          return
+        }
+
+        for (const node in tree.nodes) {
+          for (const node_input in tree.nodes[node].inputs) {
+            tree.nodes[node].inputs[node_input].serialized_value = 'null'
+          }
+          for (const node_output in tree.nodes[node].outputs) {
+            tree.nodes[node].outputs[node_output].serialized_value = 'null'
+          }
+        }
+        const msg = jsyaml.dump(tree)
+
+        downloadURI('data:text/plain,' + encodeURIComponent(msg), 'tree.yaml')
+      } else {
+        notify({
+          title: 'Failed to shutdown tree, cannot save now!',
+          text: response.error_message,
+          type: 'error'
+        })
+      }
+    },
+    (failed) => {
+      notify({
+        title: 'Calling ControlTreeExecution ROS service failed!',
+        text: failed,
+        type: 'error'
+      })
+    }
+  )
+}
 </script>
 
 <template>
@@ -70,11 +399,49 @@ function saveTree() {}
     <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" class="show-button-icon" />
     <span class="ms-1 hide-button-text">New</span>
   </button>
-  <button @click="() => loadFromPackage()" class="btn btn-primary ms-1" title="Load from package">
-    <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" class="show-button-icon" />
-    <span class="ms-1 hide-button-text">Load</span>
-  </button>
-  <button @click="() => saveToPackage()" class="btn btn-primary ms-1" title="Save to package">
+  <div class="btn-group" role="group">
+    <button
+      id="btnGroupDrop1"
+      type="button"
+      class="btn btn-primary dropdown-toggle ms-1"
+      data-bs-toggle="dropdown"
+      aria-expanded="false"
+    >
+      <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" class="show-button-icon" />
+      <span class="ms-1 hide-button-text">Load</span>
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+      <li>
+        <button
+          @click="() => loadFromPackage()"
+          class="dropdown-item btn btn-primary ms-1"
+          title="Load from package"
+        >
+          <font-awesome-icon
+            icon="fa-solid fa-folder-tree"
+            aria-hidden="true"
+            class="show-button-icon"
+          />
+          <span class="ms-1 hide-button-text">Load</span>
+        </button>
+      </li>
+      <li>
+        <button
+          @click="() => loadFromFile()"
+          class="dropdown-item btn btn-primary ms-1"
+          title="Load from file"
+        >
+          <font-awesome-icon
+            icon="fa-solid fa-folder-open"
+            aria-hidden="true"
+            class="show-button-icon"
+          />
+          <span className="ms-1 hide-button-text">File</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+  <button @click="() => saveToFile()" class="btn btn-primary ms-1" title="Save to package">
     <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" class="show-button-icon" />
     <span class="ms-1 hide-button-text">Save</span>
   </button>

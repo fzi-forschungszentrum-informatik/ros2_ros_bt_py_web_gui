@@ -1,8 +1,10 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
+import type { TreeMsg } from '@/types/types'
 
 export const useEditorStore = defineStore('editor', () => {
+  const tree = ref<TreeMsg | undefined>(undefined)
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -24,6 +26,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   return {
+    tree,
     publish_subtrees,
     debug,
     running_commands,

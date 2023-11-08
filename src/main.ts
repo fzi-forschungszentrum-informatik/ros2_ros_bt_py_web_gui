@@ -5,6 +5,8 @@ import 'bootstrap'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import piniaPluginPersistedState from 'pinia-plugin-persistedstate'
+
 import App from './App.vue'
 
 import Notifications from '@kyvg/vue3-notification'
@@ -34,7 +36,9 @@ import {
   faFileUpload,
   faFileDownload,
   faSave,
-  faStepForward
+  faStepForward,
+  faFolderOpen,
+  faFolderTree
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -51,13 +55,18 @@ library.add(
   faFileUpload,
   faFileDownload,
   faSave,
-  faStepForward
+  faStepForward,
+  faFolderOpen,
+  faFolderTree
 )
 
 const app = createApp(App)
 const vfm = createVfm()
 
-app.use(createPinia())
+const pinia = createPinia()
+pinia.use(piniaPluginPersistedState)
+
+app.use(pinia)
 app.component('font-awesome-icon', FontAwesomeIcon)
 app.use(Notifications, { velocity })
 app.use(vfm)
