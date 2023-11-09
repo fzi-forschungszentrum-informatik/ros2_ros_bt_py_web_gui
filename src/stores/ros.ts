@@ -25,6 +25,7 @@ import type {
   GetAvailableNodesRequest,
   GetAvailableNodesResponse
 } from '@/types/services/GetAvailableNodes'
+import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
 
 export const useROSStore = defineStore(
   'ros',
@@ -107,6 +108,14 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'clear',
         serviceType: 'ros_bt_py_interfaces/srv/ClearTree'
+      })
+    )
+
+    const add_node_service = ref<ROSLIB.Service<AddNodeRequest, AddNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'add_node',
+        serviceType: 'ros_bt_py_interfaces/srv/AddNode'
       })
     )
 
@@ -232,6 +241,12 @@ export const useROSStore = defineStore(
         name: namespace.value + 'get_available_nodes',
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
       })
+
+      add_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'add_node',
+        serviceType: 'ros_bt_py_interfaces/srv/AddNode'
+      })
     }
 
     function connect() {
@@ -285,6 +300,7 @@ export const useROSStore = defineStore(
       control_tree_execution_service,
       clear_tree_service,
       get_available_nodes_service,
+      add_node_service,
       debug_settings_sub,
       packages_sub,
       messages_sub,

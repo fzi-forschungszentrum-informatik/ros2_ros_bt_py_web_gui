@@ -1,0 +1,121 @@
+<script setup lang="ts">
+import { useNodesStore } from '@/stores/nodes'
+import type { DocumentedNode, ParamData } from '@/types/types'
+import { computed } from 'vue'
+import { getShortDoc } from '@/utils'
+import { useEditorStore } from '@/stores/editor'
+import ParamInputs from './ParamInputs.vue'
+import ParamDisplay from './ParamDisplay.vue'
+
+const nodes_store = useNodesStore()
+const editor_store = useEditorStore()
+
+const props = defineProps<{
+  name: string
+  node_class: string
+  module: string
+  options: ParamData[]
+  inputs: ParamData[]
+  outputs: ParamData[]
+  doc?: string
+  updateValidity: (valid: boolean) => void
+  changeNodeClass: (new_class: string) => void
+  changeNodeName: (new_name: string) => void
+  updateValue: (paramType: string, key: string, new_value: any) => void
+}>()
+
+const flow_control_nodes = computed<DocumentedNode[]>(() => {
+  return nodes_store.nodes.filter((item: DocumentedNode) => item.max_children == -1)
+})
+
+const is_flow_control_node = computed<boolean>(() => {
+  return (
+    flow_control_nodes.value.filter(
+      (item: DocumentedNode) => props.module === item.module && props.node_class === item.node_class
+    ).length > 0
+  )
+})
+
+function handleNodeClassChange(event: Event) {
+  const target = event.target as HTMLSelectElement
+  props.changeNodeClass(target.value)
+}
+
+function handelNodeNameChange(event: Event) {
+  const target = event.target as HTMLInputElement
+  props.changeNodeName(target.value)
+}
+</script>
+
+<template>
+  <div class="d-flex flex-column">
+    <input
+      class="form-control-lg mb-2"
+      type="text"
+      :value="name"
+      @focus="() => editor_store.changeCopyMode(false)"
+      @change="handelNodeNameChange"
+    />
+    <div class="d-flex minw0">
+      <h4 class="text-muted">
+        <div v-if="!is_flow_control_node">{{ module + node_class }}</div>
+        <select
+          v-else
+          class="custom-select"
+          :value="module + node_class"
+          @change="handleNodeClassChange"
+        >
+          <option
+            v-for="node in flow_control_nodes"
+            :key="node.module + node.node_class"
+            :value="node.module + node.node_class"
+          >
+            {{ node.node_class }} ({{ node.module }})
+          </option>
+        </select>
+      </h4>
+      <font-awesome-icon
+        v-if="doc"
+        icon="fa-solid fa-question-circle"
+        class="pl-2 pr-2"
+        aria-hidden="true"
+        v-bind:title="getShortDoc(doc)"
+      />
+    </div>
+    <div class="mb-2">
+      <h5>Options</h5>
+      <div class="list-group">
+        <ParamInputs
+          v-for="option in options"
+          :key="'option_' + option.key"
+          name="options"
+          :param="option"
+          :updateValidity="updateValidity"
+          :updateValue="updateValue"
+        ></ParamInputs>
+      </div>
+    </div>
+    <div class="mb-2">
+      <h5>Input</h5>
+      <div class="list-group">
+        <ParamDisplay
+          v-for="input in inputs"
+          :key="'input_' + input.key"
+          :param="input"
+          name="inputs"
+        ></ParamDisplay>
+      </div>
+    </div>
+    <div className="mb-2">
+      <h5>Output</h5>
+      <div class="list-group">
+        <ParamDisplay
+          v-for="output in outputs"
+          :key="'output_' + output.key"
+          :param="output"
+          name="outputs"
+        ></ParamDisplay>
+      </div>
+    </div>
+  </div>
+</template>

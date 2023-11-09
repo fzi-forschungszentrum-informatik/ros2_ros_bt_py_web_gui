@@ -12,7 +12,7 @@ const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 function controlExec(command: TreeExecutionCommands) {
-  if (ros_store.control_tree_execution_service === undefined) {
+  if (!ros_store.connected) {
     notify({
       title: 'Service not available!',
       text: 'ControlTreeExection service is not connected.',
@@ -26,11 +26,15 @@ function controlExec(command: TreeExecutionCommands) {
       command: command
     } as ControlTreeExecutionRequest,
     (response: ControlTreeExecutionResponse) => {
+      editor_store.removeRunningCommand(command)
       if (response.success) {
-        editor_store.removeRunningCommand(command)
+        notify({
+          title: 'Running tree command',
+          type: 'success'
+        })
       } else {
         notify({
-          title: 'Sending tree execution command failed!',
+          title: 'Running the tree command failed!',
           type: 'error',
           text: response.error_message
         })

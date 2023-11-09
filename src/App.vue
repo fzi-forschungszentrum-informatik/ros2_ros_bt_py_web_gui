@@ -6,13 +6,17 @@ import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, Packages } from './types/types'
+import type { Messages, NodeMsg, Packages } from './types/types'
 import { useEditorStore } from './stores/editor'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
-import Spacer from './components/RightAlignSpacer.vue'
+import RightAlignSpacer from './components/RightAlignSpacer.vue'
 import SelectEditorSkin from './components/SelectEditorSkin.vue'
 import D3BehaviorTreeEditor from './components/D3BehaviorTreeEditor.vue'
+import BehaviorTreeEdge from './components/BehaviorTreeEdge.vue'
+import MultipleSelection from './components/MultipleSelection.vue'
+import NewNode from './components/NewNode.vue'
+import SelectedNode from './components/SelectedNode.vue'
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
@@ -52,6 +56,25 @@ function handleNodeSearchClear(event: KeyboardEvent) {
     node_search.value = ''
     editor_store.clearFilteredNodes()
   }
+}
+
+function findPossibleParents() {
+  if (editor_store.selected_subtree.tree) {
+    return editor_store.selected_subtree.tree.nodes
+      .filter(
+        (node: NodeMsg) => node.max_children < 0 || node.child_names.length < node.max_children
+      )
+      .sort(function (a: NodeMsg, b: NodeMsg) {
+        if (a.name < b.name) {
+          return -1
+        } else if (a.name > b.name) {
+          return 1
+        } else {
+          return 0
+        }
+      })
+  }
+  return []
 }
 
 const nodelist_visible = ref<boolean>(true)
@@ -100,7 +123,7 @@ onMounted(() => {
   </header>
 
   <main>
-    <div>
+    <div :class="editor_store.dragging_node ? 'cursor-grabbing' : ''">
       <div class="container-fluid">
         <div class="row row-height">
           <div class="col scroll-col" id="nodelist_container" v-if="nodelist_visible">
@@ -138,7 +161,7 @@ onMounted(() => {
             </div>
             <NodeList></NodeList>
           </div>
-          <div class="col scroll-col" id="main_pane">
+          <div :class="nodelist_visible ? 'col-9 scroll-col' : 'col scroll-col'" id="main_pane">
             <!-- Show nodelist button -->
             <button
               v-if="!nodelist_visible"
@@ -211,12 +234,47 @@ onMounted(() => {
                       :value="tree_state"
                     />
                   </div>
-                  <Spacer></Spacer>
+                  <RightAlignSpacer></RightAlignSpacer>
                   <SelectEditorSkin></SelectEditorSkin>
                 </div>
                 <div class="row edit_canvas h-100 pb-2">
                   <div class="col p-0">
                     <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
+                  </div>
+                </div>
+                <div class="row maxh50">
+                  <div class="col pl-0">
+                    <!--Node Selection list-->
+                    <MultipleSelection v-if="editor_store.last_seletion_source === 'multiple'" />
+                    <NewNode
+                      v-else-if="editor_store.last_seletion_source === 'nodelist'"
+                      :key="
+                        ros_store.namespace +
+                        (editor_store.selected_node
+                          ? editor_store.selected_node.module +
+                            editor_store.selected_node.node_class
+                          : '')
+                      "
+                      :node="editor_store.selected_node!"
+                      :parents="findPossibleParents()"
+                    />
+                    <SelectedNode
+                      v-else-if="editor_store.last_seletion_source === 'editor'"
+                      :key="
+                        ros_store.namespace +
+                        (editor_store.selected_node ? editor_store.selected_node.name : '')
+                      "
+                    />
+                    <div v-else class="d-flex flex-column">No Node Selected</div>
+                  </div>
+                  <div class="col">
+                    <div className="row pt-0 pl-0 pr-0">
+                      <!-- BT Edge selection-->
+                      <BehaviorTreeEdge
+                        v-if="editor_store.selected_edge !== undefined"
+                      ></BehaviorTreeEdge>
+                      <div v-else class="d-flex flex-column">No Edge Selected</div>
+                    </div>
                   </div>
                 </div>
               </div>

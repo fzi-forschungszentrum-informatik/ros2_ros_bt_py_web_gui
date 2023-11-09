@@ -4,6 +4,7 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import { getShortDoc } from '@/utils'
 import IOTableEntry from './IOTableEntry.vue'
+import { processSlotOutlet } from '@vue/compiler-core'
 
 const props = defineProps<{
   node: DocumentedNode
@@ -41,22 +42,22 @@ const node_type = computed<string>(() => {
 })
 
 const collapsed = ref<boolean>(true)
+
+function onClick() {
+  console.log('click ' + props.node.name)
+  editor_store.nodeListSelectionChange(props.node)
+}
 </script>
 
 <template>
   <div
+    :id="node.module + node.name"
     class="border rounded p-2 m-2"
     :class="highlighted_classes"
     tabindex="0"
-    @click="() => editor_store.nodeListSelectionChange(node)"
+    @click="onClick"
     @mouseup="() => editor_store.stopDragging()"
-    @mousedown="
-      (event) => {
-        editor_store.startDragging(node)
-        event.preventDefault()
-        event.stopPropagation()
-      }
-    "
+    @mousedown.stop.prevent="() => editor_store.startDragging(node)"
     @keydown="
       (event) => {
         if (event.key == 'Enter') {

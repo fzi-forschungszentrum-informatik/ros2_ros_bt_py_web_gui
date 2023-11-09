@@ -1,12 +1,15 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { DebugInfo, DocumentedNode, TreeMsg } from '@/types/types'
+import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
 export enum EditorSelectionSource {
-  NODELIST = 'nodelist'
+  NONE = 'none',
+  NODELIST = 'nodelist',
+  EDITOR = 'editor',
+  MULTIPLE = 'multiple'
 }
 
 export enum EditorSkin {
@@ -36,7 +39,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   const selected_node_names = ref<string[]>([])
 
-  const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NODELIST)
+  const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
 
   const filtered_nodes = ref<DocumentedNode[]>([])
 
@@ -51,6 +54,10 @@ export const useEditorStore = defineStore('editor', () => {
   })
 
   const subtree_names = ref<string[]>([])
+
+  const selected_edge = ref<NodeDataWiring | undefined>(undefined)
+
+  const copy_node_mode = ref<boolean>(false)
 
   function enableSubtreePublishing(enable: boolean) {
     publish_subtrees.value = enable
@@ -76,6 +83,14 @@ export const useEditorStore = defineStore('editor', () => {
     filtered_nodes.value = nodes_store.nodes_fuse.search(filter).map((x) => x.item)
   }
 
+  function setNodeHasChanged() {
+    node_has_changed.value = true
+  }
+
+  function clearNodeHasChanged() {
+    node_has_changed.value = false
+  }
+
   function clearFilteredNodes() {
     filtered_nodes.value = []
   }
@@ -89,11 +104,10 @@ export const useEditorStore = defineStore('editor', () => {
       } else {
         return
       }
-
-      selected_node.value = new_selected_node
-      selected_node_names.value = []
-      last_seletion_source.value = EditorSelectionSource.NODELIST
     }
+    selected_node.value = new_selected_node
+    selected_node_names.value = []
+    last_seletion_source.value = EditorSelectionSource.NODELIST
   }
 
   function startDragging(new_dragging_node: DocumentedNode) {
@@ -134,6 +148,10 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
+  function changeCopyMode(new_mode: boolean) {
+    copy_node_mode.value = new_mode
+  }
+
   return {
     tree,
     publish_subtrees,
@@ -160,6 +178,11 @@ export const useEditorStore = defineStore('editor', () => {
     setEditorSkin,
     selected_subtree,
     selectSubtree,
-    subtree_names
+    subtree_names,
+    selected_edge,
+    copy_node_mode,
+    changeCopyMode,
+    setNodeHasChanged,
+    clearNodeHasChanged
   }
 })
