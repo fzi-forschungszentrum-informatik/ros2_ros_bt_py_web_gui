@@ -246,14 +246,14 @@ export function selectIOGripper(
 }
 
 export function getMessageType(str: string): {
-  message_type: string
+  message_type?: string
   service: boolean
   action: boolean
 } {
   const message_parts = str.split('.')
   if (message_parts.length < 3) {
     console.error('Invalid message passed')
-    return { message_type: str, action: false, service: false }
+    return { message_type: undefined, action: false, service: false }
   }
 
   let new_message_parts = message_parts

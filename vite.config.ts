@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { fileURLToPath, URL } from 'node:url'
 
 import { defineConfig } from 'vite'
@@ -35,5 +36,9 @@ export default defineConfig({
         }
       }
     }
+  },
+  test: {
+    reporters: ['default', 'junit'],
+    outputFile: './test-report.xml'
   }
 })

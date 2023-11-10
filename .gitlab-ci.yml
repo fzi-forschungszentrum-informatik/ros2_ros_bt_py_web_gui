@@ -15,8 +15,12 @@ build:
   script:
     - yarn install
     - yarn lint
+    - yarn test
     - yarn build
   artifacts:
     expire_in: 1 week
     paths:
       - dist
+      - test-report.xml
+    reports:
+      junit: test-report.xml
