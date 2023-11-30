@@ -75,7 +75,7 @@ export class NewNode extends Component<NewNodeProps, NewNodeState> {
           } as ParamData;
         }),
         inputs: this.getDefaultValues(props.node.inputs, props.node.options),
-        outputs: this.getDefaultValues(props.node.outputs, props.node.outputs),
+        outputs: this.getDefaultValues(props.node.outputs, props.node.options),
       };
     } else {
       this.state = {

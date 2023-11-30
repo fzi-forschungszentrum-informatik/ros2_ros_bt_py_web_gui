@@ -556,7 +556,7 @@ export class EditableNode extends Component<
       return (
         <div className="form-group">
           <label className="d-block">
-            {paramItem.key}&nbsp;
+            {paramItem.key}
             <JSONInput
               json={paramItem.value.value as string}
               message_type={paramItem.value.type}
