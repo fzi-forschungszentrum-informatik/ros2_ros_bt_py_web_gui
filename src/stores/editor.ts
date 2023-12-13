@@ -1,7 +1,7 @@
 import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg } from '@/types/types'
+import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -110,6 +110,51 @@ export const useEditorStore = defineStore('editor', () => {
     last_seletion_source.value = EditorSelectionSource.NODELIST
   }
 
+  function editorSelectionChange(new_selected_node_name: string | undefined) {
+    if (node_has_changed.value) {
+      if (
+        (selected_node_names.value.length > 0 &&
+          selected_node_names.value[0] !== new_selected_node_name) ||
+        new_selected_node_name === undefined
+      ) {
+        if (
+          window.confirm(
+            'Are you sure you wish to discard all changes to the currently edited node?'
+          )
+        ) {
+          node_has_changed.value = false
+        } else {
+          return
+        }
+      }
+    }
+
+    if (new_selected_node_name === undefined || tree.value === undefined) {
+      selected_node.value = undefined
+      selected_node_names.value = []
+      last_seletion_source.value = EditorSelectionSource.EDITOR
+      return
+    }
+
+    const new_selected_name = tree.value.nodes.find(
+      (x: NodeMsg) => x.name === new_selected_node_name
+    )
+
+    if (!new_selected_name) {
+      selected_node.value = undefined
+      selected_node_names.value = []
+      last_seletion_source.value = EditorSelectionSource.EDITOR
+      return
+    }
+
+    const doc_node = new_selected_name as DocumentedNode
+
+    copy_node_mode.value = true
+    selected_node.value = doc_node
+    selected_node_names.value = [new_selected_node_name]
+    last_seletion_source.value = EditorSelectionSource.EDITOR
+  }
+
   function startDragging(new_dragging_node: DocumentedNode) {
     dragging_node.value = new_dragging_node
   }
@@ -148,6 +193,14 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
+  function selectEdge(edge: NodeDataWiring) {
+    selected_edge.value = edge
+  }
+
+  function unselectEdge() {
+    selected_edge.value = undefined
+  }
+
   function changeCopyMode(new_mode: boolean) {
     copy_node_mode.value = new_mode
   }
@@ -170,6 +223,7 @@ export const useEditorStore = defineStore('editor', () => {
     filterNodes,
     clearFilteredNodes,
     nodeListSelectionChange,
+    editorSelectionChange,
     startDragging,
     stopDragging,
     show_data_graph,
@@ -180,6 +234,8 @@ export const useEditorStore = defineStore('editor', () => {
     selectSubtree,
     subtree_names,
     selected_edge,
+    selectEdge,
+    unselectEdge,
     copy_node_mode,
     changeCopyMode,
     setNodeHasChanged,

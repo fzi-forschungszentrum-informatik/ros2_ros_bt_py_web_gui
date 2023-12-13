@@ -1,4 +1,9 @@
 @import './base.scss';
+@import '@fontsource/source-sans-pro';
+
+body {
+  font-family: 'Source Sans Pro';
+}
 
 #app {
   margin: 0 auto;
@@ -19,3 +24,9 @@ a,
     background-color: hsla(160, 100%, 37%, 0.2);
   }
 }
+
+//$theme-colors: (
+//  "primary": #3fb984,
+//);
+
+@import 'node_modules/bootstrap/scss/bootstrap';

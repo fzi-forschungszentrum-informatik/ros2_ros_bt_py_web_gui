@@ -3,7 +3,7 @@
   "name": "Ros-based behavior tree library web editor",
   "icons": [
     {
-      "src": "favicon.png",
+      "src": "ros_bt_py.png",
       "sizes": "32x32",
       "type": "image/png"
     }

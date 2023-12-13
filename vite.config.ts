@@ -26,6 +26,7 @@ export default defineConfig({
             'focus-trap',
             '@kyvg/vue3-notification'
           ],
+          jsoneditor: ['jsoneditor'],
           fontawesome: [
             '@fortawesome/fontawesome-svg-core',
             '@fortawesome/free-brands-svg-icons',
@@ -38,7 +39,9 @@ export default defineConfig({
     }
   },
   test: {
-    reporters: ['default', 'junit'],
-    outputFile: './test-report.xml'
+    reporters: ['verbose', 'junit'],
+    outputFile: {
+      junit: './test-report.xml'
+    }
   }
 })

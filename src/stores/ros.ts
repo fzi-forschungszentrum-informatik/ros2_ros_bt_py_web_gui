@@ -26,6 +26,11 @@ import type {
   GetAvailableNodesResponse
 } from '@/types/services/GetAvailableNodes'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
+import type {
+  GetMessageFieldsRequest,
+  GetMessageFieldsResponse
+} from '@/types/services/GetMessageFields'
+import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 export const useROSStore = defineStore(
   'ros',
@@ -148,6 +153,24 @@ export const useROSStore = defineStore(
       })
     )
 
+    const get_message_fields_service = ref<
+      ROSLIB.Service<GetMessageFieldsRequest, GetMessageFieldsResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_message_fields',
+        serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
+      })
+    )
+
+    const unwire_data_service = ref<ROSLIB.Service<WireNodeDataRequest, WireNodeDataResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'unwire_data',
+        serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -247,6 +270,16 @@ export const useROSStore = defineStore(
         name: namespace.value + 'add_node',
         serviceType: 'ros_bt_py_interfaces/srv/AddNode'
       })
+      get_message_fields_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_message_fields',
+        serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
+      })
+      unwire_data_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'unwire_data',
+        serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
+      })
     }
 
     function connect() {
@@ -301,6 +334,8 @@ export const useROSStore = defineStore(
       clear_tree_service,
       get_available_nodes_service,
       add_node_service,
+      get_message_fields_service,
+      unwire_data_service,
       debug_settings_sub,
       packages_sub,
       messages_sub,

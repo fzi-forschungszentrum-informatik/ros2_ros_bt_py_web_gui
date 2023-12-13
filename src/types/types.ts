@@ -97,7 +97,7 @@ export type PyType = { 'py/type': string }
 export type PyTuple = { 'py/tuple': never[][] }
 export type PyLogger = {
   'py/object': string
-  logger_level: number
+  logger_level: string
 }
 export type PyOperator = {
   'py/object': string

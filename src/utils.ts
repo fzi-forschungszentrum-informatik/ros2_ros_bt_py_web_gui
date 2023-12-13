@@ -171,7 +171,7 @@ export function getDefaultValue(
       type: 'ros_bt_py.ros_helpers.LoggerLevel',
       value: {
         'py/object': 'ros_bt_py.ros_helpers.LoggerLevel',
-        logger_level: 1
+        logger_level: 'Debug'
       }
     }
   } else if (typeName === 'ros_bt_py.helpers.MathUnaryOperator') {

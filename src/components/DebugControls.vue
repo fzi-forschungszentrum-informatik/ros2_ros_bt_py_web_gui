@@ -33,7 +33,6 @@ function onClickStep() {
   }
   ros_store.step_service.callService({} as ContinueRequest, (response: ContinueResponse) => {
     if (response.success) {
-      console.log('stepped successfully')
       notify({
         title: 'Step performed!',
         type: 'success'
@@ -51,7 +50,8 @@ function onClickStep() {
 function handleDebugChange(event: Event) {
   const target = event.target as HTMLInputElement
 
-  if (ros_store.set_execution_mode_service === undefined) {
+  const enable = target.checked
+  if (!ros_store.connected) {
     notify({
       title: 'Service not available!',
       text: 'SetExecutionMode ROS service is not connected!',
@@ -60,7 +60,6 @@ function handleDebugChange(event: Event) {
     return
   }
 
-  const enable = target.checked
   ros_store.set_execution_mode_service.callService(
     {
       single_step: enable,
@@ -81,7 +80,7 @@ function handleDebugChange(event: Event) {
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
 
-  if (ros_store.set_execution_mode_service === undefined) {
+  if (!ros_store.connected) {
     notify({
       title: 'Service not available!',
       text: 'SetExecutionMode ROS service is not connected!',
