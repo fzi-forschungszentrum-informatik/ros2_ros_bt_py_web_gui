@@ -31,6 +31,9 @@ import type {
   GetMessageFieldsResponse
 } from '@/types/services/GetMessageFields'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
+import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
+import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 
 export const useROSStore = defineStore(
   'ros',
@@ -171,6 +174,30 @@ export const useROSStore = defineStore(
       })
     )
 
+    const remove_node_service = ref<ROSLIB.Service<RemoveNodeRequest, RemoveNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'remove_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/RemoveNode'
+      })
+    )
+
+    const set_options_service = ref<ROSLIB.Service<SetOptionsRequest, SetOptionsResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'set_options',
+        serviceType: 'ros_bt_pt_interfaces/srv/SetOptions'
+      })
+    )
+
+    const morph_node_service = ref<ROSLIB.Service<MorphNodeRequest, MorphNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'morph_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/MorphNode'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -280,6 +307,21 @@ export const useROSStore = defineStore(
         name: namespace.value + 'unwire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
+      remove_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'remove_node',
+        serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
+      })
+      set_options_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'set_options',
+        serviceType: 'ros_bt_py_interfaces/srv/SetOptions'
+      })
+      morph_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'morph_node',
+        serviceType: 'ros_bt_py_interfaces/srv/MorphNode'
+      })
     }
 
     function connect() {
@@ -336,6 +378,9 @@ export const useROSStore = defineStore(
       add_node_service,
       get_message_fields_service,
       unwire_data_service,
+      remove_node_service,
+      morph_node_service,
+      set_options_service,
       debug_settings_sub,
       packages_sub,
       messages_sub,
