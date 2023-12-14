@@ -30,10 +30,16 @@ import type {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse
 } from '@/types/services/GetMessageFields'
+import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
-import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
+import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
+import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
+import type {
+  GenerateSubtreeRequest,
+  GenerateSubtreeResponse
+} from '@/types/services/GenerateSubtree'
 
 export const useROSStore = defineStore(
   'ros',
@@ -198,6 +204,42 @@ export const useROSStore = defineStore(
       })
     )
 
+    const move_node_service = ref<ROSLIB.Service<MoveNodeRequest, MoveNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'move_node',
+        serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
+      })
+    )
+
+    const add_node_at_index_service = ref<
+      ROSLIB.Service<AddNodeAtIndexRequest, AddNodeAtIndexResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'add_node_at_index',
+        serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
+      })
+    )
+
+    const wire_data_service = ref<ROSLIB.Service<WireNodeDataRequest, WireNodeDataResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'wire_data',
+        serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
+      })
+    )
+
+    const generate_subtree_service = ref<
+      ROSLIB.Service<GenerateSubtreeRequest, GenerateSubtreeResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'generate_subtree',
+        serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -322,6 +364,26 @@ export const useROSStore = defineStore(
         name: namespace.value + 'morph_node',
         serviceType: 'ros_bt_py_interfaces/srv/MorphNode'
       })
+      generate_subtree_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'generate_subtree',
+        serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
+      })
+      wire_data_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'wire_data',
+        serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
+      })
+      add_node_at_index_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'add_node_at_index',
+        serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
+      })
+      move_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'move_node',
+        serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
+      })
     }
 
     function connect() {
@@ -381,6 +443,10 @@ export const useROSStore = defineStore(
       remove_node_service,
       morph_node_service,
       set_options_service,
+      move_node_service,
+      wire_data_service,
+      add_node_at_index_service,
+      generate_subtree_service,
       debug_settings_sub,
       packages_sub,
       messages_sub,

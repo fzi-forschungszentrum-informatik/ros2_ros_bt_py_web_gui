@@ -4,7 +4,6 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import { getShortDoc } from '@/utils'
 import IOTableEntry from './IOTableEntry.vue'
-import { processSlotOutlet } from '@vue/compiler-core'
 
 const props = defineProps<{
   node: DocumentedNode

@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor'
-import { useNodesStore } from '@/stores/nodes'
-import { useROSStore } from '@/stores/ros'
-import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
-import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
-import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
+import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
+import { notify } from '@kyvg/vue3-notification'
+import { ref } from 'vue'
+import EditableNode from './EditableNode.vue'
 import type {
   ParamData,
   NodeData,
@@ -16,12 +14,13 @@ import type {
   PyOperator,
   ValueTypes
 } from '@/types/types'
-import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
-import { notify } from '@kyvg/vue3-notification'
-import { map } from 'd3'
-import { NONAME } from 'dns'
-import { ref } from 'vue'
-import EditableNode from './EditableNode.vue'
+import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
+import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
+
+import { useEditorStore } from '@/stores/editor'
+import { useNodesStore } from '@/stores/nodes'
+import { useROSStore } from '@/stores/ros'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -371,39 +370,11 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
 <template>
   <div class="d-flex flex-column">
     <div class="btn-group d-flex mb-2" role="group">
-      <button
-        class="btn btn-primary w-30"
-        @disabled="
-          {
-            !is_valid
-          }
-        "
-        @click="
-          {
-            onClickUpdate
-          }
-        "
-      >
+      <button class="btn btn-primary w-30" @disabled="!is_valid" @click="onClickUpdate">
         Update Node
       </button>
-      <button
-        class="btn btn-danger w-35"
-        @click="
-          {
-            onClickDelete
-          }
-        "
-      >
-        Delete Node
-      </button>
-      <button
-        class="btn btn-danger w-35"
-        @click="
-          {
-            onClickDeleteWithChildren
-          }
-        "
-      >
+      <button class="btn btn-danger w-35" @click="onClickDelete">Delete Node</button>
+      <button class="btn btn-danger w-35" @click="onClickDeleteWithChildren">
         Delete Node + Children
       </button>
     </div>
