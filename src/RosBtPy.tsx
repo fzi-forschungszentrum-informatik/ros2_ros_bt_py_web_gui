@@ -871,6 +871,8 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   }
 
   onEditorSelectionChange(new_selected_node_name: string | null) {
+    console.log("Selected: " + this.state.selected_node_name);
+    console.log("New Selected: " + new_selected_node_name);
     if (
       this.state.node_changed &&
       (new_selected_node_name === null ||
@@ -891,6 +893,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     if (new_selected_node_name === null) {
       this.setState({
+        selected_node_name: null,
         selected_node: null,
         selected_node_names: [],
         last_selection_source: "editor",
@@ -904,6 +907,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     if (!new_selected_node) {
       this.setState({
+        selected_node_name: null,
         selected_node: null,
         selected_node_names: [],
         last_selection_source: "editor",
@@ -914,6 +918,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     const doc_node = new_selected_node as DocumentedNode;
 
     this.setState((prevState) => ({
+      selected_node_name: new_selected_node_name,
       copy_node: true,
       selected_node: doc_node,
       selected_node_names: [new_selected_node_name],
