@@ -5,6 +5,7 @@
     "email": "oberacker@fzi.de",
     "url": "https://www.fzi.de/team/david-oberacker/"
   },
+  "license": "BSD-3-Clause",
   "private": true,
   "version": "2.0.0",
   "type": "module",
