@@ -26,3 +26,16 @@ repos:
     rev: "v2.7.1" # Use the sha / tag you want to point at
     hooks:
       - id: prettier
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.5.4
+    hooks:
+      - id: insert-license
+        files: \.([jt]sx|[jt]s|scss)$
+        args:
+          - --license-filepath
+          - LICENSE.txt # defaults to: LICENSE.txt
+          - --comment-style
+          - /*| *| */
+          - --use-current-year
+          - --no-extra-eol
+          - --fuzzy-match-generates-todo
