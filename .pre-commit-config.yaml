@@ -32,12 +32,22 @@ repos:
     rev: v1.5.4
     hooks:
       - id: insert-license
-        files: \.(vue|[jt]s|scss)$
+        files: \.([jt]s|scss)$
         args:
           - --license-filepath
           - LICENSE.txt # defaults to: LICENSE.txt
           - --comment-style
           - /*| *| */
+          - --use-current-year
+          - --no-extra-eol
+          - --fuzzy-match-generates-todo
+      - id: insert-license
+        files: \.vue$
+        args:
+          - --license-filepath
+          - LICENSE.txt # defaults to: LICENSE.txt
+          - --comment-style
+          - <!--| * | -->
           - --use-current-year
           - --no-extra-eol
           - --fuzzy-match-generates-todo
