@@ -1,0 +1,66 @@
+name: update-web-gui-via-pr
+
+on:
+  push:
+    tags:
+      - "**"
+
+jobs:
+  send-pull-requests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18.x"
+          cache: "yarn"
+      - run: yarn install
+      - run: yarn lint
+      - run: yarn build
+      - name: Send pull-request
+        run: |
+          LATEST_TAG=$(git describe --tags --always --abbrev=0)
+          REPOSITORY="fzi-forschungszentrum-informatik/ros2_ros_bt_py"
+          FOLDER="ros2_ros_bt_py"
+          BRANCH_NAME="update-web-gui-to-$LATEST_TAG"
+
+          # Clone the remote repository and change working directory to the
+          # folder it was cloned to.
+          git clone \
+            --depth=1 \
+            --branch=main \
+            https://some-user:${{ secrets.ACCESS_TOKEN }}@github.com/$REPOSITORY \
+            $FOLDER
+
+          cd $FOLDER
+
+          # Setup the committers identity.
+          git config user.email "hollie@fzi.de"
+          git config user.name "Hollie"
+
+          # Create a new feature branch for the changes.
+          git checkout -b $BRANCH_NAME
+
+          rm -r ros_bt_py_web_gui/html
+
+          # Update the script files to the latest version.
+          cp -R ../dist ros_bt_py_web_gui/html
+
+          # Commit the changes and push the feature branch to origin
+          git add .
+          git commit -m "Update Web-GUI to $LATEST_TAG"
+          git push origin $BRANCH_NAME
+
+          # Store the PAT in a file that can be accessed by the
+          # GitHub CLI.
+          echo "${{ secrets.ACCESS_TOKEN }}" > token.txt
+
+          # Authorize GitHub CLI for the current repository and
+          # create a pull-requests containing the updates.
+          gh auth login --with-token < token.txt
+          gh pr create \
+            --body "" \
+            --title "Update Web-GUI to $LATEST_TAG" \
+            --head "$BRANCH_NAME" \
+            --base "main"
