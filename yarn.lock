@@ -430,6 +430,13 @@
   dependencies:
     "@types/d3-dsv" "^1"
 
+"@types/d3-flextree@^2.1.4":
+  version "2.1.4"
+  resolved "https://registry.yarnpkg.com/@types/d3-flextree/-/d3-flextree-2.1.4.tgz#60bcb03c8fd60952274c066de7286867b8c7a1c1"
+  integrity sha512-VcJAeoG51p0RBese55p/OHarbqe9QvQauzCkRAuORT3t9UOa+LzqCpTBMVYxBahyp4vAe1ML3sgeQKRU7Gv+KA==
+  dependencies:
+    "@types/d3-hierarchy" "*"
+
 "@types/d3-force@^1":
   version "1.2.7"
   resolved "https://registry.yarnpkg.com/@types/d3-force/-/d3-force-1.2.7.tgz#b066d91ac3b8f19c35a60b49e89e99f60187460a"
@@ -446,6 +453,11 @@
   integrity sha512-QetZrWWjuMfCe0BHLjD+dOThlgk7YGZ2gj+yhFAbDN5TularNBEQiBs5/CIgX0+IBDjt7/fbkDd5V70J1LjjKA==
   dependencies:
     "@types/geojson" "*"
+
+"@types/d3-hierarchy@*":
+  version "3.1.6"
+  resolved "https://registry.yarnpkg.com/@types/d3-hierarchy/-/d3-hierarchy-3.1.6.tgz#8d3638df273ec90da34b3ac89d8784c59708cb0d"
+  integrity sha512-qlmD/8aMk5xGorUvTUWHCiumvgaUXYldYjNVOWtYoTYY/L+WwIEAmJxUmTgr9LoGNG0PPAOmqMDJVDPc7DOpPw==
 
 "@types/d3-hierarchy@^1":
   version "1.1.11"

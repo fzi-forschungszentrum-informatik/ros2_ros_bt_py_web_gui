@@ -2,6 +2,12 @@
   "name": "ros_bt_py_web_gui",
   "version": "3.0.0",
   "private": true,
+  "author": {
+    "name": "David Oberacker",
+    "email": "oberacker@fzi.de",
+    "url": "https://www.fzi.de/team/david-oberacker/"
+  },
+  "license": "BSD-3-Clause",
   "scripts": {
     "dev": "vite",
     "build": "run-p type-check \"build-only {@}\" --",
@@ -43,6 +49,7 @@
     "@tsconfig/node18": "^18.2.2",
     "@types/bootstrap": "^5.2.8",
     "@types/d3": "^5.16.0",
+    "@types/d3-flextree": "^2.1.4",
     "@types/js-yaml": "^4.0.9",
     "@types/jsoneditor": "^9.9.3",
     "@types/node": "^18.18.5",

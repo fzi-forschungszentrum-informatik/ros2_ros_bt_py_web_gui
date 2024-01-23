@@ -193,6 +193,22 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
+  function selectMultipleNodes(new_selected_node_names: string[]) {
+    if (node_has_changed.value) {
+      if (
+        window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
+      ) {
+        node_has_changed.value = false
+      } else {
+        return
+      }
+    }
+
+    selected_node.value = undefined
+    selected_node_names.value = new_selected_node_names
+    last_seletion_source.value = EditorSelectionSource.MULTIPLE
+  }
+
   function selectEdge(edge: NodeDataWiring) {
     selected_edge.value = edge
   }
@@ -239,6 +255,7 @@ export const useEditorStore = defineStore('editor', () => {
     copy_node_mode,
     changeCopyMode,
     setNodeHasChanged,
-    clearNodeHasChanged
+    clearNodeHasChanged,
+    selectMultipleNodes
   }
 })

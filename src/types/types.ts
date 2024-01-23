@@ -151,3 +151,26 @@ export type DataEdgeTerminal = DataEdgePoint & {
 }
 
 export type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]
+
+export type DropTarget = {
+  replace: boolean
+  data: TrimmedNode | undefined
+  position: number
+}
+
+export type TrimmedNodeData = {
+  key: string
+  serialized_type: string
+}
+
+export type TrimmedNode = {
+  node_class: string
+  module: string
+  state: string
+  max_children: number
+  name: string
+  child_names: string[]
+  inputs: TrimmedNodeData[]
+  outputs: TrimmedNodeData[]
+  options: TrimmedNodeData[]
+}
