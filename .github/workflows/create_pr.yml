@@ -30,7 +30,7 @@ jobs:
           git clone \
             --depth=1 \
             --branch=main \
-            https://some-user:${{ secrets.ACCESS_TOKEN }}@github.com/$REPOSITORY \
+            https://fzi-forschungszentrum-informatik:${{ secrets.ACCESS_TOKEN }}@github.com/$REPOSITORY \
             $FOLDER
 
           cd $FOLDER
