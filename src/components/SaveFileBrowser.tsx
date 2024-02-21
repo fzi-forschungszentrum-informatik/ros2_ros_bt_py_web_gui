@@ -430,7 +430,6 @@ export class SaveFileBrowser extends Component<
             }
 
             const request = {
-              filename: this.props.tree_message?.name,
               filepath: save_file_path,
               storage_path: this.state.storage_folder,
               tree: this.props.tree_message,

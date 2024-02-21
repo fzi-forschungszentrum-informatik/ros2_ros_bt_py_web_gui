@@ -30,7 +30,6 @@
 import { TreeMsg } from "../types";
 
 export interface SaveTreeRequest {
-  filename: string;
   filepath: string;
   storage_path: string;
   tree: TreeMsg;
