@@ -30,7 +30,7 @@ jobs:
           git clone \
             --depth=1 \
             --branch=main \
-            https://fzi-forschungszentrum-informatik:${{ secrets.ACCESS_TOKEN }}@github.com/$REPOSITORY \
+            https://${{ secrets.GITHUB_TOKEN }}@github.com/$REPOSITORY \
             $FOLDER
 
           cd $FOLDER
@@ -52,13 +52,9 @@ jobs:
           git commit -m "Update Web-GUI to $LATEST_TAG"
           git push origin $BRANCH_NAME
 
-          # Store the PAT in a file that can be accessed by the
-          # GitHub CLI.
-          echo "${{ secrets.ACCESS_TOKEN }}" > token.txt
-
           # Authorize GitHub CLI for the current repository and
           # create a pull-requests containing the updates.
-          gh auth login --with-token < token.txt
+          echo ${{ secrets.GITHUB_TOKEN }} | gh auth login --with-token
           gh pr create \
             --body "" \
             --title "Update Web-GUI to $LATEST_TAG" \
