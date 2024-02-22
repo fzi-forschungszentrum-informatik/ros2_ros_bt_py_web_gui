@@ -2,6 +2,8 @@
 
 set -e
 
+cd $(git rev-parse --show-toplevel)
+
 LATEST_TAG=$(git describe --tags --always --abbrev=0)
 BRANCH_NAME="update-web-gui-to-$LATEST_TAG"
 FOLDER="ros2_ros_bt_py"
