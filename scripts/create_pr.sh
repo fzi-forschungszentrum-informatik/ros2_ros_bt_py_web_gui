@@ -11,10 +11,6 @@ FOLDER="ros2_ros_bt_py"
 gh repo clone fzi-forschungszentrum-informatik/ros2_ros_bt_py $FOLDER
 cd $FOLDER
 
-# Setup the committers identity.
-git config user.email "hollie@fzi.de"
-git config user.name "Hollie"
-
 # Create a new feature branch for the changes.
 git checkout -b $BRANCH_NAME
 
