@@ -29,12 +29,14 @@ git commit -m "Update Web-GUI to $LATEST_TAG"
 git push origin $BRANCH_NAME
 
 gh pr create \
-  --body "" \
+  --body "See details: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/tree/$LATEST_TAG" \
   --title "Update Web-GUI to $LATEST_TAG" \
   --head "$BRANCH_NAME" \
-  --base "dev"
-  --assignee "@me"
-  --label bot enhancement GUI
+  --base "dev" \
+  --assignee "@me" \
+  --label "bot" \
+  --label "enhancement" \
+  --label "GUI"
 
 cd ..
 rm -rf $FOLDER
