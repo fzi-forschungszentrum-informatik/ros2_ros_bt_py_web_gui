@@ -648,7 +648,7 @@ export class LoadFileBrowser extends Component<
         <h2>{title}</h2>
         <div className="d-flex flex-column">
           <div className="input-group m-1">
-            <label className="input-group-text">Package:</label>
+            <label className="input-group-text">Storage Folder:</label>
             {package_name_element}
           </div>
           {this.renderFolderSearchResults(storage_folders_results)}

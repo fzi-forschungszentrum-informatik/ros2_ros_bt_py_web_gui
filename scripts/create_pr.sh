@@ -36,7 +36,8 @@ gh pr create \
   --assignee "@me" \
   --label "bot" \
   --label "enhancement" \
-  --label "GUI"
+  --label "GUI" \
+  --reviewer "fzi-forschungszentrum-informatik/ros2_ros_bt_py-write"
 
 cd ..
 rm -rf $FOLDER
