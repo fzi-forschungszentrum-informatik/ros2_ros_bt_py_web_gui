@@ -80,6 +80,7 @@ import {
 } from "./types/services/SetExecutionMode";
 import { SaveFileBrowser } from "./components/SaveFileBrowser";
 import { LoadFileBrowser } from "./components/LoadFileBrowser";
+import { GenerateSubtreeBrowser } from "./components/GenerateSubtreeFileBrowser";
 
 interface AppState {
   bt_namespace: string;
@@ -122,6 +123,7 @@ interface AppState {
   messages_available: boolean;
   node_search: string;
   selected_node_name: string | null;
+  gen_subtree_msg: TreeMsg | null;
 }
 
 interface AppProps {}
@@ -218,6 +220,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
       messages_available: false,
       node_search: "",
       selected_node_name: null,
+      gen_subtree_msg: null,
     };
 
     this.nodes_fuse = null;
@@ -318,6 +321,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     this.handleNodeSearchClear = this.handleNodeSearchClear.bind(this);
     this.onNewRunningCommand = this.onNewRunningCommand.bind(this);
     this.onRunningCommandCompleted = this.onRunningCommandCompleted.bind(this);
+    this.onGeneratedSubtreeChange = this.onGeneratedSubtreeChange.bind(this);
   }
 
   onTreeUpdate(msg: TreeMsg) {
@@ -1005,6 +1009,10 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     }
   }
 
+  onGeneratedSubtreeChange(tree_msg: TreeMsg | null) {
+    this.setState({ gen_subtree_msg: tree_msg });
+  }
+
   render() {
     let selectedNodeComponent = null;
 
@@ -1025,6 +1033,8 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
           onSelectionChange={this.onEditorSelectionChange}
           onMultipleSelectionChange={this.onMultipleSelectionChange}
           onSelectedEdgeChange={this.onSelectedEdgeChange}
+          onGenSubtreeChange={this.onGeneratedSubtreeChange}
+          onChangeFileModal={this.onChangeFileModal}
         />
       );
     } else if (this.state.selected_node === null) {
@@ -1223,6 +1233,18 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
           bt_namespace={this.state.bt_namespace}
           onError={this.onError}
           tree_message={this.state.last_tree_msg}
+          last_selected_folder={this.state.last_selected_storage_folder}
+          onChangeFileModal={this.onChangeFileModal}
+          onSelectedStorageFolderChange={this.onSelectedStorageFolderChange}
+        />
+      );
+    } else if (this.state.show_file_modal === "generate_subtree") {
+      modal_content = (
+        <GenerateSubtreeBrowser
+          ros={this.state.ros}
+          bt_namespace={this.state.bt_namespace}
+          onError={this.onError}
+          tree_message={this.state.gen_subtree_msg}
           last_selected_folder={this.state.last_selected_storage_folder}
           onChangeFileModal={this.onChangeFileModal}
           onSelectedStorageFolderChange={this.onSelectedStorageFolderChange}
