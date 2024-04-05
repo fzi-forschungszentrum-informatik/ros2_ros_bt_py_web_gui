@@ -60,7 +60,7 @@ import {
   NodeMsg,
   Package,
   Packages,
-  SubtreeStates,
+  SubtreeInfo,
   TreeMsg,
 } from "./types/types";
 import {
@@ -131,7 +131,7 @@ interface AppProps {}
 export class RosBtPyApp extends Component<AppProps, AppState> {
   nodes_fuse: Fuse<DocumentedNode> | null;
   tree_topic: ROSLIB.Topic<TreeMsg>;
-  subtree_states_topic: ROSLIB.Topic<SubtreeStates>;
+  subtree_states_topic: ROSLIB.Topic<SubtreeInfo>;
   messages_topic: ROSLIB.Topic<Messages>;
   get_nodes_service: ROSLIB.Service<
     GetAvailableNodesRequest,
@@ -151,7 +151,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
   messages: Message[];
   messagesFuse: Fuse<Message> | null;
   last_received_packages_msg?: Packages;
-  last_received_subtree_msg?: SubtreeStates;
+  last_received_subtree_msg?: SubtreeInfo;
   packages: Package[];
   packagesFuse: Fuse<Package> | null;
   last_tree_update?: number;
@@ -235,8 +235,8 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
     this.subtree_states_topic = new ROSLIB.Topic({
       ros: this.state.ros,
-      name: this.state.bt_namespace + "subtree_states",
-      messageType: "ros_bt_py_interfaces/msg/SubtreeStates",
+      name: this.state.bt_namespace + "debug/subtree_info",
+      messageType: "ros_bt_py_interfaces/msg/SubtreeInfo",
     });
 
     this.messages_topic = new ROSLIB.Topic({
@@ -364,13 +364,15 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     }
   }
 
-  onSubtreeStatesUpdate(msg: SubtreeStates) {
+  onSubtreeStatesUpdate(msg: SubtreeInfo) {
     this.last_received_subtree_msg = msg;
     this.setState({
-      subtree_names: msg.subtrees.map((x: { name: any }) => x.name).sort(),
+      subtree_names: msg.subtree_states
+        .map((x: { name: any }) => x.name)
+        .sort(),
     });
     if (this.state.selected_tree.is_subtree) {
-      const selectedSubtree = msg.subtrees.find(
+      const selectedSubtree = msg.subtree_states.find(
         (x: { name: any }) => x.name === this.state.selected_tree.name
       );
       if (selectedSubtree) {
@@ -516,7 +518,7 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
     // selected tree
     let tree_msg = undefined;
     if (is_subtree && this.last_received_subtree_msg) {
-      tree_msg = this.last_received_subtree_msg.subtrees.find(
+      tree_msg = this.last_received_subtree_msg.subtree_states.find(
         (x: TreeMsg) => x.name === name
       );
     } else {
@@ -552,8 +554,8 @@ export class RosBtPyApp extends Component<AppProps, AppState> {
 
       this.subtree_states_topic = new ROSLIB.Topic({
         ros: this.state.ros,
-        name: namespace + "subtree_states",
-        messageType: "ros_bt_py_interfaces/msg/SubtreeStates",
+        name: namespace + "debug/subtree_info",
+        messageType: "ros_bt_py_interfaces/msg/SubtreeInfo",
       });
 
       this.messages_topic = new ROSLIB.Topic({

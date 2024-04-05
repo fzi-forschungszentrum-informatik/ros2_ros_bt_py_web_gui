@@ -73,8 +73,8 @@ export interface TreeMsg {
   public_node_data: NodeDataLocation;
 }
 
-export interface SubtreeStates {
-  subtrees: TreeMsg[];
+export interface SubtreeInfo {
+  subtree_states: TreeMsg[];
 }
 
 export interface Package {
