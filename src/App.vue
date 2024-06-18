@@ -35,7 +35,7 @@ import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages } from './types/types'
+import type { Messages, NodeMsg, Packages, TreeMsg } from './types/types'
 import { useEditorStore } from './stores/editor'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
@@ -74,6 +74,16 @@ function updateMessagesSubscription() {
   ros_store.messages_sub.subscribe(onNewMessagesMsg)
 }
 
+function onNewTreeMsg(msg: TreeMsg) {
+  editor_store.tree = msg
+  console.log("Got new tree msg")
+  console.log(msg)
+}
+
+function updateTreeSubscription() {
+  ros_store.tree_sub.subscribe(onNewTreeMsg)
+}
+
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
@@ -88,8 +98,8 @@ function handleNodeSearchClear(event: KeyboardEvent) {
 }
 
 function findPossibleParents() {
-  if (editor_store.selected_subtree.tree) {
-    return editor_store.selected_subtree.tree.nodes
+  if (editor_store.tree) {
+    return editor_store.tree.nodes
       .filter(
         (node: NodeMsg) => node.max_children < 0 || node.child_names.length < node.max_children
       )
@@ -134,6 +144,7 @@ ros_store.$onAction(({ name, after }) => {
   }
 
   after(() => {
+    updateTreeSubscription()
     updateMessagesSubscription()
     updatePackagesSubscription()
   })
@@ -141,6 +152,7 @@ ros_store.$onAction(({ name, after }) => {
 
 onMounted(() => {
   ros_store.connect()
+  updateTreeSubscription()
   updateMessagesSubscription()
   updatePackagesSubscription()
 })

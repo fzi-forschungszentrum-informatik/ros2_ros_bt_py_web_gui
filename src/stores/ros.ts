@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, DebugSettings, Messages } from '@/types/types'
+import type { Packages, DebugSettings, Messages, TreeMsg } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -159,6 +159,16 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'add_node',
         serviceType: 'ros_bt_py_interfaces/srv/AddNode'
+      })
+    )
+
+    const tree_sub = ref<ROSLIB.Topic<TreeMsg>>(
+      new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree',
+        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
       })
     )
 
@@ -293,6 +303,16 @@ export const useROSStore = defineStore(
         messageType: 'ros_bt_py_interfaces/msg/DebugSettings',
         latch: true,
         reconnect_on_close: true
+      })
+
+      tree_sub.value.unsubscribe()
+      tree_sub.value.removeAllListeners()
+      tree_sub.value = new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree',
+        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
       })
 
       messages_sub.value.unsubscribe()
@@ -477,6 +497,7 @@ export const useROSStore = defineStore(
       add_node_at_index_service,
       generate_subtree_service,
       debug_settings_sub,
+      tree_sub,
       packages_sub,
       messages_sub,
       connect,
