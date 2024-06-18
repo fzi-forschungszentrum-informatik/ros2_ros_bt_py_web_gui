@@ -43,7 +43,9 @@ import type {
   PyLogger,
   PyOperand,
   PyOperator,
-  TrimmedNode
+  TreeMsg,
+  TrimmedNode,
+  TrimmedNodeData
 } from '@/types/types'
 import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
 import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
@@ -51,13 +53,19 @@ import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import type { ZoomBehavior } from 'd3'
 import { onMounted, ref } from 'vue'
-import { flextree, FlextreeNode } from 'd3-flextree'
+import type { flextree, FlextreeNode } from 'd3-flextree'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const viewport_ref = ref<SVGSVGElement>()
 const svg_g_ref = ref<SVGGElement>()
+const g_vertices_ref = ref<SVGGElement>()
+const g_edges_ref = ref<SVGGElement>()
+const g_data_graph_ref = ref<SVGGElement>()
+const g_data_edges_ref = ref<SVGGElement>()
+const g_data_vertices_ref = ref<SVGGElement>()
+const g_drop_targets_ref = ref<SVGGElement>()
 
 let zoomObject: ZoomBehavior<SVGSVGElement, unknown> | undefined = undefined
 
@@ -74,6 +82,9 @@ let pan_rate: number = 30
 let pan_direction: number[] = [0.0, 0.0]
 let drag_pan_boundary: number = 50
 let pan_per_frame: number = 10.0
+
+let io_gripper_size: number = 15
+let io_gripper_spacing: number = 10
 
 function resetView() {
   if (
@@ -244,6 +255,222 @@ function dragPanTimerHandler() {
 
   d3.select(viewport_ref.value!).call(zoomObject!.translateBy, pan_direction[0], pan_direction[1])
 }
+
+function drawEverything() {
+  
+  if (editor_store.tree === undefined) {
+    // TODO draw drop targets if tree is null
+    console.warn("Tree is undefined")
+    return
+  }
+  
+  if (
+    svg_g_ref.value === undefined ||
+    g_vertices_ref.value === undefined ||
+    g_data_graph_ref.value === undefined
+  ) {
+    // TODO handle DOM is broken
+    return
+  }
+  
+  const onlyKeyAndType = (nodeData: NodeData) => ({
+    key: nodeData.key,
+    serialized_type: nodeData.serialized_type,
+  } as TrimmedNodeData);
+
+  // Trim the serialized data values from the node data - we won't
+  // render them, so don't clutter the DOM with the data
+  const trimmed_nodes: TrimmedNode[] = editor_store.tree.nodes.map((node) => {
+    return {
+      node_class: node.node_class,
+      module: node.module,
+      name: node.name,
+      state: node.state,
+      max_children: node.max_children,
+      child_names: node.child_names,
+      options: node.options.map(onlyKeyAndType),
+      inputs: node.inputs.map(onlyKeyAndType),
+      outputs: node.outputs.map(onlyKeyAndType),
+      position: new DOMRect(0, 0, 1, 1)
+    };
+  });
+
+  const forest_root: TrimmedNode = {
+    node_class: "",
+    module: "",
+    state: "",
+    max_children: -1,
+    name: "__forest_root",
+    child_names: [],
+    inputs: [],
+    outputs: [],
+    options: [],
+    position: new DOMRect(0, 0, 1, 1)
+  };
+
+  if (trimmed_nodes.findIndex((x) => x.name === "__forest_root") < 0) {
+    trimmed_nodes.push(forest_root);
+  }
+
+  // Update the visual tree
+  const parents: Record<string, string> = {};
+  //const node_dict: Record<string, TrimmedNode> = {}; Is unused?
+  // Find parents for all nodes once
+  for (const i in trimmed_nodes) {
+    const node = trimmed_nodes[i];
+    //node_dict[node.name] = node;
+    for (const j in node.child_names) {
+      parents[node.child_names[j]] = node.name;
+    }
+  }
+
+  const root: d3.HierarchyNode<TrimmedNode> = d3
+    .stratify<TrimmedNode>()
+    .id((node) => {
+      return node.name
+    })
+    .parentId((node) => {
+      // undefined if it has no parent - does that break the layout?
+      if (node.name in parents) {
+        return parents[node.name]
+      } else if (node.name === forest_root.name) {
+        return undefined
+      } else {
+        forest_root.child_names.push(node.name);
+        return forest_root.name
+      }
+    })(trimmed_nodes)
+
+  root.sort(function (a, b) {
+    if (a.depth !== b.depth) {
+      return b.depth - a.depth
+    }
+    while (a.parent !== b.parent) {
+      a = a.parent!
+      b = b.parent!
+    }
+    const child_list = a.parent!.data.child_names;
+    return (
+      child_list.findIndex((x) => x === a.data.name) -
+      child_list.findIndex((x) => x === b.data.name)
+    )
+  })
+
+  const svg = d3.select<SVGGElement, never>(svg_g_ref.value)
+  const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
+  const g_data = d3.select<SVGGElement, never>(g_data_graph_ref.value)
+
+  const node = g_vertex
+    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(
+      ".node"
+    )
+    .data(
+      root.descendants().filter((node) => node.id !== forest_root.name),
+      (node: d3.HierarchyNode<TrimmedNode>) => {
+        return node.id!
+      }
+    ) // Join performs enter, update and exit at once
+    .join(drawNewNodes)
+    .call(updateNodeBody)
+
+
+  
+
+  // TODO(nberg): Find a way to get rid of this - it's here because
+  // the DOM changes in updateNodes take a while to actually happen,
+  // and layoutNodes needs getBoundingClientRect information...
+  window.setTimeout(() => {
+    //layoutNodes(svg, root)
+
+    //drawDropTargets()
+
+    //drawDataGraph(g_data, node2.data(), tree_msg.data_wirings)
+  }, 100)
+
+}
+
+function drawNewNodes(
+    selection: d3.Selection<
+      d3.EnterElement,
+      d3.HierarchyNode<TrimmedNode>,
+      SVGGElement,
+      never
+    >
+) {
+  // eslint-disable-next-line @typescript-eslint/no-this-alias
+  //const that = this;
+
+  const fo = selection
+    .append("foreignObject")
+      .attr("class", function (d) {
+        return "node" + (d.children ? " node--internal" : " node--leaf")
+      })
+    /*.on("click", this.nodeClickHandler.bind(this))
+    .on("mousedown", function (d) {
+      that.nodeMousedownHandler(d, this);
+    })
+    .on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
+    // TODO add mouse event handlers
+
+  const body = fo
+    .append("xhtml:body")
+      .attr("class", "btnode p-2")
+      .style("min-height", (d) => {
+      // We need to ensure a minimum height, in case the node body
+      // would otherwise be shorter than the number of grippers
+      // requires.
+        const inputs = d.data.inputs || []
+        const outputs = d.data.outputs || []
+        const max_num_grippers = Math.max(inputs.length, outputs.length)
+        return (
+          (io_gripper_size + io_gripper_spacing) * max_num_grippers +
+          "px"
+        )
+      })
+
+  // These elements get filled in updateNodeBody
+  body.append("h4").attr("class", "node_name")
+  body.append("h5").attr("class", "class_name")
+
+  // The join pattern requires a return of the appended elements
+  // For consistency the node body is filled using the update method
+  return fo
+}
+
+function updateNodeBody(
+  selection: d3.Selection<
+    SVGForeignObjectElement,
+    d3.HierarchyNode<TrimmedNode>,
+    SVGGElement,
+    never
+  >
+) {
+
+  const body = selection.select<HTMLBodyElement>(".btnode")
+
+  body.select<HTMLHeadingElement>(".node_name")
+      .html((d) => d.data.name)
+
+  body.select<HTMLHeadingElement>(".class_name")
+      .html((d) => d.data.node_class)
+
+  // Set width and height on foreignObject
+  body.each(function (d) {
+    d.data.position = this.getBoundingClientRect()
+  })
+
+  selection.attr("width", (d) => d.data.position.width)
+      .attr("height", (d) => d.data.position.height)
+      //.attr("x", (d) => d.data.position.x)
+      //.attr("y", (d) => d.data.position.y)
+
+  return selection
+}
+
+function layoutTree(root: d3.HierarchyNode<TrimmedNode>) {
+
+}
+
 
 onMounted(() => {
   if (
@@ -448,13 +675,13 @@ onMounted(() => {
 <template>
   <svg id="editor_viewport" ref="viewport_ref" class="reactive-svg" :class="editor_store.skin">
     <g id="container" ref="svg_g_ref">
-      <g class="edges" />
-      <g class="vertices" />
-      <g class="data_graph">
-        <g class="data_edges" />
-        <g class="data_vertices" />
+      <g class="edges" ref="g_edges_ref"/>
+      <g class="vertices" ref="g_vertices_ref"/>
+      <g class="data_graph" ref="g_data_graph_ref">
+        <g class="data_edges" ref="g_data_edges_ref"/>
+        <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>
-      <g class="drop_targets" visibility="hidden" />
+      <g class="drop_targets" visibility="hidden" ref="g_drop_targets_ref"/>
     </g>
     <text
       x="10"
@@ -466,6 +693,17 @@ onMounted(() => {
       @click="resetView"
     >
       Reset View
+    </text>
+    <text
+      x="200"
+      y="20"
+      fill="#FFFFFF"
+      textAnchor="left"
+      alignmentBaseline="central"
+      class="cursor-pointer svg-button"
+      @click="drawEverything"
+    >
+      Redraw Tree
     </text>
   </svg>
 </template>

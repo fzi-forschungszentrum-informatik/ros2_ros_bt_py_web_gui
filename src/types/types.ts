@@ -202,4 +202,5 @@ export type TrimmedNode = {
   inputs: TrimmedNodeData[]
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
+  position: DOMRect
 }
