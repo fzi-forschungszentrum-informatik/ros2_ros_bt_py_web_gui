@@ -707,3 +707,7 @@ onMounted(() => {
     </text>
   </svg>
 </template>
+
+<style lang="scss">
+  @import "src/assets/editor.scss";
+</style>

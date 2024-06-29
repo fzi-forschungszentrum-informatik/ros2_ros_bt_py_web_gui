@@ -1,0 +1,35 @@
+.box {
+    border: 3px solid;
+    margin: 5px;
+    padding: 10px;
+}
+
+.node_list {
+    font-family: sans-serif;
+    display: inline-block;
+    background: #2a2d36;
+    border: solid;
+    border-width: 6px;
+    border-color: #4e5666;
+    color: #eff0f4;
+}
+
+@media screen and (max-width: 1910px) {
+    .hide-button-text {
+      display: none;
+    }
+  
+    .show-button-icon {
+      visibility: visible;
+    }
+}
+  
+@media screen and (max-width: 1640px) {
+    .hide-button-text-control {
+      display: none;
+    }
+  
+    .show-button-icon {
+      visibility: visible;
+    }
+}

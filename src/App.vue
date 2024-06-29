@@ -330,67 +330,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.box {
-  border: 3px solid;
-  margin: 5px;
-  padding: 10px;
-}
 
-.node {
-  cursor: pointer;
-}
-
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.node text {
-  font: 10px sans-serif;
-}
-
-.link {
-  fill: none;
-  stroke: #1e2226;
-  stroke-width: 3.5px;
-}
-
-.btnode,
-.label {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  border-color: #4e5666;
-  color: #eff0f4;
-  fill: #eff0f4;
-  /*FIXME: max-width: 200px;*/
-  overflow-wrap: break-word;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.label {
-  pointer-events: none;
-}
-
-.btnode h5 {
-  color: #858e99;
-}
-
-.node_list {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  border-color: #4e5666;
-  color: #eff0f4;
-}
 
 .maxw0 {
   max-width: 0;
@@ -412,52 +352,13 @@ onMounted(() => {
   cursor: grabbing;
 }
 
-.svg-button:hover {
-  fill: #bebebe;
-}
 
-.btnode tbody {
-  color: #cecfd2;
-}
-
-.btnode h3 {
-  margin: 4px;
-}
-
-.btnode tbody tr {
-  background: #313740;
-}
-
-.btnode td.key {
-  font-weight: bold;
-}
-
-.btnode tbody tr:hover {
-  background: #3a414c;
-}
-
-.btnode td {
-  /*
-border: solid;
-*/
-  vertical-align: top;
-}
-
-.btnode th {
-  text-align: left;
-}
 
 .json {
   white-space: pre;
 }
 
-.btnode td pre {
-  margin: 0;
-}
 
-.btnode table {
-  margin: 4px;
-}
 
 .scroll-col {
   height: 100%;
@@ -468,15 +369,7 @@ border: solid;
   height: 94vh;
 }
 
-.reactive-svg {
-  display: block;
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  /* only required for <img /> */
-  height: 100%;
-}
+
 
 .fill-screen {
   height: 100vh;
@@ -494,17 +387,6 @@ border: solid;
 
 .placeholder {
   background: #8e0000;
-}
-
-.control-bar {
-  background: #bebebe;
-}
-
-rect.selection {
-  stroke: gray;
-  stroke-dasharray: 4px;
-  stroke-opacity: 0.5;
-  fill: transparent;
 }
 
 path.data-hover {
@@ -533,14 +415,6 @@ path.data-hover {
   pointer-events: none;
 }
 
-.darkmode {
-  background: #34393c;
-}
-
-.lightmode {
-  background: #ffffff;
-}
-
 .clear-error {
   position: absolute;
   top: 0;
@@ -551,6 +425,8 @@ path.data-hover {
 .gripper {
   fill: #74777f;
 }
+
+
 
 #nodelist_container {
   border-right: solid;
@@ -568,21 +444,7 @@ path.data-hover {
   z-index: 1;
 }
 
-.node-selected {
-  background: #27406d;
-}
 
-.search-results {
-  padding-left: 10px;
-}
-
-.search-result:hover {
-  background-color: #007bff;
-}
-
-.search-result-highlighted {
-  background-color: #007bff;
-}
 
 div.jsoneditor,
 div.jsoneditor-menu {
@@ -598,6 +460,8 @@ textarea.jsoneditor-text {
   min-height: 35px;
 }
 
+
+
 #loading-icon {
   position: absolute;
   left: 50%;
@@ -607,6 +471,8 @@ textarea.jsoneditor-text {
   text-align: center;
   font: 100px sans-serif;
 }
+
+
 
 @keyframes fade {
   0% {
@@ -653,62 +519,19 @@ textarea.jsoneditor-text {
   animation-delay: 1.2s;
 }
 
-.connected {
-  padding: 0.25rem;
-  color: #0caa19;
-}
 
-.disconnected {
-  padding: 0.25rem;
-  color: #ff0000;
-}
 
 .cm_available {
   padding: 0.25rem;
   color: #007bff;
 }
 
-.packages-missing {
-  padding: 0.25rem;
-  color: #ff7300;
-}
 
-.messages-missing {
-  padding: 0.25rem;
-  color: #ffd000;
-}
 
 .filebrowser-bar:hover {
   background-color: #007bff;
   color: #ffffff;
 }
 
-@media screen and (max-width: 1910px) {
-  .hide-button-text {
-    display: none;
-  }
 
-  .show-button-icon {
-    visibility: visible;
-  }
-}
-
-@media screen and (max-width: 1640px) {
-  .hide-button-text-control {
-    display: none;
-  }
-
-  .show-button-icon {
-    visibility: visible;
-  }
-}
-
-.tag:hover {
-  border: 1px solid #007bff !important;
-  cursor: pointer;
-}
-
-.grab:hover {
-  cursor: grab;
-}
 </style>

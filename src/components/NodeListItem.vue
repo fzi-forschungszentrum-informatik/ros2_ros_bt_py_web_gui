@@ -169,3 +169,14 @@ function onClick() {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.tag:hover {
+  border: 1px solid #007bff !important;
+  cursor: pointer;
+}
+
+.grab:hover {
+  cursor: grab;
+}
+</style>
