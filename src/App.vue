@@ -385,35 +385,12 @@ onMounted(() => {
   background: #fedede;
 }
 
+
 .placeholder {
   background: #8e0000;
 }
 
-path.data-hover {
-  stroke: #148050;
-  background: #148050;
-}
 
-.data-link,
-.drawing-indicator {
-  fill: none;
-  stroke: #64676f;
-  stroke-width: 3px;
-}
-
-.data-hover rect {
-  stroke: #148050;
-  background: #148050;
-  fill: #148050;
-}
-
-.compatible rect {
-  stroke: #14d050;
-}
-
-.drawing-indicator {
-  pointer-events: none;
-}
 
 .clear-error {
   position: absolute;
