@@ -76,8 +76,6 @@ function updateMessagesSubscription() {
 
 function onNewTreeMsg(msg: TreeMsg) {
   editor_store.tree = msg
-  console.log("Got new tree msg")
-  console.log(msg)
 }
 
 function updateTreeSubscription() {

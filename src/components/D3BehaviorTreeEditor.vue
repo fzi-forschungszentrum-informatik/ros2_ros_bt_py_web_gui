@@ -53,7 +53,8 @@ import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import type { ZoomBehavior } from 'd3'
 import { onMounted, ref } from 'vue'
-import type { flextree, FlextreeNode } from 'd3-flextree'
+import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
+import { flextree, type FlextreeNode } from 'd3-flextree'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
@@ -67,7 +68,7 @@ const g_data_edges_ref = ref<SVGGElement>()
 const g_data_vertices_ref = ref<SVGGElement>()
 const g_drop_targets_ref = ref<SVGGElement>()
 
-let zoomObject: ZoomBehavior<SVGSVGElement, unknown> | undefined = undefined
+let zoomObject: d3.ZoomBehavior<SVGSVGElement, unknown> | undefined = undefined
 
 let node_drop_target: DropTarget | undefined = undefined
 
@@ -85,6 +86,13 @@ let pan_per_frame: number = 10.0
 
 let io_gripper_size: number = 15
 let io_gripper_spacing: number = 10
+
+let forest_root_name: string = "__forest_root"
+let node_spacing: number = 80
+
+// This is the base transition for tree updates
+// Use <selection>.transition(tree_transition)
+let tree_transition: d3.Transition<any, any, any, any>
 
 function resetView() {
   if (
@@ -265,13 +273,15 @@ function drawEverything() {
   }
   
   if (
-    svg_g_ref.value === undefined ||
-    g_vertices_ref.value === undefined ||
-    g_data_graph_ref.value === undefined
+    g_vertices_ref.value === undefined
   ) {
     // TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
+
+  // Prepare transition config for synchronization
+  tree_transition = d3.transition().duration(100).ease(d3.easeQuad)
   
   const onlyKeyAndType = (nodeData: NodeData) => ({
     key: nodeData.key,
@@ -291,7 +301,7 @@ function drawEverything() {
       options: node.options.map(onlyKeyAndType),
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
-      position: new DOMRect(0, 0, 1, 1)
+      size: {width: 1, height: 1}
     };
   });
 
@@ -300,15 +310,15 @@ function drawEverything() {
     module: "",
     state: "",
     max_children: -1,
-    name: "__forest_root",
+    name: forest_root_name,
     child_names: [],
     inputs: [],
     outputs: [],
     options: [],
-    position: new DOMRect(0, 0, 1, 1)
+    size: {width: 1, height: 1}
   };
 
-  if (trimmed_nodes.findIndex((x) => x.name === "__forest_root") < 0) {
+  if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
     trimmed_nodes.push(forest_root);
   }
 
@@ -356,36 +366,30 @@ function drawEverything() {
     )
   })
 
-  const svg = d3.select<SVGGElement, never>(svg_g_ref.value)
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
-  const g_data = d3.select<SVGGElement, never>(g_data_graph_ref.value)
 
   const node = g_vertex
     .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>(
       ".node"
     )
     .data(
-      root.descendants().filter((node) => node.id !== forest_root.name),
-      (node: d3.HierarchyNode<TrimmedNode>) => {
-        return node.id!
-      }
+      root.descendants().filter((node) => node.data.name !== forest_root_name),
+      (node) => node.id!
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-
-
-  
+    .call(layoutTree, root)
 
   // TODO(nberg): Find a way to get rid of this - it's here because
   // the DOM changes in updateNodes take a while to actually happen,
   // and layoutNodes needs getBoundingClientRect information...
-  window.setTimeout(() => {
+  //window.setTimeout(() => {
     //layoutNodes(svg, root)
 
     //drawDropTargets()
 
     //drawDataGraph(g_data, node2.data(), tree_msg.data_wirings)
-  }, 100)
+  //}, 100)
 
 }
 
@@ -446,7 +450,11 @@ function updateNodeBody(
   >
 ) {
 
+  //selection.style("max-width", "150px")
+
   const body = selection.select<HTMLBodyElement>(".btnode")
+
+  body.style("max-width", "200px")
 
   body.select<HTMLHeadingElement>(".node_name")
       .html((d) => d.data.name)
@@ -454,20 +462,84 @@ function updateNodeBody(
   body.select<HTMLHeadingElement>(".class_name")
       .html((d) => d.data.node_class)
 
+  // The width and height has to be readjusted as if the zoom was at k=1.0
+  const k = d3.zoomTransform(viewport_ref.value!).k
+
   // Set width and height on foreignObject
   body.each(function (d) {
-    d.data.position = this.getBoundingClientRect()
+    const rect = this.getBoundingClientRect()
+    d.data.size.width = rect.width / k
+    d.data.size.height = rect.height / k
   })
 
-  selection.attr("width", (d) => d.data.position.width)
-      .attr("height", (d) => d.data.position.height)
-      //.attr("x", (d) => d.data.position.x)
-      //.attr("y", (d) => d.data.position.y)
+  selection
+    .transition(tree_transition)
+      .attr("width", (d) => d.data.size.width / k)
+      .attr("height", (d) => d.data.size.height / k)
 
   return selection
 }
 
-function layoutTree(root: d3.HierarchyNode<TrimmedNode>) {
+function layoutTree(selection: d3.Selection<
+    SVGForeignObjectElement,
+    d3.HierarchyNode<TrimmedNode>,
+    SVGGElement,
+    never>,
+  root: d3.HierarchyNode<TrimmedNode>
+) {
+
+  const tree_layout = flextree<TrimmedNode>({
+    nodeSize: (node: HierarchyNode<TrimmedNode>) => 
+      [node.data.size.width, node.data.size.height + (node.depth > 0 ? node_spacing : 0)],
+    spacing: node_spacing, // This only applies to horizontal adjacent nodes
+  })(root as HierarchyNode<TrimmedNode>)
+    //FIXME This typecast shouldn't be necessary, but apparrently the types
+    // d3.HierarchyNode and d3-hierarchy.HierarchyNode differ, as
+    // d3.HierarchyNode doesn't expose the find function???
+    // Potentially an issue with the typing library
+
+
+  // Bind the new data to get a selection with all flextree properties
+  selection
+    .data(
+        tree_layout.descendants().filter((node) => node.data.name !== forest_root_name), 
+        (node) => node.id!)
+    .transition(tree_transition)
+      .attr("x", (d: FlextreeNode<TrimmedNode>) => d.x - d.data.size.width / 2.0)
+      .attr("y", (d: FlextreeNode<TrimmedNode>) => d.y)
+      // Setting x and y seems sufficient, compared to an explicit transform
+
+  drawEdges(tree_layout)
+}
+
+function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
+
+  if (
+    g_edges_ref.value === undefined
+  ) {
+    // TODO handle DOM is broken
+    console.warn("DOM is broken")
+    return
+  }
+
+  d3.select(g_edges_ref.value)
+    .selectAll<SVGPathElement, d3.HierarchyLink<TrimmedNode>>(".link")
+    .data(tree_layout.links().filter(
+        (link : d3.HierarchyLink<TrimmedNode>) => link.source.data.name !== forest_root_name
+      ), (link) => link.source.id! + "###" + link.target.id!)
+    .join("path")
+      .attr("class", "link") // Redundant for update elements, preserves readability
+    .transition(tree_transition)
+      .attr("d", d3.linkVertical<SVGPathElement, HierarchyLink<TrimmedNode>, [number, number]>()
+        .source((link: HierarchyLink<TrimmedNode>) => {
+          const source = link.source as FlextreeNode<TrimmedNode>
+          return [source.x, source.y + source.data.size.height]
+        })
+        .target((link: HierarchyLink<TrimmedNode>) => {
+          const target = link.target as FlextreeNode<TrimmedNode>
+          return [target.x, target.y]
+        })
+      )
 
 }
 
@@ -476,7 +548,7 @@ onMounted(() => {
   if (
     viewport_ref.value === undefined ||
     svg_g_ref.value === undefined ||
-    zoomObject === undefined
+    false //TODO Why did this read zoomObject === undefined alt: init in let def  
   ) {
     notify({
       title: 'Element reference undefined!',
@@ -554,13 +626,8 @@ onMounted(() => {
     }
   })
 
-  viewport
-    .call(
-      zoomObject.scaleExtent([0.3, 1.0]).on('zoom', () => {
-        container.attr('transform', d3.event.transform)
-      })
-    )
-    .call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
+  // Call resetView to center tree container
+  resetView()
 
   viewport.on('mousemove.pan_if_drag', canvasMouseMovePanHandler)
 
@@ -578,11 +645,11 @@ onMounted(() => {
   // selection rectangle
   viewport
     .append('rect')
-    .attr('class', 'selection')
-    .attr('width', 0)
-    .attr('height', 0)
-    .attr('x', 0)
-    .attr('y', 0)
+      .attr('class', 'selection')
+      .attr('width', 0)
+      .attr('height', 0)
+      .attr('x', 0)
+      .attr('y', 0)
 
   // start the selection
   viewport.on('mousedown', () => {
