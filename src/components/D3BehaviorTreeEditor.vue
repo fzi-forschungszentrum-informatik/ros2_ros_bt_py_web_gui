@@ -47,6 +47,7 @@ import type {
   TrimmedNode,
   TrimmedNodeData
 } from '@/types/types'
+import { Position } from '@/types/types'
 import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
 import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
@@ -89,6 +90,7 @@ let io_gripper_spacing: number = 10
 
 let forest_root_name: string = "__forest_root"
 let node_spacing: number = 80
+let drop_target_root_size: number = 150
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
@@ -265,7 +267,6 @@ function dragPanTimerHandler() {
 }
 
 function drawEverything() {
-  
   if (editor_store.tree === undefined) {
     // TODO draw drop targets if tree is null
     console.warn("Tree is undefined")
@@ -315,7 +316,7 @@ function drawEverything() {
     inputs: [],
     outputs: [],
     options: [],
-    size: {width: 1, height: 1}
+    size: { width: 0, height: 0 }
   };
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -406,9 +407,11 @@ function drawNewNodes(
 
   const fo = selection
     .append("foreignObject")
-      .attr("class", function (d) {
-        return "node" + (d.children ? " node--internal" : " node--leaf")
-      })
+      .classed("node", true)
+      .classed("node--internal", 
+        (d) => d.children !== undefined && d.children.length > 0)
+      .classed("node--leaf",
+        (d) => d.children === undefined || d.children.length == 0)
     /*.on("click", this.nodeClickHandler.bind(this))
     .on("mousedown", function (d) {
       that.nodeMousedownHandler(d, this);
@@ -418,7 +421,7 @@ function drawNewNodes(
 
   const body = fo
     .append("xhtml:body")
-      .attr("class", "btnode p-2")
+      .classed("btnode p-2", true)
       .style("min-height", (d) => {
       // We need to ensure a minimum height, in case the node body
       // would otherwise be shorter than the number of grippers
@@ -433,8 +436,8 @@ function drawNewNodes(
       })
 
   // These elements get filled in updateNodeBody
-  body.append("h4").attr("class", "node_name")
-  body.append("h5").attr("class", "class_name")
+  body.append("h4").classed("node_name", true)
+  body.append("h5").classed("class_name", true)
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
@@ -510,6 +513,7 @@ function layoutTree(selection: d3.Selection<
       // Setting x and y seems sufficient, compared to an explicit transform
 
   drawEdges(tree_layout)
+  drawDropTargets(tree_layout)
 }
 
 function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
@@ -540,7 +544,134 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
           return [target.x, target.y]
         })
       )
+}
 
+function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
+
+  if (g_drop_targets_ref.value === undefined) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  console.log(tree_layout)
+
+  const drop_targets: DropTarget[] = []
+
+  // Construct the list of drop targets that should exist
+  tree_layout.each((node) => {
+    // Left target for first child of node
+    if (node.children !== undefined) {
+      drop_targets.push({node: node.children[0], position: Position.LEFT})
+    }
+    // Since other drop targets are constructed on node not node.children, 
+    // we can return for the invisible __forest_root
+    if (node.data.name === forest_root_name) {
+      return
+    }
+    drop_targets.push({node: node, position: Position.CENTER})
+    drop_targets.push({node: node, position: Position.RIGHT})
+    drop_targets.push({node: node, position: Position.TOP}) // Does this make sense?
+    if (node.data.max_children === -1 || node.data.max_children > node.data.child_names.length) {
+      drop_targets.push({node: node, position: Position.BOTTOM})
+    }
+
+  })
+
+  // If there are no drop targets to draw, draw one at root
+  // Adjust the size of the drop target, don't do this on init, it ruins the tree layout
+  if (drop_targets.length === 0) {
+    tree_layout.data.size.width = drop_target_root_size
+    tree_layout.data.size.height = drop_target_root_size
+    drop_targets.push({node: tree_layout, position: Position.CENTER})
+  }
+
+  // Join those with the existing drop targets and draw them
+  d3.select(g_drop_targets_ref.value)
+    .selectAll<SVGRectElement, DropTarget>(".drop_target")
+    .data(drop_targets, (d) => d.node.data.name + "###" + d.position)
+    .join("rect")
+      .classed("drop_target", true)
+      .attr("width", (d) => {
+        // Switch cases without breaks work like a convenient OR
+        switch (d.position) {
+          case Position.LEFT:
+          case Position.RIGHT:
+            return node_spacing
+          case Position.TOP:
+          case Position.BOTTOM:
+          case Position.CENTER:
+            return d.node.data.size.width
+          default:
+            return 0
+        }
+      })
+      .attr("height",(d) => {
+        switch (d.position) {
+          case Position.LEFT:
+          case Position.RIGHT:
+          case Position.CENTER:
+            return d.node.data.size.height
+          case Position.TOP:
+          case Position.BOTTOM:
+            return 0.45 * node_spacing
+          default:
+            return 0
+        }
+      })
+      .attr("x", (d) => {
+        switch (d.position) {
+          case Position.LEFT:
+            return d.node.x - node_spacing - 
+              0.5 * d.node.data.size.width
+          case Position.RIGHT:
+            return d.node.x + 
+              0.5 * d.node.data.size.width
+          case Position.TOP:
+          case Position.BOTTOM:
+          case Position.CENTER:
+            return d.node.x - 
+              0.5 * d.node.data.size.width
+          default:
+            return 0
+        }
+      })
+      .attr("y", (d) => {
+        switch (d.position) {
+          case Position.LEFT:
+          case Position.RIGHT:
+          case Position.CENTER:
+            return d.node.y
+          case Position.TOP:
+            return d.node.y - 0.5 * node_spacing
+          case Position.BOTTOM:
+            return d.node.y + 
+              d.node.data.size.height
+          default:
+            return 0
+        }
+      })
+      .attr("opacity", 0.2)
+      .on("mouseover", function (d) {
+        dropTargetDefaultMouseoverHandler(this, d)
+      })
+      .on("mouseout", function () {
+        dropTargetDefaultMouseoutHandler(this)
+      })
+}
+
+function dropTargetDefaultMouseoverHandler(
+  domElement: SVGRectElement,
+  datum: DropTarget
+) {
+  node_drop_target = datum;
+  d3.select(domElement).attr("opacity", 0.8);
+}
+
+function dropTargetDefaultMouseoutHandler(
+  domElement: SVGRectElement
+) {
+  node_drop_target = undefined;
+  d3.select(domElement).attr("opacity", 0.2);
 }
 
 
@@ -748,7 +879,8 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>
-      <g class="drop_targets" visibility="hidden" ref="g_drop_targets_ref"/>
+      <!--drop_targets has visibility="hidden", removed for testing-->
+      <g class="drop_targets" ref="g_drop_targets_ref"/>
     </g>
     <text
       x="10"

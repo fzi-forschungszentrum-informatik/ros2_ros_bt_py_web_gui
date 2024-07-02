@@ -27,6 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
+import type { FlextreeNode } from "d3-flextree"
+
 export type NodeData = {
   key: string
   serialized_value: string
@@ -182,9 +185,16 @@ export type DataEdgeTerminal = DataEdgePoint & {
 export type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]
 
 export type DropTarget = {
-  replace: boolean
-  data: TrimmedNode | undefined
-  position: number
+  node: FlextreeNode<TrimmedNode>
+  position: Position
+}
+
+export const enum Position {
+  TOP = "top",
+  BOTTOM = "bottom",
+  LEFT = "left",
+  RIGHT = "right",
+  CENTER = "center",
 }
 
 export type TrimmedNodeData = {
