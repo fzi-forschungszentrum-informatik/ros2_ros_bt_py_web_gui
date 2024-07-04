@@ -84,7 +84,6 @@ function onClick() {
     :class="highlighted_classes"
     tabindex="0"
     @click="onClick"
-    @mouseup="() => editor_store.stopDragging()"
     @mousedown.stop.prevent="() => editor_store.startDragging(node)"
     @keydown="
       (event) => {

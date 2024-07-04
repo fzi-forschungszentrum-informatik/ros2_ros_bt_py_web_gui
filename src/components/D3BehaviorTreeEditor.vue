@@ -78,7 +78,6 @@ let mouse_moved: boolean = false
 let start_y: number = 0
 let start_x: number = 0
 
-let dragging: boolean = false
 let pan_interval_id: number | undefined = undefined
 let pan_rate: number = 30
 let pan_direction: number[] = [0.0, 0.0]
@@ -199,7 +198,7 @@ function canvasMouseMovePanHandler() {
     return
   }
 
-  if (!dragging) {
+  if (!editor_store.dragging_node) {
     if (pan_interval_id !== undefined) {
       window.clearInterval(pan_interval_id)
       pan_direction = []
@@ -208,9 +207,8 @@ function canvasMouseMovePanHandler() {
     return
   }
 
-  const viewport = d3.select(viewport_ref.value)
-  const width = viewport.node()!.getBoundingClientRect().width
-  const height = viewport.node()!.getBoundingClientRect().height
+  const width = viewport_ref.value.getBoundingClientRect().width
+  const height = viewport_ref.value.getBoundingClientRect().height
 
   const mouseCoords = d3.mouse(viewport_ref.value)
 
@@ -257,7 +255,7 @@ function canvasMouseMovePanHandler() {
 }
 
 function dragPanTimerHandler() {
-  if (!dragging && pan_interval_id) {
+  if (!editor_store.dragging_node && pan_interval_id) {
     window.clearInterval(pan_interval_id)
     pan_interval_id = undefined
     return
@@ -553,8 +551,6 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
     return
   }
 
-  console.log(tree_layout)
-
   const drop_targets: DropTarget[] = []
 
   // Construct the list of drop targets that should exist
@@ -712,7 +708,7 @@ onMounted(() => {
     if (editor_store.dragging_node) {
       msg = buildNodeMessage(editor_store.dragging_node)
     }
-
+    
     if (msg !== null) {
       let parent_name = ''
       let position = -1

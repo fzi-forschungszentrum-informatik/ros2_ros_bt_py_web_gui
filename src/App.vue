@@ -162,7 +162,8 @@ onMounted(() => {
   </header>
 
   <main>
-    <div :class="editor_store.dragging_node ? 'cursor-grabbing' : ''">
+    <div :class="editor_store.dragging_node ? 'cursor-grabbing' : ''"
+      @mouseup="() => editor_store.stopDragging()">
       <div class="container-fluid">
         <div class="row row-height">
           <div class="col scroll-col" id="nodelist_container" v-if="nodelist_visible">
