@@ -53,7 +53,7 @@ import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import type { ZoomBehavior } from 'd3'
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watchEffect } from 'vue'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 
@@ -264,6 +264,8 @@ function dragPanTimerHandler() {
   d3.select(viewport_ref.value!).call(zoomObject!.translateBy, pan_direction[0], pan_direction[1])
 }
 
+watchEffect(drawEverything)
+
 function drawEverything() {
   if (editor_store.tree === undefined) {
     // TODO draw drop targets if tree is null
@@ -377,7 +379,8 @@ function drawEverything() {
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-    .call(layoutTree, root)
+    .call(layoutTree, root) // This also calls drawEdges and drawDropTargets
+    .call(colorNodes)
 
   // TODO(nberg): Find a way to get rid of this - it's here because
   // the DOM changes in updateNodes take a while to actually happen,
@@ -418,7 +421,7 @@ function drawNewNodes(
     // TODO add mouse event handlers
 
   const body = fo
-    .append("xhtml:body")
+    .append<HTMLBodyElement>("xhtml:body")
       .classed("btnode p-2", true)
       .style("min-height", (d) => {
       // We need to ensure a minimum height, in case the node body
@@ -670,6 +673,45 @@ function dropTargetDefaultMouseoutHandler(
   d3.select(domElement).attr("opacity", 0.2);
 }
 
+function colorNodes(
+  selection: d3.Selection<
+    SVGForeignObjectElement,
+    d3.HierarchyNode<TrimmedNode>,
+    SVGGElement,
+    never
+  >
+) {
+  selection
+    .select<HTMLBodyElement>(".btnode")
+    .transition(tree_transition)
+      .style("border-color", (d) => {
+        switch (d.data.state) {
+          case "RUNNING": {
+            return "#ffc107";
+          }
+          case "IDLE": {
+            return "#007bff";
+          }
+          case "SUCCEEDED": {
+            return "#28a745";
+          }
+          case "FAILED": {
+            return "#dc3545";
+          }
+          case "SHUTDOWN": {
+            return "#7c1e27";
+          }
+          case "UNINITIALIZED":
+          default: {
+            return "#4E5666";
+          }
+        }
+      })
+}
+
+
+
+
 
 onMounted(() => {
   if (
@@ -875,8 +917,7 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>
-      <!--drop_targets has visibility="hidden", removed for testing-->
-      <g class="drop_targets" ref="g_drop_targets_ref"/>
+      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="editor_store.dragging_node ? 'visible' : 'hidden'"/>
     </g>
     <text
       x="10"
@@ -889,7 +930,7 @@ onMounted(() => {
     >
       Reset View
     </text>
-    <text
+    <!--<text
       x="200"
       y="20"
       fill="#FFFFFF"
@@ -899,7 +940,7 @@ onMounted(() => {
       @click="drawEverything"
     >
       Redraw Tree
-    </text>
+    </text>-->
   </svg>
 </template>
 
