@@ -162,7 +162,7 @@ onMounted(() => {
   </header>
 
   <main>
-    <div :class="editor_store.dragging_node ? 'cursor-grabbing' : ''"
+    <div :class="editor_store.is_dragging ? 'cursor-grabbing' : ''"
       @mouseup="() => editor_store.stopDragging()">
       <div class="container-fluid">
         <div class="row row-height">

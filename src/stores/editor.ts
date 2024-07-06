@@ -60,7 +60,13 @@ export const useEditorStore = defineStore('editor', () => {
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
+
+  //TODO Rename into dragging_new_node ???
+  /* The dragging_node msg is only set if we drag a new node from the node list, 
+    because existing nodes that are moved around don't have a NodeMsg attached.
+    The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
   const dragging_node = ref<DocumentedNode | undefined>()
+  const is_dragging = ref<boolean>(false)
 
   const node_has_changed = ref<boolean>(false)
 
@@ -186,10 +192,12 @@ export const useEditorStore = defineStore('editor', () => {
 
   function startDragging(new_dragging_node: DocumentedNode) {
     dragging_node.value = new_dragging_node
+    is_dragging.value = true
   }
 
   function stopDragging() {
     dragging_node.value = undefined
+    is_dragging.value = false
   }
 
   function enableShowDataGraph(enable: boolean) {
@@ -257,6 +265,7 @@ export const useEditorStore = defineStore('editor', () => {
     debug,
     running_commands,
     dragging_node,
+    is_dragging,
     last_seletion_source,
     selected_node,
     selected_node_names,

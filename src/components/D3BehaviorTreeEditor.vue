@@ -71,8 +71,6 @@ const g_drop_targets_ref = ref<SVGGElement>()
 
 let zoomObject: d3.ZoomBehavior<SVGSVGElement, unknown> | undefined = undefined
 
-let node_drop_target: DropTarget | undefined = undefined
-
 let selection: boolean = false
 let mouse_moved: boolean = false
 let start_y: number = 0
@@ -198,7 +196,7 @@ function canvasMouseMovePanHandler() {
     return
   }
 
-  if (!editor_store.dragging_node) {
+  if (!editor_store.is_dragging) {
     if (pan_interval_id !== undefined) {
       window.clearInterval(pan_interval_id)
       pan_direction = []
@@ -255,7 +253,7 @@ function canvasMouseMovePanHandler() {
 }
 
 function dragPanTimerHandler() {
-  if (!editor_store.dragging_node && pan_interval_id) {
+  if (!editor_store.is_dragging && pan_interval_id) {
     window.clearInterval(pan_interval_id)
     pan_interval_id = undefined
     return
@@ -265,7 +263,6 @@ function dragPanTimerHandler() {
 }
 
 watchEffect(drawEverything)
-
 function drawEverything() {
   if (editor_store.tree === undefined) {
     // TODO draw drop targets if tree is null
@@ -577,7 +574,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   })
 
   // If there are no drop targets to draw, draw one at root
-  // Adjust the size of the drop target, don't do this on init, it ruins the tree layout
+  // Adjust the size of the drop target here. Don't do this on init, it ruins the tree layout
   if (drop_targets.length === 0) {
     tree_layout.data.size.width = drop_target_root_size
     tree_layout.data.size.height = drop_target_root_size
@@ -650,65 +647,134 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         }
       })
       .attr("opacity", 0.2)
-      .on("mouseover", function (d) {
-        dropTargetDefaultMouseoverHandler(this, d)
+      .on("mouseover", function () {
+        d3.select(this).attr("opacity", 0.8);
       })
       .on("mouseout", function () {
-        dropTargetDefaultMouseoutHandler(this)
+        d3.select(this).attr("opacity", 0.2);
       })
-}
-
-function dropTargetDefaultMouseoverHandler(
-  domElement: SVGRectElement,
-  datum: DropTarget
-) {
-  node_drop_target = datum;
-  d3.select(domElement).attr("opacity", 0.8);
-}
-
-function dropTargetDefaultMouseoutHandler(
-  domElement: SVGRectElement
-) {
-  node_drop_target = undefined;
-  d3.select(domElement).attr("opacity", 0.2);
-}
-
-function colorNodes(
-  selection: d3.Selection<
-    SVGForeignObjectElement,
-    d3.HierarchyNode<TrimmedNode>,
-    SVGGElement,
-    never
-  >
-) {
-  selection
-    .select<HTMLBodyElement>(".btnode")
-    .transition(tree_transition)
-      .style("border-color", (d) => {
-        switch (d.data.state) {
-          case "RUNNING": {
-            return "#ffc107";
-          }
-          case "IDLE": {
-            return "#007bff";
-          }
-          case "SUCCEEDED": {
-            return "#28a745";
-          }
-          case "FAILED": {
-            return "#dc3545";
-          }
-          case "SHUTDOWN": {
-            return "#7c1e27";
-          }
-          case "UNINITIALIZED":
-          default: {
-            return "#4E5666";
-          }
+      .on("mouseup", (d) => {
+        if (editor_store.dragging_node) {
+          addNodeRelease(d)
+        } else {
+          //TODO add node moving handler
         }
       })
+      //TODO add mousedown handler, should it populate an editor_store field or local?
 }
 
+function addNodeRelease(drop_target: DropTarget) {
+  let msg: NodeMsg | null = null
+
+  if (editor_store.dragging_node) {
+    msg = buildNodeMessage(editor_store.dragging_node)
+  }
+  
+  if (msg !== null) {
+    let parent_name = ''
+    let index = -1
+    
+    // If this is not the root_target, set the parent and position
+    if (drop_target.node.parent) {
+      // Set parent
+      switch (drop_target.position) {
+        case Position.LEFT:
+        case Position.RIGHT:
+        case Position.CENTER:
+          if (drop_target.node.parent.data.name !== forest_root_name) {
+            parent_name = drop_target.node.parent.data.name
+          }
+          break;
+        case Position.BOTTOM:
+          parent_name = drop_target.node.data.name
+          break;
+        case Position.TOP:
+          //TODO figure out placement for top target
+        default:
+          break;
+      }
+
+      // Set index
+      if (drop_target.position === Position.BOTTOM) {
+        index = 0 // Add below as first
+      } else {
+        index = drop_target.node.parent.children!.indexOf(drop_target.node)
+      }
+      if (drop_target.position === Position.RIGHT) {
+        index++
+      }
+    }
+
+    ros_store.add_node_at_index_service.callService(
+      {
+        parent_name: parent_name,
+        node: msg,
+        allow_rename: true,
+        new_child_index: index
+      } as AddNodeAtIndexRequest,
+      (response: AddNodeAtIndexResponse) => {
+        if (response.success) {
+          notify({
+            title: 'Added node ' + response.actual_node_name,
+            type: 'success'
+          })
+        } else {
+          if (msg !== null) {
+            notify({
+              title: 'Failed to add node ' + msg.name,
+              text: response.error_message,
+              type: 'error'
+            })
+          } else {
+            notify({
+              title: 'Failed to add node',
+              text: response.error_message,
+              type: 'error'
+            })
+          }
+        }
+      }
+    )
+  }
+}
+
+
+
+function colorNodes(
+selection: d3.Selection<
+  SVGForeignObjectElement,
+  d3.HierarchyNode<TrimmedNode>,
+  SVGGElement,
+  never
+>
+) {
+selection
+  .select<HTMLBodyElement>(".btnode")
+  .transition(tree_transition)
+    .style("border-color", (d) => {
+      switch (d.data.state) {
+        case "RUNNING": {
+          return "#ffc107";
+        }
+        case "IDLE": {
+          return "#007bff";
+        }
+        case "SUCCEEDED": {
+          return "#28a745";
+        }
+        case "FAILED": {
+          return "#dc3545";
+        }
+        case "SHUTDOWN": {
+          return "#7c1e27";
+        }
+        case "UNINITIALIZED":
+        default: {
+          return "#4E5666";
+        }
+      }
+    })
+}
 
 
 
@@ -743,57 +809,6 @@ onMounted(() => {
     return !d3.event.shiftKey
   })
 
-  const svg_viewport = d3.select(svg_g_ref.value)
-  svg_viewport.on('mouseup', () => {
-    let msg: NodeMsg | null = null
-
-    if (editor_store.dragging_node) {
-      msg = buildNodeMessage(editor_store.dragging_node)
-    }
-    
-    if (msg !== null) {
-      let parent_name = ''
-      let position = -1
-      if (node_drop_target && node_drop_target.data) {
-        if (node_drop_target.data.name === '__forest_root') {
-          node_drop_target.data.name = ''
-        } else {
-          position = node_drop_target.position
-        }
-        parent_name = node_drop_target.data.name
-      }
-      ros_store.add_node_at_index_service.callService(
-        {
-          parent_name: parent_name,
-          node: msg,
-          allow_rename: true,
-          new_child_index: position
-        } as AddNodeAtIndexRequest,
-        (response: AddNodeAtIndexResponse) => {
-          if (response.success) {
-            notify({
-              title: 'Added node ' + response.actual_node_name,
-              type: 'success'
-            })
-          } else {
-            if (msg !== null) {
-              notify({
-                title: 'Failed to add node ' + msg.name,
-                text: response.error_message,
-                type: 'error'
-              })
-            } else {
-              notify({
-                title: 'Failed to add node',
-                text: response.error_message,
-                type: 'error'
-              })
-            }
-          }
-        }
-      )
-    }
-  })
 
   // Call resetView to center tree container
   resetView()
@@ -917,7 +932,7 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>
-      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="editor_store.dragging_node ? 'visible' : 'hidden'"/>
+      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="editor_store.is_dragging ? 'visible' : 'hidden'"/>
     </g>
     <text
       x="10"
