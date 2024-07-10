@@ -254,7 +254,7 @@ onMounted(() => {
                   >
                     Show User Interface
                   </button>
-                  <div class="d-flex flex-row align-items-center">
+                  <!--<div class="d-flex flex-row align-items-center">
                     <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
                     <input
                       id="treeNameForm"
@@ -263,7 +263,7 @@ onMounted(() => {
                       disabled="true"
                       :value="tree_name"
                     />
-                  </div>
+                  </div>-->
                   <div class="d-flex flex-row align-items-center">
                     <label class="form-label m-1 ml-2" for="treeStateForm"> State: </label>
                     <input
@@ -274,8 +274,21 @@ onMounted(() => {
                       :value="tree_state"
                     />
                   </div>
+                  <button
+                    class="btn btn-primary m-1"
+                    @click="
+                      () => {
+                        editor_store.is_layer_mode = !editor_store.is_layer_mode
+                      }
+                    "
+                  >
+                      <!--TODO add fontawesome icon-->
+                    <span v-if="editor_store.is_layer_mode">=</span>
+                    <span v-else>^</span>
+                  </button>
+                  <!--TODO these are hidden for space limitations, find a better way to place elements
                   <RightAlignSpacer></RightAlignSpacer>
-                  <SelectEditorSkin></SelectEditorSkin>
+                  <SelectEditorSkin></SelectEditorSkin>-->
                 </div>
                 <div class="row edit_canvas h-100 pb-2">
                   <div class="col p-0">

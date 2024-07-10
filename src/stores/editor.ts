@@ -94,6 +94,8 @@ export const useEditorStore = defineStore('editor', () => {
 
   const copy_node_mode = ref<boolean>(false)
 
+  const is_layer_mode = ref<boolean>(false)
+
   function enableSubtreePublishing(enable: boolean) {
     publish_subtrees.value = enable
   }
@@ -270,6 +272,7 @@ export const useEditorStore = defineStore('editor', () => {
     selected_node,
     selected_node_names,
     node_has_changed,
+    is_layer_mode,
     runNewCommand,
     removeRunningCommand,
     enableSubtreePublishing,

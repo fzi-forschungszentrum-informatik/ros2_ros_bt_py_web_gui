@@ -313,7 +313,7 @@ function drawEverything() {
     inputs: [],
     outputs: [],
     options: [],
-    size: { width: 0, height: 0 }
+    size: { width: 0, height: 0}
   };
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -489,16 +489,41 @@ function layoutTree(selection: d3.Selection<
   root: d3.HierarchyNode<TrimmedNode>
 ) {
 
+  // If the tree is in layer_mode, we have to get the max height for each layer
+  const max_height_per_layer = Array<number>(root.height + 1).fill(0.0)
+  selection.each((node: d3.HierarchyNode<TrimmedNode>) => {
+    max_height_per_layer[node.depth] = Math.max(
+      node.data.size.height,
+      max_height_per_layer[node.depth]
+    )
+  })
+
   const tree_layout = flextree<TrimmedNode>({
-    nodeSize: (node: HierarchyNode<TrimmedNode>) => 
-      [node.data.size.width, node.data.size.height + (node.depth > 0 ? node_spacing : 0)],
-    spacing: node_spacing, // This only applies to horizontal adjacent nodes
+    nodeSize: (node: HierarchyNode<TrimmedNode>) => {
+      let height: number
+      if (editor_store.is_layer_mode) {
+        height = max_height_per_layer[node.depth]
+      } else {
+        height = node.data.size.height
+      }
+      height += node.depth > 0 ? node_spacing : 0
+      return [node.data.size.width, height]
+    },
+    spacing: (node: HierarchyNode<TrimmedNode>, oNode: HierarchyNode<TrimmedNode>) => {
+      if (editor_store.is_layer_mode) {
+        return node_spacing
+      }
+      if (node.parent !== oNode.parent) {
+        return 2 * node_spacing
+      } else {
+        return node_spacing
+      }
+    }, // This only applies to horizontal adjacent nodes
   })(root as HierarchyNode<TrimmedNode>)
     //FIXME This typecast shouldn't be necessary, but apparrently the types
     // d3.HierarchyNode and d3-hierarchy.HierarchyNode differ, as
     // d3.HierarchyNode doesn't expose the find function???
     // Potentially an issue with the typing library
-
 
   // Bind the new data to get a selection with all flextree properties
   selection
@@ -555,15 +580,14 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
 
   // Construct the list of drop targets that should exist
   tree_layout.each((node) => {
-    // Left target for first child of node
-    if (node.children !== undefined) {
-      drop_targets.push({node: node.children[0], position: Position.LEFT})
-    }
-    // Since other drop targets are constructed on node not node.children, 
-    // we can return for the invisible __forest_root
+
     if (node.data.name === forest_root_name) {
       return
     }
+
+    // Draw all left and right targets, even though they sometimes overlap
+    // because it looks odd if they're missing once nodes are spaced out further
+    drop_targets.push({node: node, position: Position.LEFT})
     drop_targets.push({node: node, position: Position.CENTER})
     drop_targets.push({node: node, position: Position.RIGHT})
     drop_targets.push({node: node, position: Position.TOP}) // Does this make sense?
@@ -737,8 +761,6 @@ function addNodeRelease(drop_target: DropTarget) {
     )
   }
 }
-
-
 
 function colorNodes(
 selection: d3.Selection<
