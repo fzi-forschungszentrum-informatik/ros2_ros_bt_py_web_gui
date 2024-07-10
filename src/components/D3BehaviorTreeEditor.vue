@@ -53,9 +53,12 @@ import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import type { ZoomBehavior } from 'd3'
-import { onMounted, ref, watchEffect } from 'vue'
+import { onMounted, ref, watch, watchEffect } from 'vue'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
+import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
+import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
@@ -678,89 +681,221 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         d3.select(this).attr("opacity", 0.2);
       })
       .on("mouseup", (d) => {
-        if (editor_store.dragging_node) {
-          addNodeRelease(d)
-        } else {
-          //TODO add node moving handler
+        if (editor_store.dragging_new_node) {
+          addNewNode(d)
         }
-      })
-      //TODO add mousedown handler, should it populate an editor_store field or local?
+
+      }
+      )
 }
 
-function addNodeRelease(drop_target: DropTarget) {
-  let msg: NodeMsg | null = null
+function moveExistingNode(drop_target: DropTarget) {
 
-  if (editor_store.dragging_node) {
-    msg = buildNodeMessage(editor_store.dragging_node)
+}
+
+function addNewNode(drop_target: DropTarget) {
+  let msg: NodeMsg
+
+  if (editor_store.dragging_new_node) {
+    msg = buildNodeMessage(editor_store.dragging_new_node)
+  } else {
+    console.warn("Tried to add new node by dragging but none selected")
+    return
   }
-  
-  if (msg !== null) {
-    let parent_name = ''
-    let index = -1
-    
-    // If this is not the root_target, set the parent and position
-    if (drop_target.node.parent) {
-      // Set parent
-      switch (drop_target.position) {
-        case Position.LEFT:
-        case Position.RIGHT:
-        case Position.CENTER:
-          if (drop_target.node.parent.data.name !== forest_root_name) {
-            parent_name = drop_target.node.parent.data.name
-          }
-          break;
-        case Position.BOTTOM:
-          parent_name = drop_target.node.data.name
-          break;
-        case Position.TOP:
-          //TODO figure out placement for top target
-        default:
-          break;
-      }
 
-      // Set index
-      if (drop_target.position === Position.BOTTOM) {
-        index = 0 // Add below as first
-      } else {
-        index = drop_target.node.parent.children!.indexOf(drop_target.node)
-      }
-      if (drop_target.position === Position.RIGHT) {
-        index++
-      }
+  let parent_name = ''
+  let index = -1
+  
+  // If this is not the root target, set the parent and position
+  if (drop_target.node.parent) {
+
+    // Set parent and index
+    if (drop_target.position === Position.BOTTOM) {
+      parent_name = drop_target.node.data.name
+      index = 0
+    } else if (drop_target.node.parent.data.name !== forest_root_name) {
+      parent_name = drop_target.node.parent.data.name
+      index = drop_target.node.parent.children!.indexOf(drop_target.node)
     }
 
-    ros_store.add_node_at_index_service.callService(
-      {
-        parent_name: parent_name,
-        node: msg,
-        allow_rename: true,
-        new_child_index: index
-      } as AddNodeAtIndexRequest,
-      (response: AddNodeAtIndexResponse) => {
+    if (drop_target.position === Position.RIGHT) {
+      index++
+    }
+  }
+
+  ros_store.add_node_at_index_service.callService({
+    parent_name: parent_name,
+    node: msg,
+    allow_rename: true,
+    new_child_index: index
+  } as AddNodeAtIndexRequest,
+  (response: AddNodeAtIndexResponse) => {
+    if (response.success) {
+      notify({
+        title: "Added node " + response.actual_node_name,
+        type: 'success'
+      })
+      moveNewNode(response.actual_node_name, drop_target)
+    } else {
+      notify({
+        title: "Failed to add node " + msg.name,
+        text: response.error_message,
+        type: 'warn'
+      })
+    }
+  },
+  (error: string) => {
+    notify( {
+      title: "Failed to call addNodeAtIndex service",
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
+function moveNewNode(new_node_name: string, drop_target: DropTarget) {
+  if (new_node_name === '') {
+    // This means something went wrong with moving the node, thus we can't move it around
+    console.warn("Didn't get a node name back")
+    return
+  }
+
+  // NOTE Checking if the node allows children would require pulling the 
+  // node information out of the store, since this callback is delayed.
+  // For now we trust the hiding of inappropriate drop targets.
+  
+  if (drop_target.position === Position.TOP) {
+    ros_store.move_node_service.callService({
+      node_name: drop_target.node.data.name,
+      new_parent_name: new_node_name,
+      new_child_index: 0
+    } as MoveNodeRequest,
+    (response: MoveNodeResponse) => {
+      if (response.success) {
+        notify({
+          title: "Moved node " + drop_target.node.data.name,
+          type: 'success'
+        })
+      } else {
+        notify({
+          title: "Failed to move node " + drop_target.node.data.name,
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
+      notify({
+        title: "Failed to call moveNode service",
+        text: error,
+        type: 'error'
+      })
+    })
+  }
+
+  if (drop_target.position === Position.CENTER) {
+    //TODO Move drop target's children as children of new node
+    // Also delete drop target node
+    const child_name_list = drop_target.node.data.child_names
+    for (let index = 0; index < child_name_list.length; index++) {
+      ros_store.move_node_service.callService({
+        node_name: child_name_list[index],
+        new_parent_name: new_node_name,
+        new_child_index: -1
+      } as MoveNodeRequest,
+      (response: MoveNodeResponse) => {
         if (response.success) {
           notify({
-            title: 'Added node ' + response.actual_node_name,
+            title: "Moved node " + child_name_list[index],
             type: 'success'
           })
         } else {
-          if (msg !== null) {
-            notify({
-              title: 'Failed to add node ' + msg.name,
-              text: response.error_message,
-              type: 'error'
-            })
-          } else {
-            notify({
-              title: 'Failed to add node',
-              text: response.error_message,
-              type: 'error'
-            })
-          }
+          notify({
+            title: "Failed to move node " + child_name_list[index],
+            text: response.error_message,
+            type: 'warn'
+          })
         }
+      },
+      (error: string) => {
+        notify({
+          title: "Failed to call moveNode service",
+          text: error,
+          type: 'error'
+        })
+      })
+    }        
+    ros_store.remove_node_service.callService({
+      node_name: drop_target.node.data.name,
+      remove_children: false,
+    } as RemoveNodeRequest,
+    (response: RemoveNodeResponse) => {
+      if (response.success) {
+        notify({
+          title: "Removed node",
+          type: 'success'
+        })
+      } else {
+        notify({
+          title: "Failed to remove node",
+          text: response.error_message,
+          type: 'warn'
+        })
       }
-    )
+    },
+    (error: string) => {
+      notify({
+        title: "Failed to call removeNode service",
+        text: error,
+        type: 'error'
+      })
+    })
   }
 }
+
+watchEffect(toggleNewNodeTargets)
+function toggleNewNodeTargets() {
+  if (g_drop_targets_ref.value === undefined) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  //Reset visibility for all targets
+  const targets = d3.select(g_drop_targets_ref.value)
+    .selectAll<SVGRectElement, DropTarget>(".drop_target")
+      .attr("visibility", null)
+
+  if (editor_store.dragging_new_node === undefined) {
+    return
+  }
+
+  // If the filter returns true (keeps the node) is gets hidden
+  targets.filter((drop_target: DropTarget) => {
+    console.log(drop_target)
+    switch (drop_target.position) {
+      case Position.CENTER:
+        return editor_store.dragging_new_node!.max_children !== -1 &&
+          drop_target.node.data.child_names.length >
+          editor_store.dragging_new_node!.max_children
+      case Position.TOP:
+        return editor_store.dragging_new_node!.max_children === 0
+      case Position.BOTTOM:
+        return drop_target.node.data.max_children !== -1 &&
+          drop_target.node.data.child_names.length >= 
+          drop_target.node.data.max_children
+      case Position.LEFT:
+      case Position.RIGHT:
+        return drop_target.node.parent!.data.max_children !== -1 &&
+          drop_target.node.parent!.data.child_names.length >= 
+          drop_target.node.parent!.data.max_children
+      default:
+        return true
+    }
+  })
+      .call(console.log)
+      .attr("visibility", "hidden")
+}
+
 
 function colorNodes(
 selection: d3.Selection<
@@ -983,4 +1118,5 @@ onMounted(() => {
 
 <style lang="scss">
   @import "src/assets/editor.scss";
-</style>
+</style>import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+

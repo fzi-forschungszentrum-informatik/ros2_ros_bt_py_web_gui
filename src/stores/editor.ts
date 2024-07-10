@@ -27,12 +27,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg } from '@/types/types'
+import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
+import type { FlextreeNode } from 'd3-flextree'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -61,12 +62,15 @@ export const useEditorStore = defineStore('editor', () => {
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
 
-  //TODO Rename into dragging_new_node ???
-  /* The dragging_node msg is only set if we drag a new node from the node list, 
-    because existing nodes that are moved around don't have a NodeMsg attached.
+  /* The dragging_new_node msg is set if we drag a new node from the node list, 
+    the dragging_existing_node is set if we drag a node from the editor canvas.
     The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
-  const dragging_node = ref<DocumentedNode | undefined>()
-  const is_dragging = ref<boolean>(false)
+  const dragging_new_node = ref<DocumentedNode | undefined>()
+  const dragging_existing_node = ref<FlextreeNode<TrimmedNode> | undefined>()
+  const is_dragging = computed<boolean>(() => {
+      return dragging_new_node.value !== undefined || 
+      dragging_existing_node.value !== undefined
+    })
 
   const node_has_changed = ref<boolean>(false)
 
@@ -192,14 +196,17 @@ export const useEditorStore = defineStore('editor', () => {
     last_seletion_source.value = EditorSelectionSource.EDITOR
   }
 
-  function startDragging(new_dragging_node: DocumentedNode) {
-    dragging_node.value = new_dragging_node
-    is_dragging.value = true
+  function startDraggingNewNode(new_dragging_node: DocumentedNode) {
+    dragging_new_node.value = new_dragging_node
+  }
+
+  function startDraggingExistingNode(existing_dragging_node: FlextreeNode<TrimmedNode>) {
+    dragging_existing_node.value = existing_dragging_node
   }
 
   function stopDragging() {
-    dragging_node.value = undefined
-    is_dragging.value = false
+    dragging_new_node.value = undefined
+    dragging_existing_node.value = undefined
   }
 
   function enableShowDataGraph(enable: boolean) {
@@ -266,7 +273,8 @@ export const useEditorStore = defineStore('editor', () => {
     filtered_nodes,
     debug,
     running_commands,
-    dragging_node,
+    dragging_new_node,
+    dragging_existing_node,
     is_dragging,
     last_seletion_source,
     selected_node,
@@ -281,7 +289,8 @@ export const useEditorStore = defineStore('editor', () => {
     clearFilteredNodes,
     nodeListSelectionChange,
     editorSelectionChange,
-    startDragging,
+    startDraggingNewNode,
+    startDraggingExistingNode,
     stopDragging,
     show_data_graph,
     enableShowDataGraph,

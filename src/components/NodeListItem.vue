@@ -41,13 +41,13 @@ const props = defineProps<{
 const editor_store = useEditorStore()
 
 const highlighted = computed<boolean>(() => {
-  if (!editor_store.dragging_node) {
+  if (!editor_store.dragging_new_node) {
     return false
   }
 
   return (
-    editor_store.dragging_node.node_class === props.node.node_class &&
-    editor_store.dragging_node.module === props.node.module
+    editor_store.dragging_new_node.node_class === props.node.node_class &&
+    editor_store.dragging_new_node.module === props.node.module
   )
 })
 
@@ -84,7 +84,7 @@ function onClick() {
     :class="highlighted_classes"
     tabindex="0"
     @click="onClick"
-    @mousedown.stop.prevent="() => editor_store.startDragging(node)"
+    @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
     @keydown="
       (event) => {
         if (event.key == 'Enter') {
