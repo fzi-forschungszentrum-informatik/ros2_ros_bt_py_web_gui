@@ -173,7 +173,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (new_selected_node_name === undefined || tree.value === undefined) {
       selected_node.value = undefined
       selected_node_names.value = []
-      last_seletion_source.value = EditorSelectionSource.EDITOR
+      last_seletion_source.value = EditorSelectionSource.NONE
       return
     }
 
