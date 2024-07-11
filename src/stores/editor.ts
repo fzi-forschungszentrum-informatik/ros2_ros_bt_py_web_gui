@@ -33,7 +33,6 @@ import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
 import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
-import type { FlextreeNode } from 'd3-flextree'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -66,7 +65,7 @@ export const useEditorStore = defineStore('editor', () => {
     the dragging_existing_node is set if we drag a node from the editor canvas.
     The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
   const dragging_new_node = ref<DocumentedNode | undefined>()
-  const dragging_existing_node = ref<FlextreeNode<TrimmedNode> | undefined>()
+  const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
   const is_dragging = computed<boolean>(() => {
       return dragging_new_node.value !== undefined || 
       dragging_existing_node.value !== undefined
@@ -200,7 +199,7 @@ export const useEditorStore = defineStore('editor', () => {
     dragging_new_node.value = new_dragging_node
   }
 
-  function startDraggingExistingNode(existing_dragging_node: FlextreeNode<TrimmedNode>) {
+  function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<TrimmedNode>) {
     dragging_existing_node.value = existing_dragging_node
   }
 

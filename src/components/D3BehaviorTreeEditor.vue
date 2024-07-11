@@ -80,17 +80,17 @@ let start_y: number = 0
 let start_x: number = 0
 
 let pan_interval_id: number | undefined = undefined
-let pan_rate: number = 30
 let pan_direction: number[] = [0.0, 0.0]
-let drag_pan_boundary: number = 50
-let pan_per_frame: number = 10.0
+const pan_rate: number = 30
+const drag_pan_boundary: number = 50
+const pan_per_frame: number = 10.0
 
-let io_gripper_size: number = 15
-let io_gripper_spacing: number = 10
+const io_gripper_size: number = 15
+const io_gripper_spacing: number = 10
 
-let forest_root_name: string = "__forest_root"
-let node_spacing: number = 80
-let drop_target_root_size: number = 150
+const forest_root_name: string = "__forest_root"
+const node_spacing: number = 80
+const drop_target_root_size: number = 150
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
@@ -114,11 +114,6 @@ function resetView() {
   const container = d3.select(svg_g_ref.value)
 
   viewport
-    .call(
-      zoomObject.scaleExtent([0.3, 1.0]).on('zoom', function () {
-        container.attr('transform', d3.event.transform)
-      })
-    )
     .call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
 }
 
@@ -410,14 +405,20 @@ function drawNewNodes(
     .append("foreignObject")
       .classed("node", true)
       .classed("node--internal", 
-        (d) => d.children !== undefined && d.children.length > 0)
+        (d) => d.children !== undefined && d.children.length > 0
+      )
       .classed("node--leaf",
-        (d) => d.children === undefined || d.children.length == 0)
-    /*.on("click", this.nodeClickHandler.bind(this))
-    .on("mousedown", function (d) {
-      that.nodeMousedownHandler(d, this);
+        (d) => d.children === undefined || d.children.length == 0
+      )
+    .on("click", (node: d3.HierarchyNode<TrimmedNode>) => {
+      console.log("Node click")
+      editor_store.editorSelectionChange(node.data.name)
+      d3.event.stopPropagation()
     })
-    .on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
+    .on("mousedown", (node: d3.HierarchyNode<TrimmedNode>) => {
+      editor_store.startDraggingExistingNode(node)
+    })
+    /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
     // TODO add mouse event handlers
 
   const body = fo
@@ -683,14 +684,49 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
       .on("mouseup", (d) => {
         if (editor_store.dragging_new_node) {
           addNewNode(d)
+        } else if (editor_store.dragging_existing_node) {
+          console.error("Dragging existing nodes isn't implemented")
+        } else {
+          console.warn("Unintended drag release")
         }
-
       }
       )
 }
 
 function moveExistingNode(drop_target: DropTarget) {
 
+}
+
+watchEffect(toggleExistingNodeTargets)
+function toggleExistingNodeTargets() {
+  if (g_drop_targets_ref.value === undefined) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  //Reset visibility for all targets
+  const targets = d3.select(g_drop_targets_ref.value)
+    .selectAll<SVGRectElement, DropTarget>(".drop_target")
+      .attr("visibility", null)
+
+  if (editor_store.dragging_existing_node === undefined) {
+    return
+  }
+
+  targets.filter((target: DropTarget) => {
+    //FIXME This should be solved via indexOf(), 
+    // but for some reason that doesn't generate any matches.
+    // This works but shouldn't be necessary
+    return editor_store.dragging_existing_node!.descendants()
+      .find((node: d3.HierarchyNode<TrimmedNode>) => {
+        return node.data.name === target.node.data.name
+      }) !== undefined
+    })
+    .filter((target: DropTarget) => {
+      //TODO implement filter based on node characteristics
+      return true
+    })
+      .attr("visibility", "hidden")
 }
 
 function addNewNode(drop_target: DropTarget) {
@@ -735,7 +771,10 @@ function addNewNode(drop_target: DropTarget) {
         title: "Added node " + response.actual_node_name,
         type: 'success'
       })
-      moveNewNode(response.actual_node_name, drop_target)
+      // If this isn't the root target, we might have to move around nodes
+      if (drop_target.node.parent) {
+        moveNewNode(response.actual_node_name, drop_target)
+      }
     } else {
       notify({
         title: "Failed to add node " + msg.name,
@@ -871,7 +910,6 @@ function toggleNewNodeTargets() {
 
   // If the filter returns true (keeps the node) is gets hidden
   targets.filter((drop_target: DropTarget) => {
-    console.log(drop_target)
     switch (drop_target.position) {
       case Position.CENTER:
         return editor_store.dragging_new_node!.max_children !== -1 &&
@@ -892,7 +930,6 @@ function toggleNewNodeTargets() {
         return true
     }
   })
-      .call(console.log)
       .attr("visibility", "hidden")
 }
 
@@ -960,10 +997,20 @@ onMounted(() => {
   })
 
   zoomObject = d3.zoom<SVGSVGElement, unknown>()
+  zoomObject.scaleExtent([0.3, 1.0])
+
   const container = d3.select(svg_g_ref.value)
 
+  viewport.call(
+      zoomObject.on('zoom', function () {
+        container.attr('transform', d3.event.transform)
+      })
+    )
+
   zoomObject.filter(function () {
-    return !d3.event.shiftKey
+    // Do not trigger panning if we're grabbing a node (initiate dragging).
+    return !d3.event.shiftKey && 
+      (!editor_store.is_dragging || d3.event.type === 'wheel')
   })
 
 
