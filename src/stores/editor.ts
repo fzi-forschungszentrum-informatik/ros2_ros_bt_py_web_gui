@@ -195,6 +195,8 @@ export const useEditorStore = defineStore('editor', () => {
     last_seletion_source.value = EditorSelectionSource.EDITOR
   }
 
+  //TODO add timer to allow for early cancelling the drag on "click" (fast mousedown and mouseup)
+  // This is not a functional change, but would avoid having the drop targets flicker when clicking
   function startDraggingNewNode(new_dragging_node: DocumentedNode) {
     dragging_new_node.value = new_dragging_node
   }

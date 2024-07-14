@@ -65,6 +65,7 @@ import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/Rem
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
+import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 import type {
   GenerateSubtreeRequest,
   GenerateSubtreeResponse
@@ -224,6 +225,15 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_pt_interfaces/srv/RemoveNode'
+      })
+    )
+
+    //TODO is this service supposed to exits? Ros2 says it does, roslib says it doesn't
+    const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'replace_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
       })
     )
 
@@ -493,6 +503,7 @@ export const useROSStore = defineStore(
       morph_node_service,
       set_options_service,
       move_node_service,
+      replace_node_service,
       wire_data_service,
       add_node_at_index_service,
       generate_subtree_service,

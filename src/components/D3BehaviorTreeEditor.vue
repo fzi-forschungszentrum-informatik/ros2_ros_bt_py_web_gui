@@ -58,6 +58,7 @@ import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 
 
 const editor_store = useEditorStore()
@@ -685,7 +686,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         if (editor_store.dragging_new_node) {
           addNewNode(d)
         } else if (editor_store.dragging_existing_node) {
-          console.error("Dragging existing nodes isn't implemented")
+          moveExistingNode(d)
         } else {
           console.warn("Unintended drag release")
         }
@@ -694,7 +695,59 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
 }
 
 function moveExistingNode(drop_target: DropTarget) {
+  if (editor_store.dragging_existing_node === undefined) {
+    console.warn("Tried to move existing node by dragging but none selected")
+    return
+  }
 
+  const node_name = editor_store.dragging_existing_node.data.name
+  let parent_name = ''
+  let index = -1
+  
+  // If this is not the root target, set the parent and position
+  if (drop_target.node.parent) {
+
+    // Set parent and index
+    if (drop_target.position === Position.BOTTOM) {
+      parent_name = drop_target.node.data.name
+      index = 0
+    } else if (drop_target.node.parent.data.name !== forest_root_name) {
+      parent_name = drop_target.node.parent.data.name
+      index = drop_target.node.parent.children!.indexOf(drop_target.node)
+    }
+
+    if (drop_target.position === Position.RIGHT) {
+      index++
+    }
+  }
+
+  ros_store.move_node_service.callService({
+      node_name: node_name,
+      new_parent_name: parent_name,
+      new_child_index: index
+    } as MoveNodeRequest,
+    (response: MoveNodeResponse) => {
+      if (response.success) {
+        notify({
+          title: "Moved node " + drop_target.node.data.name,
+          type: 'success'
+        })
+        moveChildNodes(node_name, drop_target)
+      } else {
+        notify({
+          title: "Failed to move node " + drop_target.node.data.name,
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
+      notify({
+        title: "Failed to call moveNode service",
+        text: error,
+        type: 'error'
+      })
+    })
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -713,18 +766,46 @@ function toggleExistingNodeTargets() {
     return
   }
 
-  targets.filter((target: DropTarget) => {
-    //FIXME This should be solved via indexOf(), 
-    // but for some reason that doesn't generate any matches.
-    // This works but shouldn't be necessary
-    return editor_store.dragging_existing_node!.descendants()
-      .find((node: d3.HierarchyNode<TrimmedNode>) => {
-        return node.data.name === target.node.data.name
-      }) !== undefined
-    })
-    .filter((target: DropTarget) => {
-      //TODO implement filter based on node characteristics
-      return true
+  // The first filter hides all nodes in the currently dragged subtree
+  // The second filter hides all nodes where dropping would overload a child node count
+
+  // If the filter returns true (keeps the node) it gets hidden
+  targets.filter((drop_target: DropTarget) => {
+      //FIXME This should be solved via indexOf(), 
+      // but for some reason that doesn't generate any matches.
+      // This works but shouldn't be necessary
+      return editor_store.dragging_existing_node!.descendants()
+        .find((node: d3.HierarchyNode<TrimmedNode>) => {
+          return node.data.name === drop_target.node.data.name
+        }) !== undefined
+      })
+      .attr("visibility", "hidden")
+
+  // If the filter returns true (keeps the node) it gets hidden
+  targets.filter((drop_target: DropTarget) => {
+      switch (drop_target.position) {
+      case Position.CENTER:
+        return editor_store.dragging_existing_node!.data.max_children !== -1 &&
+          drop_target.node.data.child_names.length + 
+          editor_store.dragging_existing_node!.data.child_names.length >
+          editor_store.dragging_existing_node!.data.max_children
+      case Position.TOP:
+        return editor_store.dragging_existing_node!.data.child_names.length >=
+          editor_store.dragging_existing_node!.data.max_children 
+      case Position.BOTTOM:
+        return drop_target.node.data.max_children !== -1 &&
+          drop_target.node.data.name !== editor_store.dragging_existing_node!.parent!.data.name &&
+          drop_target.node.data.child_names.length >= 
+          drop_target.node.data.max_children
+      case Position.LEFT:
+      case Position.RIGHT:
+        return drop_target.node.parent!.data.max_children !== -1 &&
+          drop_target.node.parent!.data.name !== editor_store.dragging_existing_node!.parent!.data.name &&
+          drop_target.node.parent!.data.child_names.length >= 
+          drop_target.node.parent!.data.max_children
+      default:
+        return true
+    }
     })
       .attr("visibility", "hidden")
 }
@@ -732,7 +813,7 @@ function toggleExistingNodeTargets() {
 function addNewNode(drop_target: DropTarget) {
   let msg: NodeMsg
 
-  if (editor_store.dragging_new_node) {
+  if (editor_store.dragging_new_node !== undefined) {
     msg = buildNodeMessage(editor_store.dragging_new_node)
   } else {
     console.warn("Tried to add new node by dragging but none selected")
@@ -773,7 +854,7 @@ function addNewNode(drop_target: DropTarget) {
       })
       // If this isn't the root target, we might have to move around nodes
       if (drop_target.node.parent) {
-        moveNewNode(response.actual_node_name, drop_target)
+        moveChildNodes(response.actual_node_name, drop_target)
       }
     } else {
       notify({
@@ -792,7 +873,48 @@ function addNewNode(drop_target: DropTarget) {
   })
 }
 
-function moveNewNode(new_node_name: string, drop_target: DropTarget) {
+watchEffect(toggleNewNodeTargets)
+function toggleNewNodeTargets() {
+  if (g_drop_targets_ref.value === undefined) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  //Reset visibility for all targets
+  const targets = d3.select(g_drop_targets_ref.value)
+    .selectAll<SVGRectElement, DropTarget>(".drop_target")
+      .attr("visibility", null)
+
+  if (editor_store.dragging_new_node === undefined) {
+    return
+  }
+
+  // If the filter returns true (keeps the node) it gets hidden
+  targets.filter((drop_target: DropTarget) => {
+    switch (drop_target.position) {
+      case Position.CENTER:
+        return editor_store.dragging_new_node!.max_children !== -1 &&
+          drop_target.node.data.child_names.length >
+          editor_store.dragging_new_node!.max_children
+      case Position.TOP:
+        return editor_store.dragging_new_node!.max_children === 0
+      case Position.BOTTOM:
+        return drop_target.node.data.max_children !== -1 &&
+          drop_target.node.data.child_names.length >= 
+          drop_target.node.data.max_children
+      case Position.LEFT:
+      case Position.RIGHT:
+        return drop_target.node.parent!.data.max_children !== -1 &&
+          drop_target.node.parent!.data.child_names.length >= 
+          drop_target.node.parent!.data.max_children
+      default:
+        return true
+    }
+  })
+      .attr("visibility", "hidden")
+}
+
+function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
   if (new_node_name === '') {
     // This means something went wrong with moving the node, thus we can't move it around
     console.warn("Didn't get a node name back")
@@ -835,6 +957,33 @@ function moveNewNode(new_node_name: string, drop_target: DropTarget) {
   if (drop_target.position === Position.CENTER) {
     //TODO Move drop target's children as children of new node
     // Also delete drop target node
+
+    /*ros_store.replace_node_service.callService({
+      new_node_name: new_node_name,
+      old_node_name: drop_target.node.data.name
+    } as ReplaceNodeRequest,
+    (response: ReplaceNodeResponse) => {
+      if (response.success) {
+        notify({
+          title: "Replaced node " + drop_target.node.data.name,
+          type: 'success'
+        })
+      } else {
+        notify({
+          title: "Failed to replace node " + drop_target.node.data.name,
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
+      notify({
+        title: "Failed to call replaceNode service",
+        text: error,
+        type: 'error'
+      })
+    })*/
+
     const child_name_list = drop_target.node.data.child_names
     for (let index = 0; index < child_name_list.length; index++) {
       ros_store.move_node_service.callService({
@@ -890,47 +1039,6 @@ function moveNewNode(new_node_name: string, drop_target: DropTarget) {
       })
     })
   }
-}
-
-watchEffect(toggleNewNodeTargets)
-function toggleNewNodeTargets() {
-  if (g_drop_targets_ref.value === undefined) {
-    //TODO handle DOM is broken
-    return
-  }
-
-  //Reset visibility for all targets
-  const targets = d3.select(g_drop_targets_ref.value)
-    .selectAll<SVGRectElement, DropTarget>(".drop_target")
-      .attr("visibility", null)
-
-  if (editor_store.dragging_new_node === undefined) {
-    return
-  }
-
-  // If the filter returns true (keeps the node) is gets hidden
-  targets.filter((drop_target: DropTarget) => {
-    switch (drop_target.position) {
-      case Position.CENTER:
-        return editor_store.dragging_new_node!.max_children !== -1 &&
-          drop_target.node.data.child_names.length >
-          editor_store.dragging_new_node!.max_children
-      case Position.TOP:
-        return editor_store.dragging_new_node!.max_children === 0
-      case Position.BOTTOM:
-        return drop_target.node.data.max_children !== -1 &&
-          drop_target.node.data.child_names.length >= 
-          drop_target.node.data.max_children
-      case Position.LEFT:
-      case Position.RIGHT:
-        return drop_target.node.parent!.data.max_children !== -1 &&
-          drop_target.node.parent!.data.child_names.length >= 
-          drop_target.node.parent!.data.max_children
-      default:
-        return true
-    }
-  })
-      .attr("visibility", "hidden")
 }
 
 
