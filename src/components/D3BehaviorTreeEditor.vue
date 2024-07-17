@@ -32,7 +32,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
 import type {
-  DataEdgePoints,
+  DataEdgePoint,
   DocumentedNode,
   DropTarget,
   NodeData,
@@ -47,7 +47,7 @@ import type {
   TrimmedNode,
   TrimmedNodeData
 } from '@/types/types'
-import { Position } from '@/types/types'
+import { Position, IOKind } from '@/types/types'
 import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
 import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
@@ -375,8 +375,14 @@ function drawEverything() {
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-    .call(layoutTree, root) // This also calls drawEdges and drawDropTargets
     .call(colorNodes)
+
+  // Since we want to return the tree, we can't use the .call() syntax here
+  const tree = layoutTree(node, root)
+
+  drawEdges(tree)
+  drawDropTargets(tree)
+  drawDataGraph(tree)
 
   // TODO(nberg): Find a way to get rid of this - it's here because
   // the DOM changes in updateNodes take a while to actually happen,
@@ -392,12 +398,12 @@ function drawEverything() {
 }
 
 function drawNewNodes(
-    selection: d3.Selection<
-      d3.EnterElement,
-      d3.HierarchyNode<TrimmedNode>,
-      SVGGElement,
-      never
-    >
+  selection: d3.Selection<
+    d3.EnterElement,
+    d3.HierarchyNode<TrimmedNode>,
+    SVGGElement,
+    never
+  >
 ) {
   // eslint-disable-next-line @typescript-eslint/no-this-alias
   //const that = this;
@@ -486,13 +492,49 @@ function updateNodeBody(
   return selection
 }
 
+function colorNodes(
+selection: d3.Selection<
+  SVGForeignObjectElement,
+  d3.HierarchyNode<TrimmedNode>,
+  SVGGElement,
+  never
+>
+) {
+selection
+  .select<HTMLBodyElement>(".btnode")
+  .transition(tree_transition)
+    .style("border-color", (d) => {
+      switch (d.data.state) {
+        case "RUNNING": {
+          return "#ffc107";
+        }
+        case "IDLE": {
+          return "#007bff";
+        }
+        case "SUCCEEDED": {
+          return "#28a745";
+        }
+        case "FAILED": {
+          return "#dc3545";
+        }
+        case "SHUTDOWN": {
+          return "#7c1e27";
+        }
+        case "UNINITIALIZED":
+        default: {
+          return "#4E5666";
+        }
+      }
+    })
+}
+
 function layoutTree(selection: d3.Selection<
     SVGForeignObjectElement,
     d3.HierarchyNode<TrimmedNode>,
     SVGGElement,
     never>,
   root: d3.HierarchyNode<TrimmedNode>
-) {
+): FlextreeNode<TrimmedNode> {
 
   // If the tree is in layer_mode, we have to get the max height for each layer
   const max_height_per_layer = Array<number>(root.height + 1).fill(0.0)
@@ -540,8 +582,7 @@ function layoutTree(selection: d3.Selection<
       .attr("y", (d: FlextreeNode<TrimmedNode>) => d.y)
       // Setting x and y seems sufficient, compared to an explicit transform
 
-  drawEdges(tree_layout)
-  drawDropTargets(tree_layout)
+  return tree_layout
 }
 
 function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
@@ -584,7 +625,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   const drop_targets: DropTarget[] = []
 
   // Construct the list of drop targets that should exist
-  tree_layout.each((node) => {
+  tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
 
     if (node.data.name === forest_root_name) {
       return
@@ -1042,50 +1083,152 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
 }
 
 
-function colorNodes(
-selection: d3.Selection<
-  SVGForeignObjectElement,
-  d3.HierarchyNode<TrimmedNode>,
-  SVGGElement,
-  never
->
-) {
-selection
-  .select<HTMLBodyElement>(".btnode")
-  .transition(tree_transition)
-    .style("border-color", (d) => {
-      switch (d.data.state) {
-        case "RUNNING": {
-          return "#ffc107";
-        }
-        case "IDLE": {
-          return "#007bff";
-        }
-        case "SUCCEEDED": {
-          return "#28a745";
-        }
-        case "FAILED": {
-          return "#dc3545";
-        }
-        case "SHUTDOWN": {
-          return "#7c1e27";
-        }
-        case "UNINITIALIZED":
-        default: {
-          return "#4E5666";
-        }
-      }
+function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
+
+  if (g_data_graph_ref.value === undefined || 
+    g_data_vertices_ref.value === undefined ||
+    g_data_edges_ref.value === undefined
+  ) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  const data_points: DataEdgePoint[] = []
+
+  tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
+
+    if (node.data.name === forest_root_name) {
+      return
+    }
+
+    node.data.inputs.map((input: TrimmedNodeData, index: number) => {
+      data_points.push({
+        node: node,
+        index: index,
+        kind: IOKind.INPUT,
+        key: input.key,
+        type: input.serialized_type
+      })
     })
+
+    node.data.outputs.map((output: TrimmedNodeData, index: number) => {
+      data_points.push({
+        node: node,
+        index: index,
+        kind: IOKind.OUTPUT,
+        key: output.key,
+        type: output.serialized_type
+      })
+    })
+
+  })
+
+  d3.select(g_data_vertices_ref.value)
+    .selectAll<SVGGElement, DataEdgePoint>(".gripper-group")
+    .data(data_points, 
+      (d) => d.node.data.name + "###" + d.kind + "###" + d.index
+    )
+    .join(drawNewDataVert)
+    .transition(tree_transition)
+      //NOTE group elements can't be moved with x= and y=
+      .attr("transform", (d) => {
+        let x = 0, y = 0
+        switch (d.kind) {
+          case IOKind.INPUT:
+            x = d.node.x - d.node.data.size.width * 0.5 - io_gripper_size
+            break;
+          case IOKind.OUTPUT:
+            x = d.node.x + d.node.data.size.width * 0.5
+            break;
+          case IOKind.OTHER:
+            //TODO figure out placement for other IO
+          default:
+            x = 0;
+        }
+        switch (d.kind) {
+          case IOKind.INPUT:
+          case IOKind.OUTPUT:
+            y = io_gripper_spacing + d.index * 
+              (io_gripper_size + io_gripper_spacing)
+            break;
+          case IOKind.OTHER:
+            //TODO figure out placement for other IO
+          default:
+            y = 0;
+        }
+        return "translate(" + x + ", " + y + ")"
+      })
+
 }
 
+function drawNewDataVert(
+  selection: d3.Selection<
+    d3.EnterElement,
+    DataEdgePoint,
+    SVGGElement,
+    unknown
+  >
+) {
+  const groups = selection.append("g")
+      .classed("gripper-group", true)
+      .on("mouseover.highlight", function () {
+        d3.select(this)
+            .classed("data-hover", true)
+          .select(".label")
+            .attr("visibility", "visible")
+      })
+      .on("mouseout.highlight", function () {
+        d3.select(this)
+            .classed("data-hover", false)
+          .select(".label")
+            .attr("visibility", "hidden")
+      })
+
+  groups.append("rect")
+      .classed("gripper", true)
+      .attr("width", io_gripper_size)
+      .attr("height", io_gripper_size)
+      .on("mousedown", () => {
+        //TODO add callback
+      })
+
+  const labels = groups.append("text")
+      .classed("label", true)
+      .attr("dominant-baseline", "middle")
+      .attr("visibility", "hidden")
+      .attr("text-anchor", (d) => d.kind === IOKind.INPUT ? "end" : "start" )
+      .text((d) => d.key)
+      .attr("x", (d) => {
+        switch (d.kind) {
+          case IOKind.INPUT:
+            return -5;
+          case IOKind.OUTPUT:
+            return io_gripper_size + 5;
+          case IOKind.OTHER:
+            //TODO figure out placement for other IO
+          default:
+            return 0;
+        }
+      })
+      .attr("y", 0.5 * io_gripper_size)
+
+  labels.append("tspan")
+      .text((d) => "(type: " + prettyprint_type(d.type) + ")")
+      .attr("x", function () { //FIXME Re-apply x for unknown reason
+        return d3.select(this.parentElement).attr("x")
+      }) 
+      .attr("dy", "1em") // Space out 2nd line
+
+  // The join pattern requires a return of the appended elements
+  return groups
+}
 
 
 
 onMounted(() => {
   if (
     viewport_ref.value === undefined ||
-    svg_g_ref.value === undefined ||
-    false //TODO Why did this read zoomObject === undefined alt: init in let def  
+    svg_g_ref.value === undefined 
   ) {
     notify({
       title: 'Element reference undefined!',
@@ -1240,7 +1383,7 @@ onMounted(() => {
     <g id="container" ref="svg_g_ref">
       <g class="edges" ref="g_edges_ref"/>
       <g class="vertices" ref="g_vertices_ref"/>
-      <g class="data_graph" ref="g_data_graph_ref">
+      <g class="data_graph" ref="g_data_graph_ref" :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'">
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>

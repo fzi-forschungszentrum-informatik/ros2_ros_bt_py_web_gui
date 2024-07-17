@@ -411,10 +411,6 @@ onMounted(() => {
   z-index: 10;
 }
 
-.gripper {
-  fill: #74777f;
-}
-
 
 
 #nodelist_container {
