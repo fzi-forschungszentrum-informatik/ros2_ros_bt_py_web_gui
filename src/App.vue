@@ -283,8 +283,8 @@ onMounted(() => {
                     "
                   >
                       <!--TODO add fontawesome icon-->
-                    <span v-if="editor_store.is_layer_mode">=</span>
-                    <span v-else>^</span>
+                    <font-awesome-icon v-if="editor_store.is_layer_mode" icon="fa-solid fa-layer-group" />
+                    <font-awesome-icon v-else icon="fa-solid fa-tree" />
                   </button>
                   <!--TODO find a better way to place elements-->
                   <RightAlignSpacer></RightAlignSpacer>

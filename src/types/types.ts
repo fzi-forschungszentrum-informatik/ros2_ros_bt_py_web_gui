@@ -169,12 +169,12 @@ export interface ParamData {
   value: ParamType
 }
 
-/*export type DataEdgePoint = {
+export type DataEdgePoint = {
   x: number
   y: number
 }
 
-export type DataEdgeTerminal = DataEdgePoint & {
+/*export type DataEdgeTerminal = DataEdgePoint & {
   gripperSize: number
   nodeName: string
   key: string
@@ -184,7 +184,7 @@ export type DataEdgeTerminal = DataEdgePoint & {
 
 export type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]*/
 
-export type DataEdgePoint = {
+export type DataEdgeTerminal = DataEdgePoint & {
   node: FlextreeNode<TrimmedNode>
   index: number
   kind: IOKind
@@ -196,6 +196,11 @@ export const enum IOKind {
   INPUT = "input",
   OUTPUT = "output",
   OTHER = "other",
+}
+
+export type DataEdge = {
+  source: DataEdgePoint
+  target: DataEdgeTerminal
 }
 
 export type DropTarget = {

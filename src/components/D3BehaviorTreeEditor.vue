@@ -32,7 +32,8 @@ import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
 import type {
-  DataEdgePoint,
+  DataEdgeTerminal,
+  DataEdge,
   DocumentedNode,
   DropTarget,
   NodeData,
@@ -45,7 +46,8 @@ import type {
   PyOperator,
   TreeMsg,
   TrimmedNode,
-  TrimmedNodeData
+  TrimmedNodeData,
+  NodeDataWiring
 } from '@/types/types'
 import { Position, IOKind } from '@/types/types'
 import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
@@ -1084,6 +1086,10 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
 
 
 function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
+  if (editor_store.tree === undefined) {
+    console.warn("No tree received yet")
+    return
+  }
 
   if (g_data_graph_ref.value === undefined || 
     g_data_vertices_ref.value === undefined ||
@@ -1093,7 +1099,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
     return
   }
 
-  const data_points: DataEdgePoint[] = []
+  const data_points: DataEdgeTerminal[] = []
 
   tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
 
@@ -1107,64 +1113,91 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
         index: index,
         kind: IOKind.INPUT,
         key: input.key,
-        type: input.serialized_type
+        type: input.serialized_type,
+        x: node.x - node.data.size.width * 0.5 - io_gripper_size,
+        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
-
     node.data.outputs.map((output: TrimmedNodeData, index: number) => {
       data_points.push({
         node: node,
         index: index,
         kind: IOKind.OUTPUT,
         key: output.key,
-        type: output.serialized_type
+        type: output.serialized_type,
+        x: node.x + node.data.size.width * 0.5,
+        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
 
   })
 
+  console.log(data_points)
+
   d3.select(g_data_vertices_ref.value)
-    .selectAll<SVGGElement, DataEdgePoint>(".gripper-group")
+    .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
     .data(data_points, 
       (d) => d.node.data.name + "###" + d.kind + "###" + d.index
     )
     .join(drawNewDataVert)
     .transition(tree_transition)
       //NOTE group elements can't be moved with x= and y=
-      .attr("transform", (d) => {
-        let x = 0, y = 0
-        switch (d.kind) {
-          case IOKind.INPUT:
-            x = d.node.x - d.node.data.size.width * 0.5 - io_gripper_size
-            break;
-          case IOKind.OUTPUT:
-            x = d.node.x + d.node.data.size.width * 0.5
-            break;
-          case IOKind.OTHER:
-            //TODO figure out placement for other IO
-          default:
-            x = 0;
-        }
-        switch (d.kind) {
-          case IOKind.INPUT:
-          case IOKind.OUTPUT:
-            y = io_gripper_spacing + d.index * 
-              (io_gripper_size + io_gripper_spacing)
-            break;
-          case IOKind.OTHER:
-            //TODO figure out placement for other IO
-          default:
-            y = 0;
-        }
-        return "translate(" + x + ", " + y + ")"
+      .attr("transform", (d) => "translate(" + d.x + ", " + d.y + ")")
+
+  // Construct edge array by matching tree_msg wirings
+  const data_edges: DataEdge[] = []
+
+  function matchEndpoint(wire_point: NodeDataLocation, terminal: DataEdgeTerminal): boolean {
+    let match_kind: boolean
+    switch (terminal.kind) {
+      case IOKind.INPUT:
+        match_kind = wire_point.data_kind === "inputs"
+      case IOKind.OUTPUT:
+        match_kind = wire_point.data_kind === "outputs"
+      default:
+        match_kind = false
+    }
+    return wire_point.node_name === terminal.node.data.name &&
+      match_kind && wire_point.data_key === terminal.key
+  }
+
+  editor_store.tree.data_wirings.forEach((wiring: NodeDataWiring) => {
+
+    // Match Terminals with wiring data
+    const source = data_points.find(
+      (term: DataEdgeTerminal) => matchEndpoint(wiring.source, term)
+    )
+    const target = data_points.find(
+      (term: DataEdgeTerminal) => matchEndpoint(wiring.target, term)
+    )
+
+    if (source === undefined || target === undefined) {
+      console.warn("Bad data edge", source, target)
+      return
+    }
+
+    // Try to assign output as source and input as target
+    if (source.kind === IOKind.INPUT) {
+      data_edges.push({
+        source: target,
+        target: source
       })
+    } else {
+      data_edges.push({
+        source: source,
+        target: target
+      })
+    }
+  })
+
+  console.log(data_edges)
 
 }
 
 function drawNewDataVert(
   selection: d3.Selection<
     d3.EnterElement,
-    DataEdgePoint,
+    DataEdgeTerminal,
     SVGGElement,
     unknown
   >

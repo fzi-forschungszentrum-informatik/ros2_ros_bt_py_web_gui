@@ -71,7 +71,9 @@ import {
   faAngleUp,
   faAngleDown,
   faAngleDoubleRight,
-  faQuestionCircle
+  faQuestionCircle,
+  faLayerGroup,
+  faTree
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -95,7 +97,9 @@ library.add(
   faAngleDoubleRight,
   faAngleUp,
   faAngleDown,
-  faQuestionCircle
+  faQuestionCircle,
+  faLayerGroup,
+  faTree
 )
 
 const app = createApp(App)
