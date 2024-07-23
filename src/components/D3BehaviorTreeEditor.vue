@@ -1132,8 +1132,6 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
 
   })
 
-  console.log(data_points)
-
   d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
     .data(data_points, 
@@ -1152,10 +1150,13 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
     switch (terminal.kind) {
       case IOKind.INPUT:
         match_kind = wire_point.data_kind === "inputs"
+        break;
       case IOKind.OUTPUT:
         match_kind = wire_point.data_kind === "outputs"
+        break;
       default:
         match_kind = false
+        break;
     }
     return wire_point.node_name === terminal.node.data.name &&
       match_kind && wire_point.data_key === terminal.key
@@ -1189,9 +1190,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
       })
     }
   })
-
-  console.log(data_edges)
-
+  
 }
 
 function drawNewDataVert(
