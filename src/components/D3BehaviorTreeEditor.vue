@@ -91,7 +91,7 @@ const pan_per_frame: number = 10.0
 
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
-const io_edge_offset: number = 50
+const io_edge_offset: number = 10
 
 const forest_root_name: string = "__forest_root"
 const node_spacing: number = 80
@@ -1304,7 +1304,7 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         const lineGen = d3.line<DataEdgePoint>()
           .x((p) => p.x + io_gripper_size/2)
           .y((p) => p.y + io_gripper_size/2)
-          .curve(d3.curveBasis)
+          .curve(d3.curveCatmullRom.alpha(0.9))
         const inter1: DataEdgePoint = {
           x: edge.source.x + io_edge_offset, 
           y: edge.source.y
@@ -1315,6 +1315,11 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         }
         return lineGen([edge.source, inter1, inter2, edge.target])
       })
+      /*.attr("d", 
+        d3.linkHorizontal<SVGPathElement, DataEdge, DataEdgeTerminal>()
+          .x((p) => p.x + io_gripper_size/2)
+          .y((p) => p.y + io_gripper_size/2)
+      )*/
   
 }
 
