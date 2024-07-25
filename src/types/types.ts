@@ -174,16 +174,6 @@ export type DataEdgePoint = {
   y: number
 }
 
-/*export type DataEdgeTerminal = DataEdgePoint & {
-  gripperSize: number
-  nodeName: string
-  key: string
-  kind: string
-  type: string
-}
-
-export type DataEdgePoints = (DataEdgeTerminal | DataEdgePoint)[]*/
-
 export type DataEdgeTerminal = DataEdgePoint & {
   node: FlextreeNode<TrimmedNode>
   index: number
@@ -199,8 +189,9 @@ export const enum IOKind {
 }
 
 export type DataEdge = {
-  source: DataEdgePoint
+  source: DataEdgeTerminal
   target: DataEdgeTerminal
+  wiring: NodeDataWiring
 }
 
 export type DropTarget = {
