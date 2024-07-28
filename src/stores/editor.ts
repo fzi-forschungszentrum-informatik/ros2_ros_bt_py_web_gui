@@ -214,8 +214,18 @@ export const useEditorStore = defineStore('editor', () => {
     show_data_graph.value = enable
   }
 
-  function setEditorSkin(new_skin: EditorSkin) {
-    skin.value = new_skin
+  function cycleEditorSkin() {
+    switch (skin.value) {
+      case EditorSkin.DARK:
+        skin.value = EditorSkin.LIGHT
+        return
+      case EditorSkin.LIGHT:
+        skin.value = EditorSkin.DARK
+        return
+      default:
+        skin.value = EditorSkin.DARK
+        return
+    }
   }
 
   function selectSubtree(name: string, is_subtree: boolean) {
@@ -296,7 +306,7 @@ export const useEditorStore = defineStore('editor', () => {
     show_data_graph,
     enableShowDataGraph,
     skin,
-    setEditorSkin,
+    cycleEditorSkin,
     selected_subtree,
     selectSubtree,
     subtree_names,

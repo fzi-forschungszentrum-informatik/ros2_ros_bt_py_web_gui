@@ -36,11 +36,10 @@ import { usePackageStore } from './stores/package'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type { Messages, NodeMsg, Packages, TreeMsg } from './types/types'
-import { useEditorStore } from './stores/editor'
+import { EditorSkin, useEditorStore } from './stores/editor'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
 import RightAlignSpacer from './components/RightAlignSpacer.vue'
-import SelectEditorSkin from './components/SelectEditorSkin.vue'
 import D3BehaviorTreeEditor from './components/D3BehaviorTreeEditor.vue'
 import BehaviorTreeEdge from './components/BehaviorTreeEdge.vue'
 import MultipleSelection from './components/MultipleSelection.vue'
@@ -274,21 +273,16 @@ onMounted(() => {
                       :value="tree_state"
                     />
                   </div>
-                  <button
-                    class="btn btn-primary m-1"
-                    @click="
-                      () => {
-                        editor_store.is_layer_mode = !editor_store.is_layer_mode
-                      }
-                    "
-                  >
-                      <!--TODO add fontawesome icon-->
-                    <font-awesome-icon v-if="editor_store.is_layer_mode" icon="fa-solid fa-layer-group" />
-                    <font-awesome-icon v-else icon="fa-solid fa-tree" />
-                  </button>
                   <!--TODO find a better way to place elements-->
                   <RightAlignSpacer></RightAlignSpacer>
-                  <SelectEditorSkin></SelectEditorSkin>
+                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode">
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-layer-group" />
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-secondary' : 'text-dark'" icon="fa-solid fa-tree" />
+                  </button>
+                  <button class="btn m-1" @click="editor_store.cycleEditorSkin">
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-moon" />
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-sun" />
+                  </button>
                 </div>
               </div>
               <div class="row edit_canvas h-100 pb-2">
