@@ -80,7 +80,7 @@ export const useROSStore = defineStore(
     const ros = ref<ROSLIB.Ros>(new ROSLIB.Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
-    const namespace = ref<string>('/')
+    const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
     const services_for_type_service = ref<
