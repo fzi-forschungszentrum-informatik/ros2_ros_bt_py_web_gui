@@ -69,8 +69,7 @@ function updateAvailableNamespaces() {
       const namespaces = response.services.map(
         // Chop off the topic name (but not the last slash), which leaves us with the BT
         // namespace
-        //FIXME substr is marked as deprecated
-        (x) => x.substr(0, x.lastIndexOf('/')) + '/'
+        (x) => x.substring(0, x.lastIndexOf('/')) + '/'
       )
       if (namespaces.length > 0) {
         ros_store.setAvailableNamespaces(namespaces)

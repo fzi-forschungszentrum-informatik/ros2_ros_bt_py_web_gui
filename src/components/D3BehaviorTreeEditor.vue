@@ -419,12 +419,12 @@ function drawNewNodes(
       .classed("node--leaf",
         (d) => d.children === undefined || d.children.length == 0
       )
-    .on("click", (node: d3.HierarchyNode<TrimmedNode>) => {
+    .on("click.select", (node: d3.HierarchyNode<TrimmedNode>) => {
       console.log("Node click")
       editor_store.editorSelectionChange(node.data.name)
       d3.event.stopPropagation()
     })
-    .on("mousedown", (node: d3.HierarchyNode<TrimmedNode>) => {
+    .on("mousedown.dragdrop", (node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
     })
     /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
@@ -719,13 +719,13 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         }
       })
       .attr("opacity", 0.2)
-      .on("mouseover", function () {
+      .on("mouseover.highlight", function () {
         d3.select(this).attr("opacity", 0.8);
       })
-      .on("mouseout", function () {
+      .on("mouseout.highlight", function () {
         d3.select(this).attr("opacity", 0.2);
       })
-      .on("mouseup", (d) => {
+      .on("mouseup.dragdrop", (d) => {
         if (editor_store.dragging_new_node) {
           addNewNode(d)
         } else if (editor_store.dragging_existing_node) {
@@ -1170,7 +1170,7 @@ function drawNewDataVert(
       .classed("gripper", true)
       .attr("width", io_gripper_size)
       .attr("height", io_gripper_size)
-      .on("mousedown", () => {
+      .on("mousedown.drawedge", () => {
         //TODO add callback
       })
 
@@ -1283,17 +1283,17 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
     )
     .join("path")
       .classed("data-link", true)
-      .on("click", (edge: DataEdge) => {
+      .on("click.select", (edge: DataEdge) => {
         editor_store.selectEdge(edge.wiring)
         d3.event.stopPropagation()
       })
-      .on("mouseover", function (edge: DataEdge) {
+      .on("mouseover.highlight", function (edge: DataEdge) {
         g_data_vertices.filter((term: DataEdgeTerminal) =>
           term === edge.source || term === edge.target
         ).dispatch("mouseover")
         d3.select(this).classed("data-hover", true)
       })
-      .on("mouseout", function (edge: DataEdge) {
+      .on("mouseout.highlight", function (edge: DataEdge) {
         g_data_vertices.filter((term: DataEdgeTerminal) =>
           term === edge.source || term === edge.target
         ).dispatch("mouseout")
@@ -1370,7 +1370,7 @@ onMounted(() => {
 
   viewport.on('mousemove.pan_if_drag', canvasMouseMovePanHandler)
 
-  viewport.on('click', () => {
+  viewport.on('click.unselect', () => {
     if (!d3.event.shiftKey) {
       editor_store.editorSelectionChange(undefined)
       editor_store.unselectEdge()
@@ -1391,7 +1391,7 @@ onMounted(() => {
       .attr('y', 0)
 
   // start the selection
-  viewport.on('mousedown', () => {
+  viewport.on('mousedown.drawselect', () => {
     if (d3.event.shiftKey) {
       selection = true // indicates a shift-mousedown enabled selection rectangle
 
@@ -1406,7 +1406,7 @@ onMounted(() => {
   })
 
   // show the selection rectangle on mousemove
-  viewport.on('mousemove', () => {
+  viewport.on('mousemove.drawselect', () => {
     if (d3.event.shiftKey && selection) {
       mouse_moved = true
 
@@ -1456,7 +1456,7 @@ onMounted(() => {
   })
 
   // detect the selected nodes on mouseup
-  viewport.on('mouseup', () => {
+  viewport.on('mouseup.drawselect', () => {
     if (selection && mouse_moved) {
       selection = false // hide the selection rectangle
       mouse_moved = false
