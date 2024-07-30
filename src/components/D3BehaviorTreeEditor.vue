@@ -733,8 +733,8 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         } else {
           console.warn("Unintended drag release")
         }
-      }
-      )
+      })
+
 }
 
 function moveExistingNode(drop_target: DropTarget) {
@@ -762,6 +762,15 @@ function moveExistingNode(drop_target: DropTarget) {
     if (drop_target.position === Position.RIGHT) {
       index++
     }
+
+    // if the node is moved in it's own row (same parent), we need to offset the index
+    if (parent_name === editor_store.dragging_existing_node.parent!.data.name &&
+      index > drop_target.node.parent.children!.findIndex(
+        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+      )
+    ) {
+      index--
+    }
   }
 
   ros_store.move_node_service.callService({
@@ -772,7 +781,7 @@ function moveExistingNode(drop_target: DropTarget) {
     (response: MoveNodeResponse) => {
       if (response.success) {
         notify({
-          title: "Moved node " + drop_target.node.data.name,
+          title: "Moved node " + node_name,
           type: 'success'
         })
         moveChildNodes(node_name, drop_target)
@@ -811,12 +820,10 @@ function toggleExistingNodeTargets() {
 
   // The first filter hides all nodes in the currently dragged subtree
   // The second filter hides all nodes where dropping would overload a child node count
+  //FIXME Maybe we should hide targets that do nothing, as in, place the node in the same spot 
 
   // If the filter returns true (keeps the node) it gets hidden
   targets.filter((drop_target: DropTarget) => {
-      //FIXME This should be solved via indexOf(), 
-      // but for some reason that doesn't generate any matches.
-      // This works but shouldn't be necessary
       return editor_store.dragging_existing_node!.descendants()
         .find((node: d3.HierarchyNode<TrimmedNode>) => {
           return node.data.name === drop_target.node.data.name
@@ -1154,6 +1161,9 @@ function drawNewDataVert(
   const groups = selection.append("g")
       .classed("gripper-group", true)
       .on("mouseover.highlight", function () {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
         d3.select(this)
             .classed("data-hover", true)
           .select(".label")
@@ -1170,8 +1180,11 @@ function drawNewDataVert(
       .classed("gripper", true)
       .attr("width", io_gripper_size)
       .attr("height", io_gripper_size)
-      .on("mousedown.drawedge", () => {
-        //TODO add callback
+      .on("mousedown.drawedge", function () {
+        //TODO add callback for init edge draw
+      })
+      .on("mouseup.drawedge", function () {
+        //TODO add callback for complete edge draw
       })
 
   const labels = groups.append("text")
@@ -1288,6 +1301,9 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         d3.event.stopPropagation()
       })
       .on("mouseover.highlight", function (edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
         g_data_vertices.filter((term: DataEdgeTerminal) =>
           term === edge.source || term === edge.target
         ).dispatch("mouseover")
@@ -1475,6 +1491,15 @@ onMounted(() => {
       editor_store.selectMultipleNodes(Array.from(selected_node_names))
     }
   })
+
+
+  // draw proto edges on data-drag
+  viewport.on('mousemove.drawedge', () => {
+    if (editor_store.data_edge_endpoint === undefined) {
+      return // Nothing to draw
+    }
+  })
+
 })
 </script>
 

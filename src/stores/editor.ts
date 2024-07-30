@@ -30,7 +30,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode } from '@/types/types'
+import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, DataEdgeTerminal } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -66,6 +66,7 @@ export const useEditorStore = defineStore('editor', () => {
     The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
   const dragging_new_node = ref<DocumentedNode | undefined>()
   const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
+  const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
   const is_dragging = computed<boolean>(() => {
       return dragging_new_node.value !== undefined || 
       dragging_existing_node.value !== undefined
@@ -205,9 +206,14 @@ export const useEditorStore = defineStore('editor', () => {
     dragging_existing_node.value = existing_dragging_node
   }
 
+  function startDrawingDataEdge(data_edge_start: DataEdgeTerminal) {
+    data_edge_endpoint.value = data_edge_start
+  }
+
   function stopDragging() {
     dragging_new_node.value = undefined
     dragging_existing_node.value = undefined
+    data_edge_endpoint.value = undefined
   }
 
   function enableShowDataGraph(enable: boolean) {
@@ -286,6 +292,7 @@ export const useEditorStore = defineStore('editor', () => {
     running_commands,
     dragging_new_node,
     dragging_existing_node,
+    data_edge_endpoint,
     is_dragging,
     last_seletion_source,
     selected_node,
@@ -302,6 +309,7 @@ export const useEditorStore = defineStore('editor', () => {
     editorSelectionChange,
     startDraggingNewNode,
     startDraggingExistingNode,
+    startDrawingDataEdge,
     stopDragging,
     show_data_graph,
     enableShowDataGraph,

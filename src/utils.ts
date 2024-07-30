@@ -46,7 +46,7 @@ let error_idx = 0
 export const error_id = () => error_idx++
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
-  if (a.nodeName === b.nodeName) {
+  if (a.node.data.name === b.node.data.name) {
     return false
   }
 
@@ -270,7 +270,7 @@ export function selectIOGripper(
     .selectAll<SVGGElement, DataEdgeTerminal>(
       '.' + data.data_kind.substring(0, data.data_kind.length - 1) + '-gripper-group'
     )
-    .filter((d: DataEdgeTerminal) => d.nodeName === data.node_name)
+    .filter((d: DataEdgeTerminal) => d.node.data.name === data.node_name)
     .filter((d: DataEdgeTerminal) => d.key === data.data_key)
 }
 
