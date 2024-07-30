@@ -69,7 +69,8 @@ export const useEditorStore = defineStore('editor', () => {
   const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
   const is_dragging = computed<boolean>(() => {
       return dragging_new_node.value !== undefined || 
-      dragging_existing_node.value !== undefined
+      dragging_existing_node.value !== undefined ||
+      data_edge_endpoint.value !== undefined
     })
 
   const node_has_changed = ref<boolean>(false)

@@ -51,7 +51,7 @@ import type {
   NodeDataWiring,
 } from '@/types/types'
 import { Position, IOKind } from '@/types/types'
-import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
+import { getDefaultValue, prettyprint_type, python_builtin_types, typesCompatible } from '@/utils'
 import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
@@ -96,6 +96,8 @@ const io_edge_offset: number = 10
 const forest_root_name: string = "__forest_root"
 const node_spacing: number = 80
 const drop_target_root_size: number = 150
+
+//TODO maybe add constants for magic-string classes
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
@@ -268,7 +270,6 @@ function dragPanTimerHandler() {
 watchEffect(drawEverything)
 function drawEverything() {
   if (editor_store.tree === undefined) {
-    // TODO draw drop targets if tree is null
     console.warn("Tree is undefined")
     return
   }
@@ -387,17 +388,6 @@ function drawEverything() {
   drawEdges(tree)
   drawDropTargets(tree)
   drawDataGraph(tree)
-
-  // TODO(nberg): Find a way to get rid of this - it's here because
-  // the DOM changes in updateNodes take a while to actually happen,
-  // and layoutNodes needs getBoundingClientRect information...
-  //window.setTimeout(() => {
-    //layoutNodes(svg, root)
-
-    //drawDropTargets()
-
-    //drawDataGraph(g_data, node2.data(), tree_msg.data_wirings)
-  //}, 100)
 
 }
 
@@ -737,6 +727,14 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
 
 }
 
+function dropTargetGroupVisibility(): string {
+  if (editor_store.dragging_new_node !== undefined ||
+    editor_store.dragging_existing_node !== undefined) {
+      return 'visible'
+    }
+  return 'hidden'
+}
+
 function moveExistingNode(drop_target: DropTarget) {
   if (editor_store.dragging_existing_node === undefined) {
     console.warn("Tried to move existing node by dragging but none selected")
@@ -820,7 +818,7 @@ function toggleExistingNodeTargets() {
 
   // The first filter hides all nodes in the currently dragged subtree
   // The second filter hides all nodes where dropping would overload a child node count
-  //FIXME Maybe we should hide targets that do nothing, as in, place the node in the same spot 
+  //FIXME Maybe we should hide targets that would place the node in the same spot 
 
   // If the filter returns true (keeps the node) it gets hidden
   targets.filter((drop_target: DropTarget) => {
@@ -1005,51 +1003,21 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
   }
 
   if (drop_target.position === Position.CENTER) {
-    //TODO Move drop target's children as children of new node
-    // Also delete drop target node
-
-    /*ros_store.replace_node_service.callService({
-      new_node_name: new_node_name,
-      old_node_name: drop_target.node.data.name
-    } as ReplaceNodeRequest,
-    (response: ReplaceNodeResponse) => {
-      if (response.success) {
-        notify({
-          title: "Replaced node " + drop_target.node.data.name,
-          type: 'success'
-        })
-      } else {
-        notify({
-          title: "Failed to replace node " + drop_target.node.data.name,
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (error: string) => {
-      notify({
-        title: "Failed to call replaceNode service",
-        text: error,
-        type: 'error'
-      })
-    })*/
-
-    const child_name_list = drop_target.node.data.child_names
-    for (let index = 0; index < child_name_list.length; index++) {
+    drop_target.node.data.child_names.forEach((child_name) => {
       ros_store.move_node_service.callService({
-        node_name: child_name_list[index],
+        node_name: child_name,
         new_parent_name: new_node_name,
         new_child_index: -1
       } as MoveNodeRequest,
       (response: MoveNodeResponse) => {
         if (response.success) {
           notify({
-            title: "Moved node " + child_name_list[index],
+            title: "Moved node " + child_name,
             type: 'success'
           })
         } else {
           notify({
-            title: "Failed to move node " + child_name_list[index],
+            title: "Failed to move node " + child_name,
             text: response.error_message,
             type: 'warn'
           })
@@ -1062,7 +1030,7 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
           type: 'error'
         })
       })
-    }        
+    })
     ros_store.remove_node_service.callService({
       node_name: drop_target.node.data.name,
       remove_children: false,
@@ -1138,6 +1106,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
 
   })
 
+  console.log(data_points)
+
   const g_data_vertices = d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
     .data(data_points, 
@@ -1145,11 +1115,23 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
     )
     .join(drawNewDataVert)
 
+  g_data_vertices
+    .select(".gripper")
+    //FIXME This is out here because it sees an outdated datum (term)
+    // if registered in drawNewDataVert
+    // Updating d3 should remedy this issue (as per the documentation)
+    .on("mousedown.drawedge", (term: DataEdgeTerminal) => {
+        editor_store.startDrawingDataEdge(term)
+        console.log(term)
+      })
+
   g_data_vertices.transition(tree_transition)
       //NOTE group elements can't be positioned with x= and y=
       .attr("transform", (d) => "translate(" + d.x + ", " + d.y + ")")
 
   drawDataEdges(data_points, g_data_vertices)
+
+  console.log(g_data_vertices.data())
 }
 
 function drawNewDataVert(
@@ -1170,6 +1152,9 @@ function drawNewDataVert(
             .attr("visibility", "visible")
       })
       .on("mouseout.highlight", function () {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
         d3.select(this)
             .classed("data-hover", false)
           .select(".label")
@@ -1180,9 +1165,6 @@ function drawNewDataVert(
       .classed("gripper", true)
       .attr("width", io_gripper_size)
       .attr("height", io_gripper_size)
-      .on("mousedown.drawedge", function () {
-        //TODO add callback for init edge draw
-      })
       .on("mouseup.drawedge", function () {
         //TODO add callback for complete edge draw
       })
@@ -1310,33 +1292,78 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         d3.select(this).classed("data-hover", true)
       })
       .on("mouseout.highlight", function (edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
         g_data_vertices.filter((term: DataEdgeTerminal) =>
           term === edge.source || term === edge.target
         ).dispatch("mouseout")
         d3.select(this).classed("data-hover", false)
       })
     .transition(tree_transition)
-      .attr("d", (edge: DataEdge) => {
-        const lineGen = d3.line<DataEdgePoint>()
-          .x((p) => p.x + io_gripper_size/2)
-          .y((p) => p.y + io_gripper_size/2)
-          .curve(d3.curveCatmullRom.alpha(0.9))
-        const inter1: DataEdgePoint = {
-          x: edge.source.x + io_edge_offset, 
-          y: edge.source.y
-        }
-        const inter2: DataEdgePoint = {
-          x: edge.target.x - io_edge_offset,
-          y: edge.target.y
-        }
-        return lineGen([edge.source, inter1, inter2, edge.target])
-      })
+      .attr("d", (edge: DataEdge) => drawDataLine(edge.source, edge.target))
       /*.attr("d", 
         d3.linkHorizontal<SVGPathElement, DataEdge, DataEdgeTerminal>()
           .x((p) => p.x + io_gripper_size/2)
           .y((p) => p.y + io_gripper_size/2)
       )*/
   
+}
+
+function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
+  const lineGen = d3.line<DataEdgePoint>()
+      .x((p) => p.x + io_gripper_size/2)
+      .y((p) => p.y + io_gripper_size/2)
+      .curve(d3.curveCatmullRom.alpha(0.9))
+    const inter1: DataEdgePoint = {
+      x: source.x + io_edge_offset, 
+      y: source.y
+    }
+    const inter2: DataEdgePoint = {
+      x: target.x - io_edge_offset,
+      y: target.y
+    }
+    return lineGen([source, inter1, inter2, target])
+}
+
+watchEffect(toggleDataEdgeTargets)
+function toggleDataEdgeTargets() {
+  if (g_data_vertices_ref.value === undefined) {
+    //TODO handle DOM is broken
+    return
+  }
+
+  // Reset visibility on all grippers
+  const data_verts = d3.select(g_data_vertices_ref.value)
+    .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
+      .classed("compatible", false)
+    
+  data_verts
+    .select(".label")
+      .attr("visibility", "hidden")
+  
+  // Reset drawing indicator
+  const draw_path = d3.select(".drawing-indicator")
+      .attr("d", null)
+
+  if (editor_store.data_edge_endpoint === undefined) {
+    return
+  }
+
+  data_verts
+    .filter((term: DataEdgeTerminal) => 
+      typesCompatible(term, editor_store.data_edge_endpoint!)
+    )
+      .classed("compatible", true)
+    .select(".label")
+      .attr("visibility", "visible")
+
+  draw_path
+      .attr("d", () => 
+        drawDataLine(editor_store.data_edge_endpoint!, 
+          editor_store.data_edge_endpoint!)
+      )
+
 }
 
 
@@ -1359,9 +1386,9 @@ onMounted(() => {
   const viewport_x = viewport.node()!.getBoundingClientRect().x
   const viewport_y = viewport.node()!.getBoundingClientRect().y
 
-  viewport.on('mouseup', () => {
+  /*viewport.on('mouseup', () => {
     console.log('mouseup before zoom')
-  })
+  })*/
 
   zoomObject = d3.zoom<SVGSVGElement, unknown>()
   zoomObject.scaleExtent([0.3, 1.0])
@@ -1398,13 +1425,17 @@ onMounted(() => {
   start_y = 0
 
   // selection rectangle
+  //TODO maybe put these into the template
   viewport
     .append('rect')
-      .attr('class', 'selection')
+      .classed('selection', true)
       .attr('width', 0)
       .attr('height', 0)
       .attr('x', 0)
       .attr('y', 0)
+  container
+    .append('path')
+      .classed('drawing-indicator', true)
 
   // start the selection
   viewport.on('mousedown.drawselect', () => {
@@ -1495,9 +1526,31 @@ onMounted(() => {
 
   // draw proto edges on data-drag
   viewport.on('mousemove.drawedge', () => {
+    if (svg_g_ref.value === undefined) {
+      //TODO handle DOM is broken
+      return
+    }
+
     if (editor_store.data_edge_endpoint === undefined) {
       return // Nothing to draw
     }
+
+    const [x, y] = d3.mouse(svg_g_ref.value)
+    // Construct a fake DataEdgePoint to reuse drawing code
+    const mouse_point: DataEdgePoint = {
+      x: x - io_gripper_size/2,
+      y: y - io_gripper_size/2
+    }
+
+    d3.select("path.drawing-indicator")
+        .attr("d", () => {
+          if (editor_store.data_edge_endpoint!.kind === IOKind.INPUT) {
+            return drawDataLine(mouse_point, editor_store.data_edge_endpoint!)
+          } else {
+            return drawDataLine(editor_store.data_edge_endpoint!, mouse_point)
+          }
+        })
+
   })
 
 })
@@ -1512,7 +1565,7 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
       </g>
-      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="editor_store.is_dragging ? 'visible' : 'hidden'"/>
+      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
     </g>
     <text
       x="10"
