@@ -183,8 +183,8 @@ export type DataEdgeTerminal = DataEdgePoint & {
 }
 
 export const enum IOKind {
-  INPUT = "input",
-  OUTPUT = "output",
+  INPUT = "inputs",
+  OUTPUT = "outputs",
   OTHER = "other",
 }
 

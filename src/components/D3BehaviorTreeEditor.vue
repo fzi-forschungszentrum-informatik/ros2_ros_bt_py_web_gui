@@ -62,6 +62,7 @@ import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
+import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 
 const editor_store = useEditorStore()
@@ -91,7 +92,11 @@ const pan_per_frame: number = 10.0
 
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
-const io_edge_offset: number = 10
+
+const io_edge_offset: number = 20
+const io_edge_wrap_factor: number = 10
+const io_edge_wrap_clamp: number = 5
+const io_edge_wrap_invert_thresh: number = 50
 
 const forest_root_name: string = "__forest_root"
 const node_spacing: number = 80
@@ -1120,9 +1125,20 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
     //FIXME This is out here because it sees an outdated datum (term)
     // if registered in drawNewDataVert
     // Updating d3 should remedy this issue (as per the documentation)
-    .on("mousedown.drawedge", (term: DataEdgeTerminal) => {
+      .on("mousedown.drawedge", (term: DataEdgeTerminal) => {
         editor_store.startDrawingDataEdge(term)
         console.log(term)
+      })
+      .on("mouseup.drawedge", (term: DataEdgeTerminal) => {
+        if (editor_store.data_edge_endpoint === undefined) {
+          console.warn("Unintended data edge draw")
+          return
+        }
+        if (term.kind === IOKind.INPUT) {
+          addNewDataEdge(editor_store.data_edge_endpoint, term)
+        } else {
+          addNewDataEdge(term, editor_store.data_edge_endpoint)
+        }
       })
 
   g_data_vertices.transition(tree_transition)
@@ -1144,30 +1160,33 @@ function drawNewDataVert(
       .classed("gripper-group", true)
       .on("mouseover.highlight", function () {
         if (editor_store.is_dragging) {
-          return // No highlights while dragging
+          // Highlight compatible vertices when dragging
+          const compat = d3.select(this).classed("compatible")
+          d3.select(this)
+              .classed("data-hover", compat)
+        } else {
+          d3.select(this)
+              .classed("data-hover", true)
+            .select(".label")
+              .attr("visibility", "visible")
         }
-        d3.select(this)
-            .classed("data-hover", true)
-          .select(".label")
-            .attr("visibility", "visible")
       })
       .on("mouseout.highlight", function () {
         if (editor_store.is_dragging) {
-          return // No highlights while dragging
+          d3.select(this)
+              .classed("data-hover", false)
+        } else {
+          d3.select(this)
+              .classed("data-hover", false)
+            .select(".label")
+              .attr("visibility", "hidden")
         }
-        d3.select(this)
-            .classed("data-hover", false)
-          .select(".label")
-            .attr("visibility", "hidden")
       })
 
   groups.append("rect")
       .classed("gripper", true)
       .attr("width", io_gripper_size)
       .attr("height", io_gripper_size)
-      .on("mouseup.drawedge", function () {
-        //TODO add callback for complete edge draw
-      })
 
   const labels = groups.append("text")
       .classed("label", true)
@@ -1223,20 +1242,8 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
   const data_edges: DataEdge[] = []
 
   function matchEndpoint(wire_point: NodeDataLocation, terminal: DataEdgeTerminal): boolean {
-    let match_kind: boolean
-    switch (terminal.kind) {
-      case IOKind.INPUT:
-        match_kind = wire_point.data_kind === "inputs"
-        break;
-      case IOKind.OUTPUT:
-        match_kind = wire_point.data_kind === "outputs"
-        break;
-      default:
-        match_kind = false
-        break;
-    }
     return wire_point.node_name === terminal.node.data.name &&
-      match_kind && wire_point.data_key === terminal.key
+      wire_point.data_kind === terminal.kind && wire_point.data_key === terminal.key
   }
 
   editor_store.tree.data_wirings.forEach((wiring: NodeDataWiring) => {
@@ -1286,20 +1293,29 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         if (editor_store.is_dragging) {
           return // No highlights while dragging
         }
-        g_data_vertices.filter((term: DataEdgeTerminal) =>
-          term === edge.source || term === edge.target
-        ).dispatch("mouseover")
-        d3.select(this).classed("data-hover", true)
+        g_data_vertices
+          .filter((term: DataEdgeTerminal) =>
+            term === edge.source || term === edge.target
+          )
+            .dispatch("mouseover")
+            .attr("id", (term: DataEdgeTerminal) => 
+              term.kind === IOKind.INPUT ? "hightlightV2" : "hightlightV1"
+            )
+        d3.select(this)
+            .classed("data-hover", true)
+            .attr("id", "highlightEdge")
       })
-      .on("mouseout.highlight", function (edge: DataEdge) {
+      // Mouseout is handled through the <use> element in the template
+      /*.on("mouseout.highlight", function (edge: DataEdge) {
         if (editor_store.is_dragging) {
           return // No highlights while dragging
         }
         g_data_vertices.filter((term: DataEdgeTerminal) =>
           term === edge.source || term === edge.target
         ).dispatch("mouseout")
-        d3.select(this).classed("data-hover", false)
-      })
+        d3.select(this)
+            .classed("data-hover", false)
+      })*/
     .transition(tree_transition)
       .attr("d", (edge: DataEdge) => drawDataLine(edge.source, edge.target))
       /*.attr("d", 
@@ -1315,15 +1331,19 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
       .x((p) => p.x + io_gripper_size/2)
       .y((p) => p.y + io_gripper_size/2)
       .curve(d3.curveCatmullRom.alpha(0.9))
-    const inter1: DataEdgePoint = {
+    let wraparound = (source.x - target.x) / io_edge_wrap_factor
+    wraparound = Math.min( Math.max(wraparound, 0), io_edge_wrap_clamp)
+    const invert_source = target.y - source.y > io_edge_wrap_invert_thresh
+    const invert_target = source.y - target.y > io_edge_wrap_invert_thresh
+    const source_offset: DataEdgePoint = {
       x: source.x + io_edge_offset, 
-      y: source.y
+      y: source.y - wraparound * (invert_source ? -1 : 1)
     }
-    const inter2: DataEdgePoint = {
+    const target_offset: DataEdgePoint = {
       x: target.x - io_edge_offset,
-      y: target.y
+      y: target.y - wraparound * (invert_target ? -1 : 1)
     }
-    return lineGen([source, inter1, inter2, target])
+    return lineGen([source, source_offset, target_offset, target])
 }
 
 watchEffect(toggleDataEdgeTargets)
@@ -1365,6 +1385,69 @@ function toggleDataEdgeTargets() {
       )
 
 }
+
+// Caller needs to ensure to pass the input as source
+function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
+  ros_store.wire_data_service.callService({
+    wirings: [{
+      source: {
+        node_name: source.node.data.name,
+        data_kind: source.kind,
+        data_key: source.key
+      },
+      target: {
+        node_name: target.node.data.name,
+        data_kind: target.kind,
+        data_key: target.key
+      }
+    } as NodeDataWiring ],
+    ignore_failure: true //TODO what does this do?
+  } as WireNodeDataRequest,
+  (response: WireNodeDataResponse) => {
+    if (response.success) {
+      notify({
+        title: "Added data edge",
+        type: 'success'
+      })
+    } else {
+      notify({
+        title: "Failed to add data edge",
+        text: response.error_message,
+        type: 'warn'
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: "Failed to call dataWiring service",
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
+function removeHoverDataEdge() {
+  if (editor_store.is_dragging) {
+    return // No highlights while dragging
+  }
+
+  const g_data_vertices = d3
+    .selectAll<SVGGElement, DataEdgeTerminal>("#hightlightV1, #hightlightV2")
+
+  const edge = d3.select<SVGPathElement, DataEdge>("#highlightEdge")
+
+  g_data_vertices
+    .filter((term: DataEdgeTerminal) =>
+      term === edge.datum().source || term === edge.datum().target
+    )
+      .dispatch("mouseout")
+      .attr("id", null)
+
+  edge
+      .classed("data-hover", false)
+      .attr("id", null)
+}
+
 
 
 
@@ -1564,6 +1647,10 @@ onMounted(() => {
       <g class="data_graph" ref="g_data_graph_ref" :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'">
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
+        <!--Below ensures the highlighted edge is in the foreground-->
+        <use href="#highlightEdge" @mouseout="removeHoverDataEdge" />
+        <use href="#hightlightV1"/>
+        <use href="#hightlightV2"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
     </g>
