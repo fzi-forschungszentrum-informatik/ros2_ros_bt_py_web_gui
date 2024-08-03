@@ -111,6 +111,7 @@ export const useROSStore = defineStore(
       })
     )
 
+    //TODO this is deprecated, add SubtreeInfo subscriber?
     const debug_settings_sub = ref<ROSLIB.Topic<DebugSettings>>(
       new ROSLIB.Topic({
         ros: ros.value,
@@ -228,7 +229,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    //TODO is this service supposed to exits? Ros2 says it does, roslib says it doesn't
+    //TODO is this service supposed to exist? Ros2 says it does, roslib says it doesn't
     const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
       new ROSLIB.Service({
         ros: ros.value,

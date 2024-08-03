@@ -75,7 +75,10 @@ import {
   faLayerGroup,
   faTree,
   faSun,
-  faMoon
+  faMoon,
+  faWindowMaximize,
+  faWindowRestore,
+  faRoute
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -103,7 +106,10 @@ library.add(
   faLayerGroup,
   faTree,
   faSun,
-  faMoon
+  faMoon,
+  faWindowMaximize,
+  faWindowRestore,
+  faRoute
 )
 
 const app = createApp(App)

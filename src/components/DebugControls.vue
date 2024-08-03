@@ -76,6 +76,7 @@ function onClickStep() {
   })
 }
 
+//TODO this is deprecated
 function handleDebugChange(event: Event) {
   const target = event.target as HTMLInputElement
 
@@ -106,6 +107,7 @@ function handleDebugChange(event: Event) {
   debugging.value = enable
 }
 
+//TODO this is deprecated
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
 
@@ -136,6 +138,7 @@ function handlePubSubtreesChange(event: Event) {
   publish_subtrees.value = enable
 }
 
+//TODO this is deprecated
 /**
  * Manage the subscription to the debug settings topic.
  * If the topic subsciber is present and we are not currently subscribed, we will subscribe.

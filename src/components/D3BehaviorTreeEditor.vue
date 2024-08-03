@@ -282,7 +282,7 @@ function drawEverything() {
   if (
     g_vertices_ref.value === undefined
   ) {
-    // TODO handle DOM is broken
+    // TODO handle DOM is broken, maybe page refresh? (this has many occurences)
     console.warn("DOM is broken")
     return
   }
@@ -587,7 +587,6 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
   if (
     g_edges_ref.value === undefined
   ) {
-    // TODO handle DOM is broken
     console.warn("DOM is broken")
     return
   }
@@ -615,7 +614,7 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
 function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
 
   if (g_drop_targets_ref.value === undefined) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -808,7 +807,7 @@ function moveExistingNode(drop_target: DropTarget) {
 watchEffect(toggleExistingNodeTargets)
 function toggleExistingNodeTargets() {
   if (g_drop_targets_ref.value === undefined) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -929,7 +928,7 @@ function addNewNode(drop_target: DropTarget) {
 watchEffect(toggleNewNodeTargets)
 function toggleNewNodeTargets() {
   if (g_drop_targets_ref.value === undefined) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -1074,7 +1073,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
   if (g_data_graph_ref.value === undefined || 
     g_data_vertices_ref.value === undefined
   ) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -1111,8 +1110,6 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
 
   })
 
-  console.log(data_points)
-
   const g_data_vertices = d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>(".gripper-group")
     .data(data_points, 
@@ -1147,7 +1144,6 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
 
   drawDataEdges(data_points, g_data_vertices)
 
-  console.log(g_data_vertices.data())
 }
 
 function drawNewDataVert(
@@ -1234,7 +1230,7 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
     g_data_vertices_ref.value === undefined || 
     g_data_edges_ref.value === undefined
   ) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -1349,7 +1345,7 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
 watchEffect(toggleDataEdgeTargets)
 function toggleDataEdgeTargets() {
   if (g_data_vertices_ref.value === undefined) {
-    //TODO handle DOM is broken
+    console.warn("DOM is broken")
     return
   }
 
@@ -1610,7 +1606,7 @@ onMounted(() => {
   // draw proto edges on data-drag
   viewport.on('mousemove.drawedge', () => {
     if (svg_g_ref.value === undefined) {
-      //TODO handle DOM is broken
+      console.warn("DOM is broken")
       return
     }
 

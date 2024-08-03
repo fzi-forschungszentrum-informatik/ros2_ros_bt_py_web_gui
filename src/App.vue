@@ -226,8 +226,9 @@ onMounted(() => {
                   <button
                     class="btn btn-primary m-1"
                     @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
+                    title="Toggle Data Graph"
                   >
-                    Toggle Data Graph
+                    <font-awesome-icon icon="fa-solid fa-route" />
                   </button>
                   <button
                     v-if="execution_bar_visible"
@@ -238,8 +239,9 @@ onMounted(() => {
                         nodelist_visible = false
                       }
                     "
+                    title="Hide User Interface"
                   >
-                    Hide User Interface
+                    <font-awesome-icon icon="fa-solid fa-window-maximize" />
                   </button>
                   <button
                     v-else
@@ -250,8 +252,9 @@ onMounted(() => {
                         nodelist_visible = true
                       }
                     "
+                    title="Show User Interface"
                   >
-                    Show User Interface
+                    <font-awesome-icon icon="fa-solid fa-window-restore" />
                   </button>
                   <div class="d-flex flex-row align-items-center">
                     <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
@@ -275,11 +278,11 @@ onMounted(() => {
                   </div>
                   <!--TODO find a better way to place elements-->
                   <RightAlignSpacer></RightAlignSpacer>
-                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode">
+                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
                     <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-layer-group" />
                     <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-secondary' : 'text-dark'" icon="fa-solid fa-tree" />
                   </button>
-                  <button class="btn m-1" @click="editor_store.cycleEditorSkin">
+                  <button class="btn m-1" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
                     <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-moon" />
                     <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-sun" />
                   </button>
