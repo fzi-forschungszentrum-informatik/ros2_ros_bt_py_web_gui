@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg } from '@/types/types'
+import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, DataEdgeTerminal } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -60,7 +60,18 @@ export const useEditorStore = defineStore('editor', () => {
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
-  const dragging_node = ref<DocumentedNode | undefined>()
+
+  /* The dragging_new_node msg is set if we drag a new node from the node list, 
+    the dragging_existing_node is set if we drag a node from the editor canvas.
+    The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
+  const dragging_new_node = ref<DocumentedNode | undefined>()
+  const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
+  const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
+  const is_dragging = computed<boolean>(() => {
+      return dragging_new_node.value !== undefined || 
+      dragging_existing_node.value !== undefined ||
+      data_edge_endpoint.value !== undefined
+    })
 
   const node_has_changed = ref<boolean>(false)
 
@@ -87,6 +98,8 @@ export const useEditorStore = defineStore('editor', () => {
   const selected_edge = ref<NodeDataWiring | undefined>(undefined)
 
   const copy_node_mode = ref<boolean>(false)
+
+  const is_layer_mode = ref<boolean>(false)
 
   function enableSubtreePublishing(enable: boolean) {
     publish_subtrees.value = enable
@@ -161,7 +174,7 @@ export const useEditorStore = defineStore('editor', () => {
     if (new_selected_node_name === undefined || tree.value === undefined) {
       selected_node.value = undefined
       selected_node_names.value = []
-      last_seletion_source.value = EditorSelectionSource.EDITOR
+      last_seletion_source.value = EditorSelectionSource.NONE
       return
     }
 
@@ -184,20 +197,42 @@ export const useEditorStore = defineStore('editor', () => {
     last_seletion_source.value = EditorSelectionSource.EDITOR
   }
 
-  function startDragging(new_dragging_node: DocumentedNode) {
-    dragging_node.value = new_dragging_node
+  //TODO add timer to allow for early cancelling the drag on "click" (fast mousedown and mouseup)
+  // This is not a functional change, but would avoid having the drop targets flicker when clicking
+  function startDraggingNewNode(new_dragging_node: DocumentedNode) {
+    dragging_new_node.value = new_dragging_node
+  }
+
+  function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<TrimmedNode>) {
+    dragging_existing_node.value = existing_dragging_node
+  }
+
+  function startDrawingDataEdge(data_edge_start: DataEdgeTerminal) {
+    data_edge_endpoint.value = data_edge_start
   }
 
   function stopDragging() {
-    dragging_node.value = undefined
+    dragging_new_node.value = undefined
+    dragging_existing_node.value = undefined
+    data_edge_endpoint.value = undefined
   }
 
   function enableShowDataGraph(enable: boolean) {
     show_data_graph.value = enable
   }
 
-  function setEditorSkin(new_skin: EditorSkin) {
-    skin.value = new_skin
+  function cycleEditorSkin() {
+    switch (skin.value) {
+      case EditorSkin.DARK:
+        skin.value = EditorSkin.LIGHT
+        return
+      case EditorSkin.LIGHT:
+        skin.value = EditorSkin.DARK
+        return
+      default:
+        skin.value = EditorSkin.DARK
+        return
+    }
   }
 
   function selectSubtree(name: string, is_subtree: boolean) {
@@ -256,11 +291,15 @@ export const useEditorStore = defineStore('editor', () => {
     filtered_nodes,
     debug,
     running_commands,
-    dragging_node,
+    dragging_new_node,
+    dragging_existing_node,
+    data_edge_endpoint,
+    is_dragging,
     last_seletion_source,
     selected_node,
     selected_node_names,
     node_has_changed,
+    is_layer_mode,
     runNewCommand,
     removeRunningCommand,
     enableSubtreePublishing,
@@ -269,12 +308,14 @@ export const useEditorStore = defineStore('editor', () => {
     clearFilteredNodes,
     nodeListSelectionChange,
     editorSelectionChange,
-    startDragging,
+    startDraggingNewNode,
+    startDraggingExistingNode,
+    startDrawingDataEdge,
     stopDragging,
     show_data_graph,
     enableShowDataGraph,
     skin,
-    setEditorSkin,
+    cycleEditorSkin,
     selected_subtree,
     selectSubtree,
     subtree_names,

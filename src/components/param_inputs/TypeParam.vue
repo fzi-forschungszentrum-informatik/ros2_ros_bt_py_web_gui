@@ -111,3 +111,17 @@ function onFocus() {
     </div>
   </div>
 </template>
+
+<style lang="scss">
+.search-results {
+  padding-left: 10px;
+}
+
+.search-result:hover {
+  background-color: #007bff;
+}
+
+.search-result-highlighted {
+  background-color: #007bff;
+}
+</style>

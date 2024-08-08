@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -69,11 +69,13 @@ function updateAvailableNamespaces() {
       const namespaces = response.services.map(
         // Chop off the topic name (but not the last slash), which leaves us with the BT
         // namespace
-        (x) => x.substr(0, x.lastIndexOf('/')) + '/'
+        (x) => x.substring(0, x.lastIndexOf('/')) + '/'
       )
-      ros_store.setAvailableNamespaces(namespaces)
-      if (ros_store.namespace === '' && namespaces.length > 0) {
-        ros_store.changeNamespace(namespaces[0])
+      if (namespaces.length > 0) {
+        ros_store.setAvailableNamespaces(namespaces)
+        if (ros_store.namespace === '') {
+          ros_store.changeNamespace(namespaces[0])
+        }
       }
     }
   )
@@ -92,6 +94,9 @@ function saveRosbridgeServer() {
   ros_store.setUrl(new_url.value)
   ros_store.connect()
 }
+
+onMounted(updateAvailableNamespaces)
+
 </script>
 
 <template>

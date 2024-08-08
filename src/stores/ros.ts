@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, DebugSettings, Messages } from '@/types/types'
+import type { Packages, DebugSettings, Messages, TreeMsg } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -65,6 +65,7 @@ import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/Rem
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
+import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 import type {
   GenerateSubtreeRequest,
   GenerateSubtreeResponse
@@ -79,7 +80,7 @@ export const useROSStore = defineStore(
     const ros = ref<ROSLIB.Ros>(new ROSLIB.Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
-    const namespace = ref<string>('/')
+    const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
     const services_for_type_service = ref<
@@ -110,6 +111,7 @@ export const useROSStore = defineStore(
       })
     )
 
+    //TODO this is deprecated, add SubtreeInfo subscriber?
     const debug_settings_sub = ref<ROSLIB.Topic<DebugSettings>>(
       new ROSLIB.Topic({
         ros: ros.value,
@@ -159,6 +161,16 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'add_node',
         serviceType: 'ros_bt_py_interfaces/srv/AddNode'
+      })
+    )
+
+    const tree_sub = ref<ROSLIB.Topic<TreeMsg>>(
+      new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree',
+        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
       })
     )
 
@@ -214,6 +226,15 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_pt_interfaces/srv/RemoveNode'
+      })
+    )
+
+    //TODO is this service supposed to exist? Ros2 says it does, roslib says it doesn't
+    const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'replace_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
       })
     )
 
@@ -293,6 +314,16 @@ export const useROSStore = defineStore(
         messageType: 'ros_bt_py_interfaces/msg/DebugSettings',
         latch: true,
         reconnect_on_close: true
+      })
+
+      tree_sub.value.unsubscribe()
+      tree_sub.value.removeAllListeners()
+      tree_sub.value = new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree',
+        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
       })
 
       messages_sub.value.unsubscribe()
@@ -473,10 +504,12 @@ export const useROSStore = defineStore(
       morph_node_service,
       set_options_service,
       move_node_service,
+      replace_node_service,
       wire_data_service,
       add_node_at_index_service,
       generate_subtree_service,
       debug_settings_sub,
+      tree_sub,
       packages_sub,
       messages_sub,
       connect,

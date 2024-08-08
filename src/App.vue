@@ -35,12 +35,11 @@ import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages } from './types/types'
-import { useEditorStore } from './stores/editor'
+import type { Messages, NodeMsg, Packages, TreeMsg } from './types/types'
+import { EditorSkin, useEditorStore } from './stores/editor'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
 import RightAlignSpacer from './components/RightAlignSpacer.vue'
-import SelectEditorSkin from './components/SelectEditorSkin.vue'
 import D3BehaviorTreeEditor from './components/D3BehaviorTreeEditor.vue'
 import BehaviorTreeEdge from './components/BehaviorTreeEdge.vue'
 import MultipleSelection from './components/MultipleSelection.vue'
@@ -74,6 +73,14 @@ function updateMessagesSubscription() {
   ros_store.messages_sub.subscribe(onNewMessagesMsg)
 }
 
+function onNewTreeMsg(msg: TreeMsg) {
+  editor_store.tree = msg
+}
+
+function updateTreeSubscription() {
+  ros_store.tree_sub.subscribe(onNewTreeMsg)
+}
+
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
@@ -88,8 +95,8 @@ function handleNodeSearchClear(event: KeyboardEvent) {
 }
 
 function findPossibleParents() {
-  if (editor_store.selected_subtree.tree) {
-    return editor_store.selected_subtree.tree.nodes
+  if (editor_store.tree) {
+    return editor_store.tree.nodes
       .filter(
         (node: NodeMsg) => node.max_children < 0 || node.child_names.length < node.max_children
       )
@@ -134,6 +141,7 @@ ros_store.$onAction(({ name, after }) => {
   }
 
   after(() => {
+    updateTreeSubscription()
     updateMessagesSubscription()
     updatePackagesSubscription()
   })
@@ -141,6 +149,7 @@ ros_store.$onAction(({ name, after }) => {
 
 onMounted(() => {
   ros_store.connect()
+  updateTreeSubscription()
   updateMessagesSubscription()
   updatePackagesSubscription()
 })
@@ -152,7 +161,8 @@ onMounted(() => {
   </header>
 
   <main>
-    <div :class="editor_store.dragging_node ? 'cursor-grabbing' : ''">
+    <div :class="editor_store.is_dragging ? 'cursor-grabbing' : ''"
+      @mouseup="() => editor_store.stopDragging()">
       <div class="container-fluid">
         <div class="row row-height">
           <div class="col scroll-col" id="nodelist_container" v-if="nodelist_visible">
@@ -216,8 +226,9 @@ onMounted(() => {
                   <button
                     class="btn btn-primary m-1"
                     @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
+                    title="Toggle Data Graph"
                   >
-                    Toggle Data Graph
+                    <font-awesome-icon icon="fa-solid fa-route" />
                   </button>
                   <button
                     v-if="execution_bar_visible"
@@ -228,8 +239,9 @@ onMounted(() => {
                         nodelist_visible = false
                       }
                     "
+                    title="Hide User Interface"
                   >
-                    Hide User Interface
+                    <font-awesome-icon icon="fa-solid fa-window-maximize" />
                   </button>
                   <button
                     v-else
@@ -240,8 +252,9 @@ onMounted(() => {
                         nodelist_visible = true
                       }
                     "
+                    title="Show User Interface"
                   >
-                    Show User Interface
+                    <font-awesome-icon icon="fa-solid fa-window-restore" />
                   </button>
                   <div class="d-flex flex-row align-items-center">
                     <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
@@ -263,47 +276,55 @@ onMounted(() => {
                       :value="tree_state"
                     />
                   </div>
+                  <!--TODO find a better way to place elements-->
                   <RightAlignSpacer></RightAlignSpacer>
-                  <SelectEditorSkin></SelectEditorSkin>
+                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-layer-group" />
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-secondary' : 'text-dark'" icon="fa-solid fa-tree" />
+                  </button>
+                  <button class="btn m-1" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-moon" />
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-sun" />
+                  </button>
                 </div>
-                <div class="row edit_canvas h-100 pb-2">
-                  <div class="col p-0">
-                    <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
-                  </div>
+              </div>
+              <div class="row edit_canvas h-100 pb-2">
+                <div class="col p-0">
+                  <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
                 </div>
-                <div class="row maxh50">
-                  <div class="col pl-0">
-                    <!--Node Selection list-->
-                    <MultipleSelection v-if="editor_store.last_seletion_source === 'multiple'" />
-                    <NewNode
-                      v-else-if="editor_store.last_seletion_source === 'nodelist'"
-                      :key="
-                        ros_store.namespace +
-                        (editor_store.selected_node
-                          ? editor_store.selected_node.module +
-                            editor_store.selected_node.node_class
-                          : '')
-                      "
-                      :node="editor_store.selected_node!"
-                      :parents="findPossibleParents()"
-                    />
-                    <SelectedNode
-                      v-else-if="editor_store.last_seletion_source === 'editor'"
-                      :key="
-                        ros_store.namespace +
-                        (editor_store.selected_node ? editor_store.selected_node.name : '')
-                      "
-                    />
-                    <div v-else class="d-flex flex-column">No Node Selected</div>
-                  </div>
-                  <div class="col">
-                    <div className="row pt-0 pl-0 pr-0">
-                      <!-- BT Edge selection-->
-                      <BehaviorTreeEdge
-                        v-if="editor_store.selected_edge !== undefined"
-                      ></BehaviorTreeEdge>
-                      <div v-else class="d-flex flex-column">No Edge Selected</div>
-                    </div>
+              </div>
+              <div class="row maxh50">
+                <div class="col pl-0">
+                  <!--Node Selection list-->
+                  <MultipleSelection v-if="editor_store.last_seletion_source === 'multiple'" />
+                  <NewNode
+                    v-else-if="editor_store.last_seletion_source === 'nodelist'"
+                    :key="
+                      ros_store.namespace +
+                      (editor_store.selected_node
+                        ? editor_store.selected_node.module +
+                          editor_store.selected_node.node_class
+                        : '')
+                    "
+                    :node="editor_store.selected_node!"
+                    :parents="findPossibleParents()"
+                  />
+                  <SelectedNode
+                    v-else-if="editor_store.last_seletion_source === 'editor'"
+                    :key="
+                      ros_store.namespace +
+                      (editor_store.selected_node ? editor_store.selected_node.name : '')
+                    "
+                  />
+                  <div v-else class="d-flex flex-column">No Node Selected</div>
+                </div>
+                <div class="col">
+                  <div className="row pt-0 pl-0 pr-0">
+                    <!-- BT Edge selection-->
+                    <BehaviorTreeEdge
+                      v-if="editor_store.selected_edge !== undefined"
+                    ></BehaviorTreeEdge>
+                    <div v-else class="d-flex flex-column">No Edge Selected</div>
                   </div>
                 </div>
               </div>
@@ -318,67 +339,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-.box {
-  border: 3px solid;
-  margin: 5px;
-  padding: 10px;
-}
 
-.node {
-  cursor: pointer;
-}
-
-.node circle {
-  fill: #fff;
-  stroke: steelblue;
-  stroke-width: 1.5px;
-}
-
-.node text {
-  font: 10px sans-serif;
-}
-
-.link {
-  fill: none;
-  stroke: #1e2226;
-  stroke-width: 3.5px;
-}
-
-.btnode,
-.label {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  border-color: #4e5666;
-  color: #eff0f4;
-  fill: #eff0f4;
-  /*FIXME: max-width: 200px;*/
-  overflow-wrap: break-word;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-}
-
-.label {
-  pointer-events: none;
-}
-
-.btnode h5 {
-  color: #858e99;
-}
-
-.node_list {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  border-color: #4e5666;
-  color: #eff0f4;
-}
 
 .maxw0 {
   max-width: 0;
@@ -400,52 +361,13 @@ onMounted(() => {
   cursor: grabbing;
 }
 
-.svg-button:hover {
-  fill: #bebebe;
-}
 
-.btnode tbody {
-  color: #cecfd2;
-}
-
-.btnode h3 {
-  margin: 4px;
-}
-
-.btnode tbody tr {
-  background: #313740;
-}
-
-.btnode td.key {
-  font-weight: bold;
-}
-
-.btnode tbody tr:hover {
-  background: #3a414c;
-}
-
-.btnode td {
-  /*
-border: solid;
-*/
-  vertical-align: top;
-}
-
-.btnode th {
-  text-align: left;
-}
 
 .json {
   white-space: pre;
 }
 
-.btnode td pre {
-  margin: 0;
-}
 
-.btnode table {
-  margin: 4px;
-}
 
 .scroll-col {
   height: 100%;
@@ -456,15 +378,7 @@ border: solid;
   height: 94vh;
 }
 
-.reactive-svg {
-  display: block;
-  position: relative;
-  top: 0;
-  left: 0;
-  width: 100%;
-  /* only required for <img /> */
-  height: 100%;
-}
+
 
 .fill-screen {
   height: 100vh;
@@ -480,54 +394,12 @@ border: solid;
   background: #fedede;
 }
 
+
 .placeholder {
   background: #8e0000;
 }
 
-.control-bar {
-  background: #bebebe;
-}
 
-rect.selection {
-  stroke: gray;
-  stroke-dasharray: 4px;
-  stroke-opacity: 0.5;
-  fill: transparent;
-}
-
-path.data-hover {
-  stroke: #148050;
-  background: #148050;
-}
-
-.data-link,
-.drawing-indicator {
-  fill: none;
-  stroke: #64676f;
-  stroke-width: 3px;
-}
-
-.data-hover rect {
-  stroke: #148050;
-  background: #148050;
-  fill: #148050;
-}
-
-.compatible rect {
-  stroke: #14d050;
-}
-
-.drawing-indicator {
-  pointer-events: none;
-}
-
-.darkmode {
-  background: #34393c;
-}
-
-.lightmode {
-  background: #ffffff;
-}
 
 .clear-error {
   position: absolute;
@@ -536,9 +408,7 @@ path.data-hover {
   z-index: 10;
 }
 
-.gripper {
-  fill: #74777f;
-}
+
 
 #nodelist_container {
   border-right: solid;
@@ -556,21 +426,7 @@ path.data-hover {
   z-index: 1;
 }
 
-.node-selected {
-  background: #27406d;
-}
 
-.search-results {
-  padding-left: 10px;
-}
-
-.search-result:hover {
-  background-color: #007bff;
-}
-
-.search-result-highlighted {
-  background-color: #007bff;
-}
 
 div.jsoneditor,
 div.jsoneditor-menu {
@@ -586,6 +442,8 @@ textarea.jsoneditor-text {
   min-height: 35px;
 }
 
+
+
 #loading-icon {
   position: absolute;
   left: 50%;
@@ -595,6 +453,8 @@ textarea.jsoneditor-text {
   text-align: center;
   font: 100px sans-serif;
 }
+
+
 
 @keyframes fade {
   0% {
@@ -641,62 +501,19 @@ textarea.jsoneditor-text {
   animation-delay: 1.2s;
 }
 
-.connected {
-  padding: 0.25rem;
-  color: #0caa19;
-}
 
-.disconnected {
-  padding: 0.25rem;
-  color: #ff0000;
-}
 
 .cm_available {
   padding: 0.25rem;
   color: #007bff;
 }
 
-.packages-missing {
-  padding: 0.25rem;
-  color: #ff7300;
-}
 
-.messages-missing {
-  padding: 0.25rem;
-  color: #ffd000;
-}
 
 .filebrowser-bar:hover {
   background-color: #007bff;
   color: #ffffff;
 }
 
-@media screen and (max-width: 1910px) {
-  .hide-button-text {
-    display: none;
-  }
 
-  .show-button-icon {
-    visibility: visible;
-  }
-}
-
-@media screen and (max-width: 1640px) {
-  .hide-button-text-control {
-    display: none;
-  }
-
-  .show-button-icon {
-    visibility: visible;
-  }
-}
-
-.tag:hover {
-  border: 1px solid #007bff !important;
-  cursor: pointer;
-}
-
-.grab:hover {
-  cursor: grab;
-}
 </style>

@@ -1,0 +1,150 @@
+.reactive-svg {
+    display: block;
+    position: relative;
+    top: 0;
+    left: 0;
+    width: 100%;
+    /* only required for <img /> */
+    height: 100%;
+}
+
+.darkmode {
+    background: #34393c;
+}
+  
+.lightmode {
+    background: #ffffff;
+}
+
+.svg-button:hover {
+    fill: #bebebe;
+}
+
+rect.selection {
+    stroke: gray;
+    stroke-dasharray: 4px;
+    stroke-opacity: 0.5;
+    fill: transparent;
+}
+
+.node-selected {
+    background: #27406d;
+}
+
+.node {
+    cursor: pointer;
+}
+
+// When do nodes contain circle elements?
+.node circle {
+    fill: #fff;
+    stroke: steelblue;
+    stroke-width: 1.5px;
+}
+  
+// When do nodes contain text elements?
+.node text {
+    font: 10px sans-serif;
+}
+  
+.link {
+    fill: none;
+    stroke: #1e2226;
+    stroke-width: 3.5px;
+}
+  
+.btnode,
+.label {
+    font-family: sans-serif;
+    display: inline-block;
+    background: #2a2d36;
+    border: solid;
+    border-width: 6px;
+    border-color: #4e5666;
+    color: #eff0f4;
+    fill: #eff0f4;
+    /*FIXME: max-width: 200px;*/
+    overflow-wrap: break-word;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+  
+.label {
+    pointer-events: none;
+}
+  
+.btnode h5 {
+    color: #858e99;
+}
+
+.btnode h3 {
+    margin: 4px;
+}
+
+// When do nodes contain tables?
+.btnode td pre {
+    margin: 0;
+}
+  
+.btnode table {
+    margin: 4px;
+}
+
+.btnode tbody {
+    color: #cecfd2;
+}
+  
+.btnode tbody tr {
+    background: #313740;
+}
+  
+.btnode td.key {
+    font-weight: bold;
+}
+  
+.btnode tbody tr:hover {
+    background: #3a414c;
+}
+  
+.btnode td {
+    /*
+  border: solid;
+  */
+    vertical-align: top;
+}
+  
+.btnode th {
+    text-align: left;
+}
+
+path.data-hover {
+    stroke: #148050;
+    background: #148050;
+}
+
+.gripper {
+    fill: #74777f;
+}
+
+.data-link,
+.drawing-indicator {
+    fill: none;
+    stroke: #64676f;
+    stroke-width: 3px;
+}
+  
+.data-hover rect {
+    stroke: #148050;
+    background: #148050;
+    fill: #148050;
+}
+  
+.compatible rect {
+    stroke: #14d050;
+}
+  
+.drawing-indicator {
+    pointer-events: none;
+}
