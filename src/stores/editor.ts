@@ -57,6 +57,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   const tree = ref<TreeMsg | undefined>(undefined)
   const debug_info = ref<DebugInfo | undefined>(undefined)
+  const subtree_states = ref<TreeMsg[]>([])
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -68,10 +69,10 @@ export const useEditorStore = defineStore('editor', () => {
   const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
   const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
   const is_dragging = computed<boolean>(() => {
-      return dragging_new_node.value !== undefined || 
-      dragging_existing_node.value !== undefined ||
-      data_edge_endpoint.value !== undefined
-    })
+    return dragging_new_node.value !== undefined || 
+    dragging_existing_node.value !== undefined ||
+    data_edge_endpoint.value !== undefined
+  })
 
   const node_has_changed = ref<boolean>(false)
 
@@ -93,7 +94,9 @@ export const useEditorStore = defineStore('editor', () => {
     tree: undefined
   })
 
-  const subtree_names = ref<string[]>([])
+  const subtree_names = computed<string[]>(() => 
+    subtree_states.value.map((tree: TreeMsg) => tree.name)
+  )
 
   const selected_edge = ref<NodeDataWiring | undefined>(undefined)
 
@@ -245,7 +248,7 @@ export const useEditorStore = defineStore('editor', () => {
         })
         return
       }
-      tree_msg = debug_info.value.subtree_states.find((x: TreeMsg) => x.name === name)
+      tree_msg = subtree_states.value.find((x: TreeMsg) => x.name === name)
     } else {
       tree_msg = tree.value
     }
@@ -290,6 +293,7 @@ export const useEditorStore = defineStore('editor', () => {
     publish_subtrees,
     filtered_nodes,
     debug,
+    subtree_states,
     running_commands,
     dragging_new_node,
     dragging_existing_node,

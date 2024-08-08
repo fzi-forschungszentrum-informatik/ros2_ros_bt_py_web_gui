@@ -69,7 +69,7 @@ export type TreeMsg = {
   data_wirings: NodeDataWiring[]
   trick_frequency_hz: number
   state: string
-  public_node_data: NodeDataLocation
+  public_node_data: NodeDataLocation[]
 }
 
 export type DebugInfo = {

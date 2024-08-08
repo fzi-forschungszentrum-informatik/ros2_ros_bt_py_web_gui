@@ -81,6 +81,14 @@ function updateTreeSubscription() {
   ros_store.tree_sub.subscribe(onNewTreeMsg)
 }
 
+function onNewSubtreeInfoMsg(msg: TreeMsg[]) {
+  editor_store.subtree_states = msg
+}
+
+function updateSubtreeInfoSubscription() {
+  ros_store.subtree_info_sub.subscribe(onNewSubtreeInfoMsg)
+}
+
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
@@ -142,6 +150,7 @@ ros_store.$onAction(({ name, after }) => {
 
   after(() => {
     updateTreeSubscription()
+    updateSubtreeInfoSubscription()
     updateMessagesSubscription()
     updatePackagesSubscription()
   })
@@ -150,6 +159,7 @@ ros_store.$onAction(({ name, after }) => {
 onMounted(() => {
   ros_store.connect()
   updateTreeSubscription()
+  updateSubtreeInfoSubscription()
   updateMessagesSubscription()
   updatePackagesSubscription()
 })
@@ -223,12 +233,36 @@ onMounted(() => {
               <div class="row">
                 <div class="col d-flex align-items-center">
                   <SelectSubtree></SelectSubtree>
+                  
+                  <div class="d-flex flex-row align-items-center">
+                    <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
+                    <input
+                      id="treeNameForm"
+                      class="form-control ml-1"
+                      type="text"
+                      disabled="true"
+                      :value="tree_name"
+                    />
+                  </div>
+                  <div class="d-flex flex-row align-items-center">
+                    <label class="form-label m-1 ml-2" for="treeStateForm"> State: </label>
+                    <input
+                      id="treeStateForm"
+                      class="form-control ml-1"
+                      type="text"
+                      disabled="true"
+                      :value="tree_state"
+                    />
+                  </div>
+
+                  <RightAlignSpacer></RightAlignSpacer>
+                  <!--TODO move editor display buttons into new component-->
                   <button
                     class="btn btn-primary m-1"
                     @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
                     title="Toggle Data Graph"
                   >
-                    <font-awesome-icon icon="fa-solid fa-route" />
+                    <font-awesome-icon :class="editor_store.show_data_graph ? 'text-white' : 'text-white-50'" icon="fa-solid fa-route" />
                   </button>
                   <button
                     v-if="execution_bar_visible"
@@ -256,35 +290,13 @@ onMounted(() => {
                   >
                     <font-awesome-icon icon="fa-solid fa-window-restore" />
                   </button>
-                  <div class="d-flex flex-row align-items-center">
-                    <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
-                    <input
-                      id="treeNameForm"
-                      class="form-control ml-1"
-                      type="text"
-                      disabled="true"
-                      :value="tree_name"
-                    />
-                  </div>
-                  <div class="d-flex flex-row align-items-center">
-                    <label class="form-label m-1 ml-2" for="treeStateForm"> State: </label>
-                    <input
-                      id="treeStateForm"
-                      class="form-control ml-1"
-                      type="text"
-                      disabled="true"
-                      :value="tree_state"
-                    />
-                  </div>
-                  <!--TODO find a better way to place elements-->
-                  <RightAlignSpacer></RightAlignSpacer>
-                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
-                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-layer-group" />
-                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-secondary' : 'text-dark'" icon="fa-solid fa-tree" />
+                  <button class="btn btn-primary m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-white' : 'text-white-50'" icon="fa-solid fa-layer-group" />
+                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-white-50' : 'text-white'" icon="fa-solid fa-tree" />
                   </button>
-                  <button class="btn m-1" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
-                    <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-moon" />
-                    <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-sun" />
+                  <button class="btn btn-primary m-1" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-white' : 'text-white-50'" icon="fa-solid fa-moon" />
+                    <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-white' : 'text-white-50'" icon="fa-solid fa-sun" />
                   </button>
                 </div>
               </div>

@@ -38,7 +38,7 @@ import TickControls from './TickControls.vue'
 <template>
   <header id="header" class="d-flex flex-column flex-md-row align-items-center control-bar">
     <NamespaceSelect></NamespaceSelect>
-    <DebugControls></DebugControls>
+    <!--<DebugControls></DebugControls>-->
     <TickControls></TickControls>
     <Spacer></Spacer>
     <LoadSaveControls></LoadSaveControls>

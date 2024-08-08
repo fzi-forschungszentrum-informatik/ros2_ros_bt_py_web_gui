@@ -29,9 +29,56 @@
  -->
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
+import { useROSStore } from '@/stores/ros';
+import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
+import { notify } from '@kyvg/vue3-notification';
 import { computed } from 'vue'
 
 const editor_store = useEditorStore()
+const ros_store = useROSStore()
+
+const publish_subtrees_id: string = "publish_subtrees"
+
+function handlePubSubtreesChange(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  if (!ros_store.connected) {
+    notify({
+      title: 'Service not available!',
+      text: 'SetExecutionMode ROS service is not connected!',
+      type: 'error'
+    })
+    return
+  }
+
+  ros_store.publish_subtrees = target.checked
+
+  ros_store.set_publish_subtrees_service.callService({
+    data: target.checked
+  } as SetBoolRequest,
+  (response: SetBoolResponse) => {
+    if (response.success) {
+      notify({
+        title: (target.checked ? "Enable" : "Disable") + " subtree publishing",
+        type: 'success'
+      })
+    } else {
+      notify({
+        title: "Failed to toggle subtree publishing",
+        text: response.message,
+        type: 'warn'
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: "Failed to call setPublishSubtrees service",
+      text: error,
+      type: 'error'
+    })
+  })
+
+}
 
 function onChange(event: Event) {
   const target = event.target as HTMLSelectElement
@@ -54,6 +101,20 @@ const selected_name = computed<string>(() => {
 
 <template>
   <div class="d-flex flex-row align-items-center">
+    <div class="m-1">
+      <input
+        type="checkbox"
+        :id="publish_subtrees_id"
+        class="btn-check"
+        autocomplete="off"
+        :checked="ros_store.publish_subtrees"
+        @change="handlePubSubtreesChange"
+      />
+      <label class="btn btn-primary" :for="publish_subtrees_id">
+        <font-awesome-icon :class="ros_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
+      </label>
+    </div>
+
     <label class="col-form-label m-1 ms-2" for="formTree"> Tree: </label>
 
     <select

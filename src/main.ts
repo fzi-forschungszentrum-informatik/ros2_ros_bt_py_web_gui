@@ -78,7 +78,8 @@ import {
   faMoon,
   faWindowMaximize,
   faWindowRestore,
-  faRoute
+  faRoute,
+  faBullhorn
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -109,7 +110,8 @@ library.add(
   faMoon,
   faWindowMaximize,
   faWindowRestore,
-  faRoute
+  faRoute,
+  faBullhorn
 )
 
 const app = createApp(App)
