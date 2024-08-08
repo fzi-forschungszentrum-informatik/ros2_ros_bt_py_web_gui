@@ -93,8 +93,8 @@ const pan_per_frame: number = 10.0
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
 
-const io_edge_offset: number = 20
-const io_edge_wrap_factor: number = 10
+const io_edge_offset: number = 10
+const io_edge_wrap_factor: number = 100
 const io_edge_wrap_clamp: number = 5
 const io_edge_wrap_invert_thresh: number = 50
 
@@ -1327,7 +1327,7 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
       .x((p) => p.x + io_gripper_size/2)
       .y((p) => p.y + io_gripper_size/2)
       .curve(d3.curveCatmullRom.alpha(0.9))
-    let wraparound = (source.x - target.x) / io_edge_wrap_factor
+    let wraparound = Math.abs(source.x - target.x) / io_edge_wrap_factor
     wraparound = Math.min( Math.max(wraparound, 0), io_edge_wrap_clamp)
     const invert_source = target.y - source.y > io_edge_wrap_invert_thresh
     const invert_target = source.y - target.y > io_edge_wrap_invert_thresh
