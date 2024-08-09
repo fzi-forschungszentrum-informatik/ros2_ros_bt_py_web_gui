@@ -51,8 +51,6 @@ function handlePubSubtreesChange(event: Event) {
     return
   }
 
-  ros_store.publish_subtrees = target.checked
-
   ros_store.set_publish_subtrees_service.callService({
     data: target.checked
   } as SetBoolRequest,
@@ -62,6 +60,7 @@ function handlePubSubtreesChange(event: Event) {
         title: (target.checked ? "Enable" : "Disable") + " subtree publishing",
         type: 'success'
       })
+      editor_store.enableSubtreePublishing(target.checked)
     } else {
       notify({
         title: "Failed to toggle subtree publishing",
@@ -107,11 +106,11 @@ const selected_name = computed<string>(() => {
         :id="publish_subtrees_id"
         class="btn-check"
         autocomplete="off"
-        :checked="ros_store.publish_subtrees"
+        :checked="editor_store.publish_subtrees"
         @change="handlePubSubtreesChange"
       />
       <label class="btn btn-primary" :for="publish_subtrees_id">
-        <font-awesome-icon :class="ros_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
+        <font-awesome-icon :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
       </label>
     </div>
 

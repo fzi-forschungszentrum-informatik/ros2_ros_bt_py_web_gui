@@ -35,7 +35,7 @@ import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages, TreeMsg } from './types/types'
+import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
 import { EditorSkin, useEditorStore } from './stores/editor'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
@@ -81,8 +81,9 @@ function updateTreeSubscription() {
   ros_store.tree_sub.subscribe(onNewTreeMsg)
 }
 
-function onNewSubtreeInfoMsg(msg: TreeMsg[]) {
-  editor_store.subtree_states = msg
+function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
+  console.log("Received subtrees", msg)
+  editor_store.subtree_states = msg.subtree_states
 }
 
 function updateSubtreeInfoSubscription() {

@@ -30,7 +30,7 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DebugInfo, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, DataEdgeTerminal } from '@/types/types'
+import type { NodeDataWiring, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, DataEdgeTerminal } from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -56,7 +56,7 @@ export const useEditorStore = defineStore('editor', () => {
   const nodes_store = useNodesStore()
 
   const tree = ref<TreeMsg | undefined>(undefined)
-  const debug_info = ref<DebugInfo | undefined>(undefined)
+  //const debug_info = ref<DebugInfo | undefined>(undefined)
   const subtree_states = ref<TreeMsg[]>([])
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
@@ -241,7 +241,7 @@ export const useEditorStore = defineStore('editor', () => {
   function selectSubtree(name: string, is_subtree: boolean) {
     let tree_msg = undefined
     if (is_subtree) {
-      if (debug_info.value === undefined) {
+      if (subtree_states.value.length === 0) {
         notify({
           title: 'No Subtree Information received!',
           type: 'error'

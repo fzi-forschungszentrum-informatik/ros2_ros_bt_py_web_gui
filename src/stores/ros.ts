@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, DebugSettings, Messages, TreeMsg } from '@/types/types'
+import type { Packages, DebugSettings, Messages, TreeMsg, SubtreeInfo } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -83,7 +83,6 @@ export const useROSStore = defineStore(
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
-    const publish_subtrees = ref<boolean>(false)
 
     const services_for_type_service = ref<
       ROSLIB.Service<ServicesForTypeRequest, ServicesForTypeResponse>
@@ -155,10 +154,10 @@ export const useROSStore = defineStore(
       })
     )
 
-    const subtree_info_sub = ref<ROSLIB.Topic<TreeMsg[]>>(
+    const subtree_info_sub = ref<ROSLIB.Topic<SubtreeInfo>>(
       new ROSLIB.Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/SubtreeInfo',
+        name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
         reconnect_on_close: true,
@@ -312,7 +311,7 @@ export const useROSStore = defineStore(
       subtree_info_sub.value.removeAllListeners()
       subtree_info_sub.value = new ROSLIB.Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/SubtreeInfo',
+        name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
         reconnect_on_close: true,
@@ -475,7 +474,6 @@ export const useROSStore = defineStore(
       url,
       namespace,
       available_namespaces,
-      publish_subtrees,
       services_for_type_service,
       load_tree_service,
       fix_yaml_service,

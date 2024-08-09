@@ -310,9 +310,14 @@ function drawEverything() {
     serialized_type: nodeData.serialized_type,
   } as TrimmedNodeData);
 
+  let current_tree: TreeMsg = editor_store.tree
+  if (editor_store.selected_subtree.tree !== undefined) {
+    current_tree = editor_store.selected_subtree.tree
+  }
+
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = editor_store.tree.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = current_tree.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
@@ -323,7 +328,8 @@ function drawEverything() {
       options: node.options.map(onlyKeyAndType),
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
-      size: {width: 1, height: 1}
+      size: {width: 1, height: 1},
+      tree_name: current_tree.name,
     };
   });
 
@@ -337,7 +343,8 @@ function drawEverything() {
     inputs: [],
     outputs: [],
     options: [],
-    size: { width: 0, height: 0}
+    size: { width: 0, height: 0},
+    tree_name: current_tree.name,
   };
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -359,17 +366,17 @@ function drawEverything() {
   const root: d3.HierarchyNode<TrimmedNode> = d3
     .stratify<TrimmedNode>()
     .id((node) => {
-      return node.name
+      return node.tree_name + "|" + node.name
     })
     .parentId((node) => {
       // undefined if it has no parent - does that break the layout?
       if (node.name in parents) {
-        return parents[node.name]
+        return node.tree_name + "|" + parents[node.name]
       } else if (node.name === forest_root.name) {
         return undefined
       } else {
         forest_root.child_names.push(node.name);
-        return forest_root.name
+        return node.tree_name + "|" + forest_root.name
       }
     })(trimmed_nodes)
 
@@ -403,11 +410,11 @@ function drawEverything() {
       .call(colorNodes)
 
   // Since we want to return the tree, we can't use the .call() syntax here
-  const tree = layoutTree(node, root)
+  const tree_layout = layoutTree(node, root)
 
-  drawEdges(tree)
-  drawDropTargets(tree)
-  drawDataGraph(tree)
+  drawEdges(tree_layout)
+  drawDropTargets(tree_layout)
+  drawDataGraph(tree_layout, current_tree.data_wirings)
 
 }
 
@@ -417,8 +424,6 @@ function drawNewNodes(
     SVGGElement, never
   >
 ) {
-  // eslint-disable-next-line @typescript-eslint/no-this-alias
-  //const that = this;
 
   const fo = selection
     .append("foreignObject")
@@ -430,16 +435,19 @@ function drawNewNodes(
       .classed("node--leaf",
         (d) => d.children === undefined || d.children.length == 0
       )
-    .on("click.select", (node: d3.HierarchyNode<TrimmedNode>) => {
-      console.log("Node click")
-      editor_store.editorSelectionChange(node.data.name)
-      d3.event.stopPropagation()
-    })
-    .on("mousedown.dragdrop", (node: d3.HierarchyNode<TrimmedNode>) => {
+      .on("click.select", (node: d3.HierarchyNode<TrimmedNode>) => {
+        editor_store.editorSelectionChange(node.data.name)
+        d3.event.stopPropagation()
+      })
+      /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
+      // TODO add mouse event handlers
+
+  // No tree modifying if displaying a subtree
+  if (!editor_store.selected_subtree.is_subtree) {
+    fo.on("mousedown.dragdrop", (node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
     })
-    /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
-    // TODO add mouse event handlers
+  }
 
   const body = fo
     .append<HTMLBodyElement>("xhtml:body")
@@ -636,24 +644,29 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
 
   const drop_targets: DropTarget[] = []
 
-  // Construct the list of drop targets that should exist
-  tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
+  // Only draw drop targets if not displaying a subtree
+  if (!editor_store.selected_subtree.is_subtree) {
 
-    if (node.data.name === forest_root_name) {
-      return
-    }
+    // Construct the list of drop targets that should exist
+    tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
 
-    // Draw all left and right targets, even though they sometimes overlap
-    // because it looks odd if they're missing once nodes are spaced out further
-    drop_targets.push({node: node, position: Position.LEFT})
-    drop_targets.push({node: node, position: Position.CENTER})
-    drop_targets.push({node: node, position: Position.RIGHT})
-    drop_targets.push({node: node, position: Position.TOP}) // Does this make sense?
-    if (node.data.max_children === -1 || node.data.max_children > node.data.child_names.length) {
-      drop_targets.push({node: node, position: Position.BOTTOM})
-    }
+      if (node.data.name === forest_root_name) {
+        return
+      }
 
-  })
+      // Draw all left and right targets, even though they sometimes overlap
+      // because it looks odd if they're missing once nodes are spaced out further
+      drop_targets.push({node: node, position: Position.LEFT})
+      drop_targets.push({node: node, position: Position.CENTER})
+      drop_targets.push({node: node, position: Position.RIGHT})
+      drop_targets.push({node: node, position: Position.TOP}) // Does this make sense?
+      if (node.data.max_children === -1 || node.data.max_children > node.data.child_names.length) {
+        drop_targets.push({node: node, position: Position.BOTTOM})
+      }
+
+    })
+
+  }
 
   // If there are no drop targets to draw, draw one at root
   // Adjust the size of the drop target here. Don't do this on init, it ruins the tree layout
@@ -666,7 +679,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   // Join those with the existing drop targets and draw them
   d3.select(g_drop_targets_ref.value)
     .selectAll<SVGRectElement, DropTarget>("." + drop_target_css_class)
-    .data(drop_targets, (d) => d.node.data.name + "###" + d.position)
+    .data(drop_targets, (d) => d.node.id! + "###" + d.position)
     .join("rect")
       .classed(drop_target_css_class, true)
       .attr("width", (d) => {
@@ -1080,7 +1093,7 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
 }
 
 
-function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
+function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {
   if (editor_store.tree === undefined) {
     console.warn("No tree received yet")
     return
@@ -1129,36 +1142,38 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>) {
   const g_data_vertices = d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
     .data(data_points, 
-      (d) => d.node.data.name + "###" + d.kind + "###" + d.index
+      (d) => d.node.id! + "###" + d.kind + "###" + d.index
     )
     .join(drawNewDataVert)
 
-  g_data_vertices
-    .select("." + data_vert_grip_css_class)
-      //FIXME These handlers are out here because they see an outdated datum (term)
-      // if registered in drawNewDataVert
-      // Updating d3 should resolve this issue (as per the documentation)
-      .on("mousedown.drawedge", (term: DataEdgeTerminal) => {
-        editor_store.startDrawingDataEdge(term)
-        console.log(term)
-      })
-      .on("mouseup.drawedge", (term: DataEdgeTerminal) => {
-        if (editor_store.data_edge_endpoint === undefined) {
-          console.warn("Unintended data edge draw")
-          return
-        }
-        if (term.kind === IOKind.INPUT) {
-          addNewDataEdge(editor_store.data_edge_endpoint, term)
-        } else {
-          addNewDataEdge(term, editor_store.data_edge_endpoint)
-        }
-      })
+  // No data wiring when displaying a subtree
+  if (!editor_store.selected_subtree.is_subtree) {
+    g_data_vertices
+      .select("." + data_vert_grip_css_class)
+        //FIXME These handlers are out here because they see an outdated datum (term)
+        // if registered in drawNewDataVert
+        // Updating d3 should resolve this issue (as per the documentation)
+        .on("mousedown.drawedge", (term: DataEdgeTerminal) => {
+          editor_store.startDrawingDataEdge(term)
+        })
+        .on("mouseup.drawedge", (term: DataEdgeTerminal) => {
+          if (editor_store.data_edge_endpoint === undefined) {
+            console.warn("Unintended data edge draw")
+            return
+          }
+          if (term.kind === IOKind.INPUT) {
+            addNewDataEdge(editor_store.data_edge_endpoint, term)
+          } else {
+            addNewDataEdge(term, editor_store.data_edge_endpoint)
+          }
+        })
+  }
 
   g_data_vertices.transition(tree_transition)
       //NOTE group elements can't be positioned with x= and y=
       .attr("transform", (d) => "translate(" + d.x + ", " + d.y + ")")
 
-  drawDataEdges(data_points, g_data_vertices)
+  drawDataEdges(data_points, g_data_vertices, data_wirings)
 
 }
 
@@ -1235,13 +1250,9 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
   g_data_vertices: d3.Selection<
     SVGGElement, DataEdgeTerminal,
     SVGGElement, unknown
-  >
+  >,
+  data_wirings: NodeDataWiring[]
 ) {
-  if (editor_store.tree === undefined) {
-    console.warn("No tree received yet")
-    return
-  }
-
   if (g_data_graph_ref.value === undefined || 
     g_data_vertices_ref.value === undefined || 
     g_data_edges_ref.value === undefined
@@ -1258,7 +1269,7 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
       wire_point.data_kind === terminal.kind && wire_point.data_key === terminal.key
   }
 
-  editor_store.tree.data_wirings.forEach((wiring: NodeDataWiring) => {
+  data_wirings.forEach((wiring: NodeDataWiring) => {
 
     // Match Terminals with wiring data
     const source = data_points.find(
@@ -1292,8 +1303,8 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
   d3.select(g_data_edges_ref.value)
     .selectAll<SVGPathElement, DataEdge>("." + data_edge_css_class)
     .data(data_edges,
-      (d: DataEdge) => d.source.node.data.name + "###" + d.source.kind + "###" + d.source.index
-           + "#####" + d.target.node.data.name + "###" + d.target.kind + "###" + d.target.index
+      (d: DataEdge) => d.source.node.id! + "###" + d.source.kind + "###" + d.source.index
+           + "#####" + d.target.node.id! + "###" + d.target.kind + "###" + d.target.index
     )
     .join("path")
       .classed(data_edge_css_class, true)
@@ -1613,9 +1624,9 @@ onMounted(() => {
 
       viewport
         .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>('foreignObject')
-        .each(function (data) {
+        .each(function (node) {
           if (d3.select(this).select('body').classed('node-selected')) {
-            selected_node_names.add(data.id!)
+            selected_node_names.add(node.data.name)
           }
         })
       editor_store.selectMultipleNodes(Array.from(selected_node_names))
@@ -1663,7 +1674,9 @@ onMounted(() => {
       <g class="data_graph" ref="g_data_graph_ref" :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'">
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
-        <!--Below ensures the highlighted edge is in the foreground-->
+        <!--Below ensures the highlighted edge is in the foreground
+        TODO doubled labels look bad, but labels should be elevated
+        TODO also do this for label on vertex hover-->
         <use :href="'#' + data_edge_highlight_css_id" @mouseout="removeHoverDataEdge" />
         <use :href="'#' + data_vert1_highlight_css_id"/>
         <use :href="'#' + data_vert2_highlight_css_id"/>

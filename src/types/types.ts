@@ -72,9 +72,7 @@ export type TreeMsg = {
   public_node_data: NodeDataLocation[]
 }
 
-export type DebugInfo = {
-  current_recursion_depth: number
-  max_recursion_depth: number
+export type SubtreeInfo = {
   subtree_states: TreeMsg[]
 }
 
@@ -223,4 +221,5 @@ export type TrimmedNode = {
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
   size: {width: number, height: number}
+  tree_name: string
 }
