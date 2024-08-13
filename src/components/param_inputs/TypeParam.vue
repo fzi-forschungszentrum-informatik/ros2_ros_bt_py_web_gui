@@ -79,6 +79,7 @@ function onSearchResultKeyDown(search_result: Message, event: KeyboardEvent) {
 function onFocus() {
   editor_store.changeCopyMode(false)
 }
+
 </script>
 
 <template>
@@ -93,7 +94,7 @@ function onFocus() {
         @input="onChange"
         @focus="onFocus"
         @keypress="keyPressHandler"
-      />
+      /><!--TODO standardize display of builtin types-->
     </label>
     <!--TODO: Render Results-->
     <div class="mb-2 search-results">

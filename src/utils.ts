@@ -34,6 +34,7 @@ import type {
   ValueTypes,
   DataEdgeTerminal
 } from './types/types'
+import { IOKind } from './types/types'
 
 import * as d3 from 'd3'
 
@@ -54,8 +55,8 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
     return false
   }
 
-  const from = a.kind === 'output' ? a : b
-  const to = a.kind === 'input' ? a : b
+  const from = a.kind === IOKind.OUTPUT ? a : b
+  const to = a.kind === IOKind.INPUT ? a : b
 
   // object is compatible with anything
   if (
@@ -262,6 +263,7 @@ export function treeIsEditable(tree_msg: TreeMsg) {
   return tree_msg.state === 'EDITABLE'
 }
 
+//TODO potentially unused
 export function selectIOGripper(
   vertex_selection: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
   data: NodeDataLocation

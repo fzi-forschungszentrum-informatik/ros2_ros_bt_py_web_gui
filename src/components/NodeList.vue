@@ -76,6 +76,7 @@ const nodes = computed<DocumentedNode[]>(() => {
   }
 })
 
+//TODO this is doubled with the packageLoader and seems more appropriate there
 function getNodes(package_name: string) {
   ros_store.get_available_nodes_service.callService(
     {

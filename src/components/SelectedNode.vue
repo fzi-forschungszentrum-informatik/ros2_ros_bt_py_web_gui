@@ -306,7 +306,6 @@ function updateValidity(new_valididy: boolean) {
 }
 
 function updateValue(paramType: string, key: string, new_value: ValueTypes) {
-  console.log("Process update", paramType, key, new_value)
   editor_store.setNodeHasChanged()
   const map_fun = function (x: ParamData) {
     if (x.key === key) {
@@ -331,9 +330,24 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
       console.error('Node info is null!')
       return
     }
-    const ref_keys = editor_store.selected_node.options
+    // The OptionRef info is not available in the selected_node, 
+    //    since that node is based on the tree.
+    // That data has to be extracted from the availableNodes, 
+    //    since those have the OptionRef type information
+    // Why is that information stored in the s.._value, not s.._type?
+
+    const referenced_node = node_store.nodes.find((node: DocumentedNode) => 
+      node.node_class === editor_store.selected_node!.node_class &&
+      node.module === editor_store.selected_node!.module)
+
+    if (referenced_node === undefined) {
+      console.error("Cannot recover node information")
+      return
+    }
+
+    const ref_keys = referenced_node.options
       .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x) => [
+      .map((x): [string, string] => [
         x.key,
         prettyprint_type(x.serialized_value).substring(
           'OptionRef('.length,
@@ -341,9 +355,9 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
         )
       ])
       .filter((x) => x[1] === key)
-    const input_option_ref_keys = editor_store.selected_node.inputs
+    const input_option_ref_keys = referenced_node.inputs
       .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x) => [
+      .map((x): [string, string] => [
         x.key,
         prettyprint_type(x.serialized_value).substring(
           'OptionRef('.length,
@@ -351,9 +365,9 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
         )
       ])
       .filter((x) => x[1] === key)
-    const output_option_ref_keys = editor_store.selected_node.inputs
+    const output_option_ref_keys = referenced_node.outputs
       .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x) => [
+      .map((x): [string, string] => [
         x.key,
         prettyprint_type(x.serialized_value).substring(
           'OptionRef('.length,
@@ -363,9 +377,9 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
       .filter((x) => x[1] === key)
 
     const new_options = options.value.map(map_fun)
-    const resolve_refs = (current_item: ParamData) => {
+    const resolve_refs = (refs: [string, string][], current_item: ParamData) => {
       // See if the current option references the changed key
-      const refData = ref_keys.find((ref) => ref[0] === current_item.key)!
+      const refData = refs.find((ref) => ref[0] === current_item.key)!
       if (refData) {
         // If it does, find the type of the referred key
         const optionType = new_options.find((opt) => opt.key === refData[1])
@@ -381,13 +395,17 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
       }
       return current_item
     }
-    options.value = new_options.map(resolve_refs)
+    options.value = new_options.map((item) => resolve_refs(ref_keys, item))
 
     if (input_option_ref_keys.length > 0) {
-      inputs.value = inputs.value.map(resolve_refs)
+      inputs.value = inputs.value.map(
+        (item) => resolve_refs(input_option_ref_keys, item)
+      )
     }
     if (output_option_ref_keys.length > 0) {
-      outputs.value = outputs.value.map(resolve_refs)
+      outputs.value = outputs.value.map(
+        (item) => resolve_refs(output_option_ref_keys, item)
+      )
     }
   } else if (paramType.toLowerCase() === 'inputs') {
     inputs.value = inputs.value.map(map_fun)
