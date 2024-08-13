@@ -221,5 +221,4 @@ export type TrimmedNode = {
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
   size: {width: number, height: number}
-  tree_name: string
 }

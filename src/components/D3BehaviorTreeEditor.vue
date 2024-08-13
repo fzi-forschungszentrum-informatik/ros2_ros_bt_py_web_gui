@@ -310,14 +310,13 @@ function drawEverything() {
     serialized_type: nodeData.serialized_type,
   } as TrimmedNodeData);
 
-  let current_tree: TreeMsg = editor_store.tree
-  if (editor_store.selected_subtree.tree !== undefined) {
-    current_tree = editor_store.selected_subtree.tree
-  }
+  const current_tree = editor_store.selected_subtree.is_subtree ? 
+                        editor_store.selected_subtree.tree :
+                        editor_store.tree
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = current_tree.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = current_tree!.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
@@ -329,7 +328,6 @@ function drawEverything() {
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
       size: {width: 1, height: 1},
-      tree_name: current_tree.name,
     };
   });
 
@@ -344,7 +342,6 @@ function drawEverything() {
     outputs: [],
     options: [],
     size: { width: 0, height: 0},
-    tree_name: current_tree.name,
   };
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -366,17 +363,17 @@ function drawEverything() {
   const root: d3.HierarchyNode<TrimmedNode> = d3
     .stratify<TrimmedNode>()
     .id((node) => {
-      return node.tree_name + "|" + node.name
+      return node.name
     })
     .parentId((node) => {
       // undefined if it has no parent - does that break the layout?
       if (node.name in parents) {
-        return node.tree_name + "|" + parents[node.name]
+        return parents[node.name]
       } else if (node.name === forest_root.name) {
         return undefined
       } else {
         forest_root.child_names.push(node.name);
-        return node.tree_name + "|" + forest_root.name
+        return forest_root.name
       }
     })(trimmed_nodes)
 
@@ -414,7 +411,7 @@ function drawEverything() {
 
   drawEdges(tree_layout)
   drawDropTargets(tree_layout)
-  drawDataGraph(tree_layout, current_tree.data_wirings)
+  drawDataGraph(tree_layout, current_tree!.data_wirings)
 
 }
 
