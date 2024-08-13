@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditorStore } from '@/stores/editor';
 import type { ParamData, PyLogger } from '@/types/types'
 import { ref } from 'vue'
 
@@ -36,6 +37,8 @@ const props = defineProps<{
   name: string
   updateValue: (param_type: string, key: string, value: any) => void
 }>()
+
+const editor_store = useEditorStore()
 
 function handleChange(event: Event) {
   const target = event.target as HTMLSelectElement
@@ -55,7 +58,8 @@ const logger_level = ref<string>((props.param.value.value as PyLogger).logger_le
     <label class="d-block">
       {{ param.key }}
     </label>
-    <select :value="logger_level" @change="handleChange">
+    <select :value="logger_level" @change="handleChange"
+    :disabled="editor_store.selected_subtree.is_subtree">
       <option value="debug">DEBUG</option>
       <option value="info">INFO</option>
       <option value="warning">WARNING</option>

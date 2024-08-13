@@ -56,7 +56,8 @@ function onFocus() {
       <input
         type="text"
         class="form-control mt-2"
-        :value="param.value.value as string"
+        :value="(param.value.value as string)"
+        :disabled="editor_store.selected_subtree.is_subtree"
         @focus="onFocus"
         @change="onChange"
       />

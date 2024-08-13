@@ -174,14 +174,20 @@ export const useEditorStore = defineStore('editor', () => {
       }
     }
 
-    if (new_selected_node_name === undefined || tree.value === undefined) {
+    if (new_selected_node_name === undefined || 
+      (tree.value === undefined && selected_subtree.value.tree === undefined)
+    ) {
       selected_node.value = undefined
       selected_node_names.value = []
       last_seletion_source.value = EditorSelectionSource.NONE
       return
     }
 
-    const new_selected_name = tree.value.nodes.find(
+    const current_tree = selected_subtree.value.is_subtree ? 
+                          selected_subtree.value.tree :
+                          tree.value
+
+    const new_selected_name = current_tree!.nodes.find(
       (x: NodeMsg) => x.name === new_selected_node_name
     )
 
@@ -249,8 +255,6 @@ export const useEditorStore = defineStore('editor', () => {
         return
       }
       tree_msg = subtree_states.value.find((x: TreeMsg) => x.name === name)
-    } else {
-      tree_msg = tree.value
     }
 
     selected_subtree.value = {

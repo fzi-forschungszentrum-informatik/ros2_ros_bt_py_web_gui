@@ -306,6 +306,7 @@ function updateValidity(new_valididy: boolean) {
 }
 
 function updateValue(paramType: string, key: string, new_value: ValueTypes) {
+  console.log("Process update", paramType, key, new_value)
   editor_store.setNodeHasChanged()
   const map_fun = function (x: ParamData) {
     if (x.key === key) {
@@ -399,11 +400,16 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
 <template>
   <div class="d-flex flex-column">
     <div class="btn-group d-flex mb-2" role="group">
-      <button class="btn btn-primary w-30" @disabled="!is_valid" @click="onClickUpdate">
+      <button class="btn btn-primary w-30" @click="onClickUpdate"
+      :disabled="!is_valid || editor_store.selected_subtree.is_subtree">
         Update Node
       </button>
-      <button class="btn btn-danger w-35" @click="onClickDelete">Delete Node</button>
-      <button class="btn btn-danger w-35" @click="onClickDeleteWithChildren">
+      <button class="btn btn-danger w-35" @click="onClickDelete"
+      :disabled="editor_store.selected_subtree.is_subtree">
+        Delete Node
+      </button>
+      <button class="btn btn-danger w-35" @click="onClickDeleteWithChildren"
+      :disabled="editor_store.selected_subtree.is_subtree">
         Delete Node + Children
       </button>
     </div>

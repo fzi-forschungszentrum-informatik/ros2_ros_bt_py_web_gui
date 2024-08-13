@@ -49,7 +49,7 @@ defineProps<{
         :param_key="param.key"
         :updateValidity="updateValidity"
         :updateValue="updateValue"
-        :json="param.value.value as string"
+        :json="(param.value.value as string)"
       />
     </label>
   </div>

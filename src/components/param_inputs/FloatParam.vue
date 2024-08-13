@@ -65,7 +65,8 @@ function onFocus() {
         @change="onChange"
         @focus="onFocus"
         placeholder="float"
-        :value="param.value.value as number"
+        :value="(param.value.value as number)"
+        :disabled="editor_store.selected_subtree.is_subtree"
       />
     </label>
   </div>

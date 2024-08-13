@@ -82,6 +82,7 @@ function handelNodeNameChange(event: Event) {
       class="form-control-lg mb-2"
       type="text"
       :value="name"
+      :disabled="editor_store.selected_subtree.is_subtree"
       @focus="() => editor_store.changeCopyMode(false)"
       @change="handelNodeNameChange"
     />
@@ -92,6 +93,7 @@ function handelNodeNameChange(event: Event) {
           v-else
           class="custom-select"
           :value="module + node_class"
+          :disabled="editor_store.selected_subtree.is_subtree"
           @change="handleNodeClassChange"
         >
           <option
@@ -116,7 +118,6 @@ function handelNodeNameChange(event: Event) {
       <div class="list-group">
         <ParamInputs
           v-for="option in options"
-          :key="'option_' + option.key"
           name="options"
           :param="option"
           :updateValidity="updateValidity"

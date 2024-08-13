@@ -58,7 +58,8 @@ function onFocus() {
       type="checkbox"
       :id="check_id"
       class="custom-control-input"
-      :checked="param.value.value as boolean"
+      :checked="(param.value.value as boolean)"
+      :disabled="editor_store.selected_subtree.is_subtree"
       @focus="onFocus"
       @change="onChange"
     />

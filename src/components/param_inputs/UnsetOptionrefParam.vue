@@ -42,7 +42,7 @@ defineProps<{
         type="text"
         class="form-control mt-2"
         :disabled="true"
-        :value="param.value.value as string"
+        :value="(param.value.value as string)"
       />
     </label>
   </div>

@@ -82,7 +82,6 @@ function updateTreeSubscription() {
 }
 
 function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
-  console.log("Received subtrees", msg)
   editor_store.subtree_states = msg.subtree_states
 }
 
