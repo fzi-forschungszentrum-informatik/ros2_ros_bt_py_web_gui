@@ -101,7 +101,7 @@ defineProps<{
       :updateValue="updateValue"
       :updateValidity="updateValidity"
     />
-    <DropDownParam
+    <!--TODO is this deprecated?--><DropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.LoggerLevel'"
       :param="param"
       :name="name"

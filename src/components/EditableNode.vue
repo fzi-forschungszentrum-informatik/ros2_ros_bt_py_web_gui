@@ -88,7 +88,7 @@ function handelNodeNameChange(event: Event) {
     />
     <div class="d-flex minw0">
       <h4 class="text-muted">
-        <div v-if="!is_flow_control_node">{{ module + node_class }}</div>
+        <div v-if="!is_flow_control_node">{{ node_class }} ({{ module }})</div>
         <select
           v-else
           class="custom-select"

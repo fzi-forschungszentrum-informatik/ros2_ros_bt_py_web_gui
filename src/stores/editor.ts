@@ -100,6 +100,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   const selected_edge = ref<NodeDataWiring | undefined>(undefined)
 
+  //TODO this appears to be unused
   const copy_node_mode = ref<boolean>(false)
 
   const is_layer_mode = ref<boolean>(false)

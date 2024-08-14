@@ -45,9 +45,12 @@ const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
 
+let hide_results = ref<boolean>(true)
+
 function onChange(event: Event) {
   const target = event.target as HTMLInputElement
-  const new_type_name = target.value || ''
+  let new_type_name = target.value || ''
+  new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
   const results = messages_store.messages_fuse.search(new_type_name)
   messages_results.value = results.slice(0, 5).map((x) => x.item)
 
@@ -78,6 +81,11 @@ function onSearchResultKeyDown(search_result: Message, event: KeyboardEvent) {
 
 function onFocus() {
   editor_store.changeCopyMode(false)
+  hide_results.value = false
+}
+
+function onBlur() {
+  hide_results.value = true
 }
 
 </script>
@@ -91,14 +99,15 @@ function onFocus() {
         class="form-control mt-2"
         :value="(param.value.value as string)"
         :disabled="editor_store.selected_subtree.is_subtree"
+        :list="props.param.key + 'options'"
         @input="onChange"
         @focus="onFocus"
+        @blur="onBlur"
         @keypress="keyPressHandler"
-      /><!--TODO standardize display of builtin types-->
+      />
     </label>
-    <!--TODO: Render Results-->
     <div class="mb-2 search-results">
-      <div class="list-group">
+      <div class="list-group" :class="{'d-none': hide_results}">
         <div
           v-for="result in messages_results"
           :key="result.msg"
@@ -111,6 +120,13 @@ function onFocus() {
         </div>
       </div>
     </div>
+    <!--<datalist :id="props.param.key + 'options'">
+      <option
+        v-for="result in messages_results"
+        :key="result.msg"
+        :value="result.msg"
+      ></option>
+    </datalist>-->
   </div>
 </template>
 

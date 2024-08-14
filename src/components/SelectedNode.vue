@@ -330,6 +330,7 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
       console.error('Node info is null!')
       return
     }
+    
     // The OptionRef info is not available in the selected_node, 
     //    since that node is based on the tree.
     // That data has to be extracted from the availableNodes, 
