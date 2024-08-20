@@ -82,7 +82,7 @@ const loadFileModalHandle = useModal({
 const saveFileModalHandle = useModal({
   component: SaveFileModal,
   attrs: {
-    onConfirm() {
+    onClose() {
       saveFileModalHandle.close()
     }
   },

@@ -79,7 +79,8 @@ import {
   faWindowMaximize,
   faWindowRestore,
   faRoute,
-  faBullhorn
+  faBullhorn,
+  faXmark
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -111,7 +112,8 @@ library.add(
   faWindowMaximize,
   faWindowRestore,
   faRoute,
-  faBullhorn
+  faBullhorn,
+  faXmark,
 )
 
 const app = createApp(App)

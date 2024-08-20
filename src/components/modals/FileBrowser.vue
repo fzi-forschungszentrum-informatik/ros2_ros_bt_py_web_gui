@@ -28,22 +28,52 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { VueFinalModal } from 'vue-final-modal'
-import FileBrowser from './FileBrowser.vue'
+
+defineProps<{
+    location: string,
+    title: string,
+    fromPackage?: boolean,
+}>()
 
 const emit = defineEmits<{
-  (e: 'close'): void
+    (e: 'change', path: string): void
+    (e: 'close'): void
 }>()
 
 </script>
 
 <template>
-  <VueFinalModal
-    class="flex justify-center items-center"
-    content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
-  >
-    <FileBrowser location="Folder" title="Save Tree to Folder" @close="emit('close')">
-      <slot /> <!--Replace with specific controls-->
-    </FileBrowser>
-  </VueFinalModal>
+    <button class="btn float-end" @click="emit('close')">
+        <font-awesome-icon class="fa-3x" style="opacity: 0.1;" icon="fa-solid fa-xmark" />
+    </button>
+
+    <h1 class="fs-1 mb-3 mt-4 mx-4">{{ $props.title }}</h1>
+    
+    <div class="input-group mb-3 mx-4">
+        <span class="input-group-text">
+            {{ $props.location }}:
+        </span>
+        <input type="text" class="form-control">
+        <button class="btn btn-outline-secondary">
+            <font-awesome-icon icon="fa-solid fa-xmark" />
+        </button>
+    </div>
+    <div class="mb-3 mx-4">
+        <slot /><!--Control Buttons, Selects, ...-->
+    </div>
+    <div class="input-group mb-3 mx-4">
+        <span class="input-group-text">
+            Name:
+        </span>
+        <input type="text" class="form-control">
+    </div>
+    <div class="input-group mb-3 mx-4">
+        <button class="btn btn-outline-secondary">
+            <font-awesome-icon icon="fa-solid fa-angle-up" />
+        </button>
+        <!--Buttons for navigating up the file tree-->
+    </div>
+    <div class="mx-4 mb-4">
+        Folder Content
+    </div>
 </template>
