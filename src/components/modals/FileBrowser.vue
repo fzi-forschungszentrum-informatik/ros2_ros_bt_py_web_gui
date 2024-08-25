@@ -34,11 +34,16 @@ import { useROSStore } from '@/stores/ros';
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders';
 import { notify } from '@kyvg/vue3-notification';
 import { usePackageStore } from '@/stores/package';
+import type { PackageStructure } from '@/types/types';
+import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure';
+import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure';
+import * as d3 from 'd3'
 
 const props = defineProps<{
     location: string,
     title: string,
     fromPackages?: boolean,
+    file_filter?: RegExp
 }>()
 
 const emit = defineEmits<{
@@ -55,7 +60,9 @@ const chosen_location = ref<string | null>(null)
 const locations = ref<string[]>([])
 
 const location_search_term = ref<string>("")
-const location_fuse = ref<Fuse<string> | undefined>()
+const location_fuse = ref<Fuse<string>>(new Fuse<string>([], {
+
+}))
 const location_search_results = computed<string[]>(() => {
     if (props.fromPackages) {
         if (location_search_term.value === '') {
@@ -63,14 +70,41 @@ const location_search_results = computed<string[]>(() => {
         }
         return packages_store.packages_fuse.search(location_search_term.value).map((x) => x.item.package)
     } else {
-        if (location_fuse.value === undefined) {
-            return []
-        }
         if (location_search_term.value === '') {
             return locations.value
         }
         return location_fuse.value.search(location_search_term.value).map((x) => x.item)
     }
+})
+
+const location_available = computed<boolean>(() => 
+    (props.fromPackages && packages_store.packages_available) || locations.value.length > 0
+)
+
+const current_folder = ref<d3.HierarchyNode<PackageStructure> | null>(null)
+const folder_search_term = ref<string>('')
+const folder_item_fuse = ref<Fuse<d3.HierarchyNode<PackageStructure>>>(
+    new Fuse<d3.HierarchyNode<PackageStructure>>([], {
+        keys: ['data.name']
+    })
+)
+const item_search_results =computed<d3.HierarchyNode<PackageStructure>[]>(() => {
+    let list: d3.HierarchyNode<PackageStructure>[] = []
+    if (folder_search_term.value === '') {
+        list = current_folder.value?.children || []
+    } else {
+        list = folder_item_fuse.value.search(folder_search_term.value).map(x => x.item)
+    }
+    list = list.filter((item: d3.HierarchyNode<PackageStructure>) => {
+        if (props.file_filter === undefined) {
+            return true
+        }
+        if (item.data.type === "directory") {
+            return true
+        }
+        return props.file_filter.test(item.data.name)
+    })
+    return list
 })
 
 
@@ -79,34 +113,104 @@ function getStorageFolders() {
 
     } as GetStorageFoldersRequest,
     (response: GetStorageFoldersResponse) => {
-        location_fuse.value = new Fuse(response.storage_folders)
+        location_fuse.value.setCollection(response.storage_folders)
         locations.value = response.storage_folders
     },
     (error: string) => {
         notify({
-        title: 'Failed to call GetStorageFolders service!',
-        text: error,
-        type: 'error'
-      })
+            title: 'Failed to call GetStorageFolders service!',
+            text: error,
+            type: 'error'
+        })
     })
 }
 
 function getPackages() {
+    // Packages are handled through the package store. Nothing to do here.
+}
 
+function parseStructure(content_str: string) {
+    current_folder.value = d3.hierarchy<PackageStructure>(JSON.parse(content_str))
+    folder_item_fuse.value.setCollection(current_folder.value.children || [])
+}
+
+function getFolderStructure() {
+    ros_store.get_folder_structure_service.callService({
+        storage_folder: chosen_location.value,
+        show_hidden: true //TODO is this correct
+    } as GetFolderStructureRequest,
+    (response: GetFolderStructureResponse) => {
+        if (response.success) {
+            parseStructure(response.storage_folder_structure)
+        } else {
+            notify({
+                title: 'Error when calling GetFolderStructure service!',
+                text: response.error_message,
+                type: 'warn'
+            })
+        }
+    },
+    (error: string) => {
+        notify({
+            title: 'Failed to call GetFolderStructure service!',
+            text: error,
+            type: 'error'
+        })
+    })
+}
+
+function getPackageStructure() {
+    ros_store.get_package_structure_service.callService({
+        package: chosen_location.value,
+        show_hidden: true //TODO is this correct
+    } as GetPackageStructureRequest,
+    (response: GetPackageStructureResponse) => {
+        if (response.success) {
+            parseStructure(response.package_structure)
+        } else {
+            notify({
+                title: 'Error when calling GetFolderStructure service!',
+                text: response.error_message,
+                type: 'error'
+            })
+        }
+    },
+    (error: string) => {
+        notify({
+            title: 'Failed to call GetFolderStructure service!',
+            text: error,
+            type: 'error'
+        })
+    })
 }
 
 function setChosenLocation(value: string | null) {
     if (value === null) {
         chosen_location.value = null
         location_search_term.value = ''
+        current_folder.value = null
     } else {
         chosen_location.value = value
         location_search_term.value = value
+        if (props.fromPackages) {
+            getPackageStructure()
+        } else {
+            getFolderStructure()
+        }
+    }
+}
+
+function setCurrentFolder(elem: d3.HierarchyNode<PackageStructure>) {
+    if (elem.data.type === "directory") {
+        current_folder.value = elem
+        folder_search_term.value = ''
+        folder_item_fuse.value.setCollection(elem.children || [])
+    } else {
+        folder_search_term.value = elem.data.name
     }
 }
 
 onMounted(() => {
-    //TODO fetch storage folders or packages, based on fromPackages
     if (props.fromPackages) {
         getPackages()
     } else {
@@ -123,7 +227,7 @@ onMounted(() => {
 
     <h1 class="fs-1 mb-3 mt-4 mx-4">{{ props.title }}</h1>
     
-    <div v-if="(fromPackages && packages_store.packages_available) || location_fuse" class="mx-4 mb-4">
+    <div v-if="location_available" class="mx-4 mb-4">
         <div class="input-group mb-3">
             <span class="input-group-text">
                 {{ props.location }}:
@@ -134,12 +238,12 @@ onMounted(() => {
             </button>
         </div>
         <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
-            <button v-for="location in location_search_results" 
+            <button v-for="location in location_search_results" :key="location"
             @click="setChosenLocation(location)" class="btn btn-outline-dark ms-4 mb-3">
                 {{ location }}
             </button>
         </div>
-        <div v-else>
+        <div v-else-if="current_folder !== null">
             <div class="mb-3">
                 <slot /><!--Control Buttons, Selects, ...-->
             </div>
@@ -147,17 +251,27 @@ onMounted(() => {
                 <span class="input-group-text">
                     Name:
                 </span>
-                <input type="text" class="form-control">
+                <input v-model="folder_search_term" type="text" class="form-control">
             </div>
             <div class="input-group mb-3">
-                <button class="btn btn-outline-secondary">
+                <button :disabled="current_folder.parent === null"
+                @click="setCurrentFolder(current_folder.parent!)" class="btn btn-outline-secondary">
                     <font-awesome-icon icon="fa-solid fa-angle-up" />
                 </button>
-                <!--Buttons for navigating up the file tree-->
+                <button v-for="elem in current_folder.ancestors().reverse()" :key="elem.data.item_id"
+                @click="setCurrentFolder(elem)" class="btn btn-outline-secondary">
+                    {{ elem.data.name }}
+                </button>
             </div>
-            <div>
-                Folder Content
+            <div class="d-grid overflow-auto" style="max-height: 50vh">
+                <button v-for="elem in item_search_results" :key="elem.data.item_id"
+                @click="setCurrentFolder(elem)" class="btn btn-outline-dark ms-4 mb-3">
+                    {{ elem.data.name }}
+                </button>
             </div>
+        </div>
+        <div v-else>
+            Loading content of storage location
         </div>
     </div>
     <div v-else>

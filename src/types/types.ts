@@ -118,10 +118,10 @@ export type DebugSettings = {
 export type PackageStructure = {
   name: string
   item_id: number
-  parent: number
-  type: string
+  parent: number 
+  type: string //TODO maybe this should be an enum?
   children?: PackageStructure[]
-}
+} //TODO since we use d3-hierarchy to parse this, the parent and children are not required as data
 
 export type PyType = { 'py/type': string }
 export type PyTuple = { 'py/tuple': never[][] }
