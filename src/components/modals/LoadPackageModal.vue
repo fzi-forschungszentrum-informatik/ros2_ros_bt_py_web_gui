@@ -29,19 +29,20 @@
  -->
 <script setup lang="ts">
 import { VueFinalModal } from 'vue-final-modal'
+import FileBrowser from './FileBrowser.vue'
 
 const emit = defineEmits<{
-  (e: 'confirm'): void
+  (e: 'close'): void
 }>()
 </script>
 
 <template>
   <VueFinalModal
     class="flex justify-center items-center"
-    content-class="flex flex-col max-w-xl mx-4 p-4 bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg space-y-2"
+    content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
   >
-    <h1 class="text-xl">Load Tree from Package</h1>
-    <slot />
-    <button class="mt-1 ml-auto px-2 border rounded-lg" @click="emit('confirm')">Confirm</button>
+    <FileBrowser fromPackages location="Package" title="Load Tree from Package" @close="emit('close')">
+      <slot /> <!--Replace with specific controls-->
+    </FileBrowser>
   </VueFinalModal>
 </template>

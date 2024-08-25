@@ -71,6 +71,9 @@ import type {
   GenerateSubtreeResponse
 } from '@/types/services/GenerateSubtree'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure'
+import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
+import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure'
 
 export const useROSStore = defineStore(
   'ros',
@@ -280,6 +283,36 @@ export const useROSStore = defineStore(
       })
     )
 
+    const get_storage_folders_service = ref<
+      ROSLIB.Service<GetStorageFoldersRequest, GetStorageFoldersResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_storage_folders',
+        serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
+      })
+    )
+
+    const get_folder_structure_service = ref<
+      ROSLIB.Service<GetFolderStructureRequest, GetFolderStructureResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_folder_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
+      })
+    )
+
+    const get_package_structure_service = ref<
+      ROSLIB.Service<GetPackageStructureRequest, GetPackageStructureResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_package_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -384,51 +417,79 @@ export const useROSStore = defineStore(
         name: namespace.value + 'add_node',
         serviceType: 'ros_bt_py_interfaces/srv/AddNode'
       })
+
       get_message_fields_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'get_message_fields',
         serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
       })
+
       unwire_data_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
+
       remove_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
       })
+
       set_options_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
         serviceType: 'ros_bt_py_interfaces/srv/SetOptions'
       })
+
       morph_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'morph_node',
         serviceType: 'ros_bt_py_interfaces/srv/MorphNode'
       })
+
       generate_subtree_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'generate_subtree',
         serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
       })
+
       wire_data_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'wire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
+
       add_node_at_index_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'add_node_at_index',
         serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
       })
+
       move_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'move_node',
         serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
       })
+
+      get_storage_folders_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_storage_folders',
+        serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
+      })
+
+      get_folder_structure_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_folder_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
+      })
+
+      get_package_structure_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_package_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
+      })
+
     }
 
     function connect() {
@@ -492,6 +553,9 @@ export const useROSStore = defineStore(
       add_node_at_index_service,
       generate_subtree_service,
       set_publish_subtrees_service,
+      get_storage_folders_service,
+      get_folder_structure_service,
+      get_package_structure_service,
       tree_sub,
       subtree_info_sub,
       packages_sub,
