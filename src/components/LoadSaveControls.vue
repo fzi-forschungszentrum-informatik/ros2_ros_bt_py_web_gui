@@ -61,9 +61,6 @@ const loadPackageModalHandle = useModal({
       loadPackageModalHandle.close()
     }
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 const loadFileModalHandle = useModal({
@@ -73,9 +70,6 @@ const loadFileModalHandle = useModal({
       loadFileModalHandle.close()
     }
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 const saveFileModalHandle = useModal({
@@ -85,9 +79,6 @@ const saveFileModalHandle = useModal({
       saveFileModalHandle.close()
     }
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 function newTree() {

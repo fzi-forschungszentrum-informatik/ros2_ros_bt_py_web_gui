@@ -34,6 +34,7 @@ import { useROSStore } from '@/stores/ros';
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders';
 import { notify } from '@kyvg/vue3-notification';
 import { usePackageStore } from '@/stores/package';
+import { FileType } from '@/types/types';
 import type { PackageStructure } from '@/types/types';
 import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure';
 import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure';
@@ -47,8 +48,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (e: 'change', selected_path: string, input_name: string): void
-    (e: 'close'): void
+    (e: 'select', selected_path: string, is_directory: boolean): void,
+    (e: 'input', input_name: string): void,
+    (e: 'close'): void,
 }>()
 
 
@@ -96,13 +98,17 @@ const item_search_results =computed<d3.HierarchyNode<PackageStructure>[]>(() => 
         list = folder_item_fuse.value.search(folder_search_term.value).map(x => x.item)
     }
     list = list.filter((item: d3.HierarchyNode<PackageStructure>) => {
-        if (props.file_filter === undefined) {
-            return true
-        }
-        if (item.data.type === "directory") {
-            return true
-        }
-        return props.file_filter.test(item.data.name)
+        switch (item.data.type) {
+            case FileType.DIR:
+                return true //TODO add blacklist filter for folders
+            case FileType.FILE:
+                if (props.file_filter === undefined) {
+                    return true
+                }
+                return props.file_filter.test(item.data.name)
+            default:
+                return false
+        }    
     })
     return list
 })
@@ -201,13 +207,21 @@ function setChosenLocation(value: string | null) {
 }
 
 function setCurrentFolder(elem: d3.HierarchyNode<PackageStructure>) {
-    if (elem.data.type === "directory") {
-        current_folder.value = elem
-        folder_search_term.value = ''
-        folder_item_fuse.value.setCollection(elem.children || [])
-    } else {
-        folder_search_term.value = elem.data.name
+    switch (elem.data.type) {
+        case FileType.DIR:
+            current_folder.value = elem
+            folder_search_term.value = ''
+            folder_item_fuse.value.setCollection(elem.children || [])
+            break;
+        case FileType.FILE:
+            folder_search_term.value = elem.data.name
+            break;
+        default:
+            break;
     }
+    // Emit selected path by stitching together parents
+    emit("select", elem.ancestors().reverse().map( (parent) => parent.data.name ).join("/"), elem.data.type === FileType.DIR)
+
 }
 
 onMounted(() => {
@@ -244,14 +258,16 @@ onMounted(() => {
             </button>
         </div>
         <div v-else-if="current_folder !== null">
-            <div class="mb-3">
-                <slot /><!--Control Buttons, Selects, ...-->
+            <div class="d-flex justify-content-between mb-3">
+                <slot>Control Buttons, Selects, ...</slot>
             </div>
             <div class="input-group mb-3">
                 <span class="input-group-text">
                     Name:
                 </span>
-                <input v-model="folder_search_term" type="text" class="form-control">
+                <input v-model="folder_search_term" type="text" class="form-control"
+                @change="emit('input', ($event.target as HTMLInputElement).value)">
+                <!--TODO if this causes issues with not firing, try switching to @input-->
             </div>
             <div class="input-group mb-3">
                 <button :disabled="current_folder.parent === null"

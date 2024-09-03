@@ -115,13 +115,16 @@ export type DebugSettings = {
   breakpoint_names: string[]
 }
 
+export const enum FileType {
+  FILE = "file",
+  DIR = "directory"
+}
+
 export type PackageStructure = {
   name: string
   item_id: number
-  parent: number 
-  type: string //TODO maybe this should be an enum?
-  children?: PackageStructure[]
-} //TODO since we use d3-hierarchy to parse this, the parent and children are not required as data
+  type: FileType
+}
 
 export type PyType = { 'py/type': string }
 export type PyTuple = { 'py/tuple': never[][] }

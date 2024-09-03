@@ -30,10 +30,24 @@
 <script setup lang="ts">
 import { VueFinalModal } from 'vue-final-modal'
 import FileBrowser from './FileBrowser.vue'
+import { ref } from 'vue';
 
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+// Specify valid file extensions as regex (multiple with | in the capture group)
+const file_type_regex: RegExp = new RegExp("\.(yaml)")
+
+const file_filter = ref<RegExp | undefined>(file_type_regex)
+
+enum NameConflictHandler {
+  ASK = "Ask before overwrite",
+  OVERWRITE = "Overwrite file",
+  RENAME = "Rename file"
+}
+
+const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
 </script>
 
@@ -42,8 +56,19 @@ const emit = defineEmits<{
     class="flex justify-center items-center"
     content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
   >
-    <FileBrowser location="Folder" title="Save Tree to Folder" @close="emit('close')">
-      <slot /> <!--Replace with specific controls-->
+    <FileBrowser location="Folder" title="Save Tree to Folder" :file_filter="file_filter" @close="emit('close')"
+    @select="(path, dir) => console.log('Selected ', (dir ? 'directory' : 'file'), ': ', path)"
+    @input="(input) => console.log('Typed: ', input)">
+      <button class="btn btn-primary me-2">Save</button>
+      <select v-model="file_filter" class="form-select me-2">
+        <option :value="file_type_regex">Valid files</option>
+        <option :value="undefined">All files</option>
+      </select>
+      <select v-model="handle_name_conflict" class="form-select">
+        <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
+          {{ opt }}
+        </option>
+      </select>
     </FileBrowser>
   </VueFinalModal>
 </template>

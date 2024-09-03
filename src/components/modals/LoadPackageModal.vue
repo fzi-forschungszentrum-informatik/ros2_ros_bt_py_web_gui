@@ -30,10 +30,17 @@
 <script setup lang="ts">
 import { VueFinalModal } from 'vue-final-modal'
 import FileBrowser from './FileBrowser.vue'
+import { ref } from 'vue';
 
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
+
+// Specify valid file extensions as regex (multiple with | in the capture group)
+const file_type_regex: RegExp = new RegExp("\.(yaml)")
+
+const file_filter = ref<RegExp | undefined>(file_type_regex)
+
 </script>
 
 <template>
@@ -41,8 +48,14 @@ const emit = defineEmits<{
     class="flex justify-center items-center"
     content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
   >
-    <FileBrowser fromPackages location="Package" title="Load Tree from Package" @close="emit('close')">
-      <slot /> <!--Replace with specific controls-->
+    <FileBrowser fromPackages location="Package" title="Load Tree from Package" @close="emit('close')"
+    @select="(path, dir) => console.log('Selected ', (dir ? 'directory' : 'file'), ': ', path)"
+    @input="(input) => console.log('Typed: ', input)">
+      <button class="btn btn-primary me-2">Load</button>
+      <select v-model="file_filter" class="form-select">
+        <option :value="file_type_regex">Valid files</option>
+        <option :value="undefined">All files</option>
+      </select>
     </FileBrowser>
   </VueFinalModal>
 </template>
