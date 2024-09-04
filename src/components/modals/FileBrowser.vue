@@ -35,7 +35,7 @@ import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/type
 import { notify } from '@kyvg/vue3-notification';
 import { usePackageStore } from '@/stores/package';
 import { FileType } from '@/types/types';
-import type { PackageStructure } from '@/types/types';
+import type { Package, PackageStructure } from '@/types/types';
 import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure';
 import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure';
 import * as d3 from 'd3'
@@ -48,7 +48,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (e: 'select', selected_path: string, is_directory: boolean): void,
+    (e: 'location', location: string): void,
+    (e: 'select', selected_path: string[], is_directory: boolean): void,
     (e: 'input', input_name: string): void,
     (e: 'close'): void,
 }>()
@@ -58,19 +59,19 @@ const ros_store = useROSStore()
 const packages_store = usePackageStore()
 
 
-const chosen_location = ref<string | null>(null)
-const locations = ref<string[]>([])
+const chosen_location = ref<Package | null>(null)
+const locations = ref<Package[]>([])
 
 const location_search_term = ref<string>("")
-const location_fuse = ref<Fuse<string>>(new Fuse<string>([], {
+const location_fuse = ref<Fuse<Package>>(new Fuse<Package>([], {
 
 }))
-const location_search_results = computed<string[]>(() => {
+const location_search_results = computed<Package[]>(() => {
     if (props.fromPackages) {
         if (location_search_term.value === '') {
-            return packages_store.packages.map((x) => x.package)
+            return packages_store.packages.map((x) => x)
         }
-        return packages_store.packages_fuse.search(location_search_term.value).map((x) => x.item.package)
+        return packages_store.packages_fuse.search(location_search_term.value).map((x) => x.item)
     } else {
         if (location_search_term.value === '') {
             return locations.value
@@ -119,8 +120,9 @@ function getStorageFolders() {
 
     } as GetStorageFoldersRequest,
     (response: GetStorageFoldersResponse) => {
-        location_fuse.value.setCollection(response.storage_folders)
-        locations.value = response.storage_folders
+        locations.value = response.storage_folders.map(x => {return {package: x, path: x} as Package})
+        location_fuse.value.setCollection(locations.value)
+        
     },
     (error: string) => {
         notify({
@@ -142,7 +144,7 @@ function parseStructure(content_str: string) {
 
 function getFolderStructure() {
     ros_store.get_folder_structure_service.callService({
-        storage_folder: chosen_location.value,
+        storage_folder: chosen_location.value!.package,
         show_hidden: true //TODO is this correct
     } as GetFolderStructureRequest,
     (response: GetFolderStructureResponse) => {
@@ -167,7 +169,7 @@ function getFolderStructure() {
 
 function getPackageStructure() {
     ros_store.get_package_structure_service.callService({
-        package: chosen_location.value,
+        package: chosen_location.value!.package,
         show_hidden: true //TODO is this correct
     } as GetPackageStructureRequest,
     (response: GetPackageStructureResponse) => {
@@ -190,19 +192,23 @@ function getPackageStructure() {
     })
 }
 
-function setChosenLocation(value: string | null) {
+function setChosenLocation(value: Package | null) {
     if (value === null) {
         chosen_location.value = null
         location_search_term.value = ''
         current_folder.value = null
+        emit('location', '')
+        emit('select', [], true)
+        emit('input', '')
     } else {
         chosen_location.value = value
-        location_search_term.value = value
+        location_search_term.value = value.package
         if (props.fromPackages) {
             getPackageStructure()
         } else {
             getFolderStructure()
         }
+        emit('location', value.path)
     }
 }
 
@@ -215,12 +221,13 @@ function setCurrentFolder(elem: d3.HierarchyNode<PackageStructure>) {
             break;
         case FileType.FILE:
             folder_search_term.value = elem.data.name
+            emit("input", elem.data.name) // Filling the value from code doesn't trigger @input, hence emit manually
             break;
         default:
             break;
     }
-    // Emit selected path by stitching together parents
-    emit("select", elem.ancestors().reverse().map( (parent) => parent.data.name ).join("/"), elem.data.type === FileType.DIR)
+    // Emit selected path as array, exclude root, as it is given as the location
+    emit("select", elem.ancestors().slice(0, -1).reverse().map( (parent) => parent.data.name ), elem.data.type === FileType.DIR)
 
 }
 
@@ -252,9 +259,9 @@ onMounted(() => {
             </button>
         </div>
         <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
-            <button v-for="location in location_search_results" :key="location"
+            <button v-for="location in location_search_results" :key="location.path"
             @click="setChosenLocation(location)" class="btn btn-outline-dark ms-4 mb-3">
-                {{ location }}
+                {{ location.package }}
             </button>
         </div>
         <div v-else-if="current_folder !== null">
@@ -266,15 +273,14 @@ onMounted(() => {
                     Name:
                 </span>
                 <input v-model="folder_search_term" type="text" class="form-control"
-                @change="emit('input', ($event.target as HTMLInputElement).value)">
-                <!--TODO if this causes issues with not firing, try switching to @input-->
+                @input="emit('input', ($event.target as HTMLInputElement).value)">
             </div>
             <div class="input-group mb-3">
                 <button :disabled="current_folder.parent === null"
                 @click="setCurrentFolder(current_folder.parent!)" class="btn btn-outline-secondary">
                     <font-awesome-icon icon="fa-solid fa-angle-up" />
                 </button>
-                <button v-for="elem in current_folder.ancestors().reverse()" :key="elem.data.item_id"
+                <button v-for="elem in current_folder.ancestors().slice(0, -1).reverse()" :key="elem.data.item_id"
                 @click="setCurrentFolder(elem)" class="btn btn-outline-secondary">
                     {{ elem.data.name }}
                 </button>
