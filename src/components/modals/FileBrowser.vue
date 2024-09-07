@@ -64,7 +64,7 @@ const locations = ref<Package[]>([])
 
 const location_search_term = ref<string>("")
 const location_fuse = ref<Fuse<Package>>(new Fuse<Package>([], {
-
+    keys: ['package', 'path'],
 }))
 const location_search_results = computed<Package[]>(() => {
     if (props.fromPackages) {
@@ -287,7 +287,8 @@ onMounted(() => {
             </div>
             <div class="d-grid overflow-auto" style="max-height: 50vh">
                 <button v-for="elem in item_search_results" :key="elem.data.item_id"
-                @click="setCurrentFolder(elem)" class="btn btn-outline-dark ms-4 mb-3">
+                @click="setCurrentFolder(elem)" class="btn btn-outline-dark ms-4 mb-3"
+                :class="{'active': elem.data.name === folder_search_term}">
                     {{ elem.data.name }}
                 </button>
             </div>

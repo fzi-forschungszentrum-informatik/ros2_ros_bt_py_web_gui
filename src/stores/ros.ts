@@ -74,6 +74,7 @@ import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
 import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure'
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
 import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure'
+import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 
 export const useROSStore = defineStore(
   'ros',
@@ -313,6 +314,16 @@ export const useROSStore = defineStore(
       })
     )
 
+    const save_tree_service = ref<
+      ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'save_tree',
+        serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -490,6 +501,12 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
       })
 
+      save_tree_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'save_tree',
+        serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
+      })
+
     }
 
     function connect() {
@@ -556,6 +573,7 @@ export const useROSStore = defineStore(
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,
+      save_tree_service,
       tree_sub,
       subtree_info_sub,
       packages_sub,
