@@ -346,7 +346,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <notifications animation-type="velocity" />
+    <notifications position="bottom right" :pauseOnHover=true />
     <ModalsContainer />
   </main>
 </template>
