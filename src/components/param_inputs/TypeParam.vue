@@ -45,7 +45,10 @@ const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
 
+// These track two conditions for displaying the result dropdown.
+//   One is for focusing the input, the other for navigating the result menu
 let hide_results = ref<boolean>(true)
+let keep_results = ref<boolean>(false)
 
 function onChange(event: Event) {
   const target = event.target as HTMLInputElement
@@ -61,31 +64,27 @@ function onChange(event: Event) {
   }
 }
 
-function keyPressHandler(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    messages_results.value = []
-  }
-}
-
-function onSearchResultClick(search_result: Message) {
+function selectSearchResult(search_result: Message) {
   // TODO: Set the Request and Response values for the other nodes.
   props.updateValue(props.name, props.param.key, search_result.msg)
-  messages_results.value = []
+  releaseDropdown()
 }
 
-function onSearchResultKeyDown(search_result: Message, event: KeyboardEvent) {
-  if (event.key != 'Enter') {
-    onSearchResultClick(search_result)
-  }
-}
-
-function onFocus() {
+function focusInput() {
   editor_store.changeCopyMode(false)
   hide_results.value = false
 }
 
-function onBlur() {
+function unfocusInput() {
   hide_results.value = true
+}
+
+function forceDropdown() {
+  keep_results.value = true
+}
+
+function releaseDropdown() {
+  keep_results.value = false
 }
 
 </script>
@@ -101,20 +100,23 @@ function onBlur() {
         :disabled="editor_store.selected_subtree.is_subtree"
         :list="props.param.key + 'options'"
         @input="onChange"
-        @focus="onFocus"
-        @blur="onBlur"
-        @keypress="keyPressHandler"
-      />
+        @focus="focusInput"
+        @blur="unfocusInput"
+        @keyup.esc="() => {unfocusInput(); releaseDropdown()}"
+        @keydown.tab="forceDropdown"
+      /><!--TODO navigating the search results with tab isn't working, @blur fires too fast-->
     </label>
     <div class="mb-2 search-results">
-      <div class="list-group" :class="{'d-none': hide_results}">
+      <div class="list-group" :class="{'d-none': hide_results && !keep_results}"
+      @mouseenter="forceDropdown" @mouseleave="releaseDropdown">
         <div
           v-for="result in messages_results"
           :key="result.msg"
           class="list-group-item search-result"
           tabindex="0"
-          @click="() => onSearchResultClick(result)"
-          @keydown="(event) => onSearchResultKeyDown(result, event)"
+          @click="() => selectSearchResult(result)"
+          @keyup.enter="() => selectSearchResult(result)"
+          @keyup.esc="releaseDropdown"
         >
           {{ result.msg }}
         </div>
