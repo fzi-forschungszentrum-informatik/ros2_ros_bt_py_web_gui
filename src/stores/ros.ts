@@ -223,7 +223,6 @@ export const useROSStore = defineStore(
       })
     )
 
-    //TODO is this service supposed to exist? Ros2 says it does, roslib says it doesn't
     const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
       new ROSLIB.Service({
         ros: ros.value,

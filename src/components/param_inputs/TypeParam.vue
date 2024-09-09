@@ -104,7 +104,7 @@ function releaseDropdown() {
         @blur="unfocusInput"
         @keyup.esc="() => {unfocusInput(); releaseDropdown()}"
         @keydown.tab="forceDropdown"
-      /><!--TODO navigating the search results with tab isn't working, @blur fires too fast-->
+      />
     </label>
     <div class="mb-2 search-results">
       <div class="list-group" :class="{'d-none': hide_results && !keep_results}"

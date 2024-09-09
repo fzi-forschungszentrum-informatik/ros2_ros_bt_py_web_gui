@@ -425,7 +425,7 @@ function drawNewNodes(
   const fo = selection
     .append("foreignObject")
       .classed(tree_node_css_class, true)
-      //TODO do the node--internal and node--leaf classes do anything?
+      // The two css-classes below are currently unused
       .classed("node--internal", 
         (d) => d.children !== undefined && d.children.length > 0
       )

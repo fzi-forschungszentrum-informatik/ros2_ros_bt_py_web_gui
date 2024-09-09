@@ -145,7 +145,7 @@ function parseStructure(content_str: string) {
 function getFolderStructure() {
     ros_store.get_folder_structure_service.callService({
         storage_folder: chosen_location.value!.package,
-        show_hidden: true //TODO is this correct
+        show_hidden: true
     } as GetFolderStructureRequest,
     (response: GetFolderStructureResponse) => {
         if (response.success) {
@@ -170,14 +170,14 @@ function getFolderStructure() {
 function getPackageStructure() {
     ros_store.get_package_structure_service.callService({
         package: chosen_location.value!.package,
-        show_hidden: true //TODO is this correct
+        show_hidden: true
     } as GetPackageStructureRequest,
     (response: GetPackageStructureResponse) => {
         if (response.success) {
             parseStructure(response.package_structure)
         } else {
             notify({
-                title: 'Error when calling GetFolderStructure service!',
+                title: 'Error when calling GetPackageStructure service!',
                 text: response.error_message,
                 type: 'error'
             })
@@ -185,7 +185,7 @@ function getPackageStructure() {
     },
     (error: string) => {
         notify({
-            title: 'Failed to call GetFolderStructure service!',
+            title: 'Failed to call GetPackageStructure service!',
             text: error,
             type: 'error'
         })
