@@ -30,16 +30,11 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, DebugSettings, Messages, TreeMsg, SubtreeInfo } from '@/types/types'
+import type { Packages, Messages, TreeMsg, SubtreeInfo } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
 } from '@/types/services/ServicesForType'
-import type { ContinueRequest, ContinueResponse } from '@/types/services/Continue'
-import type {
-  SetExecutionModeRequest,
-  SetExecutionModeResponse
-} from '@/types/services/SetExecutionMode'
 import type {
   ControlTreeExecutionRequest,
   ControlTreeExecutionResponse
@@ -75,6 +70,12 @@ import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/ty
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
 import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
+import type { 
+  LoadTreeFromPathRequest, 
+  LoadTreeFromPathResponse 
+} from '@/types/services/LoadTreeFromPath'
+
+
 
 export const useROSStore = defineStore(
   'ros',
@@ -323,6 +324,16 @@ export const useROSStore = defineStore(
       })
     )
 
+    const load_tree_from_path_service = ref<
+      ROSLIB.Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'load_tree_from_path',
+        serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -506,6 +517,12 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
       })
 
+      load_tree_from_path_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'load_tree_from_path',
+        serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
+      })
+
     }
 
     function connect() {
@@ -573,6 +590,7 @@ export const useROSStore = defineStore(
       get_folder_structure_service,
       get_package_structure_service,
       save_tree_service,
+      load_tree_from_path_service,
       tree_sub,
       subtree_info_sub,
       packages_sub,

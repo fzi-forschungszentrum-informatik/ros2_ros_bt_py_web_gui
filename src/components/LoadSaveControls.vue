@@ -31,9 +31,8 @@
 import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import { notify } from '@kyvg/vue3-notification'
-import { h, ref, type Ref, type VNodeRef } from 'vue'
+import { ref } from 'vue'
 import { useModal } from 'vue-final-modal'
-import LoadPackageModal from './modals/LoadPackageModal.vue'
 import SaveFileModal from './modals/SaveFileModal.vue'
 import LoadFileModal from './modals/LoadFileModal.vue'
 import { useEditorStore } from '@/stores/editor'
@@ -55,20 +54,22 @@ const file_input_ref = ref<HTMLInputElement>()
 const file_reader = new FileReader()
 
 const loadPackageModalHandle = useModal({
-  component: LoadPackageModal,
+  component: LoadFileModal,
   attrs: {
+    fromPackages: true,
     onClose() {
       loadPackageModalHandle.close()
-    }
+    },
   },
 })
 
 const loadFileModalHandle = useModal({
   component: LoadFileModal,
   attrs: {
+    fromPackages: false,
     onClose() {
       loadFileModalHandle.close()
-    }
+    },
   },
 })
 
