@@ -80,7 +80,9 @@ import {
   faWindowRestore,
   faRoute,
   faBullhorn,
-  faXmark
+  faXmark,
+  faFileCode,
+  faCubes
 } from '@fortawesome/free-solid-svg-icons'
 
 library.add(
@@ -114,6 +116,8 @@ library.add(
   faRoute,
   faBullhorn,
   faXmark,
+  faFileCode,
+  faCubes,
 )
 
 const app = createApp(App)

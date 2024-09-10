@@ -67,17 +67,27 @@ const location_fuse = ref<Fuse<Package>>(new Fuse<Package>([], {
     keys: ['package', 'path'],
 }))
 const location_search_results = computed<Package[]>(() => {
+    let results: Package[]
     if (props.fromPackages) {
         if (location_search_term.value === '') {
-            return packages_store.packages.map((x) => x)
+            results = packages_store.packages
+        } else {
+            results = packages_store.packages_fuse
+                .search(location_search_term.value)
+                .map((x) => x.item)
         }
-        return packages_store.packages_fuse.search(location_search_term.value).map((x) => x.item)
     } else {
         if (location_search_term.value === '') {
-            return locations.value
+            results = locations.value
+        } else {
+            results = location_fuse.value
+                .search(location_search_term.value)
+                .map((x) => x.item)
         }
-        return location_fuse.value.search(location_search_term.value).map((x) => x.item)
     }
+    return results.sort((a, b) => {
+        return a.package.localeCompare(b.package)
+    })
 })
 
 const location_available = computed<boolean>(() => 
@@ -91,7 +101,7 @@ const folder_item_fuse = ref<Fuse<d3.HierarchyNode<PackageStructure>>>(
         keys: ['data.name']
     })
 )
-const item_search_results =computed<d3.HierarchyNode<PackageStructure>[]>(() => {
+const item_search_results = computed<d3.HierarchyNode<PackageStructure>[]>(() => {
     let list: d3.HierarchyNode<PackageStructure>[] = []
     if (folder_search_term.value === '') {
         list = current_folder.value?.children || []
@@ -111,7 +121,12 @@ const item_search_results =computed<d3.HierarchyNode<PackageStructure>[]>(() => 
                 return false
         }    
     })
-    return list
+    return list.sort((a, b) => {
+        if (a.data.type === b.data.type) {
+            return a.data.name.localeCompare(b.data.name)
+        }
+        return (a.data.type === FileType.DIR ? -1 : 1)
+    })
 })
 
 
@@ -260,7 +275,9 @@ onMounted(() => {
         </div>
         <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
             <button v-for="location in location_search_results" :key="location.path"
-            @click="setChosenLocation(location)" class="btn btn-outline-dark ms-4 mb-3">
+            @click="setChosenLocation(location)" 
+            class="btn btn-outline-dark ms-4 mb-3 text-start">
+                <font-awesome-icon icon="fa-solid fa-cubes" class="me-1" />
                 {{ location.package }}
             </button>
         </div>
@@ -287,8 +304,15 @@ onMounted(() => {
             </div>
             <div class="d-grid overflow-auto" style="max-height: 50vh">
                 <button v-for="elem in item_search_results" :key="elem.data.item_id"
-                @click="setCurrentFolder(elem)" class="btn btn-outline-dark ms-4 mb-3"
+                @click="setCurrentFolder(elem)" 
+                class="btn btn-outline-dark ms-4 mb-3 text-start"
                 :class="{'active': elem.data.name === folder_search_term}">
+                    <font-awesome-icon icon="fa-solid fa-folder-open"
+                    style="width: 20px;"
+                    v-if="elem.data.type === FileType.DIR" />
+                    <font-awesome-icon icon="fa-solid fa-file-code"
+                    style="width: 20px;"
+                    v-if="elem.data.type === FileType.FILE" />
                     {{ elem.data.name }}
                 </button>
             </div>

@@ -151,8 +151,10 @@ function loadTree() {
     class="flex justify-center items-center"
     content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
   >
-    <FileBrowser location="Folder" @close="emit('close')" :file_filter="file_filter"
-    :from-packages="props.fromPackages" title="Load Tree from Folder"
+    <FileBrowser @close="emit('close')" :file_filter="file_filter"
+    :from-packages="props.fromPackages" 
+    :title="'Load Tree from ' + (props.fromPackages ? 'Package' : 'Folder')"
+    :location="(props.fromPackages ? 'Package' : 'Folder')"
     @location="(location) => storage_location = location"
     @select="(path, dir) => {selected_path = path; is_directory = dir}"
     @input="(input) => input_file_name = input">
