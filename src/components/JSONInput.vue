@@ -84,13 +84,13 @@ function handleChange() {
 }
 
 function updateMessageType(new_message_type: string, json: string | object, just_mounted: boolean) {
-  let type_changed = true
+  /*let type_changed = true
   if (message_type.value === new_message_type) {
     type_changed = false
   } else {
     message_type.value = new_message_type
     type_changed = true
-  }
+  }*/
   const message = getMessageType(new_message_type)
   if (message.message_type === '/dict' || message.message_type === undefined) {
     notify({
@@ -110,13 +110,15 @@ function updateMessageType(new_message_type: string, json: string | object, just
         if (response.success) {
           pyobjectstring.value = response.fields
 
-          let new_value
+          /*let new_value
           if (type_changed) {
             //new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
             new_value = JSON.parse(response.fields)
           } else {
             //new_value = getJSONfromPyObject(json, response.field_names).json
-          }
+          }*/
+          //const new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
+          const new_value = JSON.parse(response.fields)
           console.error(new_value)
           current_json.value = new_value
           field_names.value = response.field_names
@@ -159,7 +161,8 @@ try {
 const is_valid = ref<boolean>(initial_validity)
 const pyobjectstring = ref<string | undefined>(undefined)
 const field_names = ref<string[]>([])
-const message_type = ref<string>(props.message_type)
+// getDefaultValue prepends an '__' to unrecognized types, we need to strip it here
+const message_type = ref<string>(props.message_type.replace('__', ''))
 
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined

@@ -245,7 +245,7 @@ export function getDefaultValue(
         field_names: []
       }
     }
-  } else {
+  } else { //TODO should this check for general ros_types?
     return {
       type: '__' + typeName,
       value: {}
@@ -281,7 +281,7 @@ export function getMessageType(str: string): {
   service: boolean
   action: boolean
 } {
-  const message_parts = str.split('.')
+  const message_parts = str.split('/')
   if (message_parts.length < 3) {
     console.error('Invalid message passed')
     return { message_type: undefined, action: false, service: false }
