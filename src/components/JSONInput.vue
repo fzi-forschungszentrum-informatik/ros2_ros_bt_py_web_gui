@@ -119,7 +119,7 @@ function updateMessageType(new_message_type: string, json: string | object, just
           }*/
           //const new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
           const new_value = JSON.parse(response.fields)
-          console.error(new_value)
+          console.log(new_value)
           current_json.value = new_value
           field_names.value = response.field_names
           if (editor) {

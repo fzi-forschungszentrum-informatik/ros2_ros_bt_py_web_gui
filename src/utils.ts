@@ -281,26 +281,44 @@ export function getMessageType(str: string): {
   service: boolean
   action: boolean
 } {
-  const message_parts = str.split('/')
+  const message_parts = str.split('.')
   if (message_parts.length < 3) {
     console.error('Invalid message passed')
     return { message_type: undefined, action: false, service: false }
   }
 
-  let new_message_parts = message_parts
+  console.log(message_parts)
+  let new_message_parts = message_parts.slice(0, 2)
+  // Standardize type .../.../Name to .../.../_name/Name
+  if (message_parts.length === 3 || message_parts[2] !== message_parts[3].replace(/[A-Z]/g, x => '_' + x.toLowerCase())) {
+    new_message_parts.push(message_parts[2].replace(/[A-Z]/g, x => '_' + x.toLowerCase()))
+    new_message_parts.push(message_parts[2])
+    if (message_parts.length === 4) {
+      new_message_parts.push(message_parts[3])
+    }
+  } else {
+    new_message_parts.push(message_parts[2])
+    new_message_parts.push(message_parts[3])
+    if (message_parts.length === 5) {
+      new_message_parts.push(message_parts[4])
+    }
+  }
+  console.log(new_message_parts)
+
   let service = false
   let action = false
+
   if (message_parts[1] === 'srv') {
     service = true
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4)
-      new_message_parts[3] = new_message_parts[3] + '_' + message_parts[4]
+    if (new_message_parts.length === 5) {
+      new_message_parts[3] = new_message_parts[3] + '_' + new_message_parts[4]
+      new_message_parts.pop()
     }
   } else if (message_parts[1] === 'action') {
     action = true
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4)
-      new_message_parts[3] = new_message_parts[3] + '_' + message_parts[4]
+    if (new_message_parts.length === 5) {
+      new_message_parts[3] = new_message_parts[3] + '_' + new_message_parts[4]
+      new_message_parts.pop()
     }
   }
   const message_name = new_message_parts.join('/')

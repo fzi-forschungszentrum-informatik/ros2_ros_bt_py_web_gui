@@ -32,6 +32,7 @@ import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
+
 export const useMessasgeStore = defineStore('messages', () => {
   const messages_fuse_options = {
     shouldSort: true,
@@ -53,8 +54,65 @@ export const useMessasgeStore = defineStore('messages', () => {
     messages_available.value = available
   }
 
+  function mapMessageTypes(message: Message): Message[] {
+    const message_parts = message.msg.split('/')
+    if (message_parts.length !== 3) {
+      return []
+    }
+    if (message.service) {
+      const new_msg = message_parts[0] + '.srv.' + message_parts[2]
+      return [
+        {
+          msg: new_msg,
+          service: true,
+          action: false
+        },
+        {
+          msg: new_msg + ".Request",
+          service: true,
+          action: false
+        },
+        {
+          msg: new_msg + ".Response",
+          service: true,
+          action: false
+        },
+      ]
+    }
+    if (message.action) {
+      const new_msg = message_parts[0] + '.action.' + message_parts[2]
+      return [
+        {
+          msg: new_msg,
+          action: true,
+          service: false
+        },
+        {
+          msg: new_msg + ".Goal",
+          action: true,
+          service: false
+        },
+        {
+          msg: new_msg + ".Result",
+          action: true,
+          service: false
+        },
+        {
+          msg: new_msg + ".Feedback",
+          action: true,
+          service: false
+        },
+      ]
+    }
+    return [{
+      msg: message_parts[0] + ".msg." + message_parts[2],
+      service: false,
+      action: false
+    }]
+  }
+
   function updateAvailableMessages(new_messages: Message[]) {
-    messages.value = new_messages
+    messages.value = new_messages.flatMap(mapMessageTypes)
     messages_fuse.value = new Fuse(messages.value, messages_fuse_options)
   }
 
