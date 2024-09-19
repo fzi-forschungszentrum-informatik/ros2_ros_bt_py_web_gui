@@ -82,8 +82,6 @@ export const useEditorStore = defineStore('editor', () => {
 
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
 
-  const filtered_nodes = ref<DocumentedNode[]>([])
-
   const show_data_graph = ref<boolean>(true)
 
   const skin = ref<EditorSkin>(EditorSkin.DARK)
@@ -121,24 +119,12 @@ export const useEditorStore = defineStore('editor', () => {
     running_commands.value.delete(command)
   }
 
-  function filterNodes(filter: string) {
-    if (filter === '') {
-      filtered_nodes.value = []
-      return
-    }
-    filtered_nodes.value = nodes_store.nodes_fuse.search(filter).map((x) => x.item)
-  }
-
   function setNodeHasChanged() {
     node_has_changed.value = true
   }
 
   function clearNodeHasChanged() {
     node_has_changed.value = false
-  }
-
-  function clearFilteredNodes() {
-    filtered_nodes.value = []
   }
 
   function nodeListSelectionChange(new_selected_node: DocumentedNode) {
@@ -296,7 +282,6 @@ export const useEditorStore = defineStore('editor', () => {
   return {
     tree,
     publish_subtrees,
-    filtered_nodes,
     debug,
     subtree_states,
     running_commands,
@@ -313,8 +298,6 @@ export const useEditorStore = defineStore('editor', () => {
     removeRunningCommand,
     enableSubtreePublishing,
     enableDebugging,
-    filterNodes,
-    clearFilteredNodes,
     nodeListSelectionChange,
     editorSelectionChange,
     startDraggingNewNode,

@@ -47,6 +47,8 @@ export const useNodesStore = defineStore('nodes', () => {
   const nodes = ref<DocumentedNode[]>([])
   const nodes_fuse = ref<Fuse<DocumentedNode>>(new Fuse([], nodes_fuse_options))
 
+  const filtered_nodes = ref<DocumentedNode[]>([])
+
   function updateAvailableNode(new_nodes: DocumentedNode[]) {
     nodes.value = new_nodes
     const tagged_nodes = new_nodes.map((node: DocumentedNode) => {
@@ -62,9 +64,24 @@ export const useNodesStore = defineStore('nodes', () => {
     nodes_fuse.value = new Fuse(tagged_nodes, nodes_fuse_options)
   }
 
+  function filterNodes(filter: string) {
+    if (filter === '') {
+      filtered_nodes.value = []
+      return
+    }
+    filtered_nodes.value = nodes_fuse.value.search(filter).map((x) => x.item)
+  }
+
+  function clearFilteredNodes() {
+    filtered_nodes.value = []
+  }
+
   return {
     nodes,
     nodes_fuse,
-    updateAvailableNode
+    filtered_nodes,
+    updateAvailableNode,
+    filterNodes,
+    clearFilteredNodes
   }
 })

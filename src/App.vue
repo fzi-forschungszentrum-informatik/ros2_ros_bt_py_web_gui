@@ -33,6 +33,7 @@ import { ModalsContainer } from 'vue-final-modal'
 import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
+import { useNodesStore } from './stores/nodes'
 import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
@@ -46,9 +47,11 @@ import MultipleSelection from './components/MultipleSelection.vue'
 import NewNode from './components/NewNode.vue'
 import SelectedNode from './components/SelectedNode.vue'
 
+
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
+const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 
 function onNewPackagesMsg(msg: Packages) {
@@ -92,13 +95,13 @@ function updateSubtreeInfoSubscription() {
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
-  editor_store.filterNodes(target.value)
+  nodes_store.filterNodes(target.value)
 }
 
 function handleNodeSearchClear(event: KeyboardEvent) {
   if (event.key == 'Escape') {
     node_search.value = ''
-    editor_store.clearFilteredNodes()
+    nodes_store.clearFilteredNodes()
   }
 }
 
