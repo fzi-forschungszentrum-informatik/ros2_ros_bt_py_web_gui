@@ -29,16 +29,8 @@
  -->
 <script setup lang="ts">
 import type { ParamData } from '@/types/types'
-import BooleanParam from './param_inputs/BooleanParam.vue'
 import TypeParam from './param_inputs/TypeParam.vue'
-import StringParam from './param_inputs/StringParam.vue'
-import FloatParamVue from './param_inputs/FloatParam.vue'
-import IntParam from './param_inputs/IntParam.vue'
-import UnsetOptionrefParam from './param_inputs/UnsetOptionrefParam.vue'
-import ListParam from './param_inputs/ListParam.vue'
-import DictParam from './param_inputs/DictParam.vue'
 import JSONInput from './JSONInput.vue'
-import DropDownParam from './param_inputs/DropDownParam.vue'
 import MathUnaryOperatorDropDownParam from './param_inputs/MathUnaryOperatorDropDownParam.vue'
 import MathBinaryOperatorDropDownParam from './param_inputs/MathBinaryOperatorDropDownParam.vue'
 import MathOperandTypeDropDownParam from './param_inputs/MathOperandTypeDropDownParam.vue'
@@ -155,52 +147,15 @@ function onFocus() {
         @focus="onFocus"
       />
     </div>
-    <!--<IntParam
-      v-if="param.value.type === 'int'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
-    <FloatParamVue
-      v-else-if="param.value.type === 'float'"
-      class="form-group"
-      :param="param"
-      :name="category"
-      :updateValue="edit_node_store.updateParamValue"
-    />
-    <StringParam
-      v-else-if="param.value.type === 'string'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />-->
 
     <TypeParam
       v-else-if="param.value.type === 'type'"
       :category="props.category"
       :data_key="props.data_key"
     />
-    <!--<BooleanParam
-      v-else-if="param.value.type === 'bool'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
-    <UnsetOptionrefParam v-else-if="param.value.type === 'unset_optionref'" :param="param" />-->
-    <!--<ListParam
-      v-else-if="param.value.type === 'list'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-      :updateValidity="updateValidity"
-    />
-    <DictParam
-      v-else-if="param.value.type === 'dict' || param.value.type === 'collections.OrderedDict'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-      :updateValidity="updateValidity"
-    />-->
+    
+    <!--TODO Below should be adapted to use the new category + data_key scheme.
+      Also look into maybe unifying them components to avoid duplicate code-->
     <MathUnaryOperatorDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
       :param="param"
@@ -213,14 +168,12 @@ function onFocus() {
       :name="category"
       :updateValue="edit_node_store.updateParamValue"
     />
-
     <MathOperandTypeDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
       :param="param"
       :name="category"
       :updateValue="edit_node_store.updateParamValue"
     />
-
     <MathUnaryOperandTypeDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
       :param="param"
