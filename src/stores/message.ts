@@ -50,6 +50,14 @@ export const useMessasgeStore = defineStore('messages', () => {
   const messages_fuse = ref<Fuse<Message>>(new Fuse([], messages_fuse_options))
   const messages_available = ref<boolean>(false)
 
+  // These additional fuses are meant to substitute/replace the above messages_fuse
+  //  to allow to search specific kinds of ros types dependent on what is needed.
+  let ros_fuse_options = messages_fuse_options
+  ros_fuse_options.keys = []
+  const ros_msg_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+  const ros_srv_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+  const ros_action_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+
   function areMessagesAvailable(available: boolean) {
     messages_available.value = available
   }
@@ -111,8 +119,37 @@ export const useMessasgeStore = defineStore('messages', () => {
     }]
   }
 
+  // This is a temporary function to avoid code duplication with mapMessageTypes
+  //  it populates the additional ros_fuses, but the parsing of the mapMessageTypes
+  //  output is a bit convoluted and not stable against changes.
+  //TODO if the big messages_fuse is ever phased out, merge and redo this with 
+  //  the parsing in mapMessageTypes
+  function fillRosFuses() {
+    ros_msg_fuse.value.setCollection([])
+    ros_srv_fuse.value.setCollection([])
+    ros_action_fuse.value.setCollection([])
+
+    messages.value.forEach(element => {
+      // All service and action compontents (eg .Request .Response) are messages
+      if (element.msg.split('.').length > 3) {
+        ros_msg_fuse.value.add(element.msg)
+        return
+      }
+      if (element.service) {
+        ros_srv_fuse.value.add(element.msg)
+        return
+      }
+      if (element.action) {
+        ros_action_fuse.value.add(element.msg)
+        return
+      }
+      ros_msg_fuse.value.add(element.msg)
+    })
+  }
+
   function updateAvailableMessages(new_messages: Message[]) {
     messages.value = new_messages.flatMap(mapMessageTypes)
+    fillRosFuses()
     messages_fuse.value = new Fuse(messages.value, messages_fuse_options)
   }
 
@@ -120,6 +157,9 @@ export const useMessasgeStore = defineStore('messages', () => {
     messages,
     messages_fuse,
     messages_available,
+    ros_msg_fuse,
+    ros_srv_fuse,
+    ros_action_fuse,
     areMessagesAvailable,
     updateAvailableMessages
   }
