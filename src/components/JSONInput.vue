@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type {
@@ -39,9 +40,10 @@ import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
 
 import 'jsoneditor/dist/jsoneditor.min.css'
-import { onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 
 const props = defineProps<{
@@ -54,7 +56,7 @@ const props = defineProps<{
 }>()
 
 function onFocus() {
-  editor_store.changeCopyMode(false)
+  edit_node_store.changeCopyMode(false)
 }
 
 function handleChange() {
@@ -162,7 +164,7 @@ const is_valid = ref<boolean>(initial_validity)
 const pyobjectstring = ref<string | undefined>(undefined)
 const field_names = ref<string[]>([])
 // getDefaultValue prepends an '__' to unrecognized types, we need to strip it here
-const message_type = ref<string>(props.message_type.replace('__', ''))
+const message_type = computed<string>(() => props.message_type.replace('__', ''))
 
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined

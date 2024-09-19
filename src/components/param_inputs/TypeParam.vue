@@ -33,12 +33,11 @@ import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { Message, ParamData } from '@/types/types'
 import { python_builtin_types } from '@/utils'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  param: ParamData
-  name: string
-  updateValue: (param_type: string, key: string, value: any) => void
+  category: 'options',
+  data_key: string
 }>()
 
 const editor_store = useEditorStore()
@@ -47,12 +46,21 @@ const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
 
+const param = computed<ParamData | undefined>(() => 
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+)
+
 // These track two conditions for displaying the result dropdown.
 //   One is for focusing the input, the other for navigating the result menu
 let hide_results = ref<boolean>(true)
 let keep_results = ref<boolean>(false)
 
 function onChange(event: Event) {
+  if (param.value === undefined) {
+    console.error("Undefined parameter")
+    return
+  }
+
   const target = event.target as HTMLInputElement
   let new_type_name = target.value || ''
   new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
@@ -60,15 +68,16 @@ function onChange(event: Event) {
   messages_results.value = results.slice(0, 5).map((x) => x.item)
 
   if (python_builtin_types.indexOf(new_type_name) >= 0) {
-    props.updateValue(props.name, props.param.key, '__builtin__.' + new_type_name)
+    edit_node_store.updateParamValue(props.category, 
+      props.data_key, '__builtin__.' + new_type_name)
   } else {
-    props.updateValue(props.name, props.param.key, new_type_name)
+    edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
   }
 }
 
 function selectSearchResult(search_result: Message) {
   // TODO: Set the Request and Response values for the other nodes.
-  props.updateValue(props.name, props.param.key, search_result.msg)
+  edit_node_store.updateParamValue(props.category, props.data_key, search_result.msg)
   releaseDropdown()
 }
 
@@ -92,7 +101,7 @@ function releaseDropdown() {
 </script>
 
 <template>
-  <div class="form-group">
+  <div v-if="param !== undefined" class="form-group">
     <label class="d-block">
       {{ param.key }}
       <input
@@ -100,7 +109,6 @@ function releaseDropdown() {
         class="form-control mt-2"
         :value="(param.value.value as string)"
         :disabled="editor_store.selected_subtree.is_subtree"
-        :list="props.param.key + 'options'"
         @input="onChange"
         @focus="focusInput"
         @blur="unfocusInput"
@@ -124,13 +132,9 @@ function releaseDropdown() {
         </div>
       </div>
     </div>
-    <!--<datalist :id="props.param.key + 'options'">
-      <option
-        v-for="result in messages_results"
-        :key="result.msg"
-        :value="result.msg"
-      ></option>
-    </datalist>-->
+  </div>
+  <div v-else>
+    Error loading param data
   </div>
 </template>
 

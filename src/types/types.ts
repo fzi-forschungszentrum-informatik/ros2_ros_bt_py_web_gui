@@ -165,7 +165,7 @@ export type ParamType = {
   value: ValueTypes
 }
 
-export interface ParamData {
+export type ParamData = {
   key: string
   value: ParamType
 }

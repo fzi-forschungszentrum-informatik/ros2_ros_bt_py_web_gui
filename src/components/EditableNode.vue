@@ -42,41 +42,6 @@ const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-const props = defineProps<{
-  name: string
-  node_class: string
-  module: string
-  options: ParamData[]
-  inputs: ParamData[]
-  outputs: ParamData[]
-  doc?: string
-  updateValidity: (valid: boolean) => void
-  changeNodeClass: (new_class: string) => void
-  changeNodeName: (new_name: string) => void
-  updateValue: (paramType: string, key: string, new_value: any) => void
-}>()
-
-const flow_control_nodes = computed<DocumentedNode[]>(() => {
-  return nodes_store.nodes.filter((item: DocumentedNode) => item.max_children == -1)
-})
-
-const is_flow_control_node = computed<boolean>(() => {
-  return (
-    flow_control_nodes.value.filter(
-      (item: DocumentedNode) => props.module === item.module && props.node_class === item.node_class
-    ).length > 0
-  )
-})
-
-function handleNodeClassChange(event: Event) {
-  const target = event.target as HTMLSelectElement
-  props.changeNodeClass(target.value)
-}
-
-function handelNodeNameChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  props.changeNodeName(target.value)
-}
 </script>
 
 <template>
@@ -84,23 +49,27 @@ function handelNodeNameChange(event: Event) {
     <input
       class="form-control-lg mb-2"
       type="text"
-      :value="name"
+      :value="edit_node_store.new_node_name"
       :disabled="editor_store.selected_subtree.is_subtree"
       @focus="() => edit_node_store.changeCopyMode(false)"
-      @change="handelNodeNameChange"
+      @change="(event: Event) => edit_node_store.changeNodeName(
+        (event.target as HTMLInputElement).value )"
     />
     <div class="d-flex minw0">
       <h4 class="text-muted">
-        <div v-if="!is_flow_control_node">{{ node_class }} ({{ module }})</div>
+        <div v-if="!edit_node_store.is_flow_control_node">
+          {{ edit_node_store.new_node_class }} ({{ edit_node_store.new_node_module }})
+        </div>
         <select
           v-else
           class="custom-select"
-          :value="module + node_class"
+          :value="edit_node_store.new_node_module + edit_node_store.new_node_class"
           :disabled="editor_store.selected_subtree.is_subtree"
-          @change="handleNodeClassChange"
+          @change="(event: Event) => edit_node_store.changeNodeClass(
+            (event.target as HTMLInputElement).value )"
         >
           <option
-            v-for="node in flow_control_nodes"
+            v-for="node in edit_node_store.flow_control_nodes"
             :key="node.module + node.node_class"
             :value="node.module + node.node_class"
           >
@@ -109,22 +78,21 @@ function handelNodeNameChange(event: Event) {
         </select>
       </h4>
       <font-awesome-icon
-        v-if="doc"
+        v-if="edit_node_store.reference_node"
         icon="fa-solid fa-question-circle"
         class="pl-2 pr-2"
         aria-hidden="true"
-        v-bind:title="getShortDoc(doc)"
+        v-bind:title="getShortDoc(edit_node_store.reference_node!.doc)"
       />
     </div>
     <div class="mb-2">
       <h5>Options</h5>
       <div class="list-group">
         <ParamInputs
-          v-for="option in options"
-          name="options"
-          :param="option"
-          :updateValidity="updateValidity"
-          :updateValue="updateValue"
+          v-for="option in edit_node_store.new_node_options"
+          :key="'option_' + option.key"
+          :data_key="option.key"
+          category="options"
         ></ParamInputs>
       </div>
     </div>
@@ -132,10 +100,10 @@ function handelNodeNameChange(event: Event) {
       <h5>Input</h5>
       <div class="list-group">
         <ParamDisplay
-          v-for="input in inputs"
+          v-for="input in edit_node_store.new_node_inputs"
           :key="'input_' + input.key"
-          :param="input"
-          name="inputs"
+          :data_key="input.key"
+          category="inputs"
         ></ParamDisplay>
       </div>
     </div>
@@ -143,10 +111,10 @@ function handelNodeNameChange(event: Event) {
       <h5>Output</h5>
       <div class="list-group">
         <ParamDisplay
-          v-for="output in outputs"
+          v-for="output in edit_node_store.new_node_outputs"
           :key="'output_' + output.key"
-          :param="output"
-          name="outputs"
+          :data_key="output.key"
+          category="outputs"
         ></ParamDisplay>
       </div>
     </div>

@@ -28,16 +28,30 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node';
 import type { ParamData } from '@/types/types'
+import { computed } from 'vue';
 
-defineProps<{
-  param: ParamData
-  name: string
+const props = defineProps<{
+  category: 'inputs' | 'outputs',
+  data_key: string
 }>()
+
+const edit_node_store = useEditNodeStore()
+
+const param = computed<ParamData | undefined>(() => {
+  switch (props.category) {
+    case "inputs":
+      return edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
+    case "outputs":
+      return edit_node_store.new_node_outputs.find((x) => x.key === props.data_key)
+  }
+})
+
 </script>
 
 <template>
-  <div class="list-group-item">
+  <div v-if="param !== undefined" class="list-group-item">
     <div
       v-if="
         param.value.type === 'int' || param.value.type === 'float' || param.value.type === 'string'
@@ -77,5 +91,8 @@ defineProps<{
       </h5>
       <pre>{{ JSON.stringify(param.value.value, null, 2) }}</pre>
     </div>
+  </div>
+  <div v-else>
+    Error loading param data
   </div>
 </template>

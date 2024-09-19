@@ -62,7 +62,7 @@ function onFocus() {
       <input
         type="number"
         name="float"
-        step="any"
+        step=any
         class="form-control"
         @change="onChange"
         @focus="onFocus"

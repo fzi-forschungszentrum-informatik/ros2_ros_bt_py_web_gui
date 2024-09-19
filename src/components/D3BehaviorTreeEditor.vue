@@ -1525,7 +1525,7 @@ onMounted(() => {
 
   viewport.on('click.unselect', () => {
     if (!d3.event.shiftKey) {
-      edit_node_store.editorSelectionChange(undefined)
+      edit_node_store.clearSelection()
       editor_store.unselectEdge()
     }
   })

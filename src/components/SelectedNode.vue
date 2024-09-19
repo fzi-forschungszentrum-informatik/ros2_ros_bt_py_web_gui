@@ -75,43 +75,7 @@ function getValues(x: NodeData): ParamData {
   } as ParamData
 }
 
-const name = ref<string>('')
-const node_class = ref<string>('')
-const module_name = ref<string>('')
-const is_valid = ref<boolean>(false)
-const options = ref<ParamData[]>([])
-const inputs = ref<ParamData[]>([])
-const outputs = ref<ParamData[]>([])
-const is_morphed = ref<boolean>(false)
-
-if (edit_node_store.selected_node !== undefined) {
-  name.value = edit_node_store.selected_node.name
-  node_class.value = edit_node_store.selected_node.node_class
-  module_name.value = edit_node_store.selected_node.module
-  is_valid.value = true
-  options.value = edit_node_store.selected_node.options.map(getValues)
-  inputs.value = edit_node_store.selected_node.inputs.map(getValues)
-  outputs.value = edit_node_store.selected_node.outputs.map(getValues)
-  is_morphed.value = false
-}
-
-function nameChangeHander(new_name: string) {
-  edit_node_store.setNodeHasChanged()
-  name.value = new_name
-}
-
-function getDefaultValues(paramList: NodeData[], options: NodeData[] = []): ParamData[] {
-  options = options || []
-
-  return paramList.map((x) => {
-    return {
-      key: x.key,
-      value: getDefaultValue(prettyprint_type(x.serialized_value), options)
-    } as ParamData
-  })
-}
-
-function nodeClassChangeHandler(new_class: string) {
+/*function nodeClassChangeHandler(new_class: string) {
   const flow_control_nodes = node_store.nodes.filter((item: DocumentedNode) => {
     return item.max_children == -1 && item.module + item.node_class === new_class
   })
@@ -132,14 +96,14 @@ function nodeClassChangeHandler(new_class: string) {
     )
     is_morphed.value = true
   }
-}
+}*/
 
 function buildNodeMsg(): NodeMsg {
   return {
-    module: module_name.value,
-    node_class: node_class.value,
-    name: name.value,
-    options: options.value.map((x) => {
+    module: edit_node_store.new_node_module,
+    node_class: edit_node_store.new_node_class,
+    name: edit_node_store.new_node_name,
+    options: edit_node_store.new_node_options.map((x) => {
       const option: NodeData = {
         key: x.key,
         serialized_value: '',
@@ -171,13 +135,19 @@ function buildNodeMsg(): NodeMsg {
   } as NodeMsg
 }
 function onClickDelete() {
-  if (!window.confirm('Really delete node ' + name.value + '?')) {
+  if (edit_node_store.selected_node === undefined) {
+    console.error("Can't delete a node that doesn't exist")
+    return
+  }
+
+  if (!window.confirm('Really delete node ' + edit_node_store.selected_node.name + '?')) {
     // Do nothing if user doesn't confirm
     return
   }
+
   ros_store.remove_node_service.callService(
     {
-      node_name: edit_node_store.selected_node!.name,
+      node_name: edit_node_store.selected_node.name,
       remove_children: false
     } as RemoveNodeRequest,
     (response: RemoveNodeResponse) => {
@@ -186,7 +156,7 @@ function onClickDelete() {
           title: 'Removed ' + edit_node_store.selected_node!.name + ' successfully!',
           type: 'success'
         })
-        edit_node_store.editorSelectionChange(undefined)
+        edit_node_store.clearSelection()
       } else {
         notify({
           title: 'Failed to remove node ' + edit_node_store.selected_node!.name + '!',
@@ -198,13 +168,19 @@ function onClickDelete() {
   )
 }
 function onClickDeleteWithChildren() {
-  if (!window.confirm('Really delete node ' + name.value + ' and all of its children?')) {
+  if (edit_node_store.selected_node === undefined) {
+    console.error("Can't delete a node that doesn't exist")
+    return
+  }
+
+  if (!window.confirm('Really delete node ' + edit_node_store.selected_node.name + ' and all of its children?')) {
     // Do nothing if user doesn't confirm
     return
   }
+
   ros_store.remove_node_service.callService(
     {
-      node_name: edit_node_store.selected_node!.name,
+      node_name: edit_node_store.selected_node.name,
       remove_children: true
     } as RemoveNodeRequest,
     (response: RemoveNodeResponse) => {
@@ -213,7 +189,7 @@ function onClickDeleteWithChildren() {
           title: 'Removed ' + edit_node_store.selected_node!.name + ' and its children successfully!',
           type: 'success'
         })
-        edit_node_store.editorSelectionChange(undefined)
+        edit_node_store.clearSelection()
       } else {
         notify({
           title: 'Failed to remove node ' + edit_node_store.selected_node!.name + '!',
@@ -226,12 +202,16 @@ function onClickDeleteWithChildren() {
 }
 
 function updateNode() {
+  if (edit_node_store.selected_node === undefined) {
+    console.error("Can't update a node that doesn't exist")
+    return
+  }
   ros_store.set_options_service.callService(
     {
-      node_name: edit_node_store.selected_node!.name,
+      node_name: edit_node_store.selected_node.name,
       rename_node: true,
-      new_name: name.value,
-      options: options.value.map((x) => {
+      new_name: edit_node_store.new_node_name,
+      options: edit_node_store.new_node_options.map((x) => {
         const option = {
           key: x.key,
           serialized_value: ''
@@ -256,11 +236,12 @@ function updateNode() {
     (response: SetOptionsResponse) => {
       if (response.success) {
         notify({
-          title: 'Updated node ' + name.value + ' successfully!',
+          title: 'Updated node ' + edit_node_store.new_node_name + ' successfully!',
           type: 'success'
         })
         edit_node_store.clearNodeHasChanged()
-        edit_node_store.editorSelectionChange(name.value)
+        edit_node_store.editorSelectionChange(edit_node_store.new_node_name)
+        //TODO make sure the selected node updates correctly
       } else {
         notify({
           title: 'Failed to update node ' + edit_node_store.selected_node!.name + '!',
@@ -273,11 +254,15 @@ function updateNode() {
 }
 
 function onClickUpdate() {
-  if (is_morphed.value) {
+  if (edit_node_store.node_is_morphed) {
     const msg = buildNodeMsg()
+    if (edit_node_store.selected_node === undefined) {
+      console.error("Can't morph a node that doesn't exist")
+      return
+    }
     ros_store.morph_node_service.callService(
       {
-        node_name: edit_node_store.selected_node!.name,
+        node_name: edit_node_store.selected_node.name,
         new_node: msg
       } as MorphNodeRequest,
       (response: MorphNodeResponse) => {
@@ -286,7 +271,7 @@ function onClickUpdate() {
             title: 'Morphed node ' + edit_node_store.selected_node!.name + ' successfully!',
             type: 'success'
           })
-          is_morphed.value = false
+          edit_node_store.node_is_morphed = false
           updateNode()
         } else {
           notify({
@@ -301,128 +286,13 @@ function onClickUpdate() {
     updateNode()
   }
 }
-
-function updateValidity(new_valididy: boolean) {
-  edit_node_store.setNodeHasChanged()
-  is_valid.value = new_valididy
-}
-
-function updateValue(paramType: string, key: string, new_value: ValueTypes) {
-  edit_node_store.setNodeHasChanged()
-  const map_fun = function (x: ParamData) {
-    if (x.key === key) {
-      return {
-        key: key,
-        value: {
-          type: x.value.type,
-          value: new_value
-        }
-      }
-    } else {
-      return x
-    }
-  }
-
-  if (paramType.toLowerCase() === 'options') {
-    // All of these are lists containing lists of [key, ref_key]
-    //
-    // That is, if options = { foo : int, bar : OptionRef(foo) }
-    // ref_keys will be [[bar, foo]]
-    if (edit_node_store.selected_node === undefined) {
-      console.error('Node info is null!')
-      return
-    }
-    
-    // The OptionRef info is not available in the selected_node, 
-    //    since that node is based on the tree.
-    // That data has to be extracted from the availableNodes, 
-    //    since those have the OptionRef type information
-    // Why is that information stored in the s.._value, not s.._type?
-
-    const referenced_node = node_store.nodes.find((node: DocumentedNode) => 
-      node.node_class === edit_node_store.selected_node!.node_class &&
-      node.module === edit_node_store.selected_node!.module)
-
-    if (referenced_node === undefined) {
-      console.error("Cannot recover node information")
-      return
-    }
-
-    const ref_keys = referenced_node.options
-      .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x): [string, string] => [
-        x.key,
-        prettyprint_type(x.serialized_value).substring(
-          'OptionRef('.length,
-          prettyprint_type(x.serialized_value).length - 1
-        )
-      ])
-      .filter((x) => x[1] === key)
-    const input_option_ref_keys = referenced_node.inputs
-      .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x): [string, string] => [
-        x.key,
-        prettyprint_type(x.serialized_value).substring(
-          'OptionRef('.length,
-          prettyprint_type(x.serialized_value).length - 1
-        )
-      ])
-      .filter((x) => x[1] === key)
-    const output_option_ref_keys = referenced_node.outputs
-      .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-      .map((x): [string, string] => [
-        x.key,
-        prettyprint_type(x.serialized_value).substring(
-          'OptionRef('.length,
-          prettyprint_type(x.serialized_value).length - 1
-        )
-      ])
-      .filter((x) => x[1] === key)
-
-    const new_options = options.value.map(map_fun)
-    const resolve_refs = (refs: [string, string][], current_item: ParamData) => {
-      // See if the current option references the changed key
-      const refData = refs.find((ref) => ref[0] === current_item.key)!
-      if (refData) {
-        // If it does, find the type of the referred key
-        const optionType = new_options.find((opt) => opt.key === refData[1])
-        if (optionType) {
-          const opt_value = optionType.value.value as string
-          // Get a default value for the type indicated by the
-          // referenced option
-          return {
-            key: current_item.key,
-            value: getDefaultValue(opt_value.replace('__builtin__.', '').replace('builtins.', ''))
-          }
-        }
-      }
-      return current_item
-    }
-    options.value = new_options.map((item) => resolve_refs(ref_keys, item))
-
-    if (input_option_ref_keys.length > 0) {
-      inputs.value = inputs.value.map(
-        (item) => resolve_refs(input_option_ref_keys, item)
-      )
-    }
-    if (output_option_ref_keys.length > 0) {
-      outputs.value = outputs.value.map(
-        (item) => resolve_refs(output_option_ref_keys, item)
-      )
-    }
-  } else if (paramType.toLowerCase() === 'inputs') {
-    inputs.value = inputs.value.map(map_fun)
-  } else if (paramType.toLowerCase() === 'outputs') {
-    outputs.value = outputs.value.map(map_fun)
-  }
-}
 </script>
 
 <template>
   <div class="d-flex flex-column">
     <div class="btn-group d-flex mb-2" role="group">
       <button class="btn btn-primary w-30" @click="onClickUpdate"
-      :disabled="!is_valid || editor_store.selected_subtree.is_subtree">
+      :disabled="!edit_node_store.node_is_valid || editor_store.selected_subtree.is_subtree">
         Update Node
       </button>
       <button class="btn btn-danger w-35" @click="onClickDelete"
@@ -434,18 +304,6 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
         Delete Node + Children
       </button>
     </div>
-    <EditableNode
-      :key="module_name + node_class + name"
-      :name="name"
-      :node_class="node_class"
-      :module="module_name"
-      :options="options"
-      :inputs="inputs"
-      :outputs="outputs"
-      :updateValidity="updateValidity"
-      :changeNodeClass="nodeClassChangeHandler"
-      :changeNodeName="nameChangeHander"
-      :updateValue="updateValue"
-    />
+    <EditableNode />
   </div>
 </template>
