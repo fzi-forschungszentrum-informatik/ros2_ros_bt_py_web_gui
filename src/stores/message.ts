@@ -52,7 +52,7 @@ export const useMessasgeStore = defineStore('messages', () => {
 
   // These additional fuses are meant to substitute/replace the above messages_fuse
   //  to allow to search specific kinds of ros types dependent on what is needed.
-  let ros_fuse_options = messages_fuse_options
+  let ros_fuse_options = structuredClone(messages_fuse_options)
   ros_fuse_options.keys = []
   const ros_msg_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
   const ros_srv_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
@@ -150,7 +150,7 @@ export const useMessasgeStore = defineStore('messages', () => {
   function updateAvailableMessages(new_messages: Message[]) {
     messages.value = new_messages.flatMap(mapMessageTypes)
     fillRosFuses()
-    messages_fuse.value = new Fuse(messages.value, messages_fuse_options)
+    messages_fuse.value.setCollection(messages.value)
   }
 
   return {
