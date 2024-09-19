@@ -34,13 +34,6 @@ import type { NodeDataWiring, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, Dat
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
-export enum EditorSelectionSource {
-  NONE = 'none',
-  NODELIST = 'nodelist',
-  EDITOR = 'editor',
-  MULTIPLE = 'multiple'
-}
-
 export enum EditorSkin {
   DARK = 'darkmode',
   LIGHT = 'lightmode'
@@ -74,14 +67,6 @@ export const useEditorStore = defineStore('editor', () => {
     data_edge_endpoint.value !== undefined
   })
 
-  const node_has_changed = ref<boolean>(false)
-
-  const selected_node = ref<DocumentedNode | undefined>(undefined)
-
-  const selected_node_names = ref<string[]>([])
-
-  const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
-
   const show_data_graph = ref<boolean>(true)
 
   const skin = ref<EditorSkin>(EditorSkin.DARK)
@@ -97,9 +82,6 @@ export const useEditorStore = defineStore('editor', () => {
   )
 
   const selected_edge = ref<NodeDataWiring | undefined>(undefined)
-
-  //TODO this appears to be unused
-  const copy_node_mode = ref<boolean>(false)
 
   const is_layer_mode = ref<boolean>(false)
 
@@ -117,80 +99,6 @@ export const useEditorStore = defineStore('editor', () => {
 
   function removeRunningCommand(command: TreeExecutionCommands) {
     running_commands.value.delete(command)
-  }
-
-  function setNodeHasChanged() {
-    node_has_changed.value = true
-  }
-
-  function clearNodeHasChanged() {
-    node_has_changed.value = false
-  }
-
-  function nodeListSelectionChange(new_selected_node: DocumentedNode) {
-    if (node_has_changed.value) {
-      if (
-        window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
-      ) {
-        node_has_changed.value = false
-      } else {
-        return
-      }
-    }
-    selected_node.value = new_selected_node
-    selected_node_names.value = []
-    last_seletion_source.value = EditorSelectionSource.NODELIST
-  }
-
-  function editorSelectionChange(new_selected_node_name: string | undefined) {
-    if (node_has_changed.value) {
-      if (
-        (selected_node_names.value.length > 0 &&
-          selected_node_names.value[0] !== new_selected_node_name) ||
-        new_selected_node_name === undefined
-      ) {
-        if (
-          window.confirm(
-            'Are you sure you wish to discard all changes to the currently edited node?'
-          )
-        ) {
-          node_has_changed.value = false
-        } else {
-          return
-        }
-      }
-    }
-
-    if (new_selected_node_name === undefined || 
-      (tree.value === undefined && selected_subtree.value.tree === undefined)
-    ) {
-      selected_node.value = undefined
-      selected_node_names.value = []
-      last_seletion_source.value = EditorSelectionSource.NONE
-      return
-    }
-
-    const current_tree = selected_subtree.value.is_subtree ? 
-                          selected_subtree.value.tree :
-                          tree.value
-
-    const new_selected_name = current_tree!.nodes.find(
-      (x: NodeMsg) => x.name === new_selected_node_name
-    )
-
-    if (!new_selected_name) {
-      selected_node.value = undefined
-      selected_node_names.value = []
-      last_seletion_source.value = EditorSelectionSource.EDITOR
-      return
-    }
-
-    const doc_node = new_selected_name as DocumentedNode
-
-    copy_node_mode.value = true
-    selected_node.value = doc_node
-    selected_node_names.value = [new_selected_node_name]
-    last_seletion_source.value = EditorSelectionSource.EDITOR
   }
 
   //TODO add timer to allow for early cancelling the drag on "click" (fast mousedown and mouseup)
@@ -251,32 +159,12 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  function selectMultipleNodes(new_selected_node_names: string[]) {
-    if (node_has_changed.value) {
-      if (
-        window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
-      ) {
-        node_has_changed.value = false
-      } else {
-        return
-      }
-    }
-
-    selected_node.value = undefined
-    selected_node_names.value = new_selected_node_names
-    last_seletion_source.value = EditorSelectionSource.MULTIPLE
-  }
-
   function selectEdge(edge: NodeDataWiring) {
     selected_edge.value = edge
   }
 
   function unselectEdge() {
     selected_edge.value = undefined
-  }
-
-  function changeCopyMode(new_mode: boolean) {
-    copy_node_mode.value = new_mode
   }
 
   return {
@@ -289,17 +177,11 @@ export const useEditorStore = defineStore('editor', () => {
     dragging_existing_node,
     data_edge_endpoint,
     is_dragging,
-    last_seletion_source,
-    selected_node,
-    selected_node_names,
-    node_has_changed,
     is_layer_mode,
     runNewCommand,
     removeRunningCommand,
     enableSubtreePublishing,
     enableDebugging,
-    nodeListSelectionChange,
-    editorSelectionChange,
     startDraggingNewNode,
     startDraggingExistingNode,
     startDrawingDataEdge,
@@ -314,10 +196,5 @@ export const useEditorStore = defineStore('editor', () => {
     selected_edge,
     selectEdge,
     unselectEdge,
-    copy_node_mode,
-    changeCopyMode,
-    setNodeHasChanged,
-    clearNodeHasChanged,
-    selectMultipleNodes
   }
 })

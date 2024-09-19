@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { Message, ParamData } from '@/types/types'
@@ -41,6 +42,7 @@ const props = defineProps<{
 }>()
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
@@ -71,7 +73,7 @@ function selectSearchResult(search_result: Message) {
 }
 
 function focusInput() {
-  editor_store.changeCopyMode(false)
+  edit_node_store.changeCopyMode(false)
   hide_results.value = false
 }
 

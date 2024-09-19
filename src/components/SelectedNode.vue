@@ -50,10 +50,12 @@ import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/Set
 import { useEditorStore } from '@/stores/editor'
 import { useNodesStore } from '@/stores/nodes'
 import { useROSStore } from '@/stores/ros'
+import { useEditNodeStore } from '@/stores/edit_node'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const node_store = useNodesStore()
+const edit_node_store = useEditNodeStore()
 
 function getValues(x: NodeData): ParamData {
   const type = prettyprint_type(x.serialized_type)
@@ -82,19 +84,19 @@ const inputs = ref<ParamData[]>([])
 const outputs = ref<ParamData[]>([])
 const is_morphed = ref<boolean>(false)
 
-if (editor_store.selected_node !== undefined) {
-  name.value = editor_store.selected_node.name
-  node_class.value = editor_store.selected_node.node_class
-  module_name.value = editor_store.selected_node.module
+if (edit_node_store.selected_node !== undefined) {
+  name.value = edit_node_store.selected_node.name
+  node_class.value = edit_node_store.selected_node.node_class
+  module_name.value = edit_node_store.selected_node.module
   is_valid.value = true
-  options.value = editor_store.selected_node.options.map(getValues)
-  inputs.value = editor_store.selected_node.inputs.map(getValues)
-  outputs.value = editor_store.selected_node.outputs.map(getValues)
+  options.value = edit_node_store.selected_node.options.map(getValues)
+  inputs.value = edit_node_store.selected_node.inputs.map(getValues)
+  outputs.value = edit_node_store.selected_node.outputs.map(getValues)
   is_morphed.value = false
 }
 
 function nameChangeHander(new_name: string) {
-  editor_store.setNodeHasChanged()
+  edit_node_store.setNodeHasChanged()
   name.value = new_name
 }
 
@@ -175,19 +177,19 @@ function onClickDelete() {
   }
   ros_store.remove_node_service.callService(
     {
-      node_name: editor_store.selected_node!.name,
+      node_name: edit_node_store.selected_node!.name,
       remove_children: false
     } as RemoveNodeRequest,
     (response: RemoveNodeResponse) => {
       if (response.success) {
         notify({
-          title: 'Removed ' + editor_store.selected_node!.name + ' successfully!',
+          title: 'Removed ' + edit_node_store.selected_node!.name + ' successfully!',
           type: 'success'
         })
-        editor_store.editorSelectionChange(undefined)
+        edit_node_store.editorSelectionChange(undefined)
       } else {
         notify({
-          title: 'Failed to remove node ' + editor_store.selected_node!.name + '!',
+          title: 'Failed to remove node ' + edit_node_store.selected_node!.name + '!',
           text: response.error_message,
           type: 'error'
         })
@@ -202,19 +204,19 @@ function onClickDeleteWithChildren() {
   }
   ros_store.remove_node_service.callService(
     {
-      node_name: editor_store.selected_node!.name,
+      node_name: edit_node_store.selected_node!.name,
       remove_children: true
     } as RemoveNodeRequest,
     (response: RemoveNodeResponse) => {
       if (response.success) {
         notify({
-          title: 'Removed ' + editor_store.selected_node!.name + ' and its children successfully!',
+          title: 'Removed ' + edit_node_store.selected_node!.name + ' and its children successfully!',
           type: 'success'
         })
-        editor_store.editorSelectionChange(undefined)
+        edit_node_store.editorSelectionChange(undefined)
       } else {
         notify({
-          title: 'Failed to remove node ' + editor_store.selected_node!.name + '!',
+          title: 'Failed to remove node ' + edit_node_store.selected_node!.name + '!',
           text: response.error_message,
           type: 'error'
         })
@@ -226,7 +228,7 @@ function onClickDeleteWithChildren() {
 function updateNode() {
   ros_store.set_options_service.callService(
     {
-      node_name: editor_store.selected_node!.name,
+      node_name: edit_node_store.selected_node!.name,
       rename_node: true,
       new_name: name.value,
       options: options.value.map((x) => {
@@ -257,11 +259,11 @@ function updateNode() {
           title: 'Updated node ' + name.value + ' successfully!',
           type: 'success'
         })
-        editor_store.clearNodeHasChanged()
-        editor_store.editorSelectionChange(name.value)
+        edit_node_store.clearNodeHasChanged()
+        edit_node_store.editorSelectionChange(name.value)
       } else {
         notify({
-          title: 'Failed to update node ' + editor_store.selected_node!.name + '!',
+          title: 'Failed to update node ' + edit_node_store.selected_node!.name + '!',
           text: response.error_message,
           type: 'error'
         })
@@ -275,20 +277,20 @@ function onClickUpdate() {
     const msg = buildNodeMsg()
     ros_store.morph_node_service.callService(
       {
-        node_name: editor_store.selected_node!.name,
+        node_name: edit_node_store.selected_node!.name,
         new_node: msg
       } as MorphNodeRequest,
       (response: MorphNodeResponse) => {
         if (response.success) {
           notify({
-            title: 'Morphed node ' + editor_store.selected_node!.name + ' successfully!',
+            title: 'Morphed node ' + edit_node_store.selected_node!.name + ' successfully!',
             type: 'success'
           })
           is_morphed.value = false
           updateNode()
         } else {
           notify({
-            title: 'Failed to morph node ' + editor_store.selected_node!.name + '!',
+            title: 'Failed to morph node ' + edit_node_store.selected_node!.name + '!',
             text: response.error_message,
             type: 'error'
           })
@@ -301,12 +303,12 @@ function onClickUpdate() {
 }
 
 function updateValidity(new_valididy: boolean) {
-  editor_store.setNodeHasChanged()
+  edit_node_store.setNodeHasChanged()
   is_valid.value = new_valididy
 }
 
 function updateValue(paramType: string, key: string, new_value: ValueTypes) {
-  editor_store.setNodeHasChanged()
+  edit_node_store.setNodeHasChanged()
   const map_fun = function (x: ParamData) {
     if (x.key === key) {
       return {
@@ -326,7 +328,7 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
     //
     // That is, if options = { foo : int, bar : OptionRef(foo) }
     // ref_keys will be [[bar, foo]]
-    if (editor_store.selected_node === undefined) {
+    if (edit_node_store.selected_node === undefined) {
       console.error('Node info is null!')
       return
     }
@@ -338,8 +340,8 @@ function updateValue(paramType: string, key: string, new_value: ValueTypes) {
     // Why is that information stored in the s.._value, not s.._type?
 
     const referenced_node = node_store.nodes.find((node: DocumentedNode) => 
-      node.node_class === editor_store.selected_node!.node_class &&
-      node.module === editor_store.selected_node!.module)
+      node.node_class === edit_node_store.selected_node!.node_class &&
+      node.module === edit_node_store.selected_node!.module)
 
     if (referenced_node === undefined) {
       console.error("Cannot recover node information")

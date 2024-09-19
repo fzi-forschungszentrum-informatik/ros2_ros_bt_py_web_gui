@@ -33,12 +33,14 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import { getShortDoc } from '@/utils'
 import IOTableEntry from './IOTableEntry.vue'
+import { useEditNodeStore } from '@/stores/edit_node'
 
 const props = defineProps<{
   node: DocumentedNode
 }>()
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
 const highlighted = computed<boolean>(() => {
   if (!editor_store.dragging_new_node) {
@@ -73,7 +75,7 @@ const collapsed = ref<boolean>(true)
 
 function onClick() {
   console.log('click ' + props.node.name)
-  editor_store.nodeListSelectionChange(props.node)
+  edit_node_store.nodeListSelectionChange(props.node)
 }
 </script>
 
@@ -88,7 +90,7 @@ function onClick() {
     @keydown="
       (event) => {
         if (event.key == 'Enter') {
-          editor_store.nodeListSelectionChange(node)
+          edit_node_store.nodeListSelectionChange(node)
         }
       }
     "

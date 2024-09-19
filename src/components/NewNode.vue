@@ -45,6 +45,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import { notify } from '@kyvg/vue3-notification'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
+import { useEditNodeStore } from '@/stores/edit_node'
 
 const props = defineProps<{
   node: DocumentedNode
@@ -52,6 +53,7 @@ const props = defineProps<{
 }>()
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 
 const is_valid = ref<boolean>(true)
@@ -132,7 +134,7 @@ function buildNodeMessage(
 }
 
 function updateValue(paramType: string, key: string, new_value: any) {
-  editor_store.setNodeHasChanged()
+  edit_node_store.setNodeHasChanged()
   const map_fun = function (x: ParamData) {
     if (x.key === key) {
       return {
@@ -202,7 +204,7 @@ function updateValidity(valid: boolean) {
 }
 
 function handleNodeNameChange(new_name: string) {
-  editor_store.setNodeHasChanged()
+  edit_node_store.setNodeHasChanged()
   name.value = new_name
 }
 
@@ -224,7 +226,7 @@ function addToTree() {
     } as AddNodeRequest,
     (response: AddNodeResponse) => {
       if (response.success) {
-        editor_store.clearNodeHasChanged()
+        edit_node_store.clearNodeHasChanged()
         console.log('Added node to tree as ' + response.actual_node_name)
         notify({
           title: 'Added not to tree!',

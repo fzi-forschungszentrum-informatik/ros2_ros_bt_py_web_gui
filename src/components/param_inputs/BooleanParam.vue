@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node';
 import { useEditorStore } from '@/stores/editor'
 import type { ParamData } from '@/types/types'
 import { uuid } from '@/utils'
@@ -39,6 +40,7 @@ const props = defineProps<{
 }>()
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
 const check_id = 'input_checkbox_' + uuid()
 
@@ -48,7 +50,7 @@ function onChange(event: Event) {
 }
 
 function onFocus() {
-  editor_store.changeCopyMode(false)
+  edit_node_store.changeCopyMode(false)
 }
 </script>
 

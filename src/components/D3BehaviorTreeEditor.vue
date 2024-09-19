@@ -29,6 +29,7 @@
  -->
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
+import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
 import type {
@@ -65,7 +66,9 @@ import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/R
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 
+
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 
 const viewport_ref = ref<SVGSVGElement>()
@@ -433,7 +436,7 @@ function drawNewNodes(
         (d) => d.children === undefined || d.children.length == 0
       )
       .on("click.select", (node: d3.HierarchyNode<TrimmedNode>) => {
-        editor_store.editorSelectionChange(node.data.name)
+        edit_node_store.editorSelectionChange(node.data.name)
         d3.event.stopPropagation()
       })
       /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
@@ -1522,7 +1525,7 @@ onMounted(() => {
 
   viewport.on('click.unselect', () => {
     if (!d3.event.shiftKey) {
-      editor_store.editorSelectionChange(undefined)
+      edit_node_store.editorSelectionChange(undefined)
       editor_store.unselectEdge()
     }
   })
@@ -1626,7 +1629,7 @@ onMounted(() => {
             selected_node_names.add(node.data.name)
           }
         })
-      editor_store.selectMultipleNodes(Array.from(selected_node_names))
+      edit_node_store.selectMultipleNodes(Array.from(selected_node_names))
     }
   })
 

@@ -38,6 +38,7 @@ import { computed, onMounted, ref } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
 import { EditorSkin, useEditorStore } from './stores/editor'
+import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
 import RightAlignSpacer from './components/RightAlignSpacer.vue'
@@ -48,11 +49,13 @@ import NewNode from './components/NewNode.vue'
 import SelectedNode from './components/SelectedNode.vue'
 
 
+
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
 function onNewPackagesMsg(msg: Packages) {
   if (!packages_store.packages_available) {
@@ -312,24 +315,24 @@ onMounted(() => {
               <div class="row maxh50">
                 <div class="col pl-0">
                   <!--Node Selection list-->
-                  <MultipleSelection v-if="editor_store.last_seletion_source === 'multiple'" />
+                  <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
                   <NewNode
-                    v-else-if="editor_store.last_seletion_source === 'nodelist'"
+                    v-else-if="edit_node_store.last_seletion_source === 'nodelist'"
                     :key="
                       ros_store.namespace +
-                      (editor_store.selected_node
-                        ? editor_store.selected_node.module +
-                          editor_store.selected_node.node_class
+                      (edit_node_store.selected_node
+                        ? edit_node_store.selected_node.module +
+                          edit_node_store.selected_node.node_class
                         : '')
                     "
-                    :node="editor_store.selected_node!"
+                    :node="edit_node_store.selected_node!"
                     :parents="findPossibleParents()"
                   />
                   <SelectedNode
-                    v-else-if="editor_store.last_seletion_source === 'editor'"
+                    v-else-if="edit_node_store.last_seletion_source === 'editor'"
                     :key="
                       ros_store.namespace +
-                      (editor_store.selected_node ? editor_store.selected_node.name : '')
+                      (edit_node_store.selected_node ? edit_node_store.selected_node.name : '')
                     "
                   />
                   <div v-else class="d-flex flex-column">No Node Selected</div>
