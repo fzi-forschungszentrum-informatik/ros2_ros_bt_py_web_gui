@@ -171,7 +171,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
             node.node_class === new_selected_node.node_class &&
             node.module === new_selected_node.module)
       
-        if (reference_node.value === undefined) {
+        if (new_reference_node === undefined) {
             console.error("Cannot recover node information")
         }
 

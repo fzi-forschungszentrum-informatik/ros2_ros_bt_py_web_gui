@@ -102,21 +102,17 @@ const json_attrs = computed<any>(() => {
   if (param.value === undefined) {
     return undefined
   }
-  let output: string
   switch (param.value.value.type) {
     case "list":
-      output = "list"
       break
     case "dict":
     case "collections.OrderedDict":
-      output = "dict"
       break
     default:
-      output = "pickled"
       break
   }
   return {
-    output: output
+    
   }
 })
 
@@ -186,11 +182,8 @@ function onFocus() {
         {{ param.key }}
         <JSONInput
           v-bind="json_attrs"
-          :json="param.value.value === undefined ? (param.value.value as string) : undefined"
-          :message_type="param.value.type"
-          :param_key="param.key"
-          :updateValidity="(bool: boolean) => edit_node_store.node_is_valid = bool"
-          :updateValue="edit_node_store.updateParamValue"
+          :category="props.category"
+          :data_key="props.data_key"
         />
       </label>
     </div>

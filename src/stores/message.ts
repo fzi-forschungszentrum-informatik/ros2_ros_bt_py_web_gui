@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { Message } from '@/types/types'
+import { MessageType, type Message } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -73,17 +73,20 @@ export const useMessasgeStore = defineStore('messages', () => {
         {
           msg: new_msg,
           service: true,
-          action: false
+          action: false,
+          type: MessageType.MESSAGE //TODO is this correct?
         },
         {
           msg: new_msg + ".Request",
           service: true,
-          action: false
+          action: false,
+          type: MessageType.REQUEST
         },
         {
           msg: new_msg + ".Response",
           service: true,
-          action: false
+          action: false,
+          type: MessageType.RESPONSE
         },
       ]
     }
@@ -93,29 +96,34 @@ export const useMessasgeStore = defineStore('messages', () => {
         {
           msg: new_msg,
           action: true,
-          service: false
+          service: false,
+          type: MessageType.MESSAGE //TODO is this correct?
         },
         {
           msg: new_msg + ".Goal",
           action: true,
-          service: false
+          service: false,
+          type: MessageType.GOAL
         },
         {
           msg: new_msg + ".Result",
           action: true,
-          service: false
+          service: false,
+          type: MessageType.RESULT
         },
         {
           msg: new_msg + ".Feedback",
           action: true,
-          service: false
+          service: false,
+          type: MessageType.FEEDBACK
         },
       ]
     }
     return [{
       msg: message_parts[0] + ".msg." + message_parts[2],
       service: false,
-      action: false
+      action: false,
+      type: MessageType.MESSAGE
     }]
   }
 

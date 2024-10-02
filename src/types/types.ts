@@ -90,6 +90,16 @@ export type Message = {
   msg: string
   service: boolean
   action: boolean
+  type: MessageType
+}
+
+export const enum MessageType {
+  MESSAGE=0,
+  REQUEST=1,
+  RESPONSE=2,
+  GOAL=3,
+  FEEDBACK=4,
+  RESULT=5
 }
 
 export type Messages = {

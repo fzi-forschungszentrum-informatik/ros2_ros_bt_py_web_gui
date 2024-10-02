@@ -35,25 +35,34 @@ import type {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse
 } from '@/types/services/GetMessageFields'
+import type { ParamData } from '@/types/types'
 import { getMessageType } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
 
 import 'jsoneditor/dist/jsoneditor.min.css'
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 
 const props = defineProps<{
-  param_key: string
-  json: string | undefined
-  message_type: string
-  output: string
-  updateValidity: (valid: boolean) => void
-  updateValue: (param_type: string, key: string, value: any) => void
+  category: 'options',
+  data_key: string
 }>()
+
+const param = computed<ParamData | undefined>(() => 
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+)
+
+const is_valid = ref<boolean>(true)
+const pyobjectstring = ref<string | undefined>(undefined)
+const field_names = ref<string[]>([])
+
+const editor_ref = ref<HTMLDivElement>()
+let editor: JSONEditor | undefined = undefined
+
 
 function onFocus() {
   edit_node_store.changeCopyMode(false)
@@ -64,7 +73,11 @@ function handleChange() {
     return
   }
   try {
-    const new_json = editor.get()
+    const new_value = editor.get()
+    console.log(new_value)
+    is_valid.value = true
+    edit_node_store.updateParamValue(props.category, props.data_key, new_value)
+    /*const new_json = editor.get()
     current_json.value = JSON.stringify(new_json)
     is_valid.value = true
 
@@ -78,23 +91,29 @@ function handleChange() {
     } else {
       props.updateValue(message_type.value, props.param_key, current_json.value)
     }
-    props.updateValidity(true)
+    props.updateValidity(true)*/
   } catch (e) {
     is_valid.value = false
-    props.updateValidity(false)
   }
 }
 
-function updateMessageType(new_message_type: string, json: string | object, just_mounted: boolean) {
-  /*let type_changed = true
-  if (message_type.value === new_message_type) {
-    type_changed = false
+//TODO maybe this would be better placed in the getDefaultValue utility function
+function updateMessageType() {
+  if (param.value === undefined) {
+    return
+  }
+
+  // Trim the leading '__' that is sometimes added
+  let message_type: string
+  if (param.value.value.type.startsWith('__')) {
+    message_type = param.value.value.type.substring('__'.length)
   } else {
-    message_type.value = new_message_type
-    type_changed = true
-  }*/
-  const message = getMessageType(new_message_type)
-  if (message.message_type === '/dict' || message.message_type === undefined) {
+    message_type = param.value.value.type
+  }
+  
+
+  const message = getMessageType(message_type)
+  if (message.msg === '/dict' || message.msg === '') {
     notify({
       title: 'Cannot request message infos!',
       text: 'Message is a dict not a ROS message!',
@@ -104,13 +123,15 @@ function updateMessageType(new_message_type: string, json: string | object, just
   } else {
     ros_store.get_message_fields_service.callService(
       {
-        message_type: message.message_type,
+        message_type: message.msg,
         service: message.service,
-        action: message.action
+        action: message.action,
+        type: message.type
       } as GetMessageFieldsRequest,
       (response: GetMessageFieldsResponse) => {
         if (response.success) {
           pyobjectstring.value = response.fields
+          field_names.value = response.field_names
 
           /*let new_value
           if (type_changed) {
@@ -122,15 +143,13 @@ function updateMessageType(new_message_type: string, json: string | object, just
           //const new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
           const new_value = JSON.parse(response.fields)
           console.log(new_value)
-          current_json.value = new_value
-          field_names.value = response.field_names
-          if (editor) {
-            editor.update(new_value)
-          }
 
-          if (!just_mounted) {
-            handleChange()
+          if (editor === undefined) {
+            return
           }
+          editor.update(new_value)
+          handleChange()
+
         } else {
           notify({
             title: 'GetMessageFields Service Error',
@@ -149,25 +168,6 @@ function updateMessageType(new_message_type: string, json: string | object, just
     )
   }
 }
-
-const current_json = ref<object | string>(props.json ? props.json : {})
-let initial_validity = false
-
-try {
-  JSON.parse(JSON.stringify(props.json))
-  initial_validity = true
-} catch (e) {
-  initial_validity = false
-}
-
-const is_valid = ref<boolean>(initial_validity)
-const pyobjectstring = ref<string | undefined>(undefined)
-const field_names = ref<string[]>([])
-// getDefaultValue prepends an '__' to unrecognized types, we need to strip it here
-const message_type = computed<string>(() => props.message_type.replace('__', ''))
-
-const editor_ref = ref<HTMLDivElement>()
-let editor: JSONEditor | undefined = undefined
 
 function getJSONfromPyObject(
   pyobject: object,
@@ -207,6 +207,22 @@ function getPyObjectFromJSON(pyobject: object, json: object) {
   return pyobject
 }
 
+// This fires when param type changes and updates the editor accordingly
+watch(() => {
+    if (param.value === undefined) {
+      return ''
+    }
+    return param.value.value.type
+  }, 
+  () => {
+    if (editor === undefined || param.value === undefined) {
+      return
+    }
+    editor.update(param.value.value.value)
+    updateMessageType()
+  }
+)
+
 onMounted(() => {
   if (editor_ref.value === undefined) {
     return
@@ -214,13 +230,15 @@ onMounted(() => {
 
   editor = new JSONEditor(editor_ref.value, {
     mode: 'code',
-    onChange: handleChange
+    onChange: () => handleChange()
   })
-  editor.set(current_json.value)
   editor.aceEditor.setOptions({ maxLines: 100 })
   editor.aceEditor.resize()
 
-  updateMessageType(message_type.value, current_json.value, true)
+  if (param.value !== undefined) {
+    editor.update(param.value.value.value)
+  }
+  
 })
 
 onUnmounted(() => {
