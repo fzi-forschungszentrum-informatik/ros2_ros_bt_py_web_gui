@@ -35,6 +35,7 @@ import { useROSStore } from '@/stores/ros';
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree';
 import { useEditorStore } from '@/stores/editor';
 import { notify } from '@kyvg/vue3-notification';
+import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName';
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -120,6 +121,7 @@ function saveTree() {
         text: response.file_path,
         type: 'success'
       })
+      renameAfterSave(response.file_path)
       emit('close')
     } else {
 
@@ -156,6 +158,7 @@ function saveTree() {
             text: response.file_path,
             type: 'success'
           })
+          renameAfterSave(response.file_path)
           emit('close')
         } else {
           notify({
@@ -177,6 +180,36 @@ function saveTree() {
   (error: string) => {
     notify({
       title: 'Failed to call SaveTree service!',
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
+function renameAfterSave(new_file_path: string) {
+  const new_file_name = new_file_path.split("/").reverse()[0]
+  ros_store.change_tree_name_service.callService({
+    name: new_file_name
+  } as ChangeTreeNameRequest,
+  (response: ChangeTreeNameResponse) => {
+    if (response.success) {
+      notify({
+        title: 'Successfully renamed tree!',
+        text: new_file_name,
+        type: 'success'
+      })
+      emit('close')
+    } else {
+      notify({
+        title: 'Failed to rename tree!',
+        text: response.error_message,
+        type: 'warn'
+      })
+    }
+  }, 
+  (error: string) => {
+    notify({
+      title: 'Failed to call ChangeTreeName service!',
       text: error,
       type: 'error'
     })

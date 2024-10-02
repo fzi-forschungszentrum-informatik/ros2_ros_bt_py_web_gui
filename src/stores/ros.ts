@@ -74,6 +74,7 @@ import type {
   LoadTreeFromPathRequest, 
   LoadTreeFromPathResponse 
 } from '@/types/services/LoadTreeFromPath'
+import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 
 
 
@@ -324,6 +325,16 @@ export const useROSStore = defineStore(
       })
     )
 
+    const change_tree_name_service = ref<
+      ROSLIB.Service<ChangeTreeNameRequest, ChangeTreeNameResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'change_tree_name',
+        serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
+      })
+    )
+
     const load_tree_from_path_service = ref<
       ROSLIB.Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
     >(
@@ -517,6 +528,12 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
       })
 
+      change_tree_name_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'change_tree_name',
+        serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
+      })
+
       load_tree_from_path_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'load_tree_from_path',
@@ -590,6 +607,7 @@ export const useROSStore = defineStore(
       get_folder_structure_service,
       get_package_structure_service,
       save_tree_service,
+      change_tree_name_service,
       load_tree_from_path_service,
       tree_sub,
       subtree_info_sub,
