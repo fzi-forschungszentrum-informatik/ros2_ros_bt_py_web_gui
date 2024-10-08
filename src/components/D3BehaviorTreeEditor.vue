@@ -115,6 +115,7 @@ const drop_target_css_class:  string = "drop_target"
 const data_vert_group_css_class: string = "gripper-group"
 const data_vert_grip_css_class:  string = "gripper"
 const data_vert_label_css_class: string = "label"
+const data_vert_label_type_css_class: string = "label-type"
 const data_edge_css_class: string = "data-link"
 const data_edge_highlight_css_id:  string = "hightlightEdge"
 const data_vert1_highlight_css_id: string = "highlightV1"
@@ -1146,6 +1147,11 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
     )
     .join(drawNewDataVert)
 
+  // Since types of DataVerts can change, type values are added out here
+  g_data_vertices.select("." + data_vert_label_css_class)
+    .select("." + data_vert_label_type_css_class)
+      .text((d) => "(type: " + prettyprint_type(d.type) + ")")
+
   // No data wiring when displaying a subtree
   if (!editor_store.selected_subtree.is_subtree) {
     g_data_vertices
@@ -1161,6 +1167,13 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
             console.warn("Unintended data edge draw")
             return
           }
+
+          //TODO Maybe this is too restrictive?
+          if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
+            console.warn("Invalid edge")
+            return
+          }
+
           if (term.kind === IOKind.INPUT) {
             addNewDataEdge(editor_store.data_edge_endpoint, term)
           } else {
@@ -1194,6 +1207,7 @@ function drawNewDataVert(
         } else {
           d3.select(this)
               .classed("data-hover", true)
+              .attr("id", data_vert1_highlight_css_id)
             .select(".label")
               .attr("visibility", "visible")
         }
@@ -1203,10 +1217,12 @@ function drawNewDataVert(
           d3.select(this)
               .classed("data-hover", false)
         } else {
-          d3.select(this)
+          // Mouseout is handled through the <use> element in the template
+          /*d3.select(this)
               .classed("data-hover", false)
+              .attr("id", null)
             .select(".label")
-              .attr("visibility", "hidden")
+              .attr("visibility", "hidden")*/
         }
       })
 
@@ -1236,7 +1252,7 @@ function drawNewDataVert(
       .attr("y", 0.5 * io_gripper_size)
 
   labels.append("tspan")
-      .text((d) => "(type: " + prettyprint_type(d.type) + ")")
+      .classed(data_vert_label_type_css_class, true)
       .attr("x", function () { //FIXME Re-apply x for unknown reason
         return d3.select(this.parentElement).attr("x")
       }) 
@@ -1463,16 +1479,28 @@ function removeHoverDataEdge() {
 
   const edge = d3.select<SVGPathElement, DataEdge>("#" + data_edge_highlight_css_id)
 
-  g_data_vertices
-    .filter((term: DataEdgeTerminal) =>
-      term === edge.datum().source || term === edge.datum().target
-    )
-      .dispatch("mouseout")
-      .attr("id", null)
+  removeHoverVert1()
+  removeHoverVert2()
 
   edge
       .classed("data-hover", false)
       .attr("id", null)
+}
+
+function removeHoverVert1() {
+  d3.select<SVGGElement, DataEdgeTerminal>("#" + data_vert1_highlight_css_id)
+      .classed("data-hover", false)
+      .attr("id", null)
+    .select(".label")
+      .attr("visibility", "hidden")
+}
+
+function removeHoverVert2() {
+  d3.select<SVGGElement, DataEdgeTerminal>("#" + data_vert2_highlight_css_id)
+      .classed("data-hover", false)
+      .attr("id", null)
+    .select(".label")
+      .attr("visibility", "hidden")
 }
 
 
@@ -1678,8 +1706,8 @@ onMounted(() => {
         TODO doubled labels look bad, but labels should be elevated
         TODO also do this for label on vertex hover-->
         <use :href="'#' + data_edge_highlight_css_id" @mouseout="removeHoverDataEdge" />
-        <use :href="'#' + data_vert1_highlight_css_id"/>
-        <use :href="'#' + data_vert2_highlight_css_id"/>
+        <use :href="'#' + data_vert1_highlight_css_id" @mouseout="removeHoverVert1"/>
+        <use :href="'#' + data_vert2_highlight_css_id" @mouseout="removeHoverVert2"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
     </g>
