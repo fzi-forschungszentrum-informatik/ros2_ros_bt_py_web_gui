@@ -116,13 +116,34 @@ const json_attrs = computed<any>(() => {
   }
 })
 
+// Handles value changes for the <input> element
 function onChange(event: Event) {
-  const target = event.target as HTMLInputElement
-  let new_value = Math.round(parseFloat(target.value))
-  if (isNaN(new_value)) {
-    new_value = 0.0
+  if (param.value === undefined) {
+    return
   }
-  //props.updateValue(props.name, props.param.key, new_value)
+  const target = event.target as HTMLInputElement
+  let new_value: any
+  switch (param.value.value.type) {
+    case "int":
+      new_value = parseInt(target.value)
+      if (isNaN(new_value)) {
+        new_value = 0
+      }
+      break
+    case "float":
+      new_value = parseFloat(target.value)
+      if (isNaN(new_value)) {
+        new_value = 0.0
+      }
+      break
+    case "bool":
+      new_value = target.checked
+      break
+    default:
+      new_value = target.value
+      break
+  }
+  edit_node_store.updateParamValue(props.category, props.data_key, new_value)
 }
 
 function onFocus() {
