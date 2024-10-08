@@ -1354,6 +1354,7 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
         ).dispatch("mouseout")
         d3.select(this)
             .classed("data-hover", false)
+            .attr("id", null)
       })
     .transition(tree_transition)
       .attr("d", (edge: DataEdge) => drawDataLine(edge.source, edge.target))
@@ -1464,44 +1465,6 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
     })
   })
 }
-
-function removeHoverDataEdge() {
-  if (editor_store.is_dragging) {
-    return // No highlights while dragging
-  }
-
-  const g_data_vertices = d3
-    .selectAll<SVGGElement, DataEdgeTerminal>(
-      "#" + data_vert1_highlight_css_id + ", #" + data_vert2_highlight_css_id
-    )
-
-  const edge = d3.select<SVGPathElement, DataEdge>("#" + data_edge_highlight_css_id)
-
-  removeHoverVert1()
-  removeHoverVert2()
-
-  edge
-      .classed("data-hover", false)
-      .attr("id", null)
-}
-
-function removeHoverVert1() {
-  d3.select<SVGGElement, DataEdgeTerminal>("#" + data_vert1_highlight_css_id)
-      .classed("data-hover", false)
-      .attr("id", null)
-    .select(".label")
-      .attr("visibility", "hidden")
-}
-
-function removeHoverVert2() {
-  d3.select<SVGGElement, DataEdgeTerminal>("#" + data_vert2_highlight_css_id)
-      .classed("data-hover", false)
-      .attr("id", null)
-    .select(".label")
-      .attr("visibility", "hidden")
-}
-
-
 
 
 onMounted(() => {
@@ -1700,11 +1663,10 @@ onMounted(() => {
       <g class="data_graph" ref="g_data_graph_ref" :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'">
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
-        <!--Below is supposed to pull elements to the foreground, but messes with events
-          e.g. clicking and dragging is impossible
-        <use :href="'#' + data_edge_highlight_css_id" @mouseout="removeHoverDataEdge" />
-        <use :href="'#' + data_vert1_highlight_css_id" @mouseout="removeHoverVert1"/>
-        <use :href="'#' + data_vert2_highlight_css_id" @mouseout="removeHoverVert2"/>-->
+        <!--Below is used to pull elements to the foreground on hover-->
+        <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
     </g>
