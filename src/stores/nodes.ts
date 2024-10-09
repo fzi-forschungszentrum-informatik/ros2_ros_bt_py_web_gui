@@ -39,7 +39,7 @@ export const useNodesStore = defineStore('nodes', () => {
     location: 0,
     distance: 20,
     maxPatternLength: 100,
-    minMatchCharLength: 3,
+    minMatchCharLength: 1,
     keys: ['node_class', 'node_type', 'module', 'tags'],
     ignoreLocation: true,
     useExtendedSearch: true

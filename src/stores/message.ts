@@ -40,7 +40,7 @@ export const useMessasgeStore = defineStore('messages', () => {
     location: 0,
     distance: 100,
     maxPatternLength: 200,
-    minMatchCharLength: 3,
+    minMatchCharLength: 1,
     keys: ['msg'],
     isCaseSensitive: false,
     ignoreLocation: true,

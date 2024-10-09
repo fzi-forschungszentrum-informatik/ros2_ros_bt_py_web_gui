@@ -209,7 +209,7 @@ onMounted(() => {
                     ref="nodelist_input_ref"
                     class="form-control"
                     v-bind:value="node_search"
-                    @change="handleNodeSearch"
+                    @input="handleNodeSearch"
                     @keydown="handleNodeSearchClear"
                   />
                 </div>

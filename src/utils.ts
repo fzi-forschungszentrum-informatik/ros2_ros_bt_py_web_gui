@@ -286,7 +286,6 @@ export function getMessageType(str: string): Message {
     return { msg: '', action: false, service: false, type: MessageType.MESSAGE }
   }
 
-  console.log(message_parts)
   let new_message_parts = message_parts.slice(0, 2)
   // Standardize type .../.../_name/Name to .../.../Name
   if (message_parts.length > 3 && message_parts[2] === message_parts[3].replace(/[A-Z]/g, x => '_' + x.toLowerCase())) {
@@ -294,13 +293,11 @@ export function getMessageType(str: string): Message {
   } else {
     new_message_parts.push(...message_parts.slice(2))
   }
-  console.log(new_message_parts)
 
   // Caution, since this is the store member, don't edit it
   const msg_ref = message_store.messages.find(
     (item) => item.msg === new_message_parts.join('.')
   )
-  console.log(msg_ref)
 
   if (msg_ref === undefined) {
     console.error('Invalid message passed')

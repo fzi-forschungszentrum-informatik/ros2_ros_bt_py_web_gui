@@ -39,7 +39,7 @@ export const usePackageStore = defineStore('packages', () => {
     location: 0,
     distance: 100,
     maxPatternLength: 200,
-    minMatchCharLength: 0,
+    minMatchCharLength: 1,
     keys: ['package', 'path'],
     isCaseSensitive: false,
     ignoreLocation: true,
