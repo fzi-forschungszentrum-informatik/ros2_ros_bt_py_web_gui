@@ -122,6 +122,7 @@ const data_vert1_highlight_css_id: string = "highlightV1"
 const data_vert2_highlight_css_id: string = "highlightV2"
 const data_edge_draw_css_class: string = "drawing-indicator"
 const selection_rect_css_class: string = "selection"
+const data_graph_hover_css_class: string = "data-hover"
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
@@ -1203,24 +1204,24 @@ function drawNewDataVert(
           // Highlight compatible vertices when dragging
           const compat = d3.select(this).classed("compatible")
           d3.select(this)
-              .classed("data-hover", compat)
+              .classed(data_graph_hover_css_class, compat)
         } else {
           d3.select(this)
-              .classed("data-hover", true)
+              .classed(data_graph_hover_css_class, true)
               .attr("id", data_vert1_highlight_css_id)
-            .select(".label")
+            .select("." + data_vert_label_css_class)
               .attr("visibility", "visible")
         }
       })
       .on("mouseout.highlight", function () {
         if (editor_store.is_dragging) {
           d3.select(this)
-              .classed("data-hover", false)
+              .classed(data_graph_hover_css_class, false)
         } else {
           d3.select(this)
-              .classed("data-hover", false)
+              .classed(data_graph_hover_css_class, false)
               .attr("id", null)
-            .select(".label")
+            .select("." + data_vert_label_css_class)
               .attr("visibility", "hidden")
         }
       })
@@ -1341,8 +1342,17 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
                 data_vert2_highlight_css_id : 
                 data_vert1_highlight_css_id
             )
+          //Hide target label
+          .select("." + data_vert_label_css_class)
+            .attr("visibility", (term: DataEdgeTerminal) => {
+              if (term.kind === IOKind.INPUT) {
+                return "hidden"
+              }
+              return "visible"
+            })
+
         d3.select(this)
-            .classed("data-hover", true)
+            .classed(data_graph_hover_css_class, true)
             .attr("id", data_edge_highlight_css_id)
       })
       .on("mouseout.highlight", function (edge: DataEdge) {
@@ -1353,7 +1363,7 @@ function drawDataEdges(data_points: DataEdgeTerminal[],
           term === edge.source || term === edge.target
         ).dispatch("mouseout")
         d3.select(this)
-            .classed("data-hover", false)
+            .classed(data_graph_hover_css_class, false)
             .attr("id", null)
       })
     .transition(tree_transition)
@@ -1399,7 +1409,7 @@ function toggleDataEdgeTargets() {
       .classed("compatible", false)
     
   data_verts
-    .select(".label")
+    .select("." + data_vert_label_css_class)
       .attr("visibility", "hidden")
   
   // Reset drawing indicator
@@ -1415,8 +1425,6 @@ function toggleDataEdgeTargets() {
       typesCompatible(term, editor_store.data_edge_endpoint!)
     )
       .classed("compatible", true)
-    .select("." + data_vert_label_css_class)
-      .attr("visibility", "visible")
 
   draw_path
       .attr("d", () => 
@@ -1664,9 +1672,9 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
         <!--Below is used to pull elements to the foreground on hover-->
-        <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
-        <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none"/>
         <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
     </g>

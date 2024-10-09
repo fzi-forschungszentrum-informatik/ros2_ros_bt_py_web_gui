@@ -74,24 +74,8 @@ function handleChange() {
   }
   try {
     const new_value = editor.get()
-    console.log(new_value)
     is_valid.value = true
     edit_node_store.updateParamValue(props.category, props.data_key, new_value)
-    /*const new_json = editor.get()
-    current_json.value = JSON.stringify(new_json)
-    is_valid.value = true
-
-    if (props.output == 'pickled') {
-      if (pyobjectstring.value === undefined) {
-        return
-      }
-      const reconstructed = getPyObjectFromJSON(JSON.parse(pyobjectstring.value), current_json)
-
-      props.updateValue(message_type.value, props.param_key, reconstructed)
-    } else {
-      props.updateValue(message_type.value, props.param_key, current_json.value)
-    }
-    props.updateValidity(true)*/
   } catch (e) {
     is_valid.value = false
   }
@@ -114,11 +98,11 @@ function updateMessageType() {
 
   const message = getMessageType(message_type)
   if (message.msg === '/dict' || message.msg === '') {
-    notify({
+    /*notify({
       title: 'Cannot request message infos!',
       text: 'Message is a dict not a ROS message!',
       type: 'warn'
-    })
+    })*/
     return
   } else {
     ros_store.get_message_fields_service.callService(
@@ -133,14 +117,6 @@ function updateMessageType() {
           pyobjectstring.value = response.fields
           field_names.value = response.field_names
 
-          /*let new_value
-          if (type_changed) {
-            //new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
-            new_value = JSON.parse(response.fields)
-          } else {
-            //new_value = getJSONfromPyObject(json, response.field_names).json
-          }*/
-          //const new_value = getJSONfromPyObject(JSON.parse(response.fields), response.field_names).json
           const new_value = JSON.parse(response.fields)
           console.log(new_value)
 
@@ -169,43 +145,6 @@ function updateMessageType() {
   }
 }
 
-function getJSONfromPyObject(
-  pyobject: object,
-  field_names: string[]
-): { json: object; counter: number } {
-  const json = {}
-  let counter = 0
-  // eslint-disable-next-line no-prototype-builtins
-  if (pyobject.hasOwnProperty('py/object')) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: Unsafe accessor
-    for (const field_name of field_names) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (pyobject.hasOwnProperty('_' + field_name)) {
-        json[field_name as keyof typeof json] =
-          pyobject[('_' + field_name) as keyof typeof pyobject]
-        counter += 1
-      }
-    }
-  }
-  return { json: json, counter: counter }
-}
-
-function getPyObjectFromJSON(pyobject: object, json: object) {
-  const keys = Object.keys(json)
-  // eslint-disable-next-line no-prototype-builtins
-  if (pyobject.hasOwnProperty('py/object')) {
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: Unsafe accessor
-    for (const key of keys) {
-      // eslint-disable-next-line no-prototype-builtins
-      if (pyobject.hasOwnProperty('_' + key)) {
-        pyobject[('_' + key) as keyof typeof pyobject] = json[key as keyof typeof json]
-      }
-    }
-  }
-  return pyobject
-}
 
 // This fires when param type changes and updates the editor accordingly
 watch(() => {
