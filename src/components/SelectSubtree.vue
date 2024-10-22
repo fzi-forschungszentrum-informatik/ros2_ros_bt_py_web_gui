@@ -99,8 +99,26 @@ const selected_name = computed<string>(() => {
 </script>
 
 <template>
-  <div class="d-flex flex-row align-items-center">
-    <div class="m-1">
+  <div>
+
+    <div class="input-group my-2">
+
+      <label class="input-group-text" for="formTree"> Tree </label>
+
+      <select
+        id="formTree"
+        class="form-select"
+        :value="editor_store.subtree_names.indexOf(selected_name)"
+        @change="onChange"
+      >
+        <option value="-1">Main Tree</option>
+        <optgroup label="Subtrees">
+          <option v-for="(name, index) in editor_store.subtree_names" :key="name" :value="index">
+            {{ name }}
+          </option>
+        </optgroup>
+      </select>
+
       <input
         type="checkbox"
         :id="publish_subtrees_id"
@@ -109,25 +127,12 @@ const selected_name = computed<string>(() => {
         :checked="editor_store.publish_subtrees"
         @change="handlePubSubtreesChange"
       />
-      <label class="btn btn-primary" :for="publish_subtrees_id">
+      <!--Manually add rounded corners since toggle buttons don't play nice with input-group (and btn-group conflicts with input-group)-->
+      <label class="btn btn-primary" :for="publish_subtrees_id" >
         <font-awesome-icon :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
       </label>
+
     </div>
 
-    <label class="col-form-label m-1 ms-2" for="formTree"> Tree: </label>
-
-    <select
-      id="formTree"
-      class="form-select m-2"
-      :value="editor_store.subtree_names.indexOf(selected_name)"
-      @change="onChange"
-    >
-      <option value="-1">Main Tree</option>
-      <optgroup label="Subtrees">
-        <option v-for="(name, index) in editor_store.subtree_names" :key="name" :value="index">
-          {{ name }}
-        </option>
-      </optgroup>
-    </select>
   </div>
 </template>

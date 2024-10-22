@@ -31,18 +31,10 @@
   .hide-button-text {
     display: none;
   }
-
-  .show-button-icon {
-    visibility: visible;
-  }
 }
 
 @media screen and (max-width: 1640px) {
   .hide-button-text-control {
     display: none;
-  }
-
-  .show-button-icon {
-    visibility: visible;
   }
 }

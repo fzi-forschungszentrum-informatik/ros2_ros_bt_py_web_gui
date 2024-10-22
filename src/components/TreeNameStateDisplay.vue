@@ -28,26 +28,68 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import DebugControls from './DebugControls.vue'
-import LoadSaveControls from './LoadSaveControls.vue'
-import NamespaceSelect from './NamespaceSelect.vue'
-import Spacer from './RightAlignSpacer.vue'
-import TickControls from './TickControls.vue'
+import { useEditorStore } from '@/stores/editor';
+import { computed, ref } from 'vue';
+
+
+const editor_store = useEditorStore()
+
+const tree_name = computed<string>(() => {
+  if (editor_store.tree) {
+    return editor_store.tree.name
+  } else {
+    return ''
+  }
+})
+
+const new_tree_name = ref<string>('')
+
+const tree_state = computed<string>(() => {
+  if (editor_store.tree) {
+    return editor_store.tree.state
+  } else {
+    return 'UNKNOWN'
+  }
+})
+
+function renameTree(): void {
+    console.log(new_tree_name.value)
+}
+
 </script>
 
 <template>
-  <header id="header" class="d-flex flex-column flex-md-row align-items-center control-bar">
-    <NamespaceSelect></NamespaceSelect>
-    <!--<DebugControls></DebugControls>-->
-    <TickControls></TickControls>
-    <Spacer></Spacer>
-    <LoadSaveControls></LoadSaveControls>
-  </header>
+    <div class="d-flex align-items-center my-2">
+        <div class="input-group me-1">
+            <label class="input-group-text" for="treeNameForm"> Name </label>
+            <input
+                id="treeNameForm"
+                class="form-control"
+                type="text"
+                :disabled="editor_store.selected_subtree.is_subtree"
+                :value="tree_name"
+                @input="(event: Event) => new_tree_name = (event.target as HTMLInputElement).value"
+            />
+            <button class="btn btn-primary"
+            :disabled="editor_store.selected_subtree.is_subtree"
+            @click="renameTree"
+            >
+                Save
+            </button>
+        </div>
+        <div class="input-group ms-1">
+            <label class="input-group-text" for="treeStateForm"> State </label>
+            <input
+                id="treeStateForm"
+                class="form-control w-50"
+                type="text"
+                disabled="true"
+                :value="tree_state"
+            />
+        </div>
+    </div>
 </template>
 
 <style lang="scss">
-.control-bar {
-  width: 100%;
-  background: #bebebe;
-}
+
 </style>

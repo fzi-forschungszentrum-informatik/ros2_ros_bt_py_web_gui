@@ -413,75 +413,63 @@ function saveTree() {
 </script>
 
 <template>
-  <button @click="() => newTree()" class="btn btn-primary ms-1" title="New tree">
-    <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" class="show-button-icon" />
-    <span class="ms-1 hide-button-text">New</span>
-  </button>
-  <div class="btn-group" role="group">
-    <button
-      id="btnGroupDrop1"
-      type="button"
-      class="btn btn-primary dropdown-toggle ms-1"
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
-    >
-      <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" class="show-button-icon" />
-      <span class="ms-1 hide-button-text">Load</span>
+  <div class="btn-group">
+    <button @click="() => newTree()" class="btn btn-primary" title="New tree">
+      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">New</span>
     </button>
-    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-      <li>
-        <button
-          @click="() => loadFromPackage()"
-          class="dropdown-item btn btn-primary"
-          title="Load from package"
-        >
-          <font-awesome-icon
-            icon="fa-solid fa-folder-tree"
-            aria-hidden="true"
-            class="show-button-icon"
-          />
-          <span class="ms-1">Package</span>
-        </button>
-      </li>
-      <li>
-        <button
-          @click="() => loadFromFile()"
-          class="dropdown-item btn btn-primary"
-          title="Load from file"
-        >
-          <font-awesome-icon
-            icon="fa-solid fa-folder-open"
-            aria-hidden="true"
-            class="show-button-icon"
-          />
-          <span className="ms-1">File</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-  <button @click="() => saveToFile()" class="btn btn-primary ms-1" title="Save to remote">
-    <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" class="show-button-icon" />
-    <span class="ms-1 hide-button-text">Save</span>
-  </button>
-  <div>
+    <div class="vr" style="width: 2px;"></div>
+    <div class="btn-group" role="group">
+      <button
+        id="btnGroupDrop1"
+        type="button"
+        class="btn btn-primary dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true"/>
+        <span class="ms-1 hide-button-text">Load</span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+        <li>
+          <button
+            @click="() => loadFromPackage()"
+            class="dropdown-item btn btn-primary"
+            title="Load from package"
+          >
+            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true"/>
+            <span class="ms-1">Package</span>
+          </button>
+        </li>
+        <li>
+          <button
+            @click="() => loadFromFile()"
+            class="dropdown-item btn btn-primary"
+            title="Load from file"
+          >
+            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true"/>
+            <span className="ms-1">File</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+    <div class="vr" style="width: 2px;"></div>
+    <button @click="() => saveToFile()" class="btn btn-primary" title="Save to remote">
+      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">Save</span>
+    </button>
+    <div class="vr" style="width: 2px;"></div>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
-    <button @click="() => openFileDialog()" class="btn btn-primary ms-1" title="Upload">
-      <font-awesome-icon
-        icon="fa-solid fa-file-upload"
-        aria-hidden="true"
-        class="show-button-icon"
-      />
+    <button @click="() => openFileDialog()" class="btn btn-primary" title="Upload">
+      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
+    <div class="vr" style="width: 2px;"></div>
+    <button @click="() => saveTree()" class="btn btn-primary" title="Download">
+      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">Download</span>
+    </button>
   </div>
-  <button @click="() => saveTree()" class="btn btn-primary m-1" title="Download">
-    <font-awesome-icon
-      icon="fa-solid fa-file-download"
-      aria-hidden="true"
-      class="show-button-icon"
-    />
-    <span class="ms-1 hide-button-text">Download</span>
-  </button>
 </template>
 
 <style lang="scss">
