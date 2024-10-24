@@ -205,7 +205,7 @@ onMounted(() => {
               />
             </button>
 
-            <button class="btn btn-outline-primary" @click="dark_mode = !dark_mode" title="Change editor appearance">
+            <button class="btn btn-outline-primary" @click="dark_mode = !dark_mode" title="Change window appearance">
               <font-awesome-icon :class="dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-moon" />
               <font-awesome-icon :class="!dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-sun" />
             </button>

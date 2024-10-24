@@ -418,7 +418,7 @@ function saveTree() {
       <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">New</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <div class="btn-group" role="group">
       <button
         id="btnGroupDrop1"
@@ -453,18 +453,18 @@ function saveTree() {
         </li>
       </ul>
     </div>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button @click="() => saveToFile()" class="btn btn-primary" title="Save to remote">
       <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Save</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
     <button @click="() => openFileDialog()" class="btn btn-primary" title="Upload">
       <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button @click="() => saveTree()" class="btn btn-primary" title="Download">
       <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Download</span>

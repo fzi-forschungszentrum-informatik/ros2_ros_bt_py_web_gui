@@ -86,7 +86,7 @@ function controlExec(command: TreeExecutionCommands) {
       <font-awesome-icon v-else icon="fas fa-check" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control">Tick Once</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button
       @click="() => controlExec(TreeExecutionCommands.TICK_PERIODICALLY)"
       class="btn btn-primary"
@@ -101,7 +101,7 @@ function controlExec(command: TreeExecutionCommands) {
       <font-awesome-icon v-else icon="fas fa-sync" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control"> Tick Periodically </span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button
       @click="() => controlExec(TreeExecutionCommands.TICK_UNTIL_RESULT)"
       class="btn btn-primary"
@@ -116,7 +116,7 @@ function controlExec(command: TreeExecutionCommands) {
       <font-awesome-icon v-else icon="fas fa-play" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control"> Tick Until Result </span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button
       @click="() => controlExec(TreeExecutionCommands.STOP)"
       class="btn btn-primary"
@@ -129,7 +129,7 @@ function controlExec(command: TreeExecutionCommands) {
       <i class="{stop_classes}"></i>
       <span class="ms-1 hide-button-text-control">Stop</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button
       @click="() => controlExec(TreeExecutionCommands.RESET)"
       class="btn btn-primary"
@@ -141,7 +141,7 @@ function controlExec(command: TreeExecutionCommands) {
       <font-awesome-icon v-else icon="fas fa-undo" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control">Reset</span>
     </button>
-    <div class="vr" style="width: 2px;"></div>
+    <div class="vr opacity-0" style="width: 2px;"></div>
     <button
       @click="() => controlExec(TreeExecutionCommands.SHUTDOWN)"
       class="btn btn-primary"

@@ -53,19 +53,19 @@ const editor_store = useEditorStore()
             >
                 <font-awesome-icon :class="editor_store.show_data_graph ? 'text-white' : 'text-white-50'" icon="fa-solid fa-route" />
             </button>
-            <div class="vr" style="width: 2px;"></div>
+            <div class="vr opacity-0" style="width: 2px;"></div>
             <button v-if="props.execBarVisible" class="btn btn-primary" @click="emits('hide')" title="Hide User Interface">
                 <font-awesome-icon icon="fa-solid fa-window-maximize" />
             </button>
             <button v-else class="btn btn-primary" @click="emits('show')" title="Show User Interface">
                 <font-awesome-icon icon="fa-solid fa-window-restore" />
             </button>
-            <div class="vr" style="width: 2px;"></div>
+            <div class="vr opacity-0" style="width: 2px;"></div>
             <button class="btn btn-primary" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
                 <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-white' : 'text-white-50'" icon="fa-solid fa-layer-group" />
                 <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-white-50' : 'text-white'" icon="fa-solid fa-tree" />
             </button>
-            <div class="vr" style="width: 2px;"></div>
+            <div class="vr opacity-0" style="width: 2px;"></div>
             <button class="btn btn-primary" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
                 <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-white' : 'text-white-50'" icon="fa-solid fa-moon" />
                 <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-white' : 'text-white-50'" icon="fa-solid fa-sun" />
