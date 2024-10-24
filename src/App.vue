@@ -33,7 +33,7 @@ import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
 import { EditorSkin, useEditorStore } from './stores/editor'
@@ -59,6 +59,17 @@ const packages_store = usePackageStore()
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
+
+const dark_mode = ref<boolean>(false)
+// Bootstrap docs say to apply their theme specifier to the root element, 
+// hence the plain js solution instead of a cleaner vue approach
+watch(dark_mode, (dark_mode) => {
+  if (dark_mode) {
+    document.documentElement.setAttribute('data-bs-theme', 'dark')
+  } else {
+    document.documentElement.removeAttribute('data-bs-theme')
+  }
+})
 
 function onNewPackagesMsg(msg: Packages) {
   if (!packages_store.packages_available) {
@@ -160,8 +171,7 @@ onMounted(() => {
 
 <template>
   <header v-if="execution_bar_visible" 
-  class="d-flex justify-content-between align-items-center p-2"
-  style="background-color: #bebebe;">
+  class="d-flex justify-content-between align-items-center p-2 top-bar">
     <NamespaceSelect></NamespaceSelect>
 
     <TickControls></TickControls>
@@ -176,21 +186,31 @@ onMounted(() => {
     >
       <div class="row row-height">
         <div class="col-3 scroll-col" id="nodelist_container" v-if="nodelist_visible">
-          <button
-            class="hide_button btn btn-outline-primary btn-sm"
-            title="Hide nodelist"
-            @click="
-              () => {
-                nodelist_visible = !nodelist_visible
-              }
-            "
-          >
-            <font-awesome-icon
-              icon="fa-solid fa-angle-double-left"
-              aria-hidden="true"
-              class="show-button-icon"
-            />
-          </button>
+          <!--TODO maybe redo using bootstrap grid-->
+
+          <div class="d-flex justify-content-between m-1">
+            <button
+              class="btn btn-outline-primary"
+              title="Hide nodelist"
+              @click="
+                () => {
+                  nodelist_visible = !nodelist_visible
+                }
+              "
+            >
+              <font-awesome-icon
+                icon="fa-solid fa-angle-double-left"
+                aria-hidden="true"
+                class="show-button-icon"
+              />
+            </button>
+
+            <button class="btn btn-outline-primary" @click="dark_mode = !dark_mode" title="Change editor appearance">
+              <font-awesome-icon :class="dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-moon" />
+              <font-awesome-icon :class="!dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-sun" />
+            </button>
+          </div>
+
           <div class="available-nodes m-1">
             <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
             <div class="border rounded">
@@ -211,10 +231,12 @@ onMounted(() => {
           <NodeList></NodeList>
         </div>
         <div class="col d-flex flex-column" id="main_pane">
-          <!-- Show nodelist button -->
-          <button
+          <div class="row justify-content-between bg-secondary">
+
+            <!-- Show nodelist button -->
+            <button
             v-if="!nodelist_visible"
-            class="hide_button btn btn-outline-primary btn-sm"
+            class="btn btn-outline-light m-2 col-auto order-first"
             title="Show nodelist"
             @click="
               () => {
@@ -229,7 +251,6 @@ onMounted(() => {
             />
           </button>
 
-          <div class="row justify-content-between">
             <!--Elements are dynamically reordered when inlining all three-->
             <SelectSubtree class="col col-xl-3 order-xl-1"></SelectSubtree>
 
@@ -242,12 +263,10 @@ onMounted(() => {
           </div>
 
           <div class="row edit_canvas flex-grow-1 pb-2">
-            <div class="col p-0">
-              <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
-            </div>
+            <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
           </div>
-          <div class="row maxh50">
-            <div class="col pl-0">
+          <div class="row">
+            <div class="col">
               <!--Node Selection list-->
               <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
               <NewNode
@@ -259,7 +278,6 @@ onMounted(() => {
                       edit_node_store.selected_node.node_class
                     : '')
                 "
-                :node="edit_node_store.selected_node!"
                 :parents="findPossibleParents()"
               />
               <SelectedNode
@@ -272,13 +290,11 @@ onMounted(() => {
               <div v-else class="d-flex flex-column">No Node Selected</div>
             </div>
             <div class="col">
-              <div className="row pt-0 pl-0 pr-0">
-                <!-- BT Edge selection-->
-                <BehaviorTreeEdge
-                  v-if="editor_store.selected_edge !== undefined"
-                ></BehaviorTreeEdge>
-                <div v-else class="d-flex flex-column">No Edge Selected</div>
-              </div>
+              <!-- BT Edge selection-->
+              <BehaviorTreeEdge
+                v-if="editor_store.selected_edge !== undefined"
+              ></BehaviorTreeEdge>
+              <div v-else class="d-flex flex-column">No Edge Selected</div>
             </div>
           </div>
         </div>
@@ -290,19 +306,6 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
-
-
-.maxw0 {
-  max-width: 0;
-}
-
-.minw0 {
-  min-width: 0;
-}
-
-.maxh50 {
-  max-height: 50%;
-}
 
 .cursor-pointer {
   cursor: pointer;
@@ -323,6 +326,7 @@ onMounted(() => {
 .scroll-col {
   height: 100%;
   overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 .row-height {
@@ -342,8 +346,13 @@ onMounted(() => {
 .top-bar {
   height: 6vh;
   width: 100%;
-  background: #fedede;
+  background-color: #bebebe;
 }
+
+[data-bs-theme=dark] .top-bar {
+  background-color: #4b4b4b;
+}
+
 
 
 .placeholder {
@@ -363,18 +372,6 @@ onMounted(() => {
 
 #nodelist_container {
   border-right: solid;
-}
-
-#nodelist_container > .hide_button {
-  margin-left: -10px;
-  margin-top: 5px;
-}
-
-#main_pane > .hide_button {
-  position: absolute;
-  margin-left: -10px;
-  margin-top: 5px;
-  z-index: 1;
 }
 
 

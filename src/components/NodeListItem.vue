@@ -96,18 +96,18 @@ function onClick() {
     "
   >
     <div class="d-flex justify-content-between">
-      <div class="d-flex minw0">
+      <div class="d-flex">
         <h4 :title="node.node_class" class="node_class text-truncate">
           {{ node.node_class }}
         </h4>
         <font-awesome-icon
           icon="fa-solid fa-question-circle"
-          class="pl-2 pr-2"
+          class="ps-2 pe-2"
           aria-hidden="true"
           v-bind:title="getShortDoc(node.doc)"
         />
       </div>
-      <div class="d-flex minw0">
+      <div class="d-flex">
         <font-awesome-icon
           v-if="!collapsed"
           icon="fa-solid fa-angle-up"

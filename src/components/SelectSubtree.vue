@@ -127,7 +127,7 @@ const selected_name = computed<string>(() => {
         :checked="editor_store.publish_subtrees"
         @change="handlePubSubtreesChange"
       />
-      <!--Manually add rounded corners since toggle buttons don't play nice with input-group (and btn-group conflicts with input-group)-->
+
       <label class="btn btn-primary" :for="publish_subtrees_id" >
         <font-awesome-icon :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
       </label>

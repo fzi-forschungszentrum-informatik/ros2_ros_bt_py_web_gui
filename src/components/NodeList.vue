@@ -70,6 +70,7 @@ const nodes = computed<DocumentedNode[]>(() => {
 
 </script>
 <template>
+  <!--TODO clean up unused css classes, redo with bootstrap utilities-->
   <div class="available-nodes m-1">
     <div class="vertical_list">
       <div class="border rounded mb-2">
