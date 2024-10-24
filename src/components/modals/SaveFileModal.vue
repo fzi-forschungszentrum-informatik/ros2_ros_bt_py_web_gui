@@ -158,7 +158,8 @@ function saveTree() {
             text: response.file_path,
             type: 'success'
           })
-          renameAfterSave(response.file_path)
+          //TODO shouldn't auto rename since name can be manually set
+          //renameAfterSave(response.file_path)
           emit('close')
         } else {
           notify({
