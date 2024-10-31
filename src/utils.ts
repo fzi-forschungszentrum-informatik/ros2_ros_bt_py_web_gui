@@ -178,7 +178,9 @@ export function getDefaultValue(
       return x.key === optionTypeName
     })
     if (optionType) {
-      return getDefaultValue(prettyprint_type(optionType.serialized_value))
+      //TODO this double call is necessary to dereference first the type of the optionref target and then it's value
+      // Maybe this can be solved differently by passing a different 'options' param?
+      return getDefaultValue(getDefaultValue(prettyprint_type(optionType.serialized_value)).value as string)
     } else {
       return {
         type: 'unset_optionref',
