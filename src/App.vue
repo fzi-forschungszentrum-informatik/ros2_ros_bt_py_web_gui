@@ -188,7 +188,7 @@ onMounted(() => {
         <div class="col-3 d-flex flex-column h-100" id="nodelist_container" v-if="nodelist_visible">
           <!--TODO maybe redo using bootstrap grid-->
 
-          <div class="d-flex justify-content-between m-1">
+          <div class="d-flex justify-content-between m-1 mt-2">
             <button
               class="btn btn-outline-primary"
               title="Hide nodelist"
