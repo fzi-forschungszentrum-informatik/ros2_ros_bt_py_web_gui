@@ -152,5 +152,5 @@ function controlExec(command: TreeExecutionCommands) {
 </template>
 
 <style lang="scss">
-@import 'src/assets/utils.scss';
+
 </style>

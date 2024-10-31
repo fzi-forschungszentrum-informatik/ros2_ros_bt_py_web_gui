@@ -306,6 +306,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+@import 'src/assets/utils.scss';
 
 .cursor-pointer {
   cursor: pointer;

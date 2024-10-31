@@ -71,7 +71,7 @@ const nodes = computed<DocumentedNode[]>(() => {
 </script>
 <template>
   <!--TODO clean up unused css classes, redo with bootstrap utilities-->
-  <div class="available-nodes border rounded m-1 d-flex flex-column">
+  <div class="available-nodes border rounded m-1 mb-2 pb-2 d-flex flex-column">
     <div
       @click="
         () => {
@@ -107,10 +107,10 @@ const nodes = computed<DocumentedNode[]>(() => {
 
   //Move scrollbar outside of border-box if browser allows it
   @supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
-    padding-left: 7px;
-    margin-left: -14px;
-    padding-right: 7px;
-    margin-right: -14px;
+    padding-left: 6px;
+    margin-left: -13px;
+    padding-right: 6px;
+    margin-right: -13px;
     scrollbar-width: thin;
     scrollbar-gutter: stable both-edges;
   }

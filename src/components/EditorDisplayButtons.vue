@@ -72,5 +72,5 @@ const editor_store = useEditorStore()
 </template>
 
 <style lang="scss">
-@import 'src/assets/utils.scss';
+
 </style>

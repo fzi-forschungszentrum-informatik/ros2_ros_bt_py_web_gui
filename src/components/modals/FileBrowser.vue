@@ -43,6 +43,7 @@ import * as d3 from 'd3'
 const props = defineProps<{
     location: string,
     title: string,
+    search_term: string,
     fromPackages?: boolean,
     file_filter?: RegExp
 }>()
@@ -50,7 +51,6 @@ const props = defineProps<{
 const emit = defineEmits<{
     (e: 'location', location: string): void,
     (e: 'select', selected_path: string[], is_directory: boolean): void,
-    (e: 'input', input_name: string): void,
     (e: 'close'): void,
 }>()
 
@@ -95,7 +95,7 @@ const location_available = computed<boolean>(() =>
 )
 
 const current_folder = ref<d3.HierarchyNode<PackageStructure> | null>(null)
-const folder_search_term = ref<string>('')
+const current_item = ref<d3.HierarchyNode<PackageStructure> | null>(null)
 const folder_item_fuse = ref<Fuse<d3.HierarchyNode<PackageStructure>>>(
     new Fuse<d3.HierarchyNode<PackageStructure>>([], {
         keys: ['data.name']
@@ -103,10 +103,10 @@ const folder_item_fuse = ref<Fuse<d3.HierarchyNode<PackageStructure>>>(
 )
 const item_search_results = computed<d3.HierarchyNode<PackageStructure>[]>(() => {
     let list: d3.HierarchyNode<PackageStructure>[] = []
-    if (folder_search_term.value === '') {
+    if (props.search_term === '') {
         list = current_folder.value?.children || []
     } else {
-        list = folder_item_fuse.value.search(folder_search_term.value).map(x => x.item)
+        list = folder_item_fuse.value.search(props.search_term).map(x => x.item)
     }
     list = list.filter((item: d3.HierarchyNode<PackageStructure>) => {
         switch (item.data.type) {
@@ -212,9 +212,9 @@ function setChosenLocation(value: Package | null) {
         chosen_location.value = null
         location_search_term.value = ''
         current_folder.value = null
+        current_item.value = null
         emit('location', '')
         emit('select', [], true)
-        emit('input', '')
     } else {
         chosen_location.value = value
         location_search_term.value = value.package
@@ -231,15 +231,13 @@ function setCurrentFolder(elem: d3.HierarchyNode<PackageStructure>) {
     switch (elem.data.type) {
         case FileType.DIR:
             current_folder.value = elem
-            folder_search_term.value = ''
             folder_item_fuse.value.setCollection(elem.children || [])
-            break;
+            break
         case FileType.FILE:
-            folder_search_term.value = elem.data.name
-            emit("input", elem.data.name) // Filling the value from code doesn't trigger @input, hence emit manually
-            break;
+            current_item.value = elem
+            break
         default:
-            break;
+            break
     }
     // Emit selected path as array, exclude root, as it is given as the location
     emit("select", elem.ancestors().slice(0, -1).reverse().map( (parent) => parent.data.name ), elem.data.type === FileType.DIR)
@@ -276,22 +274,13 @@ onMounted(() => {
         <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
             <button v-for="location in location_search_results" :key="location.path"
             @click="setChosenLocation(location)" 
-            class="btn btn-outline-dark ms-4 mb-3 text-start">
+            class="btn btn-outline-contrast ms-4 mb-3 text-start">
                 <font-awesome-icon icon="fa-solid fa-cubes" class="me-1" />
                 {{ location.package }}
             </button>
         </div>
         <div v-else-if="current_folder !== null">
-            <div class="d-flex justify-content-between mb-3">
-                <slot>Control Buttons, Selects, ...</slot>
-            </div>
-            <div class="input-group mb-3">
-                <span class="input-group-text">
-                    Name:
-                </span>
-                <input v-model="folder_search_term" type="text" class="form-control"
-                @input="emit('input', ($event.target as HTMLInputElement).value)">
-            </div>
+            <slot>Control Buttons, Selects, ...</slot>
             <div class="input-group mb-3">
                 <button :disabled="current_folder.parent === null"
                 @click="setCurrentFolder(current_folder.parent!)" class="btn btn-outline-secondary">
@@ -305,8 +294,8 @@ onMounted(() => {
             <div class="d-grid overflow-auto" style="max-height: 50vh">
                 <button v-for="elem in item_search_results" :key="elem.data.item_id"
                 @click="setCurrentFolder(elem)" 
-                class="btn btn-outline-dark ms-4 mb-3 text-start"
-                :class="{'active': elem.data.name === folder_search_term}">
+                class="btn btn-outline-contrast ms-4 mb-3 text-start"
+                :class="{'active': elem.data.item_id === current_item?.data.item_id}">
                     <font-awesome-icon icon="fa-solid fa-folder-open"
                     style="width: 20px;"
                     v-if="elem.data.type === FileType.DIR" />
@@ -325,3 +314,7 @@ onMounted(() => {
         Loading possible storage locations
     </div>
 </template>
+
+<style lang="scss">
+
+</style>

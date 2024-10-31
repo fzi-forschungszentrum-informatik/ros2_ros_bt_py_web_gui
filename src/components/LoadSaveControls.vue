@@ -469,7 +469,6 @@ function saveTree() {
 </template>
 
 <style lang="scss">
-@import 'src/assets/utils.scss';
 
 .file_input_ref {
   display: none;

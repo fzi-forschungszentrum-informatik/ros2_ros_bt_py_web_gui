@@ -62,6 +62,16 @@ const file_path = computed<string>(() => {
   }
 })
 
+function setSaveLocation(path: string[], dir: boolean) {
+  selected_path.value = path
+  is_directory.value = dir
+  if (dir) {
+    input_file_name.value = ""
+  } else {
+    input_file_name.value = path[path.length - 1]
+  }
+}
+
 enum NameConflictHandler {
   ASK = "Ask before overwrite",
   OVERWRITE = "Overwrite file",
@@ -86,22 +96,22 @@ function saveTree() {
   let allow_rename: boolean
   switch (handle_name_conflict.value) {
     case NameConflictHandler.ASK:
-    allow_overwrite = false
-    allow_rename = false
-    break;
+      allow_overwrite = false
+      allow_rename = false
+      break
     case NameConflictHandler.OVERWRITE:
-    allow_overwrite = true
-    allow_rename = false
-    break;
+      allow_overwrite = true
+      allow_rename = false
+      break
     case NameConflictHandler.RENAME:
-    allow_overwrite = false
-    allow_rename = true
-    break;
+      allow_overwrite = false
+      allow_rename = true
+      break
     default:
-    console.warn("Improper state for name conflict resolution strategy")
-    allow_overwrite = false
-    allow_rename = false
-    break;
+      console.warn("Improper state for name conflict resolution strategy")
+      allow_overwrite = false
+      allow_rename = false
+      break
   }
   
   const save_tree_request: SaveTreeRequest = {
@@ -121,7 +131,6 @@ function saveTree() {
         text: response.file_path,
         type: 'success'
       })
-      renameAfterSave(response.file_path)
       emit('close')
     } else {
 
@@ -158,8 +167,6 @@ function saveTree() {
             text: response.file_path,
             type: 'success'
           })
-          //TODO shouldn't auto rename since name can be manually set
-          //renameAfterSave(response.file_path)
           emit('close')
         } else {
           notify({
@@ -187,60 +194,39 @@ function saveTree() {
   })
 }
 
-function renameAfterSave(new_file_path: string) {
-  const new_file_name = new_file_path.split("/").reverse()[0]
-  ros_store.change_tree_name_service.callService({
-    name: new_file_name
-  } as ChangeTreeNameRequest,
-  (response: ChangeTreeNameResponse) => {
-    if (response.success) {
-      notify({
-        title: 'Successfully renamed tree!',
-        text: new_file_name,
-        type: 'success'
-      })
-      emit('close')
-    } else {
-      notify({
-        title: 'Failed to rename tree!',
-        text: response.error_message,
-        type: 'warn'
-      })
-    }
-  }, 
-  (error: string) => {
-    notify({
-      title: 'Failed to call ChangeTreeName service!',
-      text: error,
-      type: 'error'
-    })
-  })
-}
-
 </script>
 
 <template>
   <VueFinalModal
-  class="flex justify-center items-center"
-  content-class="flex flex-col mt-4 mx-4 bg-white border rounded space-y-2"
+    class="flex justify-center items-center"
+    content-class="flex flex-col mt-4 mx-4 border rounded space-y-2"
+    content-style="background-color: var(--bs-body-bg);"
   >
-    <FileBrowser location="Folder" title="Save Tree to Folder" :file_filter="file_filter" @close="emit('close')"
+    <FileBrowser location="Folder" title="Save Tree to Folder" @close="emit('close')"
+    :file_filter="file_filter" :search_term="input_file_name"
     @location="(location) => storage_location = location"
-    @select="(path, dir) => {selected_path = path; is_directory = dir}"
-    @input="(input) => input_file_name = input">
-      <button class="btn btn-primary me-2" @click="saveTree"
-      :disabled="!file_type_regex.test(input_file_name)">
-        Save
-      </button>
-      <select v-model="file_filter" class="form-select me-2">
-        <option :value="file_type_regex">Valid files</option>
-        <option :value="undefined">All files</option>
-      </select>
-      <select v-model="handle_name_conflict" class="form-select">
-        <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
-          {{ opt }}
-        </option>
-      </select>
+    @select="(path, dir) => setSaveLocation(path, dir)">
+      <div class="d-flex justify-content-between mb-3">
+        <button class="btn btn-primary me-2" @click="saveTree"
+        :disabled="!file_type_regex.test(input_file_name)">
+          Save
+        </button>
+        <select v-model="file_filter" class="form-select me-2">
+          <option :value="file_type_regex">Valid files</option>
+          <option :value="undefined">All files</option>
+        </select>
+        <select v-model="handle_name_conflict" class="form-select">
+          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
+            {{ opt }}
+          </option>
+        </select>
+      </div>
+      <div class="input-group mb-3">
+        <span class="input-group-text">
+            Name:
+        </span>
+        <input v-model="input_file_name" type="text" class="form-control">
+      </div>
     </FileBrowser>
   </VueFinalModal>
 </template>
