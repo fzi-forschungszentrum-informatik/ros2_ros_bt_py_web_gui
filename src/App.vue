@@ -185,7 +185,7 @@ onMounted(() => {
     @mouseleave="() => editor_store.stopDragging()"
     >
       <div class="row row-height">
-        <div class="col-3 scroll-col" id="nodelist_container" v-if="nodelist_visible">
+        <div class="col-3 d-flex flex-column h-100" id="nodelist_container" v-if="nodelist_visible">
           <!--TODO maybe redo using bootstrap grid-->
 
           <div class="d-flex justify-content-between m-1">
@@ -228,7 +228,7 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <NodeList></NodeList>
+          <NodeList style="min-height: 0;" />
         </div>
         <div class="col d-flex flex-column" id="main_pane">
           <div class="row justify-content-between bg-secondary">
@@ -319,14 +319,6 @@ onMounted(() => {
 
 .json {
   white-space: pre;
-}
-
-
-
-.scroll-col {
-  height: 100%;
-  overflow-y: scroll;
-  overflow-x: hidden;
 }
 
 .row-height {

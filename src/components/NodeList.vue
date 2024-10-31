@@ -71,33 +71,47 @@ const nodes = computed<DocumentedNode[]>(() => {
 </script>
 <template>
   <!--TODO clean up unused css classes, redo with bootstrap utilities-->
-  <div class="available-nodes m-1">
-    <div class="vertical_list">
-      <div class="border rounded mb-2">
-        <div
-          @click="
-            () => {
-              nodelist_collapsed = !nodelist_collapsed
-            }
-          "
-          class="text-center cursor-pointer font-weight-bold m-2"
-        >
-          Node List
-          <font-awesome-icon
-            v-if="!nodelist_collapsed"
-            icon="fa-solid fa-angle-up"
-            aria-hidden="true"
-          />
-          <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
-        </div>
-        <div v-if="!nodelist_collapsed">
-          <NodeListItem
-            v-for="node in nodes"
-            :key="node.node_class + node.module"
-            :node="node"
-          ></NodeListItem>
-        </div>
-      </div>
+  <div class="available-nodes border rounded m-1 d-flex flex-column">
+    <div
+      @click="
+        () => {
+          nodelist_collapsed = !nodelist_collapsed
+        }
+      "
+      class="text-center cursor-pointer font-weight-bold m-2"
+    >
+      Node List
+      <font-awesome-icon
+        v-if="!nodelist_collapsed"
+        icon="fa-solid fa-angle-up"
+        aria-hidden="true"
+      />
+      <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
+    </div>
+    <div v-if="!nodelist_collapsed" class="scroll-col flex-shrink-1">
+      <NodeListItem
+        v-for="node in nodes"
+        :key="node.node_class + node.module"
+        :node="node"
+      ></NodeListItem>
     </div>
   </div>
 </template>
+
+<style lang="scss">
+
+.scroll-col {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  @supports (scrollbar-width: thin) and (scrollbar-gutter: stable) {
+    padding-right: 5px;
+    margin-right: -14px;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable;
+  }
+
+}
+
+</style>
