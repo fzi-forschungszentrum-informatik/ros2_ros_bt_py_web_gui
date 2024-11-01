@@ -109,6 +109,15 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
     
     function nodeListSelectionChange(new_selected_node: DocumentedNode) {
+        if (node_has_changed.value) {
+            if (window.confirm(
+                'Are you sure you wish to discard all changes to the currently edited node?'
+            )) {
+                node_has_changed.value = false
+            } else {
+                return
+            }
+        }
         
         selected_node.value = undefined //TODO initialize?
         reference_node.value = new_selected_node
@@ -152,6 +161,15 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
     
     function editorSelectionChange(new_selected_node_name: string) {
+        if (node_has_changed.value) {
+            if (window.confirm(
+                'Are you sure you wish to discard all changes to the currently edited node?'
+            )) {
+                node_has_changed.value = false
+            } else {
+                return
+            }
+        }
         
         const current_tree = editor_store.selected_subtree.is_subtree ? 
         editor_store.selected_subtree.tree :
@@ -220,8 +238,22 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         }
     
         selected_node.value = undefined
-        selected_node_names.value = new_selected_node_names
+        reference_node.value = undefined
         last_seletion_source.value = EditorSelectionSource.MULTIPLE
+
+        selected_node_names.value.forEach((node_name: string) => {
+            const index = new_selected_node_names.indexOf(node_name)
+            if (index === -1) {
+                new_selected_node_names.push(node_name)
+            } else {
+                new_selected_node_names.splice(index, 1)
+            }
+        })
+
+        //FIXME this explicit assignment is necessary to make watchers trigger (color nodes). 
+        // This shouldn't be an issue (watchers are supposed to be deep by default)
+        selected_node_names.value = new_selected_node_names
+        
     }
 
     function changeCopyMode(new_mode: boolean) {

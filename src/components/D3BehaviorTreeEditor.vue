@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor'
+import { EditorSkin, useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
@@ -79,13 +79,16 @@ const g_data_graph_ref = ref<SVGGElement>()
 const g_data_edges_ref = ref<SVGGElement>()
 const g_data_vertices_ref = ref<SVGGElement>()
 const g_drop_targets_ref = ref<SVGGElement>()
+const draw_indicator_ref = ref<SVGPathElement>()
+const selection_rect_ref = ref<SVGRectElement>()
 
 let zoomObject: d3.ZoomBehavior<SVGSVGElement, unknown> | undefined = undefined
 
 let selection: boolean = false
 let mouse_moved: boolean = false
-let start_y: number = 0
-let start_x: number = 0
+let start_x: number = 0.0
+let start_y: number = 0.0
+const selected_nodes = ref<string[]>([])
 
 let pan_interval_id: number | undefined = undefined
 let pan_direction: number[] = [0.0, 0.0]
@@ -117,12 +120,15 @@ const data_vert_grip_css_class:  string = "gripper"
 const data_vert_label_css_class: string = "label"
 const data_vert_label_type_css_class: string = "label-type"
 const data_edge_css_class: string = "data-link"
+
 const data_edge_highlight_css_id:  string = "hightlightEdge"
 const data_vert1_highlight_css_id: string = "highlightV1"
 const data_vert2_highlight_css_id: string = "highlightV2"
-const data_edge_draw_css_class: string = "drawing-indicator"
-const selection_rect_css_class: string = "selection"
+
 const data_graph_hover_css_class: string = "data-hover"
+
+const node_selected_css_class: string = "node-selected"
+
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
@@ -142,8 +148,6 @@ function resetView() {
   }
   const viewport = d3.select(viewport_ref.value)
   const height = viewport.node()!.getBoundingClientRect().height
-
-  const container = d3.select(svg_g_ref.value)
 
   viewport
     .call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
@@ -438,7 +442,11 @@ function drawNewNodes(
         (d) => d.children === undefined || d.children.length == 0
       )
       .on("click.select", (node: d3.HierarchyNode<TrimmedNode>) => {
-        edit_node_store.editorSelectionChange(node.data.name)
+        if (d3.event.shiftKey) {
+          edit_node_store.selectMultipleNodes([node.data.name])
+        } else {
+          edit_node_store.editorSelectionChange(node.data.name)
+        }
         d3.event.stopPropagation()
       })
       /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
@@ -448,6 +456,7 @@ function drawNewNodes(
   if (!editor_store.selected_subtree.is_subtree) {
     fo.on("mousedown.dragdrop", (node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
+      d3.event.stopPropagation()
     })
   }
 
@@ -1398,7 +1407,9 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
 
 watchEffect(toggleDataEdgeTargets)
 function toggleDataEdgeTargets() {
-  if (g_data_vertices_ref.value === undefined) {
+  if (g_data_vertices_ref.value === undefined || 
+    draw_indicator_ref.value === undefined
+  ) {
     console.warn("DOM is broken")
     return
   }
@@ -1413,7 +1424,7 @@ function toggleDataEdgeTargets() {
       .attr("visibility", "hidden")
   
   // Reset drawing indicator
-  const draw_path = d3.select("." + data_edge_draw_css_class)
+  const draw_path = d3.select(draw_indicator_ref.value)
       .attr("d", null)
 
   if (editor_store.data_edge_endpoint === undefined) {
@@ -1474,6 +1485,35 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
   })
 }
 
+watch(() => [edit_node_store.selected_node_names, selected_nodes.value], 
+  () => colorSelectedNodes()
+)
+function colorSelectedNodes() {
+  if (g_vertices_ref.value === undefined) {
+    console.warn("DOM is broken")
+    return
+  }
+
+  // Color all nodes that are in either set but not both
+  const old_selected_nodes = edit_node_store.selected_node_names.filter(
+    (node: string) => !selected_nodes.value.includes(node)
+  )
+  const new_selected_nodes = selected_nodes.value.filter(
+    (node: string) => !edit_node_store.selected_node_names.includes(node)
+  )
+  const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
+
+  d3.select<SVGGElement, never>(g_vertices_ref.value)
+    .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>(
+      "." + tree_node_css_class
+    )
+    .select<HTMLBodyElement>("." + node_body_css_class)
+      .classed(node_selected_css_class, 
+    (node: FlextreeNode<TrimmedNode>) => all_selected_nodes.includes(node.data.name)
+  )
+
+}
+
 
 onMounted(() => {
   if (
@@ -1489,18 +1529,10 @@ onMounted(() => {
 
   const viewport = d3.select(viewport_ref.value)
 
-  const height = viewport.node()!.getBoundingClientRect().height
-  const viewport_x = viewport.node()!.getBoundingClientRect().x
-  const viewport_y = viewport.node()!.getBoundingClientRect().y
-
-  /*viewport.on('mouseup', () => {
-    console.log('mouseup before zoom')
-  })*/
-
   zoomObject = d3.zoom<SVGSVGElement, unknown>()
   zoomObject.scaleExtent([0.3, 1.0])
 
-  const container = d3.select(svg_g_ref.value)
+  const container = d3.select<SVGGElement, never>(svg_g_ref.value)
 
   viewport.call(
       zoomObject.on('zoom', function () {
@@ -1529,111 +1561,106 @@ onMounted(() => {
 
   selection = false
   mouse_moved = false
-  start_y = 0
-
-  // selection rectangle
-  //TODO maybe put these into the template
-  viewport
-    .append('rect')
-      .classed(selection_rect_css_class, true)
-      .attr('width', 0)
-      .attr('height', 0)
-      .attr('x', 0)
-      .attr('y', 0)
-  container
-    .append('path')
-      .classed(data_edge_draw_css_class, true)
 
   // start the selection
   viewport.on('mousedown.drawselect', () => {
+    if (svg_g_ref.value === undefined) {
+      console.warn("DOM is broken")
+      return
+    }
+
     if (d3.event.shiftKey) {
       selection = true // indicates a shift-mousedown enabled selection rectangle
 
-      const s = viewport.select('rect.' + selection_rect_css_class)
+      const [x, y] = d3.mouse(svg_g_ref.value)
 
-      if (!s.empty()) {
-        s.attr('x', d3.event.pageX - viewport_x).attr('y', d3.event.pageY - viewport_y)
-        start_x = parseInt(s.attr('x'))
-        start_y = parseInt(s.attr('y'))
-      }
+      start_x = x
+      start_y = y
     }
   })
 
   // show the selection rectangle on mousemove
   viewport.on('mousemove.drawselect', () => {
+    if (svg_g_ref.value === undefined ||
+      g_vertices_ref.value === undefined ||
+      selection_rect_ref.value === undefined
+    ) {
+      console.warn("DOM is broken")
+      return
+    }
+
     if (d3.event.shiftKey && selection) {
       mouse_moved = true
 
-      const s = viewport.select('rect.' + selection_rect_css_class)
+      const sel_rect = d3.select<SVGRectElement, never>(selection_rect_ref.value)
 
-      if (!s.empty()) {
-        let new_start_x = start_x!
-        let new_start_y = start_y!
-        let end_x = d3.event.pageX! - viewport_x
-        let end_y = d3.event.pageY! - viewport_y
+      const [x, y] = d3.mouse(svg_g_ref.value)
 
-        // flip the selection rectangle if the user moves in a negative direction from the start point
-        if (d3.event.pageX - viewport_x < new_start_x) {
-          new_start_x = d3.event.pageX - viewport_x
-          end_x = start_x!
-          s.attr('x', new_start_x)
-        }
+      const new_x = Math.min(x, start_x)
+      const new_y = Math.min(y, start_y)
+      const width = Math.abs(x - start_x)
+      const height = Math.abs(y - start_y)
 
-        if (d3.event.pageY - viewport_y < new_start_y) {
-          new_start_y = d3.event.pageY - viewport_y
-          end_y = start_y!
-          s.attr('y', new_start_y)
-        }
+      // flip the selection rectangle if the user moves in a negative direction from the start point
+      sel_rect.attr('x', new_x).attr('y', new_y)
 
-        s.attr('width', end_x - new_start_x).attr('height', Math.abs(end_y - new_start_y))
+      sel_rect.attr('width', width).attr('height', height)
 
-        viewport
-          .selectAll<d3.BaseType, SVGForeignObjectElement>('foreignObject')
-          .each(function (data) {
-            const bbox = data.getBoundingClientRect()
-            const x = bbox.x - viewport_x
-            const y = bbox.y - viewport_y
+      let temp_selected_nodes: string[] = []
 
-            if (
-              x >= new_start_x &&
-              x + bbox.width <= end_x &&
-              y >= new_start_y &&
-              y + bbox.height <= end_y
+      // Update which nodes are in the selection
+      d3.select<SVGGElement, never>(g_vertices_ref.value)
+        .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>(
+          "." + tree_node_css_class
+        )
+        .select<HTMLBodyElement>("." + node_body_css_class)
+          .each((node: FlextreeNode<TrimmedNode>) => {
+            // Select all nodes in the selection rectangle
+            if (node.x >= new_x &&
+              node.x + node.data.size.width <= new_x + width &&
+              node.y >= new_y &&
+              node.y + node.data.size.height <= new_y + height
             ) {
-              d3.select(this).select('body').classed('node-selected', true)
-            } else {
-              d3.select(this).select('body').classed('node-selected', false)
+              temp_selected_nodes.push(node.data.name)
             }
           })
-      }
+
+      selected_nodes.value = temp_selected_nodes
+
     }
   })
 
   // detect the selected nodes on mouseup
   viewport.on('mouseup.drawselect', () => {
+    if (g_vertices_ref.value === undefined ||
+      selection_rect_ref.value === undefined
+    ) {
+      console.warn("DOM is broken")
+      return
+    }
+
     if (selection && mouse_moved) {
       selection = false // hide the selection rectangle
       mouse_moved = false
-      const s = viewport.select('rect.' + selection_rect_css_class)
-      s.attr('width', 0).attr('height', 0)
 
-      const selected_node_names: Set<string> = new Set()
+      const sel_rect = d3.select<SVGRectElement, never>(selection_rect_ref.value)
+      sel_rect.attr('width', 0).attr('height', 0)
 
-      viewport
-        .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>('foreignObject')
-        .each(function (node) {
-          if (d3.select(this).select('body').classed('node-selected')) {
-            selected_node_names.add(node.data.name)
-          }
-        })
-      edit_node_store.selectMultipleNodes(Array.from(selected_node_names))
+      console.log(selected_nodes.value)
+
+      edit_node_store.selectMultipleNodes(selected_nodes.value)
+
+      selected_nodes.value = []
+
     }
   })
 
 
   // draw proto edges on data-drag
   viewport.on('mousemove.drawedge', () => {
-    if (svg_g_ref.value === undefined) {
+    if (svg_g_ref.value === undefined ||
+      draw_indicator_ref.value === undefined
+    ) {
       console.warn("DOM is broken")
       return
     }
@@ -1649,7 +1676,7 @@ onMounted(() => {
       y: y - io_gripper_size/2
     }
 
-    d3.select("path." + data_edge_draw_css_class)
+    d3.select(draw_indicator_ref.value)
         .attr("d", () => {
           if (editor_store.data_edge_endpoint!.kind === IOKind.INPUT) {
             return drawDataLine(mouse_point, editor_store.data_edge_endpoint!)
@@ -1658,6 +1685,16 @@ onMounted(() => {
           }
         })
 
+  })
+
+  viewport.on('mouseup.drawedge', () => {
+    if (draw_indicator_ref.value === undefined) {
+      console.warn("DOM is broken")
+      return
+    }
+    editor_store.stopDrawingDataEdge()
+    d3.select(draw_indicator_ref.value)
+        .attr("d", null)
   })
 
 })
@@ -1677,11 +1714,14 @@ onMounted(() => {
         <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
+
+      <path class="drawing-indicator" ref="draw_indicator_ref"/>
+      <rect class="selection" ref="selection_rect_ref"/>
     </g>
     <text
       x="10"
       y="20"
-      fill="#FFFFFF"
+      :fill="editor_store.skin === EditorSkin.DARK ? '#FFFFFF' : '#000000'"
       textAnchor="left"
       alignmentBaseline="central"
       class="cursor-pointer svg-button"
@@ -1689,17 +1729,6 @@ onMounted(() => {
     >
       Reset View
     </text>
-    <!--<text
-      x="200"
-      y="20"
-      fill="#FFFFFF"
-      textAnchor="left"
-      alignmentBaseline="central"
-      class="cursor-pointer svg-button"
-      @click="drawEverything"
-    >
-      Redraw Tree
-    </text>-->
   </svg>
 </template>
 

@@ -37,11 +37,13 @@ import type {
 import { notify } from '@kyvg/vue3-notification'
 import SelectSaveFileModal from '@/components/modals/SelectSaveFileModal.vue'
 import { ref } from 'vue'
+import { useEditNodeStore } from '@/stores/edit_node'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
-let inital_name = editor_store.selected_node_names.join('_')
+let inital_name = edit_node_store.selected_node_names.join('_')
 if (inital_name.length === 0) {
   inital_name = 'Subtree'
 }
@@ -54,7 +56,7 @@ const show_selection_modal = ref<boolean>(false)
 function onClickCreateSubtree() {
   ros_store.generate_subtree_service.callService(
     {
-      nodes: editor_store.selected_node_names
+      nodes: edit_node_store.selected_node_names
     } as GenerateSubtreeRequest,
     (response: GenerateSubtreeResponse) => {
       if (response.success) {

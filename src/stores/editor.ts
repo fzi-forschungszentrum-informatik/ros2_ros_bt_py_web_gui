@@ -121,6 +121,10 @@ export const useEditorStore = defineStore('editor', () => {
     data_edge_endpoint.value = undefined
   }
 
+  function stopDrawingDataEdge() {
+    data_edge_endpoint.value = undefined
+  }
+
   function enableShowDataGraph(enable: boolean) {
     show_data_graph.value = enable
   }
@@ -186,6 +190,7 @@ export const useEditorStore = defineStore('editor', () => {
     startDraggingExistingNode,
     startDrawingDataEdge,
     stopDragging,
+    stopDrawingDataEdge,
     show_data_graph,
     enableShowDataGraph,
     skin,
