@@ -29,12 +29,14 @@
  -->
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
+import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import { notify } from '@kyvg/vue3-notification'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
 function onClickDelete() {
   const edge = editor_store.selected_edge!
@@ -65,11 +67,11 @@ function onClickDelete() {
   )
 }
 function selectSourceNode() {
-  editor_store.editorSelectionChange(editor_store.selected_edge!.source.node_name)
+  edit_node_store.editorSelectionChange(editor_store.selected_edge!.source.node_name)
 }
 
 function selectTargetNode() {
-  editor_store.editorSelectionChange(editor_store.selected_edge!.target.node_name)
+  edit_node_store.editorSelectionChange(editor_store.selected_edge!.target.node_name)
 }
 </script>
 
