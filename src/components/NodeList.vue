@@ -28,23 +28,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor'
 import { useNodesStore } from '@/stores/nodes'
 import type { DocumentedNode } from '@/types/types'
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import NodeListItem from './NodeListItem.vue'
-import { useROSStore } from '@/stores/ros'
-import type {
-  GetAvailableNodesRequest,
-  GetAvailableNodesResponse
-} from '@/types/services/GetAvailableNodes'
-import { notify } from '@kyvg/vue3-notification'
 
 const nodelist_collapsed = ref<boolean>(false)
 
 const nodes_store = useNodesStore()
-const editor_store = useEditorStore()
-const ros_store = useROSStore()
 
 const byName = function (a: DocumentedNode, b: DocumentedNode) {
   if (a.node_class < b.node_class) {
@@ -67,8 +58,8 @@ const moduleThenName = function (a: DocumentedNode, b: DocumentedNode) {
 }
 
 const nodes = computed<DocumentedNode[]>(() => {
-  if (editor_store.filtered_nodes.length > 0) {
-    return editor_store.filtered_nodes
+  if (nodes_store.filtered_nodes.length > 0) {
+    return nodes_store.filtered_nodes
   } else {
     let nodes = [...nodes_store.nodes].sort(byName)
     nodes = nodes.sort(moduleThenName)
@@ -76,67 +67,54 @@ const nodes = computed<DocumentedNode[]>(() => {
   }
 })
 
-function getNodes(package_name: string) {
-  ros_store.get_available_nodes_service.callService(
-    {
-      node_modules: [package_name]
-    } as GetAvailableNodesRequest,
-    (response: GetAvailableNodesResponse) => {
-      if (response.success) {
-        nodes_store.updateAvailableNode(response.available_nodes)
-        notify({
-          title: 'Updated available BT nodes!',
-          type: 'success'
-        })
-      } else {
-        notify({
-          title: 'Failed to update available BT nodes!',
-          text: response.error_message,
-          type: 'error'
-        })
-      }
-    },
-    (failed: string) => {
-      notify({
-        title: 'Failed to call GetAvailableNodes service!',
-        text: failed,
-        type: 'error'
-      })
-    }
-  )
-}
-onMounted(() => {
-  getNodes('')
-})
+
 </script>
 <template>
-  <div class="available-nodes m-1">
-    <div class="vertical_list">
-      <div class="border rounded mb-2">
-        <div
-          @click="
-            () => {
-              nodelist_collapsed = !nodelist_collapsed
-            }
-          "
-          class="text-center cursor-pointer font-weight-bold m-2"
-        >
-          Node List
-          <font-awesome-icon
-            v-if="!nodelist_collapsed"
-            icon="fa-solid fa-angle-up"
-            aria-hidden="true"
-          />
-          <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
-        </div>
-        <div v-if="!nodelist_collapsed">
-          <NodeListItem
-            v-for="node in nodes"
-            :key="node.node_class + node.module"
-            :node="node"
-          ></NodeListItem>
-        </div>
-      </div>
+  <!--TODO clean up unused css classes, redo with bootstrap utilities-->
+  <div class="available-nodes border rounded m-1 mb-2 pb-2 d-flex flex-column">
+    <div
+      @click="
+        () => {
+          nodelist_collapsed = !nodelist_collapsed
+        }
+      "
+      class="text-center cursor-pointer font-weight-bold m-2"
+    >
+      Node List
+      <font-awesome-icon
+        v-if="!nodelist_collapsed"
+        icon="fa-solid fa-angle-up"
+        aria-hidden="true"
+      />
+      <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
+    </div>
+    <div v-if="!nodelist_collapsed" class="scroll-col flex-shrink-1">
+      <NodeListItem
+        v-for="node in nodes"
+        :key="node.node_class + node.module"
+        :node="node"
+      ></NodeListItem>
     </div>
   </div>
 </template>
+
+<style lang="scss">
+
+.scroll-col {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  //Move scrollbar outside of border-box if browser allows it
+  @supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
+    padding-left: 6px;
+    margin-left: -13px;
+    padding-right: 6px;
+    margin-right: -13px;
+    scrollbar-width: thin;
+    scrollbar-gutter: stable both-edges;
+  }
+
+}
+
+</style>

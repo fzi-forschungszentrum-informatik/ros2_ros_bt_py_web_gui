@@ -78,8 +78,17 @@ import {
   faMoon,
   faWindowMaximize,
   faWindowRestore,
-  faRoute
+  faRoute,
+  faBullhorn,
+  faXmark,
+  faFileCode,
+  faCubes
 } from '@fortawesome/free-solid-svg-icons'
+
+import {
+  faSun as faSunAlt,
+  faMoon as faMoonAlt,
+} from '@fortawesome/free-regular-svg-icons'
 
 library.add(
   faSync,
@@ -109,7 +118,13 @@ library.add(
   faMoon,
   faWindowMaximize,
   faWindowRestore,
-  faRoute
+  faRoute,
+  faBullhorn,
+  faXmark,
+  faFileCode,
+  faCubes,
+  faSunAlt,
+  faMoonAlt
 )
 
 const app = createApp(App)

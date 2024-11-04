@@ -29,123 +29,187 @@
  -->
 <script setup lang="ts">
 import type { ParamData } from '@/types/types'
-import BooleanParam from './param_inputs/BooleanParam.vue'
 import TypeParam from './param_inputs/TypeParam.vue'
-import StringParam from './param_inputs/StringParam.vue'
-import FloatParamVue from './param_inputs/FloatParam.vue'
-import IntParam from './param_inputs/IntParam.vue'
-import UnsetOptionrefParam from './param_inputs/UnsetOptionrefParam.vue'
-import ListParam from './param_inputs/ListParam.vue'
-import DictParam from './param_inputs/DictParam.vue'
 import JSONInput from './JSONInput.vue'
-import DropDownParam from './param_inputs/DropDownParam.vue'
 import MathUnaryOperatorDropDownParam from './param_inputs/MathUnaryOperatorDropDownParam.vue'
 import MathBinaryOperatorDropDownParam from './param_inputs/MathBinaryOperatorDropDownParam.vue'
 import MathOperandTypeDropDownParam from './param_inputs/MathOperandTypeDropDownParam.vue'
 import MathUnaryOperandTypeDropDownParam from './param_inputs/MathUnaryOperandTypeDropDownParam.vue'
+import { computed } from 'vue'
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
 
-defineProps<{
-  param: ParamData
-  name: string
-  updateValidity: (valid: boolean) => void
-  updateValue: (param_type: string, key: string, value: any) => void
+const props = defineProps<{
+  category: 'options',
+  data_key: string
 }>()
+
+const edit_node_store = useEditNodeStore()
+const editor_store = useEditorStore()
+
+const param = computed<ParamData | undefined>(() => 
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+)
+
+// Below lists the data types that are handled by <input>...
+const input_type_values = ["int", "float", "bool", "string", "unset_optionref"]
+//  ...and gives the appropriate attributes.
+const input_attrs = computed<any>(() => {
+  if (param.value === undefined || !input_type_values.includes(param.value.value.type)) {
+    return undefined
+  }
+  let type: string, 
+    value: any,
+    step: number | "any" = "any",
+    cssclass: string[] = ["form-control"],
+    checked: boolean = false,
+    disabled: boolean = editor_store.selected_subtree.is_subtree
+  switch (param.value.value.type) {
+    case "int":
+      step = 1.0
+    case "float":
+      type = "number"
+      value = (param.value.value.value as number)
+      break
+    case "bool":
+      type = "checkbox"
+      checked = (param.value.value.value as boolean)
+      cssclass = ["form-check-input", "d-block"]
+      break
+    case "unset_optionref":
+      disabled = true
+    case "string":
+      type = "text"
+      value = (param.value.value.value as string)
+      break 
+    default:
+      type = "hidden"
+      break
+  }
+  return {
+    type: type,
+    value: value,
+    class: cssclass,
+    step: step,
+    checked: checked,
+    disabled: disabled
+  }
+})
+
+// Below gives the attributes for data types handled by <JSONInput>
+//  no type_values check since this is also the fallback
+const json_attrs = computed<any>(() => {
+  if (param.value === undefined) {
+    return undefined
+  }
+  switch (param.value.value.type) {
+    case "list":
+      break
+    case "dict":
+    case "collections.OrderedDict":
+      break
+    default:
+      break
+  }
+  return {
+    
+  }
+})
+
+// Handles value changes for the <input> element
+function onChange(event: Event) {
+  if (param.value === undefined) {
+    return
+  }
+  const target = event.target as HTMLInputElement
+  let new_value: any
+  switch (param.value.value.type) {
+    case "int":
+      new_value = parseInt(target.value)
+      if (isNaN(new_value)) {
+        new_value = 0
+      }
+      break
+    case "float":
+      new_value = parseFloat(target.value)
+      if (isNaN(new_value)) {
+        new_value = 0.0
+      }
+      break
+    case "bool":
+      new_value = target.checked
+      break
+    default:
+      new_value = target.value
+      break
+  }
+  edit_node_store.updateParamValue(props.category, props.data_key, new_value)
+}
+
+function onFocus() {
+  edit_node_store.changeCopyMode(false)
+}
+
 </script>
 
 <template>
-  <div class="list-group-item">
-    <IntParam
-      v-if="param.value.type === 'int'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
-    <FloatParamVue
-      v-else-if="param.value.type === 'float'"
-      class="form-group"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
-    <StringParam
-      v-else-if="param.value.type === 'string'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
+  <div v-if="param !== undefined" class="list-group-item">
+    <div v-if="input_attrs !== undefined" class="form-group">
+      <label class="d-block">
+        {{ param.key }}
+      </label>
+      <input
+        v-bind="input_attrs"
+        @change="onChange"
+        @focus="onFocus"
+      />
+    </div>
 
     <TypeParam
       v-else-if="param.value.type === 'type'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
+      :category="props.category"
+      :data_key="props.data_key"
     />
-    <BooleanParam
-      v-else-if="param.value.type === 'bool'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
-    <UnsetOptionrefParam v-else-if="param.value.type === 'unset_optionref'" :param="param" />
-    <ListParam
-      v-else-if="param.value.type === 'list'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-      :updateValidity="updateValidity"
-    />
-    <DictParam
-      v-else-if="param.value.type === 'dict' || param.value.type === 'collections.OrderedDict'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-      :updateValidity="updateValidity"
-    />
-    <DropDownParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.LoggerLevel'"
-      :param="param"
-      :name="name"
-      :updateValue="updateValue"
-    />
+    
+    <!--TODO Below should be adapted to use the new category + data_key scheme.
+      Also look into maybe unifying them components to avoid duplicate code-->
     <MathUnaryOperatorDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
       :param="param"
-      :name="name"
-      :updateValue="updateValue"
+      :name="category"
+      :updateValue="edit_node_store.updateParamValue"
     />
     <MathBinaryOperatorDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathBinaryOperator'"
       :param="param"
-      :name="name"
-      :updateValue="updateValue"
+      :name="category"
+      :updateValue="edit_node_store.updateParamValue"
     />
-
     <MathOperandTypeDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
       :param="param"
-      :name="name"
-      :updateValue="updateValue"
+      :name="category"
+      :updateValue="edit_node_store.updateParamValue"
     />
-
     <MathUnaryOperandTypeDropDownParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
       :param="param"
-      :name="name"
-      :updateValue="updateValue"
+      :name="category"
+      :updateValue="edit_node_store.updateParamValue"
     />
 
     <div v-else class="form-group">
       <label class="d-block">
         {{ param.key }}
         <JSONInput
-          :json="param.value.value === undefined ? (param.value.value as string) : undefined"
-          :message_type="param.value.type"
-          output="pickled"
-          :param_key="param.key"
-          :updateValidity="updateValidity"
-          :updateValue="updateValue"
+          v-bind="json_attrs"
+          :category="props.category"
+          :data_key="props.data_key"
         />
       </label>
     </div>
+  </div>
+  <div v-else>
+    Error loading param data
   </div>
 </template>

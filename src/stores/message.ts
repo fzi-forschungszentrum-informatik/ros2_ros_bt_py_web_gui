@@ -27,10 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { Message } from '@/types/types'
+import { MessageType, type Message } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+
 
 export const useMessasgeStore = defineStore('messages', () => {
   const messages_fuse_options = {
@@ -39,7 +40,7 @@ export const useMessasgeStore = defineStore('messages', () => {
     location: 0,
     distance: 100,
     maxPatternLength: 200,
-    minMatchCharLength: 3,
+    minMatchCharLength: 1,
     keys: ['msg'],
     isCaseSensitive: false,
     ignoreLocation: true,
@@ -49,19 +50,124 @@ export const useMessasgeStore = defineStore('messages', () => {
   const messages_fuse = ref<Fuse<Message>>(new Fuse([], messages_fuse_options))
   const messages_available = ref<boolean>(false)
 
+  // These additional fuses are meant to substitute/replace the above messages_fuse
+  //  to allow to search specific kinds of ros types dependent on what is needed.
+  let ros_fuse_options = structuredClone(messages_fuse_options)
+  ros_fuse_options.keys = []
+  const ros_msg_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+  const ros_srv_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+  const ros_action_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+
   function areMessagesAvailable(available: boolean) {
     messages_available.value = available
   }
 
+  function mapMessageTypes(message: Message): Message[] {
+    const message_parts = message.msg.split('/')
+    if (message_parts.length !== 3) {
+      return []
+    }
+    if (message.service) {
+      const new_msg = message_parts[0] + '.srv.' + message_parts[2]
+      return [
+        {
+          msg: new_msg,
+          service: true,
+          action: false,
+          type: MessageType.MESSAGE //TODO is this correct?
+        },
+        {
+          msg: new_msg + ".Request",
+          service: true,
+          action: false,
+          type: MessageType.REQUEST
+        },
+        {
+          msg: new_msg + ".Response",
+          service: true,
+          action: false,
+          type: MessageType.RESPONSE
+        },
+      ]
+    }
+    if (message.action) {
+      const new_msg = message_parts[0] + '.action.' + message_parts[2]
+      return [
+        {
+          msg: new_msg,
+          action: true,
+          service: false,
+          type: MessageType.MESSAGE //TODO is this correct?
+        },
+        {
+          msg: new_msg + ".Goal",
+          action: true,
+          service: false,
+          type: MessageType.GOAL
+        },
+        {
+          msg: new_msg + ".Result",
+          action: true,
+          service: false,
+          type: MessageType.RESULT
+        },
+        {
+          msg: new_msg + ".Feedback",
+          action: true,
+          service: false,
+          type: MessageType.FEEDBACK
+        },
+      ]
+    }
+    return [{
+      msg: message_parts[0] + ".msg." + message_parts[2],
+      service: false,
+      action: false,
+      type: MessageType.MESSAGE
+    }]
+  }
+
+  // This is a temporary function to avoid code duplication with mapMessageTypes
+  //  it populates the additional ros_fuses, but the parsing of the mapMessageTypes
+  //  output is a bit convoluted and not stable against changes.
+  //TODO if the big messages_fuse is ever phased out, merge and redo this with 
+  //  the parsing in mapMessageTypes
+  function fillRosFuses() {
+    ros_msg_fuse.value.setCollection([])
+    ros_srv_fuse.value.setCollection([])
+    ros_action_fuse.value.setCollection([])
+
+    messages.value.forEach(element => {
+      // All service and action compontents (eg .Request .Response) are messages
+      if (element.msg.split('.').length > 3) {
+        ros_msg_fuse.value.add(element.msg)
+        return
+      }
+      if (element.service) {
+        ros_srv_fuse.value.add(element.msg)
+        return
+      }
+      if (element.action) {
+        ros_action_fuse.value.add(element.msg)
+        return
+      }
+      ros_msg_fuse.value.add(element.msg)
+    })
+  }
+
   function updateAvailableMessages(new_messages: Message[]) {
-    messages.value = new_messages
-    messages_fuse.value = new Fuse(messages.value, messages_fuse_options)
+    messages.value = new_messages.flatMap(mapMessageTypes)
+    fillRosFuses()
+    messages_fuse.value.setCollection(messages.value)
   }
 
   return {
     messages,
     messages_fuse,
     messages_available,
+    ros_msg_fuse,
+    ros_srv_fuse,
+    ros_action_fuse,
     areMessagesAvailable,
     updateAvailableMessages
   }

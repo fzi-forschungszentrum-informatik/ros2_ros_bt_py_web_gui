@@ -27,13 +27,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import { useMessasgeStore } from './stores/message'
 import type {
   NodeData,
   NodeDataLocation,
   TreeMsg,
   ValueTypes,
-  DataEdgeTerminal
+  DataEdgeTerminal,
+  Message
 } from './types/types'
+import { IOKind, MessageType } from './types/types'
 
 import * as d3 from 'd3'
 
@@ -54,8 +57,8 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
     return false
   }
 
-  const from = a.kind === 'output' ? a : b
-  const to = a.kind === 'input' ? a : b
+  const from = a.kind === IOKind.OUTPUT ? a : b
+  const to = a.kind === IOKind.INPUT ? a : b
 
   // object is compatible with anything
   if (
@@ -175,7 +178,9 @@ export function getDefaultValue(
       return x.key === optionTypeName
     })
     if (optionType) {
-      return getDefaultValue(prettyprint_type(optionType.serialized_value))
+      //TODO this double call is necessary to dereference first the type of the optionref target and then it's value
+      // Maybe this can be solved differently by passing a different 'options' param?
+      return getDefaultValue(getDefaultValue(prettyprint_type(optionType.serialized_value)).value as string)
     } else {
       return {
         type: 'unset_optionref',
@@ -244,7 +249,7 @@ export function getDefaultValue(
         field_names: []
       }
     }
-  } else {
+  } else { //TODO should this check for general ros_types?
     return {
       type: '__' + typeName,
       value: {}
@@ -262,6 +267,7 @@ export function treeIsEditable(tree_msg: TreeMsg) {
   return tree_msg.state === 'EDITABLE'
 }
 
+//TODO potentially unused
 export function selectIOGripper(
   vertex_selection: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
   data: NodeDataLocation
@@ -274,35 +280,34 @@ export function selectIOGripper(
     .filter((d: DataEdgeTerminal) => d.key === data.data_key)
 }
 
-export function getMessageType(str: string): {
-  message_type?: string
-  service: boolean
-  action: boolean
-} {
+export function getMessageType(str: string): Message {
+  const message_store = useMessasgeStore() // This doesn't work outside functions in .ts files
   const message_parts = str.split('.')
   if (message_parts.length < 3) {
     console.error('Invalid message passed')
-    return { message_type: undefined, action: false, service: false }
+    return { msg: '', action: false, service: false, type: MessageType.MESSAGE }
   }
 
-  let new_message_parts = message_parts
-  let service = false
-  let action = false
-  if (message_parts[1] === 'srv') {
-    service = true
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4)
-      new_message_parts[3] = new_message_parts[3] + '_' + message_parts[4]
-    }
-  } else if (message_parts[1] === 'action') {
-    action = true
-    if (message_parts.length === 5) {
-      new_message_parts = message_parts.slice(0, 4)
-      new_message_parts[3] = new_message_parts[3] + '_' + message_parts[4]
-    }
+  let new_message_parts = message_parts.slice(0, 2)
+  // Standardize type .../.../_name/Name to .../.../Name
+  if (message_parts.length > 3 && message_parts[2] === message_parts[3].replace(/[A-Z]/g, x => '_' + x.toLowerCase())) {
+    new_message_parts.push(...message_parts.slice(3))
+  } else {
+    new_message_parts.push(...message_parts.slice(2))
   }
-  const message_name = new_message_parts.join('/')
-  return { message_type: message_name, service: service, action: action }
+
+  // Caution, since this is the store member, don't edit it
+  const msg_ref = message_store.messages.find(
+    (item) => item.msg === new_message_parts.join('.')
+  )
+
+  if (msg_ref === undefined) {
+    console.error('Invalid message passed')
+    return { msg: new_message_parts.slice(0, 3).join('/'), 
+      action: false, service: false, type: MessageType.MESSAGE }
+  }
+  return {msg: new_message_parts.slice(0, 3).join('/'), type: msg_ref.type,
+    action: msg_ref.action, service: msg_ref.service}
 }
 
 export function getShortDoc(doc: string) {

@@ -31,9 +31,8 @@
 import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import { notify } from '@kyvg/vue3-notification'
-import { h, ref, type Ref, type VNodeRef } from 'vue'
+import { ref } from 'vue'
 import { useModal } from 'vue-final-modal'
-import LoadPackageModal from './modals/LoadFileModal.vue'
 import SaveFileModal from './modals/SaveFileModal.vue'
 import LoadFileModal from './modals/LoadFileModal.vue'
 import { useEditorStore } from '@/stores/editor'
@@ -50,45 +49,37 @@ import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 
-const fileref = ref<VNodeRef>()
-fileref.value = ref(h('input'))
+const file_input_ref = ref<HTMLInputElement>()
 
 const file_reader = new FileReader()
 
 const loadPackageModalHandle = useModal({
-  component: LoadPackageModal,
+  component: LoadFileModal,
   attrs: {
-    onConfirm() {
+    fromPackages: true,
+    onClose() {
       loadPackageModalHandle.close()
-    }
+    },
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 const loadFileModalHandle = useModal({
   component: LoadFileModal,
   attrs: {
-    onConfirm() {
+    fromPackages: false,
+    onClose() {
       loadFileModalHandle.close()
-    }
+    },
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 const saveFileModalHandle = useModal({
   component: SaveFileModal,
   attrs: {
-    onConfirm() {
+    onClose() {
       saveFileModalHandle.close()
     }
   },
-  slots: {
-    default: '<p>UseModal: The content of the modal</p>'
-  }
 })
 
 function newTree() {
@@ -117,7 +108,7 @@ function newTree() {
         } else {
           notify({
             title: 'Could not create new tree!',
-            type: 'error',
+            type: 'warn',
             text: response.error_message
           })
         }
@@ -167,7 +158,7 @@ function saveToFile() {
         notify({
           title: 'Failed to shutdown tree, cannot save now!',
           text: response.error_message,
-          type: 'error'
+          type: 'warn'
         })
       }
     },
@@ -205,12 +196,11 @@ function loadTree(event: Event) {
 }
 
 function openFileDialog() {
-  if (fileref.value === undefined) {
+  if (file_input_ref.value === undefined) {
     console.error('Fileref is undefined!')
     return
   }
-  let input_element = fileref.value as Ref<HTMLInputElement>
-  input_element.value.click()
+  file_input_ref.value.click()
 }
 
 function loadTreeMsg(msg: TreeMsg) {
@@ -275,7 +265,7 @@ function loadTreeMsg(msg: TreeMsg) {
                   notify({
                     title: 'Failed to load tree!',
                     text: response.error_message,
-                    type: 'error'
+                    type: 'warn'
                   })
                 }
               },
@@ -423,79 +413,62 @@ function saveTree() {
 </script>
 
 <template>
-  <button @click="() => newTree()" class="btn btn-primary ms-1" title="New tree">
-    <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" class="show-button-icon" />
-    <span class="ms-1 hide-button-text">New</span>
-  </button>
-  <div class="btn-group" role="group">
-    <button
-      id="btnGroupDrop1"
-      type="button"
-      class="btn btn-primary dropdown-toggle ms-1"
-      data-bs-toggle="dropdown"
-      aria-expanded="false"
-    >
-      <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" class="show-button-icon" />
-      <span class="ms-1 hide-button-text">Load</span>
+  <div class="btn-group">
+    <button @click="() => newTree()" class="btn btn-primary" title="New tree">
+      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">New</span>
     </button>
-    <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-      <li>
-        <button
-          @click="() => loadFromPackage()"
-          class="dropdown-item btn btn-primary ms-1"
-          title="Load from package"
-        >
-          <font-awesome-icon
-            icon="fa-solid fa-folder-tree"
-            aria-hidden="true"
-            class="show-button-icon"
-          />
-          <span class="ms-1 hide-button-text">Load</span>
-        </button>
-      </li>
-      <li>
-        <button
-          @click="() => loadFromFile()"
-          class="dropdown-item btn btn-primary ms-1"
-          title="Load from file"
-        >
-          <font-awesome-icon
-            icon="fa-solid fa-folder-open"
-            aria-hidden="true"
-            class="show-button-icon"
-          />
-          <span className="ms-1 hide-button-text">File</span>
-        </button>
-      </li>
-    </ul>
-  </div>
-  <button @click="() => saveToFile()" class="btn btn-primary ms-1" title="Save to package">
-    <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" class="show-button-icon" />
-    <span class="ms-1 hide-button-text">Save</span>
-  </button>
-  <div>
-    <input v-bind:ref="fileref" type="file" class="file_input_ref" @change="loadTree" />
-    <button @click="() => openFileDialog()" class="btn btn-primary ms-1" title="Upload">
-      <font-awesome-icon
-        icon="fa-solid fa-file-upload"
-        aria-hidden="true"
-        class="show-button-icon"
-      />
+    <div class="btn-group btn-spaced" role="group">
+      <button
+        id="btnGroupDrop1"
+        type="button"
+        class="btn btn-primary dropdown-toggle"
+        data-bs-toggle="dropdown"
+        aria-expanded="false"
+      >
+        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true"/>
+        <span class="ms-1 hide-button-text">Load</span>
+      </button>
+      <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+        <li>
+          <button
+            @click="() => loadFromPackage()"
+            class="dropdown-item btn btn-primary"
+            title="Load from package"
+          >
+            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true"/>
+            <span class="ms-1">Package</span>
+          </button>
+        </li>
+        <li>
+          <button
+            @click="() => loadFromFile()"
+            class="dropdown-item btn btn-primary"
+            title="Load from file"
+          >
+            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true"/>
+            <span className="ms-1">File</span>
+          </button>
+        </li>
+      </ul>
+    </div>
+    <button @click="() => saveToFile()" class="btn btn-primary btn-spaced" title="Save to remote">
+      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">Save</span>
+    </button>
+    <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
+    <button @click="() => openFileDialog()" class="btn btn-primary btn-spaced" title="Upload">
+      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
+    <button @click="() => saveTree()" class="btn btn-primary btn-spaced" title="Download">
+      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true"/>
+      <span class="ms-1 hide-button-text">Download</span>
+    </button>
   </div>
-  <button @click="() => saveTree()" class="btn btn-primary m-1" title="Download">
-    <font-awesome-icon
-      icon="fa-solid fa-file-download"
-      aria-hidden="true"
-      class="show-button-icon"
-    />
-    <span class="ms-1 hide-button-text">Download</span>
-  </button>
 </template>
 
 <style lang="scss">
-@import 'src/assets/utils.scss';
 
 .file_input_ref {
   display: none;

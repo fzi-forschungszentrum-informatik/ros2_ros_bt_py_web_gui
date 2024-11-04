@@ -69,12 +69,10 @@ export type TreeMsg = {
   data_wirings: NodeDataWiring[]
   trick_frequency_hz: number
   state: string
-  public_node_data: NodeDataLocation
+  public_node_data: NodeDataLocation[]
 }
 
-export type DebugInfo = {
-  current_recursion_depth: number
-  max_recursion_depth: number
+export type SubtreeInfo = {
   subtree_states: TreeMsg[]
 }
 
@@ -92,6 +90,16 @@ export type Message = {
   msg: string
   service: boolean
   action: boolean
+  type: MessageType
+}
+
+export const enum MessageType {
+  MESSAGE=0,
+  REQUEST=1,
+  RESPONSE=2,
+  GOAL=3,
+  FEEDBACK=4,
+  RESULT=5
 }
 
 export type Messages = {
@@ -117,12 +125,15 @@ export type DebugSettings = {
   breakpoint_names: string[]
 }
 
+export const enum FileType {
+  FILE = "file",
+  DIR = "directory"
+}
+
 export type PackageStructure = {
   name: string
   item_id: number
-  parent: number
-  type: string
-  children?: PackageStructure[]
+  type: FileType
 }
 
 export type PyType = { 'py/type': string }
@@ -164,7 +175,7 @@ export type ParamType = {
   value: ValueTypes
 }
 
-export interface ParamData {
+export type ParamData = {
   key: string
   value: ParamType
 }

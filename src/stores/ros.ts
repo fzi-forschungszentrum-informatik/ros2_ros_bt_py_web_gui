@@ -30,16 +30,11 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, DebugSettings, Messages, TreeMsg } from '@/types/types'
+import type { Packages, Messages, TreeMsg, SubtreeInfo } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
 } from '@/types/services/ServicesForType'
-import type { ContinueRequest, ContinueResponse } from '@/types/services/Continue'
-import type {
-  SetExecutionModeRequest,
-  SetExecutionModeResponse
-} from '@/types/services/SetExecutionMode'
 import type {
   ControlTreeExecutionRequest,
   ControlTreeExecutionResponse
@@ -70,6 +65,18 @@ import type {
   GenerateSubtreeRequest,
   GenerateSubtreeResponse
 } from '@/types/services/GenerateSubtree'
+import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure'
+import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
+import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure'
+import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
+import type { 
+  LoadTreeFromPathRequest, 
+  LoadTreeFromPathResponse 
+} from '@/types/services/LoadTreeFromPath'
+import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
+
+
 
 export const useROSStore = defineStore(
   'ros',
@@ -90,35 +97,6 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: '/rosapi/services_for_type',
         serviceType: 'rosapi/ServicesForType'
-      })
-    )
-
-    const step_service = ref<ROSLIB.Service<ContinueRequest, ContinueResponse>>(
-      new ROSLIB.Service({
-        ros: ros.value,
-        name: namespace.value + 'debug/continue',
-        serviceType: 'ros_bt_py_interfaces/srv/Continue'
-      })
-    )
-
-    const set_execution_mode_service = ref<
-      ROSLIB.Service<SetExecutionModeRequest, SetExecutionModeResponse>
-    >(
-      new ROSLIB.Service({
-        ros: ros.value,
-        name: namespace.value + 'debug/set_execution_mode',
-        serviceType: 'ros_bt_py_interfaces/srv/SetExecutionMode'
-      })
-    )
-
-    //TODO this is deprecated, add SubtreeInfo subscriber?
-    const debug_settings_sub = ref<ROSLIB.Topic<DebugSettings>>(
-      new ROSLIB.Topic({
-        ros: ros.value,
-        name: namespace.value + 'debug/debug_settings',
-        messageType: 'ros_bt_py_interfaces/msg/DebugSettings',
-        latch: true,
-        reconnect_on_close: true
       })
     )
 
@@ -164,11 +142,29 @@ export const useROSStore = defineStore(
       })
     )
 
+    const set_publish_subtrees_service = ref<ROSLIB.Service<SetBoolRequest, SetBoolResponse>>(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_subtrees',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+    )
+
     const tree_sub = ref<ROSLIB.Topic<TreeMsg>>(
       new ROSLIB.Topic({
         ros: ros.value,
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
+      })
+    )
+
+    const subtree_info_sub = ref<ROSLIB.Topic<SubtreeInfo>>(
+      new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'debug/subtree_info',
+        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
         reconnect_on_close: true,
       })
@@ -229,7 +225,6 @@ export const useROSStore = defineStore(
       })
     )
 
-    //TODO is this service supposed to exist? Ros2 says it does, roslib says it doesn't
     const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
       new ROSLIB.Service({
         ros: ros.value,
@@ -290,6 +285,66 @@ export const useROSStore = defineStore(
       })
     )
 
+    const get_storage_folders_service = ref<
+      ROSLIB.Service<GetStorageFoldersRequest, GetStorageFoldersResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_storage_folders',
+        serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
+      })
+    )
+
+    const get_folder_structure_service = ref<
+      ROSLIB.Service<GetFolderStructureRequest, GetFolderStructureResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_folder_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
+      })
+    )
+
+    const get_package_structure_service = ref<
+      ROSLIB.Service<GetPackageStructureRequest, GetPackageStructureResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_package_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
+      })
+    )
+
+    const save_tree_service = ref<
+      ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'save_tree',
+        serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
+      })
+    )
+
+    const change_tree_name_service = ref<
+      ROSLIB.Service<ChangeTreeNameRequest, ChangeTreeNameResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'change_tree_name',
+        serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
+      })
+    )
+
+    const load_tree_from_path_service = ref<
+      ROSLIB.Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
+    >(
+      new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'load_tree_from_path',
+        serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
+      })
+    )
+
     ros.value.on('connection', () => {
       hasConnected()
     })
@@ -306,15 +361,6 @@ export const useROSStore = defineStore(
     })
 
     function updateROSServices() {
-      debug_settings_sub.value.unsubscribe()
-      debug_settings_sub.value.removeAllListeners()
-      debug_settings_sub.value = new ROSLIB.Topic({
-        ros: ros.value,
-        name: namespace.value + 'debug/debug_settings',
-        messageType: 'ros_bt_py_interfaces/msg/DebugSettings',
-        latch: true,
-        reconnect_on_close: true
-      })
 
       tree_sub.value.unsubscribe()
       tree_sub.value.removeAllListeners()
@@ -322,6 +368,16 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
+        latch: true,
+        reconnect_on_close: true,
+      })
+
+      subtree_info_sub.value.unsubscribe()
+      subtree_info_sub.value.removeAllListeners()
+      subtree_info_sub.value = new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'debug/subtree_info',
+        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
         reconnect_on_close: true,
       })
@@ -346,22 +402,16 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
 
-      set_execution_mode_service.value = new ROSLIB.Service({
+      set_publish_subtrees_service.value = new ROSLIB.Service({
         ros: ros.value,
-        name: namespace.value + 'debug/set_execution_mode',
-        serviceType: 'ros_bt_py_interfaces/srv/SetExecutionMode'
+        name: namespace.value + 'debug/set_publish_subtrees',
+        serviceType: 'std_srvs/srv/SetBool'
       })
 
       services_for_type_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: '/rosapi/services_for_type',
         serviceType: 'rosapi/ServicesForType'
-      })
-
-      step_service.value = new ROSLIB.Service({
-        ros: ros.value,
-        name: namespace.value + 'debug/continue',
-        serviceType: 'ros_bt_py_interfaces/srv/Continue'
       })
 
       load_tree_service.value = new ROSLIB.Service({
@@ -399,51 +449,97 @@ export const useROSStore = defineStore(
         name: namespace.value + 'add_node',
         serviceType: 'ros_bt_py_interfaces/srv/AddNode'
       })
+
       get_message_fields_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'get_message_fields',
         serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
       })
+
       unwire_data_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
+
       remove_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
       })
+
       set_options_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
         serviceType: 'ros_bt_py_interfaces/srv/SetOptions'
       })
+
       morph_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'morph_node',
         serviceType: 'ros_bt_py_interfaces/srv/MorphNode'
       })
+
       generate_subtree_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'generate_subtree',
         serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
       })
+
       wire_data_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'wire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
+
       add_node_at_index_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'add_node_at_index',
         serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
       })
+
       move_node_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'move_node',
         serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
       })
+
+      get_storage_folders_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_storage_folders',
+        serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
+      })
+
+      get_folder_structure_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_folder_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
+      })
+
+      get_package_structure_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'get_package_structure',
+        serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
+      })
+
+      save_tree_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'save_tree',
+        serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
+      })
+
+      change_tree_name_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'change_tree_name',
+        serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
+      })
+
+      load_tree_from_path_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'load_tree_from_path',
+        serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
+      })
+
     }
 
     function connect() {
@@ -490,9 +586,7 @@ export const useROSStore = defineStore(
       namespace,
       available_namespaces,
       services_for_type_service,
-      set_execution_mode_service,
       load_tree_service,
-      step_service,
       fix_yaml_service,
       control_tree_execution_service,
       clear_tree_service,
@@ -508,8 +602,15 @@ export const useROSStore = defineStore(
       wire_data_service,
       add_node_at_index_service,
       generate_subtree_service,
-      debug_settings_sub,
+      set_publish_subtrees_service,
+      get_storage_folders_service,
+      get_folder_structure_service,
+      get_package_structure_service,
+      save_tree_service,
+      change_tree_name_service,
+      load_tree_from_path_service,
       tree_sub,
+      subtree_info_sub,
       packages_sub,
       messages_sub,
       connect,

@@ -30,8 +30,8 @@
 import type { TreeMsg } from '../types'
 
 export type SaveTreeRequest = {
-  filename: string
-  package: string
+  storage_path: string
+  filepath: string
   tree: TreeMsg
   allow_overwrite: boolean
   allow_rename: boolean

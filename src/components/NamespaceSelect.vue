@@ -100,83 +100,86 @@ onMounted(updateAvailableNamespaces)
 </script>
 
 <template>
-  <div
-    key="connection_status_connected"
-    v-if="
-      ros_store.connected && packages_store.packages_available && messages_store.messages_available
-    "
-  >
-    <font-awesome-icon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="connected"
-      title="Connected"
-    />
-  </div>
-  <div
-    key="connection_status_package"
-    v-else-if="ros_store.connected && messages_store.messages_available"
-  >
-    <font-awesome-icon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="packages-missing"
-      title="Connected, package list not (yet) available. File browser will not work."
-    />
-  </div>
-  <div key="connection_status_message" v-else-if="ros_store.connected">
-    <font-awesome-icon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="messages-missing"
-      title="Connected, message info not (yet) available. ROS-type autocompletion will not work."
-    />
-  </div>
-  <div key="connection_status_disconnected" v-else>
-    <font-awesome-icon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="disconnected"
-      title="Disconnected"
-    />
-  </div>
-  <div class="d-flex flex-row align-items-center">
-    <label class="ms-1">Namespace:</label>
-    <select
-      class="form-select ms-1"
-      v-bind:value="ros_store.namespace"
-      @change="handleNamespaceChange"
+  <!--TODO redo layout using input-group properly-->
+  <div class="d-flex align-items-center">
+    <div
+      key="connection_status_connected"
+      v-if="
+        ros_store.connected && packages_store.packages_available && messages_store.messages_available
+      "
     >
-      <option
-        v-for="namespace in ros_store.available_namespaces"
-        v-bind:key="namespace"
-        v-bind:value="namespace"
-      >
-        {{ namespace }}
-      </option>
-    </select>
-  </div>
-  <button type="button" class="btn btn-sm m-1" @click="updateAvailableNamespaces">
-    <font-awesome-icon icon="fa-solid fa-sync" aria-hidden="true" />
-    <span class="sr-only">Refresh Namespaces</span>
-  </button>
-  <button type="button" class="btn btn-sm m-1" @click="editRosbridgeServer">
-    <font-awesome-icon icon="fa-solid fa-cog" aria-hidden="true" />
-    <span class="sr-only">Edit rosbridge server</span>
-  </button>
-  <div className="d-flex flex-row align-items-center" v-if="edit_rosbridge_server">
-    <div class="input-group m-1">
-      <label class="input-group-text">Rosbridge Server:</label>
-      <input
-        class="form-control"
-        type="text"
-        placeholder="Websocket URL"
-        aria-describedby="websocketURL"
-        aria-label="Websocket URL"
-        v-bind:value="new_url"
-        @change="changeRosbridgeServer"
+      <font-awesome-icon
+        icon="fa-solid fa-wifi"
+        aria-hidden="true"
+        class="connected"
+        title="Connected"
       />
-      <button type="button" @click="saveRosbridgeServer" class="btn btn-primary">Save</button>
+    </div>
+    <div
+      key="connection_status_package"
+      v-else-if="ros_store.connected && messages_store.messages_available"
+    >
+      <font-awesome-icon
+        icon="fa-solid fa-wifi"
+        aria-hidden="true"
+        class="packages-missing"
+        title="Connected, package list not (yet) available. File browser will not work."
+      />
+    </div>
+    <div key="connection_status_message" v-else-if="ros_store.connected">
+      <font-awesome-icon
+        icon="fa-solid fa-wifi"
+        aria-hidden="true"
+        class="messages-missing"
+        title="Connected, message info not (yet) available. ROS-type autocompletion will not work."
+      />
+    </div>
+    <div key="connection_status_disconnected" v-else>
+      <font-awesome-icon
+        icon="fa-solid fa-wifi"
+        aria-hidden="true"
+        class="disconnected"
+        title="Disconnected"
+      />
+    </div>
+    <div class="d-flex flex-row align-items-center">
+      <label class="ms-1">Namespace:</label>
+      <select
+        class="form-select ms-1"
+        v-bind:value="ros_store.namespace"
+        @change="handleNamespaceChange"
+      >
+        <option
+          v-for="namespace in ros_store.available_namespaces"
+          v-bind:key="namespace"
+          v-bind:value="namespace"
+        >
+          {{ namespace }}
+        </option>
+      </select>
+    </div>
+    <button type="button" class="btn btn-sm m-1" @click="updateAvailableNamespaces">
+      <font-awesome-icon icon="fa-solid fa-sync" aria-hidden="true" />
+      <span class="sr-only">Refresh Namespaces</span>
+    </button>
+    <button type="button" class="btn btn-sm m-1" @click="editRosbridgeServer">
+      <font-awesome-icon icon="fa-solid fa-cog" aria-hidden="true" />
+      <span class="sr-only">Edit rosbridge server</span>
+    </button>
+    <div className="d-flex flex-row align-items-center" v-if="edit_rosbridge_server">
+      <div class="input-group">
+        <label class="input-group-text">Rosbridge Server:</label>
+        <input
+          class="form-control"
+          type="text"
+          placeholder="Websocket URL"
+          aria-describedby="websocketURL"
+          aria-label="Websocket URL"
+          v-bind:value="new_url"
+          @change="changeRosbridgeServer"
+        />
+        <button type="button" @click="saveRosbridgeServer" class="btn btn-primary">Save</button>
+      </div>
     </div>
   </div>
 </template>

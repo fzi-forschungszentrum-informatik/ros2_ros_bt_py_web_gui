@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditorStore } from '@/stores/editor';
 import type { ParamData, PyOperator } from '@/types/types'
 import { ref } from 'vue'
 
@@ -36,6 +37,8 @@ const props = defineProps<{
   name: string
   updateValue: (param_type: string, key: string, value: any) => void
 }>()
+
+const editor_store = useEditorStore()
 
 function handleChange(event: Event) {
   const target = event.target as HTMLSelectElement
@@ -56,7 +59,8 @@ const operand_type = ['int', 'float']
     <label class="d-block">
       {{ param.key }}
     </label>
-    <select :value="operand" @change="handleChange">
+    <select :value="operand" @change="handleChange"
+    :disabled="editor_store.selected_subtree.is_subtree">
       <option v-for="operand_option in operand_type" :key="operand_option" :value="operand_option">
         {{ operand_option }}
       </option>

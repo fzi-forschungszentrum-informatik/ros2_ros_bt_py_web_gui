@@ -28,28 +28,48 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import ExecutionBar from './components/ExecutionBar.vue'
 import { ModalsContainer } from 'vue-final-modal'
 import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
-import { computed, onMounted, ref } from 'vue'
+import { useNodesStore } from './stores/nodes'
+import { computed, onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages, TreeMsg } from './types/types'
+import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
 import { EditorSkin, useEditorStore } from './stores/editor'
+import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
-import RightAlignSpacer from './components/RightAlignSpacer.vue'
 import D3BehaviorTreeEditor from './components/D3BehaviorTreeEditor.vue'
 import BehaviorTreeEdge from './components/BehaviorTreeEdge.vue'
 import MultipleSelection from './components/MultipleSelection.vue'
 import NewNode from './components/NewNode.vue'
 import SelectedNode from './components/SelectedNode.vue'
+import TreeNameStateDisplay from './components/TreeNameStateDisplay.vue'
+import EditorDisplayButtons from './components/EditorDisplayButtons.vue'
+import LoadSaveControls from './components/LoadSaveControls.vue'
+import NamespaceSelect from './components/NamespaceSelect.vue'
+import TickControls from './components/TickControls.vue'
+
+
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
+const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
+
+const dark_mode = ref<boolean>(false)
+// Bootstrap docs say to apply their theme specifier to the root element, 
+// hence the plain js solution instead of a cleaner vue approach
+watch(dark_mode, (dark_mode) => {
+  if (dark_mode) {
+    document.documentElement.setAttribute('data-bs-theme', 'dark')
+  } else {
+    document.documentElement.removeAttribute('data-bs-theme')
+  }
+})
 
 function onNewPackagesMsg(msg: Packages) {
   if (!packages_store.packages_available) {
@@ -81,16 +101,24 @@ function updateTreeSubscription() {
   ros_store.tree_sub.subscribe(onNewTreeMsg)
 }
 
+function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
+  editor_store.subtree_states = msg.subtree_states
+}
+
+function updateSubtreeInfoSubscription() {
+  ros_store.subtree_info_sub.subscribe(onNewSubtreeInfoMsg)
+}
+
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
-  editor_store.filterNodes(target.value)
+  nodes_store.filterNodes(target.value)
 }
 
 function handleNodeSearchClear(event: KeyboardEvent) {
   if (event.key == 'Escape') {
     node_search.value = ''
-    editor_store.clearFilteredNodes()
+    nodes_store.clearFilteredNodes()
   }
 }
 
@@ -119,22 +147,6 @@ const node_search = ref<string>('')
 
 const execution_bar_visible = ref<boolean>(true)
 
-const tree_name = computed<string>(() => {
-  if (editor_store.tree) {
-    return editor_store.tree.name
-  } else {
-    return ''
-  }
-})
-
-const tree_state = computed<string>(() => {
-  if (editor_store.tree) {
-    return editor_store.tree.state
-  } else {
-    return 'UNKNOWN'
-  }
-})
-
 ros_store.$onAction(({ name, after }) => {
   if (name !== 'changeNamespace' && name != 'hasConnected') {
     return
@@ -142,6 +154,7 @@ ros_store.$onAction(({ name, after }) => {
 
   after(() => {
     updateTreeSubscription()
+    updateSubtreeInfoSubscription()
     updateMessagesSubscription()
     updatePackagesSubscription()
   })
@@ -150,24 +163,33 @@ ros_store.$onAction(({ name, after }) => {
 onMounted(() => {
   ros_store.connect()
   updateTreeSubscription()
+  updateSubtreeInfoSubscription()
   updateMessagesSubscription()
   updatePackagesSubscription()
 })
 </script>
 
 <template>
-  <header>
-    <ExecutionBar v-if="execution_bar_visible"></ExecutionBar>
+  <header v-if="execution_bar_visible" 
+  class="d-flex justify-content-between align-items-center p-2 top-bar">
+    <NamespaceSelect></NamespaceSelect>
+
+    <TickControls></TickControls>
+
+    <LoadSaveControls></LoadSaveControls>
   </header>
 
   <main>
-    <div :class="editor_store.is_dragging ? 'cursor-grabbing' : ''"
-      @mouseup="() => editor_store.stopDragging()">
-      <div class="container-fluid">
-        <div class="row row-height">
-          <div class="col scroll-col" id="nodelist_container" v-if="nodelist_visible">
+    <div :class="editor_store.is_dragging ? 'cursor-grabbing' : ''" class="container-fluid"
+    @mouseup="() => editor_store.stopDragging()"
+    @mouseleave="() => editor_store.stopDragging()"
+    >
+      <div class="row row-height">
+        <div class="col-3 d-flex flex-column h-100" id="nodelist_container" v-if="nodelist_visible">
+
+          <div class="d-flex justify-content-between m-1 mt-2">
             <button
-              class="hide_button btn btn-outline-primary btn-sm"
+              class="btn btn-outline-primary"
               title="Hide nodelist"
               @click="
                 () => {
@@ -181,177 +203,109 @@ onMounted(() => {
                 class="show-button-icon"
               />
             </button>
-            <div class="available-nodes m-1">
-              <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
-              <div class="border rounded">
-                <div class="input-group p-2">
-                  <label for="nodelist_search" class="input-group-text"> Search: </label>
-                  <input
-                    id="nodelist_search"
-                    type="text"
-                    ref="nodelist_input_ref"
-                    class="form-control"
-                    v-bind:value="node_search"
-                    @change="handleNodeSearch"
-                    @keydown="handleNodeSearchClear"
-                  />
-                </div>
+
+            <button class="btn btn-outline-primary" @click="dark_mode = !dark_mode" title="Change window appearance">
+              <font-awesome-icon :class="dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-moon" />
+              <font-awesome-icon :class="!dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-sun" />
+            </button>
+          </div>
+
+          <div class="available-nodes m-1">
+            <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
+            <div class="border rounded">
+              <div class="input-group p-2">
+                <label for="nodelist_search" class="input-group-text"> Search: </label>
+                <input
+                  id="nodelist_search"
+                  type="text"
+                  ref="nodelist_input_ref"
+                  class="form-control"
+                  v-bind:value="node_search"
+                  @input="handleNodeSearch"
+                  @keydown="handleNodeSearchClear"
+                />
               </div>
             </div>
-            <NodeList></NodeList>
           </div>
-          <div :class="nodelist_visible ? 'col-9 scroll-col' : 'col scroll-col'" id="main_pane">
+          <NodeList style="min-height: 0;" />
+        </div>
+        <div class="col d-flex flex-column" id="main_pane">
+          <div class="row justify-content-between bg-secondary">
+
             <!-- Show nodelist button -->
             <button
-              v-if="!nodelist_visible"
-              class="hide_button btn btn-outline-primary btn-sm"
-              title="Show nodelist"
-              @click="
-                () => {
-                  nodelist_visible = !nodelist_visible
-                }
-              "
-            >
-              <font-awesome-icon
-                icon="fa-solid fa-angle-double-right"
-                aria-hidden="true"
-                class="show-button-icon"
+            v-if="!nodelist_visible"
+            class="btn btn-outline-light m-2 col-auto order-first"
+            title="Show nodelist"
+            @click="
+              () => {
+                nodelist_visible = !nodelist_visible
+              }
+            "
+          >
+            <font-awesome-icon
+              icon="fa-solid fa-angle-double-right"
+              aria-hidden="true"
+              class="show-button-icon"
+            />
+          </button>
+
+            <!--Elements are dynamically reordered when inlining all three-->
+            <SelectSubtree class="col col-xl-3 order-xl-1"></SelectSubtree>
+
+            <EditorDisplayButtons :exec-bar-visible="execution_bar_visible" class="col-auto order-xl-3"
+            @show="() => {execution_bar_visible = true; nodelist_visible = true}"
+            @hide="() => {execution_bar_visible = false; nodelist_visible = false}"
+            ></EditorDisplayButtons>
+
+            <TreeNameStateDisplay class="col-12 col-xl-6 order-xl-2"></TreeNameStateDisplay>
+          </div>
+
+          <div class="row edit_canvas flex-grow-1 pb-2">
+            <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
+          </div>
+          <div class="row">
+            <div class="col">
+              <!--Node Selection list-->
+              <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
+              <NewNode
+                v-else-if="edit_node_store.last_seletion_source === 'nodelist'"
+                :key="
+                  ros_store.namespace +
+                  (edit_node_store.selected_node
+                    ? edit_node_store.selected_node.module +
+                      edit_node_store.selected_node.node_class
+                    : '')
+                "
+                :parents="findPossibleParents()"
               />
-            </button>
-            <!-- Subtree selection -->
-            <div class="container-fluid d-flex h-100 flex-column">
-              <div class="row">
-                <div class="col d-flex align-items-center">
-                  <SelectSubtree></SelectSubtree>
-                  <button
-                    class="btn btn-primary m-1"
-                    @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
-                    title="Toggle Data Graph"
-                  >
-                    <font-awesome-icon icon="fa-solid fa-route" />
-                  </button>
-                  <button
-                    v-if="execution_bar_visible"
-                    class="btn btn-primary m-1"
-                    @click="
-                      () => {
-                        execution_bar_visible = false
-                        nodelist_visible = false
-                      }
-                    "
-                    title="Hide User Interface"
-                  >
-                    <font-awesome-icon icon="fa-solid fa-window-maximize" />
-                  </button>
-                  <button
-                    v-else
-                    class="btn btn-primary m-1"
-                    @click="
-                      () => {
-                        execution_bar_visible = true
-                        nodelist_visible = true
-                      }
-                    "
-                    title="Show User Interface"
-                  >
-                    <font-awesome-icon icon="fa-solid fa-window-restore" />
-                  </button>
-                  <div class="d-flex flex-row align-items-center">
-                    <label class="form-label m-1 ml-2" for="treeNameForm"> Name: </label>
-                    <input
-                      id="treeNameForm"
-                      class="form-control ml-1"
-                      type="text"
-                      disabled="true"
-                      :value="tree_name"
-                    />
-                  </div>
-                  <div class="d-flex flex-row align-items-center">
-                    <label class="form-label m-1 ml-2" for="treeStateForm"> State: </label>
-                    <input
-                      id="treeStateForm"
-                      class="form-control ml-1"
-                      type="text"
-                      disabled="true"
-                      :value="tree_state"
-                    />
-                  </div>
-                  <!--TODO find a better way to place elements-->
-                  <RightAlignSpacer></RightAlignSpacer>
-                  <button class="btn m-1" @click="() => editor_store.is_layer_mode = !editor_store.is_layer_mode" title="Change tree layout (layers/subtrees)">
-                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-layer-group" />
-                    <font-awesome-icon :class="editor_store.is_layer_mode ? 'text-secondary' : 'text-dark'" icon="fa-solid fa-tree" />
-                  </button>
-                  <button class="btn m-1" @click="editor_store.cycleEditorSkin" title="Change editor appearance">
-                    <font-awesome-icon :class="editor_store.skin === EditorSkin.DARK ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-moon" />
-                    <font-awesome-icon :class="editor_store.skin === EditorSkin.LIGHT ? 'text-dark' : 'text-secondary'" icon="fa-solid fa-sun" />
-                  </button>
-                </div>
-              </div>
-              <div class="row edit_canvas h-100 pb-2">
-                <div class="col p-0">
-                  <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
-                </div>
-              </div>
-              <div class="row maxh50">
-                <div class="col pl-0">
-                  <!--Node Selection list-->
-                  <MultipleSelection v-if="editor_store.last_seletion_source === 'multiple'" />
-                  <NewNode
-                    v-else-if="editor_store.last_seletion_source === 'nodelist'"
-                    :key="
-                      ros_store.namespace +
-                      (editor_store.selected_node
-                        ? editor_store.selected_node.module +
-                          editor_store.selected_node.node_class
-                        : '')
-                    "
-                    :node="editor_store.selected_node!"
-                    :parents="findPossibleParents()"
-                  />
-                  <SelectedNode
-                    v-else-if="editor_store.last_seletion_source === 'editor'"
-                    :key="
-                      ros_store.namespace +
-                      (editor_store.selected_node ? editor_store.selected_node.name : '')
-                    "
-                  />
-                  <div v-else class="d-flex flex-column">No Node Selected</div>
-                </div>
-                <div class="col">
-                  <div className="row pt-0 pl-0 pr-0">
-                    <!-- BT Edge selection-->
-                    <BehaviorTreeEdge
-                      v-if="editor_store.selected_edge !== undefined"
-                    ></BehaviorTreeEdge>
-                    <div v-else class="d-flex flex-column">No Edge Selected</div>
-                  </div>
-                </div>
-              </div>
+              <SelectedNode
+                v-else-if="edit_node_store.last_seletion_source === 'editor'"
+                :key="
+                  ros_store.namespace +
+                  (edit_node_store.selected_node ? edit_node_store.selected_node.name : '')
+                "
+              />
+              <div v-else class="d-flex flex-column">No Node Selected</div>
+            </div>
+            <div class="col">
+              <!-- BT Edge selection-->
+              <BehaviorTreeEdge
+                v-if="editor_store.selected_edge !== undefined"
+              ></BehaviorTreeEdge>
+              <div v-else class="d-flex flex-column">No Edge Selected</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <notifications animation-type="velocity" />
+    <notifications position="bottom right" :pauseOnHover=true />
     <ModalsContainer />
   </main>
 </template>
 
 <style lang="scss">
-
-
-.maxw0 {
-  max-width: 0;
-}
-
-.minw0 {
-  min-width: 0;
-}
-
-.maxh50 {
-  max-height: 50%;
-}
+@import 'src/assets/utils.scss';
 
 .cursor-pointer {
   cursor: pointer;
@@ -365,13 +319,6 @@ onMounted(() => {
 
 .json {
   white-space: pre;
-}
-
-
-
-.scroll-col {
-  height: 100%;
-  overflow-y: scroll;
 }
 
 .row-height {
@@ -391,8 +338,13 @@ onMounted(() => {
 .top-bar {
   height: 6vh;
   width: 100%;
-  background: #fedede;
+  background-color: #bebebe;
 }
+
+[data-bs-theme=dark] .top-bar {
+  background-color: #4b4b4b;
+}
+
 
 
 .placeholder {
@@ -412,18 +364,6 @@ onMounted(() => {
 
 #nodelist_container {
   border-right: solid;
-}
-
-#nodelist_container > .hide_button {
-  margin-left: -10px;
-  margin-top: 5px;
-}
-
-#main_pane > .hide_button {
-  position: absolute;
-  margin-left: -10px;
-  margin-top: 5px;
-  z-index: 1;
 }
 
 

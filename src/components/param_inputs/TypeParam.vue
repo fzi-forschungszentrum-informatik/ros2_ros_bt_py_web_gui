@@ -28,87 +28,113 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { Message, ParamData } from '@/types/types'
 import { python_builtin_types } from '@/utils'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  param: ParamData
-  name: string
-  updateValue: (param_type: string, key: string, value: any) => void
+  category: 'options',
+  data_key: string
 }>()
 
 const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
 
+const param = computed<ParamData | undefined>(() => 
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+)
+
+// These track two conditions for displaying the result dropdown.
+//   One is for focusing the input, the other for navigating the result menu
+let hide_results = ref<boolean>(true)
+let keep_results = ref<boolean>(false)
+
 function onChange(event: Event) {
+  if (param.value === undefined) {
+    console.error("Undefined parameter")
+    return
+  }
+
   const target = event.target as HTMLInputElement
-  const new_type_name = target.value || ''
+  let new_type_name = target.value || ''
+  new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
   const results = messages_store.messages_fuse.search(new_type_name)
   messages_results.value = results.slice(0, 5).map((x) => x.item)
 
   if (python_builtin_types.indexOf(new_type_name) >= 0) {
-    props.updateValue(props.name, props.param.key, '__builtin__.' + new_type_name)
+    edit_node_store.updateParamValue(props.category, 
+      props.data_key, '__builtin__.' + new_type_name)
   } else {
-    props.updateValue(props.name, props.param.key, new_type_name)
+    edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
   }
 }
 
-function keyPressHandler(event: KeyboardEvent) {
-  if (event.key === 'Enter') {
-    messages_results.value = []
-  }
+function selectSearchResult(search_result: Message) {
+  // TODO: Set the Request and Response values for the other nodes. ???
+  edit_node_store.updateParamValue(props.category, props.data_key, search_result.msg)
+  releaseDropdown()
 }
 
-function onSearchResultClick(search_result: Message) {
-  // TODO: Set the Request and Response values for the other nodes.
-  props.updateValue(props.name, props.param.key, search_result.msg)
-  messages_results.value = []
+function focusInput() {
+  edit_node_store.changeCopyMode(false)
+  hide_results.value = false
 }
 
-function onSearchResultKeyDown(search_result: Message, event: KeyboardEvent) {
-  if (event.key != 'Enter') {
-    onSearchResultClick(search_result)
-  }
+function unfocusInput() {
+  hide_results.value = true
 }
 
-function onFocus() {
-  editor_store.changeCopyMode(false)
+function forceDropdown() {
+  keep_results.value = true
 }
+
+function releaseDropdown() {
+  keep_results.value = false
+}
+
 </script>
 
 <template>
-  <div class="form-group">
+  <div v-if="param !== undefined" class="form-group">
     <label class="d-block">
       {{ param.key }}
       <input
         type="text"
         class="form-control mt-2"
-        :value="param.value.value as string"
+        :value="(param.value.value as string)"
+        :disabled="editor_store.selected_subtree.is_subtree"
         @input="onChange"
-        @focus="onFocus"
-        @keypress="keyPressHandler"
+        @focus="focusInput"
+        @blur="unfocusInput"
+        @keyup.esc="() => {unfocusInput(); releaseDropdown()}"
+        @keydown.tab="forceDropdown"
       />
     </label>
-    <!--TODO: Render Results-->
     <div class="mb-2 search-results">
-      <div class="list-group">
+      <div class="list-group" :class="{'d-none': hide_results && !keep_results}"
+      @mouseenter="forceDropdown" @mouseleave="releaseDropdown">
         <div
           v-for="result in messages_results"
           :key="result.msg"
           class="list-group-item search-result"
           tabindex="0"
-          @click="() => onSearchResultClick(result)"
-          @keydown="(event) => onSearchResultKeyDown(result, event)"
+          @click="() => selectSearchResult(result)"
+          @keyup.enter="() => selectSearchResult(result)"
+          @keyup.esc="releaseDropdown"
         >
           {{ result.msg }}
         </div>
       </div>
     </div>
+  </div>
+  <div v-else>
+    Error loading param data
   </div>
 </template>
 

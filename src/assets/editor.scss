@@ -28,7 +28,7 @@ rect.selection {
 }
 
 .node-selected {
-    background: #27406d;
+    background: #27406d !important;
 }
 
 .node {
@@ -53,8 +53,7 @@ rect.selection {
     stroke-width: 3.5px;
 }
   
-.btnode,
-.label {
+.btnode {
     font-family: sans-serif;
     display: inline-block;
     background: #2a2d36;
@@ -62,8 +61,7 @@ rect.selection {
     border-width: 6px;
     border-color: #4e5666;
     color: #eff0f4;
-    fill: #eff0f4;
-    /*FIXME: max-width: 200px;*/
+    max-width: 200px;
     overflow-wrap: break-word;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -73,6 +71,10 @@ rect.selection {
   
 .label {
     pointer-events: none;
+    fill: #eff0f4;
+    stroke: #111215;
+    stroke-width: 6px;
+    paint-order: stroke;
 }
   
 .btnode h5 {
