@@ -135,7 +135,6 @@ function addToTree() {
         edit_node_store.clearNodeHasChanged()
         console.log('Added node to tree as ' + response.actual_node_name)
         edit_node_store.editorSelectionChange(response.actual_node_name)
-        //TODO make sure the selected node updates correctly
         notify({
           title: 'Added not to tree!',
           text: 'Node added as: ' + response.actual_node_name,

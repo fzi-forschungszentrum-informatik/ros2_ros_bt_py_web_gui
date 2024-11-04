@@ -498,8 +498,6 @@ function updateNodeBody(
 
   const body = selection.select<HTMLBodyElement>("." + node_body_css_class)
 
-  body.style("max-width", "200px")
-
   body.select<HTMLHeadingElement>("." + node_name_css_class)
       .html((d) => d.data.name)
 
@@ -1178,7 +1176,6 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
             return
           }
 
-          //TODO Maybe this is too restrictive?
           if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
             console.warn("Invalid edge")
             return

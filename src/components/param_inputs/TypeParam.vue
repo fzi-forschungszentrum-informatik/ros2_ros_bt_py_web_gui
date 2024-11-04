@@ -76,7 +76,7 @@ function onChange(event: Event) {
 }
 
 function selectSearchResult(search_result: Message) {
-  // TODO: Set the Request and Response values for the other nodes.
+  // TODO: Set the Request and Response values for the other nodes. ???
   edit_node_store.updateParamValue(props.category, props.data_key, search_result.msg)
   releaseDropdown()
 }

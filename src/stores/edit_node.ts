@@ -119,7 +119,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
             }
         }
         
-        selected_node.value = undefined //TODO initialize?
+        selected_node.value = undefined
         reference_node.value = new_selected_node
         copy_node_mode.value = false
         is_new_node.value = true
