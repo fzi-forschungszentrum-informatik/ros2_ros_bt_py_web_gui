@@ -45,7 +45,7 @@ const edit_node_store = useEditNodeStore()
 </script>
 
 <template>
-  <div class="d-flex flex-column">
+  <div class="d-flex flex-column overflow-auto pb-3" style="max-height: 40vh;">
     <input
       class="form-control-lg mb-2"
       type="text"

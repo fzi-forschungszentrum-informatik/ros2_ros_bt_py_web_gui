@@ -105,15 +105,18 @@ const nodes = computed<DocumentedNode[]>(() => {
   overflow-y: auto;
   overflow-x: hidden;
 
+  scrollbar-width: thin;
+  scrollbar-gutter: stable both-edges;
+
   //Move scrollbar outside of border-box if browser allows it
-  @supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
+  /*@supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
     padding-left: 6px;
     margin-left: -13px;
     padding-right: 6px;
     margin-right: -13px;
     scrollbar-width: thin;
     scrollbar-gutter: stable both-edges;
-  }
+  }*/
 
 }
 
