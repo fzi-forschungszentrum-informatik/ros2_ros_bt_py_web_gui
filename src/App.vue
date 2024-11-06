@@ -322,21 +322,12 @@ onMounted(() => {
 }
 
 .row-height {
-  height: 94vh;
-}
-
-
-
-.fill-screen {
-  height: 100vh;
-}
-
-.fill-parent {
-  height: 100%;
+  /* subtract the height of the top-bar from 100vh*/
+  height: calc(100vh - 50px);
 }
 
 .top-bar {
-  height: 6vh;
+  height: 50px;
   width: 100%;
   background-color: #bebebe;
 }
