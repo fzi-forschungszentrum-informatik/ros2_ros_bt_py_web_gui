@@ -128,6 +128,7 @@ const data_vert2_highlight_css_id: string = "highlightV2"
 const data_graph_hover_css_class: string = "data-hover"
 
 const node_selected_css_class: string = "node-selected"
+const data_graph_select_css_class: string = "data-select"
 
 
 // This is the base transition for tree updates
@@ -1508,7 +1509,46 @@ function colorSelectedNodes() {
       .classed(node_selected_css_class, 
     (node: FlextreeNode<TrimmedNode>) => all_selected_nodes.includes(node.data.name)
   )
+}
 
+watch(() => editor_store.selected_edge, () => {
+  colorSelectedEdge()
+})
+function colorSelectedEdge() {
+  if (g_data_edges_ref.value === undefined || 
+    g_data_vertices_ref.value === undefined
+  ) {
+    console.warn("DOM is broken")
+    return
+  }
+
+  const g_data_edges = d3.select(g_data_edges_ref.value)
+  const g_data_vertices = d3.select(g_data_vertices_ref.value)
+
+  g_data_edges
+    .selectAll<SVGPathElement, DataEdge>("." + data_edge_css_class)
+      .classed(data_graph_select_css_class, false)
+
+  g_data_vertices
+    .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
+      .classed(data_graph_select_css_class, false)
+
+  if (editor_store.selected_edge !== undefined) {
+    const newEdge: DataEdge = g_data_edges
+      .selectAll<SVGPathElement, DataEdge>("." + data_edge_css_class)
+      .filter((edge: DataEdge) => {
+        return edge.wiring === editor_store.selected_edge
+      })
+        .classed(data_graph_select_css_class, true)
+      .datum()
+
+    g_data_vertices
+      .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
+      .filter((term: DataEdgeTerminal) => {
+        return term === newEdge.source || term === newEdge.target
+      })
+        .classed(data_graph_select_css_class, true)
+  }
 }
 
 
@@ -1706,8 +1746,8 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
         <!--Below is used to pull elements to the foreground on hover-->
-        <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
         <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
         <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>

@@ -121,7 +121,7 @@ rect.selection {
     text-align: left;
 }
 
-path.data-hover {
+path.data-hover, path.data-select {
     stroke: #148050;
     background: #148050;
 }
@@ -137,7 +137,7 @@ path.data-hover {
     stroke-width: 3px;
 }
   
-.data-hover rect {
+.data-hover rect, .data-select rect {
     stroke: #148050;
     background: #148050;
     fill: #148050;

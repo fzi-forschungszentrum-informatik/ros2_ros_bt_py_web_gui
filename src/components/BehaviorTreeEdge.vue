@@ -40,7 +40,6 @@ const edit_node_store = useEditNodeStore()
 
 function onClickDelete() {
   const edge = editor_store.selected_edge!
-  editor_store.unselectEdge()
   ros_store.unwire_data_service.callService(
     {
       wirings: [
@@ -56,6 +55,7 @@ function onClickDelete() {
           title: 'Removed data edge: ' + edge.source + ' -> ' + edge.target + '!',
           type: 'success'
         })
+        editor_store.unselectEdge()
       } else {
         notify({
           title: 'Failed to remove data edge: ' + edge.source + ' -> ' + edge.target + '!',
@@ -80,25 +80,34 @@ function selectTargetNode() {
     <div class="btn-group d-flex mb-2" role="group">
       <button class="btn btn-danger w-100" @click="() => onClickDelete()">Delete Edge</button>
     </div>
-    <div class="row">
-      <div class="col">
-        <a href="#" class="text-primary" @click="() => selectSourceNode()">
-          {{ editor_store.selected_edge!.source.node_name }}
-        </a>
-        <span>{{ editor_store.selected_edge!.source.data_kind }}.</span>
-        <span>{{ editor_store.selected_edge!.source.data_key }}</span>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="">
+        <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
+          <span class="text-primary">{{ editor_store.selected_edge!.source.node_name }}</span><br>
+          {{ editor_store.selected_edge!.source.data_kind }}<br>
+          {{ editor_store.selected_edge!.source.data_key }}
+        </button>
       </div>
-      <div class="col">
-        <span aria-hidden="true" class="fas fa-lg fa-long-arrow-alt-right" />
-        <span class="sr-only">is connected to</span>
-      </div>
-      <div class="col">
-        <a href="#" class="text-primary" @click="() => selectTargetNode()">
-          {{ editor_store.selected_edge!.target.node_name }}
-        </a>
-        <span>{{ editor_store.selected_edge!.target.data_kind }}</span>
-        <span>{{ editor_store.selected_edge!.target.data_key }}</span>
+      <hr class="flex-fill connector">
+      <div class="">
+        <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
+          <span class="text-primary">{{ editor_store.selected_edge!.target.node_name }}</span><br>
+          {{ editor_store.selected_edge!.target.data_kind }}<br>
+          {{ editor_store.selected_edge!.target.data_key }}
+        </button>
       </div>
     </div>
   </div>
 </template>
+
+<style scoped>
+
+hr.connector {
+  border: none;
+  height: 3px;
+  color: var(--bs-body-color);
+  background-color: var(--bs-body-color);
+  opacity: 1;
+}
+
+</style>
