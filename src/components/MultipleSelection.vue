@@ -28,19 +28,20 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type {
   GenerateSubtreeRequest,
   GenerateSubtreeResponse
 } from '@/types/services/GenerateSubtree'
 import { notify } from '@kyvg/vue3-notification'
-import SelectSaveFileModal from '@/components/modals/SelectSaveFileModal.vue'
+import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
+import type { TreeMsg } from '@/types/types'
+import { NameConflictHandler, parseConflictHandler } from '@/utils';
+import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 
 const ros_store = useROSStore()
-const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 let inital_name = edit_node_store.selected_node_names.join('_')
@@ -48,10 +49,14 @@ if (inital_name.length === 0) {
   inital_name = 'Subtree'
 }
 const name = ref<string>(inital_name)
-const filepath = ref<string>('')
-const description = ref<string>('')
-const path_selected = ref<boolean>(false)
+const storage_location = ref<string>('')
+const file_path = ref<string>('')
+const description = ref<string>('') //TODO where to put this
 const show_selection_modal = ref<boolean>(false)
+
+const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
+
+const tree = ref<TreeMsg | undefined>()
 
 function onClickCreateSubtree() {
   ros_store.generate_subtree_service.callService(
@@ -61,9 +66,10 @@ function onClickCreateSubtree() {
     (response: GenerateSubtreeResponse) => {
       if (response.success) {
         notify({
-          title: 'Generated subtree ' + response.tree.name + ' successfully!',
+          title: 'Generated subtree successfully!',
           type: 'success'
         })
+        tree.value = response.tree
       } else {
         notify({
           title: 'Failed to generate subtree !',
@@ -79,48 +85,174 @@ function selectSubtreeSaveLocation() {
   show_selection_modal.value = true
 }
 
-function setSaveLocation(new_save_location: string) {
+function setSaveLocation(
+  location: string,
+  path: string,
+  handler: NameConflictHandler
+) {
   show_selection_modal.value = false
-  if (new_save_location !== '') {
-    path_selected.value = true
-    filepath.value = new_save_location
-  } else {
-    path_selected.value = false
-  }
+  storage_location.value = location
+  file_path.value = path
+  handle_name_conflict.value = handler
 }
+
+function saveSubtree() {
+  if (tree.value === undefined) {
+    // This should never happen since the button is blocked if no tree is generated
+    console.warn("Unintended subtree save attempt")
+    return
+  }
+
+  tree.value.name = name.value
+
+  const [allow_overwrite, allow_rename] = 
+    parseConflictHandler(handle_name_conflict.value)
+  
+  const save_tree_request: SaveTreeRequest = {
+    storage_path: storage_location.value,
+    filepath: file_path.value,
+    tree: tree.value,
+    allow_overwrite: allow_overwrite,
+    allow_rename: allow_rename
+  }
+  
+  ros_store.save_tree_service.callService(
+    save_tree_request,
+  (response: SaveTreeResponse) => {
+    if (response.success) {
+      notify({
+        title: 'Successfully saved subtree!',
+        text: response.file_path,
+        type: 'success'
+      })
+    } else {
+
+      if (handle_name_conflict.value !== NameConflictHandler.ASK ||
+        response.error_message !== "Overwrite not allowed"
+      ) {
+        notify({
+          title: 'Failed to save subtree!',
+          text: response.error_message,
+          type: 'warn'
+        })
+        return
+      }
+
+      if (!window.confirm(
+        "Do you want to overwrite '" + storage_location.value + "/" + file_path.value + "' ?"
+      )) {
+        notify({
+          title: 'Failed to save tree!',
+          text: "Rejected overwrite confirmation",
+          type: 'warn'
+        })
+        return
+      }
+      
+      save_tree_request.allow_overwrite = true
+      save_tree_request.allow_rename = false
+      ros_store.save_tree_service.callService(
+        save_tree_request,
+      (response: SaveTreeResponse) => {
+        if (response.success) {
+          notify({
+            title: 'Successfully saved subtree!',
+            text: response.file_path,
+            type: 'success'
+          })
+        } else {
+          notify({
+            title: 'Failed to save subtree!',
+            text: response.error_message,
+            type: 'warn'
+          })
+        }
+      },
+      (error: string) => {
+        notify({
+          title: 'Failed to call SaveTree service!',
+          text: error,
+          type: 'error'
+        })
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: 'Failed to call SaveTree service!',
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
 </script>
 
 <template>
-  <SelectSaveFileModal
+  <SelectLocationModal
     v-model="show_selection_modal"
     title="Select Save Location"
-    @save="(file_url: string) => setSaveLocation(file_url)"
+    @close="show_selection_modal = false"
+    @select="setSaveLocation"
   />
   <div class="d-flex flex-column">
-    <div class="btn-group d-flex mb-2" role="group">
-      <button class="btn btn-primary w-30" @click="onClickCreateSubtree" :disabled="path_selected">
-        Generate subtree from selection
+    <div class="btn-group mb-3" role="group">
+      <button class="btn btn-primary" @click="onClickCreateSubtree">
+        Generate Subtree from Selection
       </button>
-      <button class="btn btn-primary w-30" @click="selectSubtreeSaveLocation">
-        Select Subtree Save Location
+      <button class="btn btn-primary" @click="saveSubtree"
+      :disabled="tree === undefined || storage_location === '' || file_path === ''">
+        Save Subtree to Chosen Location
       </button>
     </div>
     <div class="d-flex flex-column">
       <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-name">Subtree Name</span>
+        <span class="input-group-text">Name:</span>
         <input
           class="form-control"
           type="text"
-          :value="name"
+          v-model="name"
           placeholder="Name"
           aria-label="SubreeName"
           aria-describedby="subtree-name"
+        />
+      </div>
+
+      <div class="input-group mb-3">
+        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">
+          Select Location
+        </button>
+        <select v-model="handle_name_conflict" class="form-select">
+          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
+            {{ opt }}
+          </option>
+        </select>
+      </div>
+
+      <div class="input-group mb-3">
+        <span class="input-group-text">Path:</span>
+        <input
+          class="form-control overflow-x-auto"
+          type="text"
+          :value="storage_location"
+          placeholder="Storage Folder"
+          aria-label="SubreeFilepath"
+          aria-describedby="subtree-filepath"
+          disabled="true"
+        />
+        <input
+          class="form-control overflow-x-auto"
+          type="text"
+          :value="file_path"
+          placeholder="Filepath"
+          aria-label="SubreeFilepath"
+          aria-describedby="subtree-filepath"
           disabled="true"
         />
       </div>
 
       <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-description">Subtree Description</span>
+        <span class="input-group-text">Description:</span>
         <input
           class="form-control"
           type="text"
@@ -128,18 +260,6 @@ function setSaveLocation(new_save_location: string) {
           placeholder="Description"
           aria-label="SubreeDescription"
           aria-describedby="subtree-description"
-          disabled="true"
-        />
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-filepath">Subtree Filepath</span>
-        <input
-          class="form-control"
-          type="text"
-          :value="filepath"
-          placeholder="Filepath"
-          aria-label="SubreeFilepath"
-          aria-describedby="subtree-filepath"
           disabled="true"
         />
       </div>

@@ -322,3 +322,35 @@ export function getShortDoc(doc: string) {
     }
   }
 }
+
+
+export enum NameConflictHandler {
+  ASK = "Ask before overwrite",
+  OVERWRITE = "Overwrite file",
+  RENAME = "Rename file"
+}
+
+export function parseConflictHandler(handler: NameConflictHandler): [boolean, boolean] {
+  let allow_overwrite: boolean
+  let allow_rename: boolean
+  switch (handler) {
+    case NameConflictHandler.ASK:
+      allow_overwrite = false
+      allow_rename = false
+      break
+    case NameConflictHandler.OVERWRITE:
+      allow_overwrite = true
+      allow_rename = false
+      break
+    case NameConflictHandler.RENAME:
+      allow_overwrite = false
+      allow_rename = true
+      break
+    default:
+      console.warn("Improper state for name conflict resolution strategy", handler)
+      allow_overwrite = false
+      allow_rename = false
+      break
+  }
+  return [allow_overwrite, allow_rename]
+}

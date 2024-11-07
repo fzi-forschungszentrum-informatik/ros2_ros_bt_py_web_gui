@@ -35,7 +35,8 @@ import { useROSStore } from '@/stores/ros';
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree';
 import { useEditorStore } from '@/stores/editor';
 import { notify } from '@kyvg/vue3-notification';
-import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName';
+import { NameConflictHandler, parseConflictHandler } from '@/utils';
+
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -72,12 +73,6 @@ function setSaveLocation(path: string[], dir: boolean) {
   }
 }
 
-enum NameConflictHandler {
-  ASK = "Ask before overwrite",
-  OVERWRITE = "Overwrite file",
-  RENAME = "Rename file"
-}
-
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
 function saveTree() {
@@ -92,27 +87,8 @@ function saveTree() {
     return
   }
   
-  let allow_overwrite: boolean
-  let allow_rename: boolean
-  switch (handle_name_conflict.value) {
-    case NameConflictHandler.ASK:
-      allow_overwrite = false
-      allow_rename = false
-      break
-    case NameConflictHandler.OVERWRITE:
-      allow_overwrite = true
-      allow_rename = false
-      break
-    case NameConflictHandler.RENAME:
-      allow_overwrite = false
-      allow_rename = true
-      break
-    default:
-      console.warn("Improper state for name conflict resolution strategy")
-      allow_overwrite = false
-      allow_rename = false
-      break
-  }
+  const [allow_overwrite, allow_rename] = 
+    parseConflictHandler(handle_name_conflict.value)
   
   const save_tree_request: SaveTreeRequest = {
     storage_path: storage_location.value,
