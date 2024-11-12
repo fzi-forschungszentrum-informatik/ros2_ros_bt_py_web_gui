@@ -1653,8 +1653,9 @@ onMounted(() => {
         .select<HTMLBodyElement>("." + node_body_css_class)
           .each((node: FlextreeNode<TrimmedNode>) => {
             // Select all nodes in the selection rectangle
-            if (node.x >= new_x &&
-              node.x + node.data.size.width <= new_x + width &&
+            // Node coordinates are given for the top-center point
+            if (node.x - node.data.size.width / 2 >= new_x &&
+              node.x + node.data.size.width / 2 <= new_x + width &&
               node.y >= new_y &&
               node.y + node.data.size.height <= new_y + height
             ) {
@@ -1682,8 +1683,6 @@ onMounted(() => {
 
       const sel_rect = d3.select<SVGRectElement, never>(selection_rect_ref.value)
       sel_rect.attr('width', 0).attr('height', 0)
-
-      console.log(selected_nodes.value)
 
       edit_node_store.selectMultipleNodes(selected_nodes.value)
 
