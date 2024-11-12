@@ -537,23 +537,23 @@ selection
     .style("border-color", (d) => {
       switch (d.data.state) {
         case "RUNNING": {
-          return "#ffc107";
+          return "var(--node-color-running)";
         }
         case "IDLE": {
-          return "#007bff";
+          return "var(--node-color-idle)";
         }
         case "SUCCEEDED": {
-          return "#28a745";
+          return "var(--node-color-succeeded)";
         }
         case "FAILED": {
-          return "#dc3545";
+          return "var(--node-color-failed)";
         }
         case "SHUTDOWN": {
-          return "#7c1e27";
+          return "var(--node-color-shutdown)";
         }
         case "UNINITIALIZED":
         default: {
-          return "#4E5666";
+          return "var(--node-color-default)";
         }
       }
     })

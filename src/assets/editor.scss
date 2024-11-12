@@ -8,6 +8,16 @@
     height: 100%;
 }
 
+/* Node state border colors */
+.reactive-svg {
+    --node-color-running: #ffc107;
+    --node-color-idle: #007bff;
+    --node-color-succeeded: #28a745;
+    --node-color-failed: #dc3545;
+    --node-color-shutdown: #7c1e27;
+    --node-color-default: #4e5666;
+}
+
 .darkmode {
     background: #34393c;
 }
@@ -59,7 +69,7 @@ rect.selection {
     background: #2a2d36;
     border: solid;
     border-width: 6px;
-    border-color: #4e5666;
+    /* border-color is specified through d3 */
     color: #eff0f4;
     max-width: 200px;
     overflow-wrap: break-word;
@@ -67,6 +77,11 @@ rect.selection {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.lightmode .btnode {
+    background-color: #dedede;
+    color: #000000;
 }
   
 .label {
@@ -81,11 +96,15 @@ rect.selection {
     color: #858e99;
 }
 
+.lightmode .btnode h5 {
+    color: #2a2d36;
+}
+
 .btnode h3 {
     margin: 4px;
 }
 
-// When do nodes contain tables?
+//TODO When do nodes contain tables?
 .btnode td pre {
     margin: 0;
 }
