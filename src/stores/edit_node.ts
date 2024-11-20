@@ -135,27 +135,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         node_is_morphed.value = false
 
         new_node_options.value = new_selected_node.options.map(x => getInitialValues(x, new_selected_node.options))
-        // Special handling for unset_optionref type
-        //TODO is this necessary? Seems redundant with utils.js/getDefaultValue
-        /*new_node_options.value = new_node_options.value.map((x) => {
-            if (x.value.type === 'unset_optionref') {
-              const optionref: string = x.value.value as string
-              const optionTypeName = optionref.substring('Ref to "'.length, optionref.length - 1)
-              const optionType = new_node_options.value.find((x) => {
-                return x.key === optionTypeName
-              })
-              if (optionType && optionType.value) {
-                return {
-                  key: x.key,
-                  value: getDefaultValue(optionType.value.value as string)
-                }
-              }
-            }
-            return {
-              key: x.key,
-              value: x.value
-            } as ParamData
-        })*/
         new_node_inputs.value = new_selected_node.inputs.map(x => getInitialValues(x, new_selected_node.options))  
         new_node_outputs.value = new_selected_node.outputs.map(x => getInitialValues(x, new_selected_node.options))
     }

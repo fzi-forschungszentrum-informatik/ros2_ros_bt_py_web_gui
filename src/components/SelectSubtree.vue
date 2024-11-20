@@ -128,7 +128,7 @@ const selected_name = computed<string>(() => {
         @change="handlePubSubtreesChange"
       />
 
-      <label class="btn btn-primary" :for="publish_subtrees_id" >
+      <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
         <font-awesome-icon :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
       </label>
 

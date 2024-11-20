@@ -178,9 +178,15 @@ export function getDefaultValue(
       return x.key === optionTypeName
     })
     if (optionType) {
-      //TODO this double call is necessary to dereference first the type of the optionref target and then it's value
-      // Maybe this can be solved differently by passing a different 'options' param?
-      return getDefaultValue(getDefaultValue(prettyprint_type(optionType.serialized_value)).value as string)
+      // This double call is necessary to dereference first the type of the optionref target and then its default value
+      //TODO Check if this is consistent (are the `options` always populated in the same manner?)
+      return getDefaultValue(
+        getDefaultValue(
+          prettyprint_type(optionType.serialized_value),
+          options
+        ).value as string,
+        options
+      )
     } else {
       return {
         type: 'unset_optionref',
@@ -265,19 +271,6 @@ export function getDist(a: number[], b: number[]) {
 
 export function treeIsEditable(tree_msg: TreeMsg) {
   return tree_msg.state === 'EDITABLE'
-}
-
-//TODO potentially unused
-export function selectIOGripper(
-  vertex_selection: d3.Selection<SVGGElement, unknown, d3.BaseType, unknown>,
-  data: NodeDataLocation
-) {
-  return vertex_selection
-    .selectAll<SVGGElement, DataEdgeTerminal>(
-      '.' + data.data_kind.substring(0, data.data_kind.length - 1) + '-gripper-group'
-    )
-    .filter((d: DataEdgeTerminal) => d.node.data.name === data.node_name)
-    .filter((d: DataEdgeTerminal) => d.key === data.data_key)
 }
 
 export function getMessageType(str: string): Message {

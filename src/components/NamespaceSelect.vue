@@ -128,7 +128,6 @@ onMounted(updateAvailableNamespaces)
 </script>
 
 <template>
-  <!--TODO redo layout using input-group properly-->
   <div class="d-flex align-items-center">
     <font-awesome-icon
       icon="fa-solid fa-wifi"
