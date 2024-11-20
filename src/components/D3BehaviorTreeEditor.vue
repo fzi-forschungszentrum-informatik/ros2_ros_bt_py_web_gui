@@ -307,7 +307,6 @@ function drawEverything() {
   if (
     g_vertices_ref.value === undefined
   ) {
-    // TODO handle DOM is broken, maybe page refresh? (this has many occurences)
     console.warn("DOM is broken")
     return
   }
@@ -450,8 +449,6 @@ function drawNewNodes(
         }
         d3.event.stopPropagation()
       })
-      /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
-      // TODO add mouse event handlers
 
   // No tree modifying if displaying a subtree
   if (!editor_store.selected_subtree.is_subtree) {
@@ -861,7 +858,7 @@ function toggleExistingNodeTargets() {
 
   // The first filter hides all nodes in the currently dragged subtree
   // The second filter hides all nodes where dropping would overload a child node count
-  //FIXME Maybe we should hide targets that would place the node in the same spot 
+  //TODO Maybe we should hide targets that would place the node in the same spot 
 
   // If the filter returns true (keeps the node) it gets hidden
   targets.filter((drop_target: DropTarget) => {
@@ -1251,7 +1248,6 @@ function drawNewDataVert(
           case IOKind.OUTPUT:
             return io_gripper_size + 5;
           case IOKind.OTHER:
-            //TODO figure out placement for other IO
           default:
             return 0;
         }
@@ -1260,7 +1256,7 @@ function drawNewDataVert(
 
   labels.append("tspan")
       .classed(data_vert_label_type_css_class, true)
-      .attr("x", function () { //FIXME Re-apply x for unknown reason
+      .attr("x", function () {
         return d3.select(this.parentElement).attr("x")
       }) 
       .attr("dy", "1em") // Space out 2nd line
