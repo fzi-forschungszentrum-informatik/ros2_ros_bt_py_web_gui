@@ -6,10 +6,11 @@
     width: 100%;
     /* only required for <img /> */
     height: 100%;
-}
 
-/* Node state border colors */
-.reactive-svg {
+    background: #34393c;
+
+    /* Node state border colors */
+
     --node-color-running: #ffc107;
     --node-color-idle: #007bff;
     --node-color-succeeded: #28a745;
@@ -18,12 +19,15 @@
     --node-color-default: #4e5666;
 }
 
-.darkmode {
-    background: #34393c;
-}
-  
-.lightmode {
+.lightmode.reactive-svg {
     background: #ffffff;
+
+    --node-color-running: #ffff07;
+    --node-color-idle: #007bff;
+    --node-color-succeeded: #00ff3c;
+    --node-color-failed: #ff0019;
+    --node-color-shutdown: #ab0011;
+    --node-color-default: #353535;
 }
 
 .svg-button:hover {
@@ -97,7 +101,7 @@ rect.selection {
 }
 
 .lightmode .btnode h5 {
-    color: #2a2d36;
+    color: #454954;
 }
 
 .btnode h3 {
