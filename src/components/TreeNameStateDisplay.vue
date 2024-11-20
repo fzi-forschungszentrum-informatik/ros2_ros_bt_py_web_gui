@@ -123,7 +123,3 @@ function renameTree(): void {
         </div>
     </div>
 </template>
-
-<style lang="scss">
-
-</style>

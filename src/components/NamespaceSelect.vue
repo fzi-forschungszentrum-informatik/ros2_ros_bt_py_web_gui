@@ -183,7 +183,7 @@ onMounted(updateAvailableNamespaces)
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
 .connected {
   padding: 0.25rem;
   color: #0caa19;

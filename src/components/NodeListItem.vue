@@ -152,7 +152,7 @@ function onClick() {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .tag:hover {
   border: 1px solid #007bff !important;
   cursor: pointer;

@@ -468,7 +468,7 @@ function saveTree() {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .file_input_ref {
   display: none;

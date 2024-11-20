@@ -95,7 +95,7 @@ const nodes = computed<DocumentedNode[]>(() => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .scroll-col {
   min-height: 0;

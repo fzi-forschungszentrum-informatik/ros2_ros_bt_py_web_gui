@@ -1764,6 +1764,7 @@ onMounted(() => {
   </svg>
 </template>
 
+<!--Cannot use "scoped" here because that ignores elements added dynamically-->
 <style lang="scss">
   @import "src/assets/editor.scss";
 </style>

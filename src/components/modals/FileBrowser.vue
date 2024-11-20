@@ -314,7 +314,3 @@ onMounted(() => {
         Loading possible storage locations
     </div>
 </template>
-
-<style lang="scss">
-
-</style>

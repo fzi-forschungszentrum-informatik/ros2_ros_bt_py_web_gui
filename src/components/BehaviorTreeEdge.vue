@@ -100,7 +100,7 @@ function selectTargetNode() {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 
 hr.connector {
   border: none;
