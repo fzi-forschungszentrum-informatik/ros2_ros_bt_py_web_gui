@@ -70,23 +70,20 @@ const nodes = computed<DocumentedNode[]>(() => {
 
 </script>
 <template>
-  <!--TODO clean up unused css classes, redo with bootstrap utilities-->
-  <div class="available-nodes border rounded m-1 mb-2 pb-2 d-flex flex-column">
+  <div class="border rounded m-1 pb-2 d-flex flex-column">
     <div
       @click="
         () => {
           nodelist_collapsed = !nodelist_collapsed
         }
       "
-      class="text-center cursor-pointer font-weight-bold m-2"
+      class="text-center cursor-pointer m-2"
     >
       Node List
-      <font-awesome-icon
-        v-if="!nodelist_collapsed"
-        icon="fa-solid fa-angle-up"
-        aria-hidden="true"
+      <font-awesome-icon 
+        :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')" 
+        aria-hidden="true" 
       />
-      <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
     </div>
     <div v-if="!nodelist_collapsed" class="scroll-col flex-shrink-1">
       <NodeListItem

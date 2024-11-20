@@ -210,8 +210,8 @@ onMounted(() => {
             </button>
           </div>
 
-          <div class="available-nodes m-1">
-            <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
+          <div class="m-1">
+            <PackageLoader />
             <div class="border rounded">
               <div class="input-group p-2">
                 <label for="nodelist_search" class="input-group-text"> Search: </label>

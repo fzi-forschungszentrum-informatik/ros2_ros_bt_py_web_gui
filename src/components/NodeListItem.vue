@@ -81,7 +81,6 @@ function onClick() {
 
 <template>
   <div
-    :id="node.module + node.name"
     class="border rounded p-2 m-2"
     :class="highlighted_classes"
     tabindex="0"
@@ -96,39 +95,21 @@ function onClick() {
     "
   >
     <div class="d-flex justify-content-between">
-      <div class="d-flex">
-        <h4 :title="node.node_class" class="node_class text-truncate">
+      <div class="d-flex w-100">
+        <h4 class="text-truncate">
           {{ node.node_class }}
         </h4>
         <font-awesome-icon
           icon="fa-solid fa-question-circle"
           class="ps-2 pe-2"
           aria-hidden="true"
-          v-bind:title="getShortDoc(node.doc)"
-        />
-      </div>
-      <div class="d-flex">
-        <font-awesome-icon
-          v-if="!collapsed"
-          icon="fa-solid fa-angle-up"
-          aria-hidden="true"
-          class="cursor-pointer"
-          @click="
-            () => {
-              collapsed = !collapsed
-            }
-          "
+          :title="getShortDoc(node.doc)"
         />
         <font-awesome-icon
-          v-else
-          icon="fa-solid fa-angle-down"
+          :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
           aria-hidden="true"
-          class="cursor-pointer"
-          @click="
-            () => {
-              collapsed = !collapsed
-            }
-          "
+          class="cursor-pointer ms-auto"
+          @click="() => {collapsed = !collapsed}"
         />
       </div>
     </div>
