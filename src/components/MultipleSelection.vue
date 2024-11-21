@@ -40,6 +40,7 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import type { TreeMsg } from '@/types/types'
 import { NameConflictHandler, parseConflictHandler } from '@/utils';
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
+import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 
 const ros_store = useROSStore()
 const edit_node_store = useEditNodeStore()
@@ -55,6 +56,42 @@ const description = ref<string>('') //TODO where to put this
 const show_selection_modal = ref<boolean>(false)
 
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
+
+function deleteNodes() {
+  edit_node_store.selected_node_names.forEach(
+    (name: string) => {
+      ros_store.remove_node_service.callService({
+        node_name: name,
+        remove_children: false
+      } as RemoveNodeRequest,
+      (response: RemoveNodeResponse) => {
+        if (response.success) {
+          notify({
+            title: 'Removed ' + name + ' successfully!',
+            type: 'success'
+          })
+          edit_node_store.selected_node_names = 
+          edit_node_store.selected_node_names.filter(
+            (value: string) => value !== name
+          )
+        } else {
+          notify({
+            title: 'Failed to delete node!',
+            text: response.error_message,
+            type: 'warn'
+          })
+        }
+      },
+      (error: string) => {
+        notify({
+          title: 'Failed to call DeleteNode service!',
+          text: error,
+          type: 'error'
+        })
+      })
+    }
+  )
+}
 
 function selectSubtreeSaveLocation() {
   show_selection_modal.value = true
@@ -72,27 +109,31 @@ function setSaveLocation(
 }
 
 function generateSubtree() {
-  ros_store.generate_subtree_service.callService(
-    {
-      nodes: edit_node_store.selected_node_names
-    } as GenerateSubtreeRequest,
-    (response: GenerateSubtreeResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Generated subtree successfully!',
-          type: 'success'
-        })
-        console.log(response.tree)
-        saveSubtree(response.tree)
-      } else {
-        notify({
-          title: 'Failed to generate subtree !',
-          text: response.error_message,
-          type: 'error'
-        })
-      }
+  ros_store.generate_subtree_service.callService({
+    nodes: edit_node_store.selected_node_names
+  } as GenerateSubtreeRequest,
+  (response: GenerateSubtreeResponse) => {
+    if (response.success) {
+      notify({
+        title: 'Generated subtree successfully!',
+        type: 'success'
+      })
+      saveSubtree(response.tree)
+    } else {
+      notify({
+        title: 'Failed to generate subtree!',
+        text: response.error_message,
+        type: 'warn'
+      })
     }
-  )
+  },
+  (error: string) => {
+    notify({
+      title: 'Failed to call GenerateSubtree service!',
+      text: error,
+      type: 'error'
+    })
+  })
 }
 
 function saveSubtree(tree: TreeMsg) {
@@ -190,14 +231,21 @@ function saveSubtree(tree: TreeMsg) {
     @select="setSaveLocation"
   />
   <div class="d-flex flex-column">
-    <div class="btn-group mb-3" role="group">
-      <button class="btn btn-primary" @click="selectSubtreeSaveLocation">
-        Select Location
-      </button>
-      <button class="btn btn-primary" @click="generateSubtree"
-      :disabled="storage_location === '' || file_path === ''">
-        Save Subtree
-      </button>
+    <div class="row g-2 mb-3">
+      <div class="btn-group col-8">
+        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">
+          Select Location
+        </button>
+        <button class="btn btn-primary" @click="generateSubtree"
+        :disabled="storage_location === '' || file_path === ''">
+          Save Subtree
+        </button>
+      </div>
+      <div class="btn-group col-4">
+        <button class="btn btn-danger" @click="deleteNodes">
+          Delete Nodes
+        </button>
+      </div>
     </div>
 
     <div class="input-group mb-3">

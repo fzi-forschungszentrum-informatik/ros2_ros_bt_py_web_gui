@@ -265,6 +265,7 @@ onMounted(() => {
             <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
           </div>
           <div class="row">
+            <!--TODO Inconsistent widths, fixing them to col-6 causes issues with overflow-->
             <div class="col">
               <!--Node Selection list-->
               <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
