@@ -168,8 +168,6 @@ function onFocus() {
       :data_key="props.data_key"
     />
     
-    <!--TODO Below should be adapted to use the new category + data_key scheme.
-      Also look into maybe unifying them components to avoid duplicate code-->
     <MathOperatorParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
       :category="props.category"

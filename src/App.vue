@@ -265,8 +265,7 @@ onMounted(() => {
             <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
           </div>
           <div class="row">
-            <!--TODO Inconsistent widths, fixing them to col-6 causes issues with overflow-->
-            <div class="col">
+            <div class="col-6">
               <!--Node Selection list-->
               <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
               <NewNode
@@ -289,7 +288,7 @@ onMounted(() => {
               />
               <div v-else class="d-flex flex-column">No Node Selected</div>
             </div>
-            <div class="col">
+            <div class="col-6">
               <!-- BT Edge selection-->
               <BehaviorTreeEdge
                 v-if="editor_store.selected_edge !== undefined"
