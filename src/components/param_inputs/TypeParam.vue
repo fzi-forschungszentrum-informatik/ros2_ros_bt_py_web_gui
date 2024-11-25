@@ -137,7 +137,7 @@ function releaseDropdown() {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .search-results {
   padding-left: 10px;
 }
