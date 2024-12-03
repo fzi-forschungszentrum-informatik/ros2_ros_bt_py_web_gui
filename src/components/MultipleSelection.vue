@@ -57,6 +57,12 @@ const show_selection_modal = ref<boolean>(false)
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
 function deleteNodes() {
+
+  if (!window.confirm('Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?')) {
+    // Do nothing if user doesn't confirm
+    return
+  }
+
   edit_node_store.selected_node_names.forEach(
     (name: string) => {
       ros_store.remove_node_service.callService({
