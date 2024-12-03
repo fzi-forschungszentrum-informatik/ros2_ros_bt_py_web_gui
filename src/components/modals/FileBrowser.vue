@@ -58,6 +58,12 @@ const emit = defineEmits<{
 const ros_store = useROSStore()
 const packages_store = usePackageStore()
 
+// Since packages contain a lot of auto-generated folders, 
+// we want to filter the folder display list
+const package_folder_filter = RegExp(
+    'config|hook|cmake|environment'
+)
+
 
 const chosen_location = ref<Package | null>(null)
 const locations = ref<Package[]>([])
@@ -111,7 +117,17 @@ const item_search_results = computed<d3.HierarchyNode<PackageStructure>[]>(() =>
     list = list.filter((item: d3.HierarchyNode<PackageStructure>) => {
         switch (item.data.type) {
             case FileType.DIR:
-                return true //TODO add blacklist filter for folders
+                // Only apply preset filter at root level of packages
+                if (!props.fromPackages) {
+                    return true
+                }
+                if (current_folder.value === undefined ||
+                    current_folder.value?.parent === null
+                ) {
+                    return ! package_folder_filter.test(item.data.name)
+                } else {
+                    return true
+                }
             case FileType.FILE:
                 if (props.file_filter === undefined) {
                     return true
