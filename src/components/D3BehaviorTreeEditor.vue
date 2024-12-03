@@ -126,6 +126,7 @@ const data_vert1_highlight_css_id: string = "highlightV1"
 const data_vert2_highlight_css_id: string = "highlightV2"
 
 const data_graph_hover_css_class: string = "data-hover"
+const data_graph_comaptible_css_class: string = "compatible"
 
 const node_selected_css_class: string = "node-selected"
 const data_graph_select_css_class: string = "data-select"
@@ -1206,7 +1207,7 @@ function drawNewDataVert(
       .on("mouseover.highlight", function () {
         if (editor_store.is_dragging) {
           // Highlight compatible vertices when dragging
-          const compat = d3.select(this).classed("compatible")
+          const compat = d3.select(this).classed(data_graph_comaptible_css_class)
           d3.select(this)
               .classed(data_graph_hover_css_class, compat)
         } else {
@@ -1411,7 +1412,7 @@ function toggleDataEdgeTargets() {
   // Reset visibility on all grippers
   const data_verts = d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
-      .classed("compatible", false)
+      .classed(data_graph_comaptible_css_class, false)
     
   data_verts
     .select("." + data_vert_label_css_class)
@@ -1429,7 +1430,7 @@ function toggleDataEdgeTargets() {
     .filter((term: DataEdgeTerminal) => 
       typesCompatible(term, editor_store.data_edge_endpoint!)
     )
-      .classed("compatible", true)
+      .classed(data_graph_comaptible_css_class, true)
 
   draw_path
       .attr("d", () => 
@@ -1454,7 +1455,7 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
         data_key: target.key
       }
     } as NodeDataWiring ],
-    ignore_failure: true //TODO what does this do?
+    ignore_failure: false //TODO what does this do?
   } as WireNodeDataRequest,
   (response: WireNodeDataResponse) => {
     if (response.success) {

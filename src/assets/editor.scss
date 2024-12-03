@@ -49,18 +49,6 @@ rect.selection {
     cursor: pointer;
 }
 
-// When do nodes contain circle elements?
-.node circle {
-    fill: #fff;
-    stroke: steelblue;
-    stroke-width: 1.5px;
-}
-  
-// When do nodes contain text elements?
-.node text {
-    font: 10px sans-serif;
-}
-  
 .link {
     fill: none;
     stroke: #1e2226;
@@ -102,46 +90,6 @@ rect.selection {
 
 .lightmode .btnode h5 {
     color: #454954;
-}
-
-.btnode h3 {
-    margin: 4px;
-}
-
-//TODO When do nodes contain tables?
-.btnode td pre {
-    margin: 0;
-}
-  
-.btnode table {
-    margin: 4px;
-}
-
-.btnode tbody {
-    color: #cecfd2;
-}
-  
-.btnode tbody tr {
-    background: #313740;
-}
-  
-.btnode td.key {
-    font-weight: bold;
-}
-  
-.btnode tbody tr:hover {
-    background: #3a414c;
-}
-  
-.btnode td {
-    /*
-  border: solid;
-  */
-    vertical-align: top;
-}
-  
-.btnode th {
-    text-align: left;
 }
 
 path.data-hover, path.data-select {
