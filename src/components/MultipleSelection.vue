@@ -52,7 +52,6 @@ if (inital_name.length === 0) {
 const name = ref<string>(inital_name)
 const storage_location = ref<string>('')
 const file_path = ref<string>('')
-const description = ref<string>('') //TODO where to put this
 const show_selection_modal = ref<boolean>(false)
 
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
@@ -283,18 +282,6 @@ function saveSubtree(tree: TreeMsg) {
         />
       </div>
 
-      <div class="input-group mb-3">
-        <span class="input-group-text">Description:</span>
-        <input
-          class="form-control"
-          type="text"
-          :value="description"
-          placeholder="Description"
-          aria-label="SubreeDescription"
-          aria-describedby="subtree-description"
-          disabled="true"
-        />
-      </div>
     </div>
   </div>
 </template>

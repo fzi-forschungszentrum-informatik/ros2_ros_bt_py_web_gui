@@ -31,7 +31,7 @@
 import type { ParamData } from '@/types/types'
 import TypeParam from './param_inputs/TypeParam.vue'
 import JSONInput from './JSONInput.vue'
-import MathOperatorParam from './param_inputs/MathOperationParam.vue'
+import MathOperationParam from './param_inputs/MathOperationParam.vue'
 import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
@@ -168,28 +168,28 @@ function onFocus() {
       :data_key="props.data_key"
     />
     
-    <MathOperatorParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
       :val_type="'operator'"
     />
-    <MathOperatorParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathBinaryOperator'"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
       :val_type="'operator'"
     />
-    <MathOperatorParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
       :val_type="'operand'"
     />
-    <MathOperatorParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
       :category="props.category"
       :data_key="props.data_key"
