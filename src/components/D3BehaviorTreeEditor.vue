@@ -493,8 +493,6 @@ function updateNodeBody(
   >
 ) {
 
-  //selection.style("max-width", "150px")
-
   const body = selection.select<HTMLBodyElement>("." + node_body_css_class)
 
   body.select<HTMLHeadingElement>("." + node_name_css_class)
@@ -515,8 +513,8 @@ function updateNodeBody(
 
   selection
     .transition(tree_transition)
-      .attr("width", (d) => d.data.size.width / k)
-      .attr("height", (d) => d.data.size.height / k)
+      .attr("width", (d) => d.data.size.width)
+      .attr("height", (d) => d.data.size.height)
 
   return selection
 }
