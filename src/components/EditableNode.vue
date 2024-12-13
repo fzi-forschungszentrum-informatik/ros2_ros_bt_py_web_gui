@@ -45,7 +45,7 @@ const edit_node_store = useEditNodeStore()
 </script>
 
 <template>
-  <div class="d-flex flex-column">
+  <div class="d-flex flex-column overflow-auto pb-3" style="max-height: 40vh;">
     <input
       class="form-control-lg mb-2"
       type="text"
@@ -55,14 +55,14 @@ const edit_node_store = useEditNodeStore()
       @change="(event: Event) => edit_node_store.changeNodeName(
         (event.target as HTMLInputElement).value )"
     />
-    <div class="d-flex minw0">
+    <div class="d-flex align-items-baseline mb-2">
       <h4 class="text-muted">
         <div v-if="!edit_node_store.is_flow_control_node">
-          {{ edit_node_store.new_node_class }} ({{ edit_node_store.new_node_module }})
+          {{ edit_node_store.new_node_class }} <small>({{ edit_node_store.new_node_module }})</small>
         </div>
         <select
           v-else
-          class="custom-select"
+          class="form-select"
           :value="edit_node_store.new_node_module + edit_node_store.new_node_class"
           :disabled="editor_store.selected_subtree.is_subtree"
           @change="(event: Event) => edit_node_store.changeNodeClass(
@@ -73,16 +73,17 @@ const edit_node_store = useEditNodeStore()
             :key="node.module + node.node_class"
             :value="node.module + node.node_class"
           >
-            {{ node.node_class }} ({{ node.module }})
+            {{ node.node_class }} <small>({{ node.module }})</small>
           </option>
         </select>
       </h4>
+      <!--TODO Maybe move node doc to an easier to read location-->
       <font-awesome-icon
         v-if="edit_node_store.reference_node"
         icon="fa-solid fa-question-circle"
-        class="pl-2 pr-2"
+        class="px-2"
         aria-hidden="true"
-        v-bind:title="getShortDoc(edit_node_store.reference_node!.doc)"
+        v-bind:title="getShortDoc(edit_node_store.reference_node.doc)"
       />
     </div>
     <div class="mb-2">

@@ -28,19 +28,21 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type {
   GenerateSubtreeRequest,
   GenerateSubtreeResponse
 } from '@/types/services/GenerateSubtree'
 import { notify } from '@kyvg/vue3-notification'
-import SelectSaveFileModal from '@/components/modals/SelectSaveFileModal.vue'
+import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
+import type { TreeMsg } from '@/types/types'
+import { NameConflictHandler, parseConflictHandler } from '@/utils';
+import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
+import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 
 const ros_store = useROSStore()
-const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 let inital_name = edit_node_store.selected_node_names.join('_')
@@ -48,29 +50,50 @@ if (inital_name.length === 0) {
   inital_name = 'Subtree'
 }
 const name = ref<string>(inital_name)
-const filepath = ref<string>('')
-const description = ref<string>('')
-const path_selected = ref<boolean>(false)
+const storage_location = ref<string>('')
+const file_path = ref<string>('')
 const show_selection_modal = ref<boolean>(false)
 
-function onClickCreateSubtree() {
-  ros_store.generate_subtree_service.callService(
-    {
-      nodes: edit_node_store.selected_node_names
-    } as GenerateSubtreeRequest,
-    (response: GenerateSubtreeResponse) => {
-      if (response.success) {
+const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
+
+function deleteNodes() {
+
+  if (!window.confirm('Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?')) {
+    // Do nothing if user doesn't confirm
+    return
+  }
+
+  edit_node_store.selected_node_names.forEach(
+    (name: string) => {
+      ros_store.remove_node_service.callService({
+        node_name: name,
+        remove_children: false
+      } as RemoveNodeRequest,
+      (response: RemoveNodeResponse) => {
+        if (response.success) {
+          notify({
+            title: 'Removed ' + name + ' successfully!',
+            type: 'success'
+          })
+          edit_node_store.selected_node_names = 
+          edit_node_store.selected_node_names.filter(
+            (value: string) => value !== name
+          )
+        } else {
+          notify({
+            title: 'Failed to delete node!',
+            text: response.error_message,
+            type: 'warn'
+          })
+        }
+      },
+      (error: string) => {
         notify({
-          title: 'Generated subtree ' + response.tree.name + ' successfully!',
-          type: 'success'
-        })
-      } else {
-        notify({
-          title: 'Failed to generate subtree !',
-          text: response.error_message,
+          title: 'Failed to call DeleteNode service!',
+          text: error,
           type: 'error'
         })
-      }
+      })
     }
   )
 }
@@ -79,70 +102,192 @@ function selectSubtreeSaveLocation() {
   show_selection_modal.value = true
 }
 
-function setSaveLocation(new_save_location: string) {
+function setSaveLocation(
+  location: string,
+  path: string,
+  handler: NameConflictHandler
+) {
   show_selection_modal.value = false
-  if (new_save_location !== '') {
-    path_selected.value = true
-    filepath.value = new_save_location
-  } else {
-    path_selected.value = false
-  }
+  storage_location.value = location
+  file_path.value = path
+  handle_name_conflict.value = handler
 }
+
+function generateSubtree() {
+  ros_store.generate_subtree_service.callService({
+    nodes: edit_node_store.selected_node_names
+  } as GenerateSubtreeRequest,
+  (response: GenerateSubtreeResponse) => {
+    if (response.success) {
+      notify({
+        title: 'Generated subtree successfully!',
+        type: 'success'
+      })
+      saveSubtree(response.tree)
+    } else {
+      notify({
+        title: 'Failed to generate subtree!',
+        text: response.error_message,
+        type: 'warn'
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: 'Failed to call GenerateSubtree service!',
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
+function saveSubtree(tree: TreeMsg) {
+
+  tree.name = name.value
+
+  const [allow_overwrite, allow_rename] = 
+    parseConflictHandler(handle_name_conflict.value)
+  
+  const save_tree_request: SaveTreeRequest = {
+    storage_path: storage_location.value,
+    filepath: file_path.value,
+    tree: tree,
+    allow_overwrite: allow_overwrite,
+    allow_rename: allow_rename
+  }
+  
+  ros_store.save_tree_service.callService(
+    save_tree_request,
+  (response: SaveTreeResponse) => {
+    if (response.success) {
+      notify({
+        title: 'Successfully saved subtree!',
+        text: response.file_path,
+        type: 'success'
+      })
+    } else {
+
+      if (handle_name_conflict.value !== NameConflictHandler.ASK ||
+        response.error_message !== "Overwrite not allowed"
+      ) {
+        notify({
+          title: 'Failed to save subtree!',
+          text: response.error_message,
+          type: 'warn'
+        })
+        return
+      }
+
+      if (!window.confirm(
+        "Do you want to overwrite '" + storage_location.value + "/" + file_path.value + "' ?"
+      )) {
+        notify({
+          title: 'Failed to save tree!',
+          text: "Rejected overwrite confirmation",
+          type: 'warn'
+        })
+        return
+      }
+      
+      save_tree_request.allow_overwrite = true
+      save_tree_request.allow_rename = false
+      ros_store.save_tree_service.callService(
+        save_tree_request,
+      (response: SaveTreeResponse) => {
+        if (response.success) {
+          notify({
+            title: 'Successfully saved subtree!',
+            text: response.file_path,
+            type: 'success'
+          })
+        } else {
+          notify({
+            title: 'Failed to save subtree!',
+            text: response.error_message,
+            type: 'warn'
+          })
+        }
+      },
+      (error: string) => {
+        notify({
+          title: 'Failed to call SaveTree service!',
+          text: error,
+          type: 'error'
+        })
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: 'Failed to call SaveTree service!',
+      text: error,
+      type: 'error'
+    })
+  })
+}
+
 </script>
 
 <template>
-  <SelectSaveFileModal
+  <SelectLocationModal
     v-model="show_selection_modal"
     title="Select Save Location"
-    @save="(file_url: string) => setSaveLocation(file_url)"
+    @close="show_selection_modal = false"
+    @select="setSaveLocation"
   />
   <div class="d-flex flex-column">
-    <div class="btn-group d-flex mb-2" role="group">
-      <button class="btn btn-primary w-30" @click="onClickCreateSubtree" :disabled="path_selected">
-        Generate subtree from selection
-      </button>
-      <button class="btn btn-primary w-30" @click="selectSubtreeSaveLocation">
-        Select Subtree Save Location
-      </button>
+    <div class="row g-2 mb-3">
+      <div class="btn-group col-8">
+        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">
+          Select Location
+        </button>
+        <button class="btn btn-primary" @click="generateSubtree"
+        :disabled="storage_location === '' || file_path === ''">
+          Save Subtree
+        </button>
+      </div>
+      <div class="btn-group col-4">
+        <button class="btn btn-danger" @click="deleteNodes">
+          Delete Nodes
+        </button>
+      </div>
     </div>
+
+    <div class="input-group mb-3">
+      <span class="input-group-text">Location:</span>
+      <input
+        class="form-control overflow-x-auto"
+        type="text"
+        :value="storage_location"
+        placeholder="Storage Folder"
+        aria-label="SubreeFilepath"
+        aria-describedby="subtree-filepath"
+        disabled="true"
+      />
+      <input
+        class="form-control overflow-x-auto"
+        type="text"
+        :value="file_path"
+        placeholder="Filepath"
+        aria-label="SubreeFilepath"
+        aria-describedby="subtree-filepath"
+        disabled="true"
+      />
+    </div>
+
     <div class="d-flex flex-column">
       <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-name">Subtree Name</span>
+        <span class="input-group-text">Name:</span>
         <input
           class="form-control"
           type="text"
-          :value="name"
+          v-model="name"
           placeholder="Name"
           aria-label="SubreeName"
           aria-describedby="subtree-name"
-          disabled="true"
         />
       </div>
 
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-description">Subtree Description</span>
-        <input
-          class="form-control"
-          type="text"
-          :value="description"
-          placeholder="Description"
-          aria-label="SubreeDescription"
-          aria-describedby="subtree-description"
-          disabled="true"
-        />
-      </div>
-      <div class="input-group mb-3">
-        <span class="input-group-text" id="subtree-filepath">Subtree Filepath</span>
-        <input
-          class="form-control"
-          type="text"
-          :value="filepath"
-          placeholder="Filepath"
-          aria-label="SubreeFilepath"
-          aria-describedby="subtree-filepath"
-          disabled="true"
-        />
-      </div>
     </div>
   </div>
 </template>

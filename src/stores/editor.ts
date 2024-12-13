@@ -55,6 +55,8 @@ export const useEditorStore = defineStore('editor', () => {
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
 
+  let drag_start_timeout: number = 0
+  const drag_start_delay = 200
   /* The dragging_new_node msg is set if we drag a new node from the node list, 
     the dragging_existing_node is set if we drag a node from the editor canvas.
     The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
@@ -101,14 +103,18 @@ export const useEditorStore = defineStore('editor', () => {
     running_commands.value.delete(command)
   }
 
-  //TODO add timer to allow for early cancelling the drag on "click" (fast mousedown and mouseup)
-  // This is not a functional change, but would avoid having the drop targets flicker when clicking
   function startDraggingNewNode(new_dragging_node: DocumentedNode) {
-    dragging_new_node.value = new_dragging_node
+    drag_start_timeout = setTimeout(
+      () => dragging_new_node.value = new_dragging_node, 
+      drag_start_delay
+    )
   }
 
   function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<TrimmedNode>) {
-    dragging_existing_node.value = existing_dragging_node
+    drag_start_timeout = setTimeout(
+      () => dragging_existing_node.value = existing_dragging_node, 
+      drag_start_delay
+    )
   }
 
   function startDrawingDataEdge(data_edge_start: DataEdgeTerminal) {
@@ -116,6 +122,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function stopDragging() {
+    clearTimeout(drag_start_timeout)
     dragging_new_node.value = undefined
     dragging_existing_node.value = undefined
     data_edge_endpoint.value = undefined

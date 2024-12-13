@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -41,8 +41,35 @@ const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
 
-let edit_rosbridge_server = ref<boolean>(false)
-let new_url = ref<string>(ros_store.url)
+const edit_rosbridge_server = ref<boolean>(false)
+const new_url = ref<string>(ros_store.url)
+
+const connection_status_attrs = computed<any>(() => {
+  if (!ros_store.connected) {
+    return {
+      class: "disconnected",
+      title: "Disconnected"
+    }
+  }
+  if (!messages_store.messages_available) {
+    return {
+      class: "messages-missing",
+      title: "Connected, message info not (yet) available. " + 
+        "ROS-type autocompletion will not work."
+    }
+  }
+  if (!packages_store.packages_available) {
+    return {
+      class: "packages-missing",
+      title: "Connected, package list not (yet) available. " + 
+        "File browser will not work."
+    }
+  }
+  return {
+    class: "connected",
+    title: "Connected"
+  }
+})
 
 function handleNamespaceChange(event: Event) {
   const target = event.target as HTMLSelectElement
@@ -93,6 +120,7 @@ function changeRosbridgeServer(event: Event) {
 function saveRosbridgeServer() {
   ros_store.setUrl(new_url.value)
   ros_store.connect()
+  edit_rosbridge_server.value = false
 }
 
 onMounted(updateAvailableNamespaces)
@@ -100,52 +128,41 @@ onMounted(updateAvailableNamespaces)
 </script>
 
 <template>
-  <!--TODO redo layout using input-group properly-->
   <div class="d-flex align-items-center">
-    <div
-      key="connection_status_connected"
-      v-if="
-        ros_store.connected && packages_store.packages_available && messages_store.messages_available
-      "
-    >
-      <font-awesome-icon
-        icon="fa-solid fa-wifi"
-        aria-hidden="true"
-        class="connected"
-        title="Connected"
-      />
+    <font-awesome-icon
+      icon="fa-solid fa-wifi"
+      aria-hidden="true"
+      class="mx-2 fs-4"
+      v-bind="connection_status_attrs"
+    />
+
+    <div class="input-group flex-nowrap me-2">
+      <button type="button" class="btn btn-outline-contrast" @click="editRosbridgeServer"
+        title="Edit rosbridge server"
+      >
+        <font-awesome-icon aria-hidden="true"
+          :icon="'fa-solid ' + (edit_rosbridge_server ? 'fa-xmark' : 'fa-cog')" 
+        />
+      </button>
+      <template v-if="edit_rosbridge_server">
+        <label class="input-group-text">Rosbridge Server</label>
+        <input
+          class="form-control"
+          type="text"
+          placeholder="Websocket URL"
+          aria-describedby="websocketURL"
+          aria-label="Websocket URL"
+          v-bind:value="new_url"
+          @change="changeRosbridgeServer"
+        />
+        <button type="button" @click="saveRosbridgeServer" class="btn btn-primary">Save</button>
+      </template>
     </div>
-    <div
-      key="connection_status_package"
-      v-else-if="ros_store.connected && messages_store.messages_available"
-    >
-      <font-awesome-icon
-        icon="fa-solid fa-wifi"
-        aria-hidden="true"
-        class="packages-missing"
-        title="Connected, package list not (yet) available. File browser will not work."
-      />
-    </div>
-    <div key="connection_status_message" v-else-if="ros_store.connected">
-      <font-awesome-icon
-        icon="fa-solid fa-wifi"
-        aria-hidden="true"
-        class="messages-missing"
-        title="Connected, message info not (yet) available. ROS-type autocompletion will not work."
-      />
-    </div>
-    <div key="connection_status_disconnected" v-else>
-      <font-awesome-icon
-        icon="fa-solid fa-wifi"
-        aria-hidden="true"
-        class="disconnected"
-        title="Disconnected"
-      />
-    </div>
-    <div class="d-flex flex-row align-items-center">
-      <label class="ms-1">Namespace:</label>
+
+    <div v-if="!edit_rosbridge_server" class="input-group flex-nowrap me-2">
+      <label class="input-group-text">Namespace</label>
       <select
-        class="form-select ms-1"
+        class="form-select w-auto"
         v-bind:value="ros_store.namespace"
         @change="handleNamespaceChange"
       >
@@ -157,34 +174,16 @@ onMounted(updateAvailableNamespaces)
           {{ namespace }}
         </option>
       </select>
+      <button type="button" class="btn btn-outline-contrast" @click="updateAvailableNamespaces">
+        <font-awesome-icon icon="fa-solid fa-sync" aria-hidden="true" />
+        <span class="sr-only">Refresh Namespaces</span>
+      </button>
     </div>
-    <button type="button" class="btn btn-sm m-1" @click="updateAvailableNamespaces">
-      <font-awesome-icon icon="fa-solid fa-sync" aria-hidden="true" />
-      <span class="sr-only">Refresh Namespaces</span>
-    </button>
-    <button type="button" class="btn btn-sm m-1" @click="editRosbridgeServer">
-      <font-awesome-icon icon="fa-solid fa-cog" aria-hidden="true" />
-      <span class="sr-only">Edit rosbridge server</span>
-    </button>
-    <div className="d-flex flex-row align-items-center" v-if="edit_rosbridge_server">
-      <div class="input-group">
-        <label class="input-group-text">Rosbridge Server:</label>
-        <input
-          class="form-control"
-          type="text"
-          placeholder="Websocket URL"
-          aria-describedby="websocketURL"
-          aria-label="Websocket URL"
-          v-bind:value="new_url"
-          @change="changeRosbridgeServer"
-        />
-        <button type="button" @click="saveRosbridgeServer" class="btn btn-primary">Save</button>
-      </div>
-    </div>
+
   </div>
 </template>
 
-<style>
+<style scoped lang="scss">
 .connected {
   padding: 0.25rem;
   color: #0caa19;

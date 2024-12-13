@@ -70,7 +70,3 @@ const editor_store = useEditorStore()
         </div>
     </div>
 </template>
-
-<style lang="scss">
-
-</style>

@@ -210,8 +210,8 @@ onMounted(() => {
             </button>
           </div>
 
-          <div class="available-nodes m-1">
-            <PackageLoader v-bind:key="ros_store.namespace + 'PackageLoader'" />
+          <div class="m-1">
+            <PackageLoader />
             <div class="border rounded">
               <div class="input-group p-2">
                 <label for="nodelist_search" class="input-group-text"> Search: </label>
@@ -265,7 +265,7 @@ onMounted(() => {
             <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
           </div>
           <div class="row">
-            <div class="col">
+            <div class="col-6">
               <!--Node Selection list-->
               <MultipleSelection v-if="edit_node_store.last_seletion_source === 'multiple'" />
               <NewNode
@@ -288,7 +288,7 @@ onMounted(() => {
               />
               <div v-else class="d-flex flex-column">No Node Selected</div>
             </div>
-            <div class="col">
+            <div class="col-6">
               <!-- BT Edge selection-->
               <BehaviorTreeEdge
                 v-if="editor_store.selected_edge !== undefined"
@@ -322,21 +322,12 @@ onMounted(() => {
 }
 
 .row-height {
-  height: 94vh;
-}
-
-
-
-.fill-screen {
-  height: 100vh;
-}
-
-.fill-parent {
-  height: 100%;
+  /* subtract the height of the top-bar from 100vh*/
+  height: calc(100vh - 50px);
 }
 
 .top-bar {
-  height: 6vh;
+  height: 50px;
   width: 100%;
   background-color: #bebebe;
 }

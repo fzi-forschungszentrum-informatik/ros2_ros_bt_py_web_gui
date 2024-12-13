@@ -70,23 +70,20 @@ const nodes = computed<DocumentedNode[]>(() => {
 
 </script>
 <template>
-  <!--TODO clean up unused css classes, redo with bootstrap utilities-->
-  <div class="available-nodes border rounded m-1 mb-2 pb-2 d-flex flex-column">
+  <div class="border rounded m-1 pb-2 d-flex flex-column">
     <div
       @click="
         () => {
           nodelist_collapsed = !nodelist_collapsed
         }
       "
-      class="text-center cursor-pointer font-weight-bold m-2"
+      class="text-center cursor-pointer m-2"
     >
       Node List
-      <font-awesome-icon
-        v-if="!nodelist_collapsed"
-        icon="fa-solid fa-angle-up"
-        aria-hidden="true"
+      <font-awesome-icon 
+        :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')" 
+        aria-hidden="true" 
       />
-      <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
     </div>
     <div v-if="!nodelist_collapsed" class="scroll-col flex-shrink-1">
       <NodeListItem
@@ -98,22 +95,25 @@ const nodes = computed<DocumentedNode[]>(() => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .scroll-col {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
 
+  scrollbar-width: thin;
+  scrollbar-gutter: stable both-edges;
+
   //Move scrollbar outside of border-box if browser allows it
-  @supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
+  /*@supports (scrollbar-width: thin) and (scrollbar-gutter: stable both-edges) {
     padding-left: 6px;
     margin-left: -13px;
     padding-right: 6px;
     margin-right: -13px;
     scrollbar-width: thin;
     scrollbar-gutter: stable both-edges;
-  }
+  }*/
 
 }
 

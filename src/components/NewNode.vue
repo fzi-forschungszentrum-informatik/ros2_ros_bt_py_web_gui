@@ -118,7 +118,7 @@ function addToTree() {
   }
 
   const msg = buildNodeMessage(
-    edit_node_store.reference_node.module, 
+    edit_node_store.new_node_module, 
     edit_node_store.new_node_class, 
     edit_node_store.new_node_name, 
     edit_node_store.new_node_options

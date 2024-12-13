@@ -76,7 +76,6 @@ function onChange(event: Event) {
 }
 
 function selectSearchResult(search_result: Message) {
-  // TODO: Set the Request and Response values for the other nodes. ???
   edit_node_store.updateParamValue(props.category, props.data_key, search_result.msg)
   releaseDropdown()
 }
@@ -138,7 +137,7 @@ function releaseDropdown() {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .search-results {
   padding-left: 10px;
 }

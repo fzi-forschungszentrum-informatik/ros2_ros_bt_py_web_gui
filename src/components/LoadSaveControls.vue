@@ -414,7 +414,9 @@ function saveTree() {
 
 <template>
   <div class="btn-group">
-    <button @click="() => newTree()" class="btn btn-primary" title="New tree">
+    <button @click="() => newTree()" class="btn btn-primary" title="New tree"
+      :disabled="editor_store.selected_subtree.is_subtree" 
+    >
       <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">New</span>
     </button>
@@ -425,6 +427,7 @@ function saveTree() {
         class="btn btn-primary dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="false"
+        :disabled="editor_store.selected_subtree.is_subtree"
       >
         <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true"/>
         <span class="ms-1 hide-button-text">Load</span>
@@ -435,6 +438,7 @@ function saveTree() {
             @click="() => loadFromPackage()"
             class="dropdown-item btn btn-primary"
             title="Load from package"
+            :disabled="editor_store.selected_subtree.is_subtree"
           >
             <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true"/>
             <span class="ms-1">Package</span>
@@ -445,6 +449,7 @@ function saveTree() {
             @click="() => loadFromFile()"
             class="dropdown-item btn btn-primary"
             title="Load from file"
+            :disabled="editor_store.selected_subtree.is_subtree"
           >
             <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true"/>
             <span className="ms-1">File</span>
@@ -452,23 +457,29 @@ function saveTree() {
         </li>
       </ul>
     </div>
-    <button @click="() => saveToFile()" class="btn btn-primary btn-spaced" title="Save to remote">
+    <button @click="() => saveToFile()" class="btn btn-primary btn-spaced" title="Save to remote"
+      :disabled="editor_store.selected_subtree.is_subtree" 
+    >
       <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Save</span>
     </button>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
-    <button @click="() => openFileDialog()" class="btn btn-primary btn-spaced" title="Upload">
+    <button @click="() => openFileDialog()" class="btn btn-primary btn-spaced" title="Upload"
+      :disabled="editor_store.selected_subtree.is_subtree" 
+    >
       <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
-    <button @click="() => saveTree()" class="btn btn-primary btn-spaced" title="Download">
+    <button @click="() => saveTree()" class="btn btn-primary btn-spaced" title="Download"
+      :disabled="editor_store.selected_subtree.is_subtree" 
+    >
       <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true"/>
       <span class="ms-1 hide-button-text">Download</span>
     </button>
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 
 .file_input_ref {
   display: none;

@@ -31,10 +31,7 @@
 import type { ParamData } from '@/types/types'
 import TypeParam from './param_inputs/TypeParam.vue'
 import JSONInput from './JSONInput.vue'
-import MathUnaryOperatorDropDownParam from './param_inputs/MathUnaryOperatorDropDownParam.vue'
-import MathBinaryOperatorDropDownParam from './param_inputs/MathBinaryOperatorDropDownParam.vue'
-import MathOperandTypeDropDownParam from './param_inputs/MathOperandTypeDropDownParam.vue'
-import MathUnaryOperandTypeDropDownParam from './param_inputs/MathUnaryOperandTypeDropDownParam.vue'
+import MathOperationParam from './param_inputs/MathOperationParam.vue'
 import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
@@ -171,31 +168,33 @@ function onFocus() {
       :data_key="props.data_key"
     />
     
-    <!--TODO Below should be adapted to use the new category + data_key scheme.
-      Also look into maybe unifying them components to avoid duplicate code-->
-    <MathUnaryOperatorDropDownParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
-      :param="param"
-      :name="category"
-      :updateValue="edit_node_store.updateParamValue"
+      :category="props.category"
+      :data_key="props.data_key"
+      :op_type="'unary'"
+      :val_type="'operator'"
     />
-    <MathBinaryOperatorDropDownParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathBinaryOperator'"
-      :param="param"
-      :name="category"
-      :updateValue="edit_node_store.updateParamValue"
+      :category="props.category"
+      :data_key="props.data_key"
+      :op_type="'binary'"
+      :val_type="'operator'"
     />
-    <MathOperandTypeDropDownParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
-      :param="param"
-      :name="category"
-      :updateValue="edit_node_store.updateParamValue"
+      :category="props.category"
+      :data_key="props.data_key"
+      :op_type="'binary'"
+      :val_type="'operand'"
     />
-    <MathUnaryOperandTypeDropDownParam
+    <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
-      :param="param"
-      :name="category"
-      :updateValue="edit_node_store.updateParamValue"
+      :category="props.category"
+      :data_key="props.data_key"
+      :op_type="'unary'"
+      :val_type="'operand'"
     />
 
     <div v-else class="form-group">

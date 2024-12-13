@@ -40,7 +40,9 @@ const ros_store = useROSStore()
 
 
 const tree_name = computed<string>(() => {
-    if (editor_store.tree) {
+    if (editor_store.selected_subtree.is_subtree) {
+        return editor_store.selected_subtree.name
+    } else if (editor_store.tree) {
         return editor_store.tree.name
     } else {
       return ''
@@ -50,7 +52,9 @@ const tree_name = computed<string>(() => {
 const new_tree_name = ref<string>(tree_name.value)
 
 const tree_state = computed<string>(() => {
-    if (editor_store.tree) {
+    if (editor_store.selected_subtree.is_subtree) {
+        return editor_store.selected_subtree.tree!.state
+    } else if (editor_store.tree) {
         return editor_store.tree.state
     } else {
         return 'UNKNOWN'
@@ -119,7 +123,3 @@ function renameTree(): void {
         </div>
     </div>
 </template>
-
-<style lang="scss">
-
-</style>

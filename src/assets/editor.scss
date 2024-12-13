@@ -6,14 +6,28 @@
     width: 100%;
     /* only required for <img /> */
     height: 100%;
+
+    background: #34393c;
+
+    /* Node state border colors */
+
+    --node-color-running: #ffc107;
+    --node-color-idle: #007bff;
+    --node-color-succeeded: #28a745;
+    --node-color-failed: #dc3545;
+    --node-color-shutdown: #7c1e27;
+    --node-color-default: #4e5666;
 }
 
-.darkmode {
-    background: #34393c;
-}
-  
-.lightmode {
+.lightmode.reactive-svg {
     background: #ffffff;
+
+    --node-color-running: #ffff07;
+    --node-color-idle: #007bff;
+    --node-color-succeeded: #00ff3c;
+    --node-color-failed: #ff0019;
+    --node-color-shutdown: #ab0011;
+    --node-color-default: #353535;
 }
 
 .svg-button:hover {
@@ -35,18 +49,6 @@ rect.selection {
     cursor: pointer;
 }
 
-// When do nodes contain circle elements?
-.node circle {
-    fill: #fff;
-    stroke: steelblue;
-    stroke-width: 1.5px;
-}
-  
-// When do nodes contain text elements?
-.node text {
-    font: 10px sans-serif;
-}
-  
 .link {
     fill: none;
     stroke: #1e2226;
@@ -59,7 +61,7 @@ rect.selection {
     background: #2a2d36;
     border: solid;
     border-width: 6px;
-    border-color: #4e5666;
+    /* border-color is specified through d3 */
     color: #eff0f4;
     max-width: 200px;
     overflow-wrap: break-word;
@@ -67,6 +69,11 @@ rect.selection {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.lightmode .btnode {
+    background-color: #dedede;
+    color: #000000;
 }
   
 .label {
@@ -81,47 +88,11 @@ rect.selection {
     color: #858e99;
 }
 
-.btnode h3 {
-    margin: 4px;
+.lightmode .btnode h5 {
+    color: #454954;
 }
 
-// When do nodes contain tables?
-.btnode td pre {
-    margin: 0;
-}
-  
-.btnode table {
-    margin: 4px;
-}
-
-.btnode tbody {
-    color: #cecfd2;
-}
-  
-.btnode tbody tr {
-    background: #313740;
-}
-  
-.btnode td.key {
-    font-weight: bold;
-}
-  
-.btnode tbody tr:hover {
-    background: #3a414c;
-}
-  
-.btnode td {
-    /*
-  border: solid;
-  */
-    vertical-align: top;
-}
-  
-.btnode th {
-    text-align: left;
-}
-
-path.data-hover {
+path.data-hover, path.data-select {
     stroke: #148050;
     background: #148050;
 }
@@ -137,7 +108,7 @@ path.data-hover {
     stroke-width: 3px;
 }
   
-.data-hover rect {
+.data-hover rect, .data-select rect {
     stroke: #148050;
     background: #148050;
     fill: #148050;

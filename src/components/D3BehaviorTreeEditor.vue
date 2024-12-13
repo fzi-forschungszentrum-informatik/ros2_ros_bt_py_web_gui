@@ -126,8 +126,10 @@ const data_vert1_highlight_css_id: string = "highlightV1"
 const data_vert2_highlight_css_id: string = "highlightV2"
 
 const data_graph_hover_css_class: string = "data-hover"
+const data_graph_comaptible_css_class: string = "compatible"
 
 const node_selected_css_class: string = "node-selected"
+const data_graph_select_css_class: string = "data-select"
 
 
 // This is the base transition for tree updates
@@ -306,7 +308,6 @@ function drawEverything() {
   if (
     g_vertices_ref.value === undefined
   ) {
-    // TODO handle DOM is broken, maybe page refresh? (this has many occurences)
     console.warn("DOM is broken")
     return
   }
@@ -449,8 +450,6 @@ function drawNewNodes(
         }
         d3.event.stopPropagation()
       })
-      /*.on("dblclick", this.nodeDoubleClickHandler.bind(this))*/
-      // TODO add mouse event handlers
 
   // No tree modifying if displaying a subtree
   if (!editor_store.selected_subtree.is_subtree) {
@@ -494,8 +493,6 @@ function updateNodeBody(
   >
 ) {
 
-  //selection.style("max-width", "150px")
-
   const body = selection.select<HTMLBodyElement>("." + node_body_css_class)
 
   body.select<HTMLHeadingElement>("." + node_name_css_class)
@@ -516,8 +513,8 @@ function updateNodeBody(
 
   selection
     .transition(tree_transition)
-      .attr("width", (d) => d.data.size.width / k)
-      .attr("height", (d) => d.data.size.height / k)
+      .attr("width", (d) => d.data.size.width)
+      .attr("height", (d) => d.data.size.height)
 
   return selection
 }
@@ -536,23 +533,23 @@ selection
     .style("border-color", (d) => {
       switch (d.data.state) {
         case "RUNNING": {
-          return "#ffc107";
+          return "var(--node-color-running)";
         }
         case "IDLE": {
-          return "#007bff";
+          return "var(--node-color-idle)";
         }
         case "SUCCEEDED": {
-          return "#28a745";
+          return "var(--node-color-succeeded)";
         }
         case "FAILED": {
-          return "#dc3545";
+          return "var(--node-color-failed)";
         }
         case "SHUTDOWN": {
-          return "#7c1e27";
+          return "var(--node-color-shutdown)";
         }
         case "UNINITIALIZED":
         default: {
-          return "#4E5666";
+          return "var(--node-color-default)";
         }
       }
     })
@@ -860,7 +857,7 @@ function toggleExistingNodeTargets() {
 
   // The first filter hides all nodes in the currently dragged subtree
   // The second filter hides all nodes where dropping would overload a child node count
-  //FIXME Maybe we should hide targets that would place the node in the same spot 
+  //TODO Maybe we should hide targets that would place the node in the same spot 
 
   // If the filter returns true (keeps the node) it gets hidden
   targets.filter((drop_target: DropTarget) => {
@@ -1208,7 +1205,7 @@ function drawNewDataVert(
       .on("mouseover.highlight", function () {
         if (editor_store.is_dragging) {
           // Highlight compatible vertices when dragging
-          const compat = d3.select(this).classed("compatible")
+          const compat = d3.select(this).classed(data_graph_comaptible_css_class)
           d3.select(this)
               .classed(data_graph_hover_css_class, compat)
         } else {
@@ -1250,7 +1247,6 @@ function drawNewDataVert(
           case IOKind.OUTPUT:
             return io_gripper_size + 5;
           case IOKind.OTHER:
-            //TODO figure out placement for other IO
           default:
             return 0;
         }
@@ -1259,7 +1255,7 @@ function drawNewDataVert(
 
   labels.append("tspan")
       .classed(data_vert_label_type_css_class, true)
-      .attr("x", function () { //FIXME Re-apply x for unknown reason
+      .attr("x", function () {
         return d3.select(this.parentElement).attr("x")
       }) 
       .attr("dy", "1em") // Space out 2nd line
@@ -1414,7 +1410,7 @@ function toggleDataEdgeTargets() {
   // Reset visibility on all grippers
   const data_verts = d3.select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
-      .classed("compatible", false)
+      .classed(data_graph_comaptible_css_class, false)
     
   data_verts
     .select("." + data_vert_label_css_class)
@@ -1432,7 +1428,7 @@ function toggleDataEdgeTargets() {
     .filter((term: DataEdgeTerminal) => 
       typesCompatible(term, editor_store.data_edge_endpoint!)
     )
-      .classed("compatible", true)
+      .classed(data_graph_comaptible_css_class, true)
 
   draw_path
       .attr("d", () => 
@@ -1457,7 +1453,7 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
         data_key: target.key
       }
     } as NodeDataWiring ],
-    ignore_failure: true //TODO what does this do?
+    ignore_failure: false //TODO what does this do?
   } as WireNodeDataRequest,
   (response: WireNodeDataResponse) => {
     if (response.success) {
@@ -1508,7 +1504,46 @@ function colorSelectedNodes() {
       .classed(node_selected_css_class, 
     (node: FlextreeNode<TrimmedNode>) => all_selected_nodes.includes(node.data.name)
   )
+}
 
+watch(() => editor_store.selected_edge, () => {
+  colorSelectedEdge()
+})
+function colorSelectedEdge() {
+  if (g_data_edges_ref.value === undefined || 
+    g_data_vertices_ref.value === undefined
+  ) {
+    console.warn("DOM is broken")
+    return
+  }
+
+  const g_data_edges = d3.select(g_data_edges_ref.value)
+  const g_data_vertices = d3.select(g_data_vertices_ref.value)
+
+  g_data_edges
+    .selectAll<SVGPathElement, DataEdge>("." + data_edge_css_class)
+      .classed(data_graph_select_css_class, false)
+
+  g_data_vertices
+    .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
+      .classed(data_graph_select_css_class, false)
+
+  if (editor_store.selected_edge !== undefined) {
+    const newEdge: DataEdge = g_data_edges
+      .selectAll<SVGPathElement, DataEdge>("." + data_edge_css_class)
+      .filter((edge: DataEdge) => {
+        return edge.wiring === editor_store.selected_edge
+      })
+        .classed(data_graph_select_css_class, true)
+      .datum()
+
+    g_data_vertices
+      .selectAll<SVGGElement, DataEdgeTerminal>("." + data_vert_group_css_class)
+      .filter((term: DataEdgeTerminal) => {
+        return term === newEdge.source || term === newEdge.target
+      })
+        .classed(data_graph_select_css_class, true)
+  }
 }
 
 
@@ -1613,8 +1648,9 @@ onMounted(() => {
         .select<HTMLBodyElement>("." + node_body_css_class)
           .each((node: FlextreeNode<TrimmedNode>) => {
             // Select all nodes in the selection rectangle
-            if (node.x >= new_x &&
-              node.x + node.data.size.width <= new_x + width &&
+            // Node coordinates are given for the top-center point
+            if (node.x - node.data.size.width / 2 >= new_x &&
+              node.x + node.data.size.width / 2 <= new_x + width &&
               node.y >= new_y &&
               node.y + node.data.size.height <= new_y + height
             ) {
@@ -1642,8 +1678,6 @@ onMounted(() => {
 
       const sel_rect = d3.select<SVGRectElement, never>(selection_rect_ref.value)
       sel_rect.attr('width', 0).attr('height', 0)
-
-      console.log(selected_nodes.value)
 
       edit_node_store.selectMultipleNodes(selected_nodes.value)
 
@@ -1706,8 +1740,8 @@ onMounted(() => {
         <g class="data_edges" ref="g_data_edges_ref"/>
         <g class="data_vertices" ref="g_data_vertices_ref"/>
         <!--Below is used to pull elements to the foreground on hover-->
-        <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
         <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none"/>
+        <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none"/>
         <use :href="'#' + data_edge_highlight_css_id" pointer-events="none"/>
       </g>
       <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()"/>
@@ -1729,6 +1763,7 @@ onMounted(() => {
   </svg>
 </template>
 
+<!--Cannot use "scoped" here because that ignores elements added dynamically-->
 <style lang="scss">
   @import "src/assets/editor.scss";
 </style>

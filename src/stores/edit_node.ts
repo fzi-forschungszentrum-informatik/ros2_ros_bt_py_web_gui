@@ -135,27 +135,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         node_is_morphed.value = false
 
         new_node_options.value = new_selected_node.options.map(x => getInitialValues(x, new_selected_node.options))
-        // Special handling for unset_optionref type
-        //TODO is this necessary? Seems redundant with utils.js/getDefaultValue
-        /*new_node_options.value = new_node_options.value.map((x) => {
-            if (x.value.type === 'unset_optionref') {
-              const optionref: string = x.value.value as string
-              const optionTypeName = optionref.substring('Ref to "'.length, optionref.length - 1)
-              const optionType = new_node_options.value.find((x) => {
-                return x.key === optionTypeName
-              })
-              if (optionType && optionType.value) {
-                return {
-                  key: x.key,
-                  value: getDefaultValue(optionType.value.value as string)
-                }
-              }
-            }
-            return {
-              key: x.key,
-              value: x.value
-            } as ParamData
-        })*/
         new_node_inputs.value = new_selected_node.inputs.map(x => getInitialValues(x, new_selected_node.options))  
         new_node_outputs.value = new_selected_node.outputs.map(x => getInitialValues(x, new_selected_node.options))
     }
@@ -265,11 +244,30 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         new_node_name.value = value
     }
 
-    function changeNodeClass(value: string) {
+    function changeNodeClass(node_module_class: string) {
+       
+        // Find new node to replace attributes
+        const new_reference_node = flow_control_nodes.value.find(
+            (node: DocumentedNode) => 
+                node.module + node.node_class === node_module_class
+        )
+        console.log(new_reference_node)
+
+        if (new_reference_node === undefined) {
+            console.warn("Can't locate node morph target")
+            return
+        }
+        
+        reference_node.value = new_reference_node
+        new_node_class.value = new_reference_node.node_class
+        new_node_module.value = new_reference_node.module
+
+        new_node_options.value = new_reference_node.options.map(x => getInitialValues(x, new_reference_node.options))
+        new_node_inputs.value = new_reference_node.inputs.map(x => getInitialValues(x, new_reference_node.options))  
+        new_node_outputs.value = new_reference_node.outputs.map(x => getInitialValues(x, new_reference_node.options))
+
         node_has_changed.value = true
         node_is_morphed.value = true
-        new_node_class.value = value
-        //TODO Update module and inputs+outputs+options
     }
 
     function updateParamValue(paramType: string, //"options" | "inputs" | "outputs", 
