@@ -54,49 +54,8 @@ import { useEditNodeStore } from '@/stores/edit_node'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
-const node_store = useNodesStore()
 const edit_node_store = useEditNodeStore()
 
-function getValues(x: NodeData): ParamData {
-  const type = prettyprint_type(x.serialized_type)
-  let json_value = JSON.parse(x.serialized_value)
-  if (type === 'type') {
-    json_value = json_value['py/type'].replace('__builtin__.', '').replace('builtins.', '')
-  }
-  return {
-    key: x.key,
-    value: {
-      type: type
-        .replace(/^basestring$/, 'string')
-        .replace(/^str$/, 'string')
-        .replace(/^unicode$/, 'string'),
-      value: json_value
-    }
-  } as ParamData
-}
-
-/*function nodeClassChangeHandler(new_class: string) {
-  const flow_control_nodes = node_store.nodes.filter((item: DocumentedNode) => {
-    return item.max_children == -1 && item.module + item.node_class === new_class
-  })
-
-  if (flow_control_nodes && flow_control_nodes.length == 1) {
-    const selected_flow_control_node = flow_control_nodes[0]
-
-    node_class.value = selected_flow_control_node.node_class
-    module_name.value = selected_flow_control_node.module
-    options.value = getDefaultValues(selected_flow_control_node.options)
-    inputs.value = getDefaultValues(
-      selected_flow_control_node.inputs,
-      selected_flow_control_node.options
-    )
-    outputs.value = getDefaultValues(
-      selected_flow_control_node.outputs,
-      selected_flow_control_node.options
-    )
-    is_morphed.value = true
-  }
-}*/
 
 function buildNodeMsg(): NodeMsg {
   return {
@@ -271,7 +230,7 @@ function onClickUpdate() {
             type: 'success'
           })
           edit_node_store.node_is_morphed = false
-          updateNode()
+          updateNode() //TODO Is updating after morphing necessary?
         } else {
           notify({
             title: 'Failed to morph node ' + edit_node_store.selected_node!.name + '!',
