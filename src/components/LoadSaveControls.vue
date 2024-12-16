@@ -59,8 +59,8 @@ const loadPackageModalHandle = useModal({
     fromPackages: true,
     onClose() {
       loadPackageModalHandle.close()
-    },
-  },
+    }
+  }
 })
 
 const loadFileModalHandle = useModal({
@@ -69,8 +69,8 @@ const loadFileModalHandle = useModal({
     fromPackages: false,
     onClose() {
       loadFileModalHandle.close()
-    },
-  },
+    }
+  }
 })
 
 const saveFileModalHandle = useModal({
@@ -79,7 +79,7 @@ const saveFileModalHandle = useModal({
     onClose() {
       saveFileModalHandle.close()
     }
-  },
+  }
 })
 
 function newTree() {
@@ -414,10 +414,13 @@ function saveTree() {
 
 <template>
   <div class="btn-group">
-    <button @click="() => newTree()" class="btn btn-primary" title="New tree"
-      :disabled="editor_store.selected_subtree.is_subtree" 
+    <button
+      @click="() => newTree()"
+      class="btn btn-primary"
+      title="New tree"
+      :disabled="editor_store.selected_subtree.is_subtree"
     >
-      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true"/>
+      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" />
       <span class="ms-1 hide-button-text">New</span>
     </button>
     <div class="btn-group btn-spaced" role="group">
@@ -429,7 +432,7 @@ function saveTree() {
         aria-expanded="false"
         :disabled="editor_store.selected_subtree.is_subtree"
       >
-        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true"/>
+        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" />
         <span class="ms-1 hide-button-text">Load</span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -440,7 +443,7 @@ function saveTree() {
             title="Load from package"
             :disabled="editor_store.selected_subtree.is_subtree"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true"/>
+            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
             <span class="ms-1">Package</span>
           </button>
         </li>
@@ -451,36 +454,44 @@ function saveTree() {
             title="Load from file"
             :disabled="editor_store.selected_subtree.is_subtree"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true"/>
+            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
             <span className="ms-1">File</span>
           </button>
         </li>
       </ul>
     </div>
-    <button @click="() => saveToFile()" class="btn btn-primary btn-spaced" title="Save to remote"
-      :disabled="editor_store.selected_subtree.is_subtree" 
+    <button
+      @click="() => saveToFile()"
+      class="btn btn-primary btn-spaced"
+      title="Save to remote"
+      :disabled="editor_store.selected_subtree.is_subtree"
     >
-      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true"/>
+      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Save</span>
     </button>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
-    <button @click="() => openFileDialog()" class="btn btn-primary btn-spaced" title="Upload"
-      :disabled="editor_store.selected_subtree.is_subtree" 
+    <button
+      @click="() => openFileDialog()"
+      class="btn btn-primary btn-spaced"
+      title="Upload"
+      :disabled="editor_store.selected_subtree.is_subtree"
     >
-      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true"/>
+      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
-    <button @click="() => saveTree()" class="btn btn-primary btn-spaced" title="Download"
-      :disabled="editor_store.selected_subtree.is_subtree" 
+    <button
+      @click="() => saveTree()"
+      class="btn btn-primary btn-spaced"
+      title="Download"
+      :disabled="editor_store.selected_subtree.is_subtree"
     >
-      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true"/>
+      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Download</span>
     </button>
   </div>
 </template>
 
 <style scoped lang="scss">
-
 .file_input_ref {
   display: none;
 }

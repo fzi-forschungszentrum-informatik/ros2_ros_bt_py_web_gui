@@ -36,7 +36,7 @@ import { python_builtin_types } from '@/utils'
 import { computed, ref } from 'vue'
 
 const props = defineProps<{
-  category: 'options',
+  category: 'options'
   data_key: string
 }>()
 
@@ -46,7 +46,7 @@ const messages_store = useMessasgeStore()
 
 let messages_results = ref<Message[]>([])
 
-const param = computed<ParamData | undefined>(() => 
+const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -57,7 +57,7 @@ let keep_results = ref<boolean>(false)
 
 function onChange(event: Event) {
   if (param.value === undefined) {
-    console.error("Undefined parameter")
+    console.error('Undefined parameter')
     return
   }
 
@@ -68,8 +68,7 @@ function onChange(event: Event) {
   messages_results.value = results.slice(0, 5).map((x) => x.item)
 
   if (python_builtin_types.indexOf(new_type_name) >= 0) {
-    edit_node_store.updateParamValue(props.category, 
-      props.data_key, '__builtin__.' + new_type_name)
+    edit_node_store.updateParamValue(props.category, props.data_key, '__builtin__.' + new_type_name)
   } else {
     edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
   }
@@ -96,7 +95,6 @@ function forceDropdown() {
 function releaseDropdown() {
   keep_results.value = false
 }
-
 </script>
 
 <template>
@@ -106,18 +104,27 @@ function releaseDropdown() {
       <input
         type="text"
         class="form-control mt-2"
-        :value="(param.value.value as string)"
+        :value="param.value.value as string"
         :disabled="editor_store.selected_subtree.is_subtree"
         @input="onChange"
         @focus="focusInput"
         @blur="unfocusInput"
-        @keyup.esc="() => {unfocusInput(); releaseDropdown()}"
+        @keyup.esc="
+          () => {
+            unfocusInput()
+            releaseDropdown()
+          }
+        "
         @keydown.tab="forceDropdown"
       />
     </label>
     <div class="mb-2 search-results">
-      <div class="list-group" :class="{'d-none': hide_results && !keep_results}"
-      @mouseenter="forceDropdown" @mouseleave="releaseDropdown">
+      <div
+        class="list-group"
+        :class="{ 'd-none': hide_results && !keep_results }"
+        @mouseenter="forceDropdown"
+        @mouseleave="releaseDropdown"
+      >
         <div
           v-for="result in messages_results"
           :key="result.msg"
@@ -132,9 +139,7 @@ function releaseDropdown() {
       </div>
     </div>
   </div>
-  <div v-else>
-    Error loading param data
-  </div>
+  <div v-else>Error loading param data</div>
 </template>
 
 <style scoped lang="scss">

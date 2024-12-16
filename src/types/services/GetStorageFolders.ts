@@ -30,5 +30,5 @@
 export interface GetStorageFoldersRequest {}
 
 export interface GetStorageFoldersResponse {
-    storage_folders: string[];
+  storage_folders: string[]
 }

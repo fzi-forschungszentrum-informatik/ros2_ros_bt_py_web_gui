@@ -181,10 +181,7 @@ export function getDefaultValue(
       // This double call is necessary to dereference first the type of the optionref target and then its default value
       //TODO Check if this is consistent (are the `options` always populated in the same manner?)
       return getDefaultValue(
-        getDefaultValue(
-          prettyprint_type(optionType.serialized_value),
-          options
-        ).value as string,
+        getDefaultValue(prettyprint_type(optionType.serialized_value), options).value as string,
         options
       )
     } else {
@@ -255,7 +252,8 @@ export function getDefaultValue(
         field_names: []
       }
     }
-  } else { //TODO should this check for general ros_types?
+  } else {
+    //TODO should this check for general ros_types?
     return {
       type: '__' + typeName,
       value: {}
@@ -283,24 +281,33 @@ export function getMessageType(str: string): Message {
 
   let new_message_parts = message_parts.slice(0, 2)
   // Standardize type .../.../_name/Name to .../.../Name
-  if (message_parts.length > 3 && message_parts[2] === message_parts[3].replace(/[A-Z]/g, x => '_' + x.toLowerCase())) {
+  if (
+    message_parts.length > 3 &&
+    message_parts[2] === message_parts[3].replace(/[A-Z]/g, (x) => '_' + x.toLowerCase())
+  ) {
     new_message_parts.push(...message_parts.slice(3))
   } else {
     new_message_parts.push(...message_parts.slice(2))
   }
 
   // Caution, since this is the store member, don't edit it
-  const msg_ref = message_store.messages.find(
-    (item) => item.msg === new_message_parts.join('.')
-  )
+  const msg_ref = message_store.messages.find((item) => item.msg === new_message_parts.join('.'))
 
   if (msg_ref === undefined) {
     console.error('Invalid message passed')
-    return { msg: new_message_parts.slice(0, 3).join('/'), 
-      action: false, service: false, type: MessageType.MESSAGE }
+    return {
+      msg: new_message_parts.slice(0, 3).join('/'),
+      action: false,
+      service: false,
+      type: MessageType.MESSAGE
+    }
   }
-  return {msg: new_message_parts.slice(0, 3).join('/'), type: msg_ref.type,
-    action: msg_ref.action, service: msg_ref.service}
+  return {
+    msg: new_message_parts.slice(0, 3).join('/'),
+    type: msg_ref.type,
+    action: msg_ref.action,
+    service: msg_ref.service
+  }
 }
 
 export function getShortDoc(doc: string) {
@@ -316,11 +323,10 @@ export function getShortDoc(doc: string) {
   }
 }
 
-
 export enum NameConflictHandler {
-  ASK = "Ask before overwrite",
-  OVERWRITE = "Overwrite file",
-  RENAME = "Rename file"
+  ASK = 'Ask before overwrite',
+  OVERWRITE = 'Overwrite file',
+  RENAME = 'Rename file'
 }
 
 export function parseConflictHandler(handler: NameConflictHandler): [boolean, boolean] {
@@ -340,7 +346,7 @@ export function parseConflictHandler(handler: NameConflictHandler): [boolean, bo
       allow_rename = true
       break
     default:
-      console.warn("Improper state for name conflict resolution strategy", handler)
+      console.warn('Improper state for name conflict resolution strategy', handler)
       allow_overwrite = false
       allow_rename = false
       break

@@ -28,141 +28,133 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import { useEditorStore } from '@/stores/editor';
-import type { ParamData, PyOperator } from '@/types/types';
-import { computed } from 'vue';
-
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
+import type { ParamData, PyOperator } from '@/types/types'
+import { computed } from 'vue'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 const props = defineProps<{
-    category: 'options',
-    data_key: string,
-    val_type: 'operator' | 'operand'
-    op_type: 'unary' | 'binary'
+  category: 'options'
+  data_key: string
+  val_type: 'operator' | 'operand'
+  op_type: 'unary' | 'binary'
 }>()
 
-const param = computed<ParamData | undefined>(() => 
-    edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+const param = computed<ParamData | undefined>(() =>
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
 function handleChange(event: Event) {
-    if (param.value === undefined) {
-        console.error("Undefined parameter")
-        return
-    }
+  if (param.value === undefined) {
+    console.error('Undefined parameter')
+    return
+  }
 
-    const target = event.target as HTMLSelectElement
+  const target = event.target as HTMLSelectElement
 
-    let operator_obj = param.value.value.value as PyOperator
-    operator_obj.operator = target.value
+  let operator_obj = param.value.value.value as PyOperator
+  operator_obj.operator = target.value
 
-    edit_node_store.updateParamValue(param.value.value.type, param.value.key, operator_obj)
+  edit_node_store.updateParamValue(param.value.value.type, param.value.key, operator_obj)
 }
 
 // Lookup for all possible values for operators and operands
 const options = {
-    operator: {
-        unary: [
-            'not',
-            'inv',
-            '~',
-            'neg',
-            '-',
-            'pos',
-            '+',
-            'exp',
-            'expm1',
-            'log',
-            'log1p',
-            'log10',
-            'ceil',
-            'fabs',
-            'factorial',
-            'floor',
-            'sqrt',
-            'acos',
-            'asin',
-            'atan',
-            'acosh',
-            'asinh',
-            'atanh',
-            'cos',
-            'sin',
-            'tan',
-            'cosh',
-            'sinh',
-            'tanh',
-            'degrees',
-            'radians',
-            'erf',
-            'erfc',
-            'gamma',
-            'lgamma'
-        ],
-        binary: [
-            'add',
-            '+',
-            'and',
-            '&',
-            'div',
-            '/',
-            'floordiv',
-            '//',
-            'lshift',
-            '<<',
-            'mod',
-            '%',
-            'mul',
-            '*',
-            'or',
-            '|',
-            'pow',
-            '**',
-            'rshift',
-            '>>',
-            'sub',
-            '-',
-            'truediv',
-            'xor',
-            '^'
-        ]
-    },
-    operand: {
-        unary: [
-            'int',
-            'float'
-        ],
-        binary: [
-            'int',
-            'float',
-            'bool'
-        ]
-    }
+  operator: {
+    unary: [
+      'not',
+      'inv',
+      '~',
+      'neg',
+      '-',
+      'pos',
+      '+',
+      'exp',
+      'expm1',
+      'log',
+      'log1p',
+      'log10',
+      'ceil',
+      'fabs',
+      'factorial',
+      'floor',
+      'sqrt',
+      'acos',
+      'asin',
+      'atan',
+      'acosh',
+      'asinh',
+      'atanh',
+      'cos',
+      'sin',
+      'tan',
+      'cosh',
+      'sinh',
+      'tanh',
+      'degrees',
+      'radians',
+      'erf',
+      'erfc',
+      'gamma',
+      'lgamma'
+    ],
+    binary: [
+      'add',
+      '+',
+      'and',
+      '&',
+      'div',
+      '/',
+      'floordiv',
+      '//',
+      'lshift',
+      '<<',
+      'mod',
+      '%',
+      'mul',
+      '*',
+      'or',
+      '|',
+      'pow',
+      '**',
+      'rshift',
+      '>>',
+      'sub',
+      '-',
+      'truediv',
+      'xor',
+      '^'
+    ]
+  },
+  operand: {
+    unary: ['int', 'float'],
+    binary: ['int', 'float', 'bool']
+  }
 }
-
-
 </script>
 
 <template>
-    <div v-if="param !== undefined" class="form-group">
-        <label class="d-block">
-            {{ param.key }}
-        </label>
-        <select @change="handleChange" class="form-select"
-        :value="(param.value.value as PyOperator).operator" 
-        :disabled="editor_store.selected_subtree.is_subtree"
-        >
-            <option v-for="operator_option in options[props.val_type][props.op_type]" 
-            :key="operator_option" :value="operator_option"
-            >
-                {{ operator_option }}
-            </option>
-        </select>
-    </div>
-    <div v-else>
-        Error loading param data
-    </div>
+  <div v-if="param !== undefined" class="form-group">
+    <label class="d-block">
+      {{ param.key }}
+    </label>
+    <select
+      @change="handleChange"
+      class="form-select"
+      :value="(param.value.value as PyOperator).operator"
+      :disabled="editor_store.selected_subtree.is_subtree"
+    >
+      <option
+        v-for="operator_option in options[props.val_type][props.op_type]"
+        :key="operator_option"
+        :value="operator_option"
+      >
+        {{ operator_option }}
+      </option>
+    </select>
+  </div>
+  <div v-else>Error loading param data</div>
 </template>

@@ -38,7 +38,7 @@ import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import type { TreeMsg } from '@/types/types'
-import { NameConflictHandler, parseConflictHandler } from '@/utils';
+import { NameConflictHandler, parseConflictHandler } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 
@@ -57,15 +57,18 @@ const show_selection_modal = ref<boolean>(false)
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
 function deleteNodes() {
-
-  if (!window.confirm('Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?')) {
+  if (
+    !window.confirm(
+      'Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?'
+    )
+  ) {
     // Do nothing if user doesn't confirm
     return
   }
 
-  edit_node_store.selected_node_names.forEach(
-    (name: string) => {
-      ros_store.remove_node_service.callService({
+  edit_node_store.selected_node_names.forEach((name: string) => {
+    ros_store.remove_node_service.callService(
+      {
         node_name: name,
         remove_children: false
       } as RemoveNodeRequest,
@@ -75,8 +78,7 @@ function deleteNodes() {
             title: 'Removed ' + name + ' successfully!',
             type: 'success'
           })
-          edit_node_store.selected_node_names = 
-          edit_node_store.selected_node_names.filter(
+          edit_node_store.selected_node_names = edit_node_store.selected_node_names.filter(
             (value: string) => value !== name
           )
         } else {
@@ -93,20 +95,16 @@ function deleteNodes() {
           text: error,
           type: 'error'
         })
-      })
-    }
-  )
+      }
+    )
+  })
 }
 
 function selectSubtreeSaveLocation() {
   show_selection_modal.value = true
 }
 
-function setSaveLocation(
-  location: string,
-  path: string,
-  handler: NameConflictHandler
-) {
+function setSaveLocation(location: string, path: string, handler: NameConflictHandler) {
   show_selection_modal.value = false
   storage_location.value = location
   file_path.value = path
@@ -114,40 +112,40 @@ function setSaveLocation(
 }
 
 function generateSubtree() {
-  ros_store.generate_subtree_service.callService({
-    nodes: edit_node_store.selected_node_names
-  } as GenerateSubtreeRequest,
-  (response: GenerateSubtreeResponse) => {
-    if (response.success) {
+  ros_store.generate_subtree_service.callService(
+    {
+      nodes: edit_node_store.selected_node_names
+    } as GenerateSubtreeRequest,
+    (response: GenerateSubtreeResponse) => {
+      if (response.success) {
+        notify({
+          title: 'Generated subtree successfully!',
+          type: 'success'
+        })
+        saveSubtree(response.tree)
+      } else {
+        notify({
+          title: 'Failed to generate subtree!',
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
       notify({
-        title: 'Generated subtree successfully!',
-        type: 'success'
-      })
-      saveSubtree(response.tree)
-    } else {
-      notify({
-        title: 'Failed to generate subtree!',
-        text: response.error_message,
-        type: 'warn'
+        title: 'Failed to call GenerateSubtree service!',
+        text: error,
+        type: 'error'
       })
     }
-  },
-  (error: string) => {
-    notify({
-      title: 'Failed to call GenerateSubtree service!',
-      text: error,
-      type: 'error'
-    })
-  })
+  )
 }
 
 function saveSubtree(tree: TreeMsg) {
-
   tree.name = name.value
 
-  const [allow_overwrite, allow_rename] = 
-    parseConflictHandler(handle_name_conflict.value)
-  
+  const [allow_overwrite, allow_rename] = parseConflictHandler(handle_name_conflict.value)
+
   const save_tree_request: SaveTreeRequest = {
     storage_path: storage_location.value,
     filepath: file_path.value,
@@ -155,77 +153,80 @@ function saveSubtree(tree: TreeMsg) {
     allow_overwrite: allow_overwrite,
     allow_rename: allow_rename
   }
-  
+
   ros_store.save_tree_service.callService(
     save_tree_request,
-  (response: SaveTreeResponse) => {
-    if (response.success) {
-      notify({
-        title: 'Successfully saved subtree!',
-        text: response.file_path,
-        type: 'success'
-      })
-    } else {
-
-      if (handle_name_conflict.value !== NameConflictHandler.ASK ||
-        response.error_message !== "Overwrite not allowed"
-      ) {
+    (response: SaveTreeResponse) => {
+      if (response.success) {
         notify({
-          title: 'Failed to save subtree!',
-          text: response.error_message,
-          type: 'warn'
+          title: 'Successfully saved subtree!',
+          text: response.file_path,
+          type: 'success'
         })
-        return
-      }
-
-      if (!window.confirm(
-        "Do you want to overwrite '" + storage_location.value + "/" + file_path.value + "' ?"
-      )) {
-        notify({
-          title: 'Failed to save tree!',
-          text: "Rejected overwrite confirmation",
-          type: 'warn'
-        })
-        return
-      }
-      
-      save_tree_request.allow_overwrite = true
-      save_tree_request.allow_rename = false
-      ros_store.save_tree_service.callService(
-        save_tree_request,
-      (response: SaveTreeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Successfully saved subtree!',
-            text: response.file_path,
-            type: 'success'
-          })
-        } else {
+      } else {
+        if (
+          handle_name_conflict.value !== NameConflictHandler.ASK ||
+          response.error_message !== 'Overwrite not allowed'
+        ) {
           notify({
             title: 'Failed to save subtree!',
             text: response.error_message,
             type: 'warn'
           })
+          return
         }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call SaveTree service!',
-          text: error,
-          type: 'error'
-        })
+
+        if (
+          !window.confirm(
+            "Do you want to overwrite '" + storage_location.value + '/' + file_path.value + "' ?"
+          )
+        ) {
+          notify({
+            title: 'Failed to save tree!',
+            text: 'Rejected overwrite confirmation',
+            type: 'warn'
+          })
+          return
+        }
+
+        save_tree_request.allow_overwrite = true
+        save_tree_request.allow_rename = false
+        ros_store.save_tree_service.callService(
+          save_tree_request,
+          (response: SaveTreeResponse) => {
+            if (response.success) {
+              notify({
+                title: 'Successfully saved subtree!',
+                text: response.file_path,
+                type: 'success'
+              })
+            } else {
+              notify({
+                title: 'Failed to save subtree!',
+                text: response.error_message,
+                type: 'warn'
+              })
+            }
+          },
+          (error: string) => {
+            notify({
+              title: 'Failed to call SaveTree service!',
+              text: error,
+              type: 'error'
+            })
+          }
+        )
+      }
+    },
+    (error: string) => {
+      notify({
+        title: 'Failed to call SaveTree service!',
+        text: error,
+        type: 'error'
       })
     }
-  },
-  (error: string) => {
-    notify({
-      title: 'Failed to call SaveTree service!',
-      text: error,
-      type: 'error'
-    })
-  })
+  )
 }
-
 </script>
 
 <template>
@@ -238,18 +239,17 @@ function saveSubtree(tree: TreeMsg) {
   <div class="d-flex flex-column">
     <div class="row g-2 mb-3">
       <div class="btn-group col-8">
-        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">
-          Select Location
-        </button>
-        <button class="btn btn-primary" @click="generateSubtree"
-        :disabled="storage_location === '' || file_path === ''">
+        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">Select Location</button>
+        <button
+          class="btn btn-primary"
+          @click="generateSubtree"
+          :disabled="storage_location === '' || file_path === ''"
+        >
           Save Subtree
         </button>
       </div>
       <div class="btn-group col-4">
-        <button class="btn btn-danger" @click="deleteNodes">
-          Delete Nodes
-        </button>
+        <button class="btn btn-danger" @click="deleteNodes">Delete Nodes</button>
       </div>
     </div>
 
@@ -287,7 +287,6 @@ function saveSubtree(tree: TreeMsg) {
           aria-describedby="subtree-name"
         />
       </div>
-
     </div>
   </div>
 </template>

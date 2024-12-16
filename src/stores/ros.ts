@@ -66,17 +66,24 @@ import type {
   GenerateSubtreeResponse
 } from '@/types/services/GenerateSubtree'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
-import type { GetFolderStructureRequest, GetFolderStructureResponse } from '@/types/services/GetFolderStructure'
-import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
-import type { GetPackageStructureRequest, GetPackageStructureResponse } from '@/types/services/GetPackageStructure'
+import type {
+  GetFolderStructureRequest,
+  GetFolderStructureResponse
+} from '@/types/services/GetFolderStructure'
+import type {
+  GetStorageFoldersRequest,
+  GetStorageFoldersResponse
+} from '@/types/services/GetStorageFolders'
+import type {
+  GetPackageStructureRequest,
+  GetPackageStructureResponse
+} from '@/types/services/GetPackageStructure'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
-import type { 
-  LoadTreeFromPathRequest, 
-  LoadTreeFromPathResponse 
+import type {
+  LoadTreeFromPathRequest,
+  LoadTreeFromPathResponse
 } from '@/types/services/LoadTreeFromPath'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
-
-
 
 export const useROSStore = defineStore(
   'ros',
@@ -156,7 +163,7 @@ export const useROSStore = defineStore(
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
         latch: true,
-        reconnect_on_close: true,
+        reconnect_on_close: true
       })
     )
 
@@ -166,7 +173,7 @@ export const useROSStore = defineStore(
         name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
-        reconnect_on_close: true,
+        reconnect_on_close: true
       })
     )
 
@@ -315,9 +322,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const save_tree_service = ref<
-      ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>
-    >(
+    const save_tree_service = ref<ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>>(
       new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'save_tree',
@@ -361,7 +366,6 @@ export const useROSStore = defineStore(
     })
 
     function updateROSServices() {
-
       tree_sub.value.unsubscribe()
       tree_sub.value.removeAllListeners()
       tree_sub.value = new ROSLIB.Topic({
@@ -369,7 +373,7 @@ export const useROSStore = defineStore(
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
         latch: true,
-        reconnect_on_close: true,
+        reconnect_on_close: true
       })
 
       subtree_info_sub.value.unsubscribe()
@@ -379,7 +383,7 @@ export const useROSStore = defineStore(
         name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
         latch: true,
-        reconnect_on_close: true,
+        reconnect_on_close: true
       })
 
       messages_sub.value.unsubscribe()
@@ -539,7 +543,6 @@ export const useROSStore = defineStore(
         name: namespace.value + 'load_tree_from_path',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
       })
-
     }
 
     function connect() {

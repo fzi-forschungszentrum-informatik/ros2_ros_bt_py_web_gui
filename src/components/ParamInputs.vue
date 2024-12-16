@@ -37,50 +37,50 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 
 const props = defineProps<{
-  category: 'options',
+  category: 'options'
   data_key: string
 }>()
 
 const edit_node_store = useEditNodeStore()
 const editor_store = useEditorStore()
 
-const param = computed<ParamData | undefined>(() => 
+const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
 // Below lists the data types that are handled by <input>...
-const input_type_values = ["int", "float", "bool", "string", "unset_optionref"]
+const input_type_values = ['int', 'float', 'bool', 'string', 'unset_optionref']
 //  ...and gives the appropriate attributes.
 const input_attrs = computed<any>(() => {
   if (param.value === undefined || !input_type_values.includes(param.value.value.type)) {
     return undefined
   }
-  let type: string, 
+  let type: string,
     value: any,
-    step: number | "any" = "any",
-    cssclass: string[] = ["form-control"],
+    step: number | 'any' = 'any',
+    cssclass: string[] = ['form-control'],
     checked: boolean = false,
     disabled: boolean = editor_store.selected_subtree.is_subtree
   switch (param.value.value.type) {
-    case "int":
+    case 'int':
       step = 1.0
-    case "float":
-      type = "number"
-      value = (param.value.value.value as number)
+    case 'float':
+      type = 'number'
+      value = param.value.value.value as number
       break
-    case "bool":
-      type = "checkbox"
-      checked = (param.value.value.value as boolean)
-      cssclass = ["form-check-input", "d-block"]
+    case 'bool':
+      type = 'checkbox'
+      checked = param.value.value.value as boolean
+      cssclass = ['form-check-input', 'd-block']
       break
-    case "unset_optionref":
+    case 'unset_optionref':
       disabled = true
-    case "string":
-      type = "text"
-      value = (param.value.value.value as string)
-      break 
+    case 'string':
+      type = 'text'
+      value = param.value.value.value as string
+      break
     default:
-      type = "hidden"
+      type = 'hidden'
       break
   }
   return {
@@ -100,17 +100,15 @@ const json_attrs = computed<any>(() => {
     return undefined
   }
   switch (param.value.value.type) {
-    case "list":
+    case 'list':
       break
-    case "dict":
-    case "collections.OrderedDict":
+    case 'dict':
+    case 'collections.OrderedDict':
       break
     default:
       break
   }
-  return {
-    
-  }
+  return {}
 })
 
 // Handles value changes for the <input> element
@@ -121,19 +119,19 @@ function onChange(event: Event) {
   const target = event.target as HTMLInputElement
   let new_value: any
   switch (param.value.value.type) {
-    case "int":
+    case 'int':
       new_value = parseInt(target.value)
       if (isNaN(new_value)) {
         new_value = 0
       }
       break
-    case "float":
+    case 'float':
       new_value = parseFloat(target.value)
       if (isNaN(new_value)) {
         new_value = 0.0
       }
       break
-    case "bool":
+    case 'bool':
       new_value = target.checked
       break
     default:
@@ -146,7 +144,6 @@ function onChange(event: Event) {
 function onFocus() {
   edit_node_store.changeCopyMode(false)
 }
-
 </script>
 
 <template>
@@ -155,11 +152,7 @@ function onFocus() {
       <label class="d-block">
         {{ param.key }}
       </label>
-      <input
-        v-bind="input_attrs"
-        @change="onChange"
-        @focus="onFocus"
-      />
+      <input v-bind="input_attrs" @change="onChange" @focus="onFocus" />
     </div>
 
     <TypeParam
@@ -167,7 +160,7 @@ function onFocus() {
       :category="props.category"
       :data_key="props.data_key"
     />
-    
+
     <MathOperationParam
       v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
       :category="props.category"
@@ -200,15 +193,9 @@ function onFocus() {
     <div v-else class="form-group">
       <label class="d-block">
         {{ param.key }}
-        <JSONInput
-          v-bind="json_attrs"
-          :category="props.category"
-          :data_key="props.data_key"
-        />
+        <JSONInput v-bind="json_attrs" :category="props.category" :data_key="props.data_key" />
       </label>
     </div>
   </div>
-  <div v-else>
-    Error loading param data
-  </div>
+  <div v-else>Error loading param data</div>
 </template>

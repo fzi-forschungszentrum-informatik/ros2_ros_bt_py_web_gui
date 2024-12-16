@@ -47,27 +47,26 @@ const new_url = ref<string>(ros_store.url)
 const connection_status_attrs = computed<any>(() => {
   if (!ros_store.connected) {
     return {
-      class: "disconnected",
-      title: "Disconnected"
+      class: 'disconnected',
+      title: 'Disconnected'
     }
   }
   if (!messages_store.messages_available) {
     return {
-      class: "messages-missing",
-      title: "Connected, message info not (yet) available. " + 
-        "ROS-type autocompletion will not work."
+      class: 'messages-missing',
+      title:
+        'Connected, message info not (yet) available. ' + 'ROS-type autocompletion will not work.'
     }
   }
   if (!packages_store.packages_available) {
     return {
-      class: "packages-missing",
-      title: "Connected, package list not (yet) available. " + 
-        "File browser will not work."
+      class: 'packages-missing',
+      title: 'Connected, package list not (yet) available. ' + 'File browser will not work.'
     }
   }
   return {
-    class: "connected",
-    title: "Connected"
+    class: 'connected',
+    title: 'Connected'
   }
 })
 
@@ -124,7 +123,6 @@ function saveRosbridgeServer() {
 }
 
 onMounted(updateAvailableNamespaces)
-
 </script>
 
 <template>
@@ -137,11 +135,15 @@ onMounted(updateAvailableNamespaces)
     />
 
     <div class="input-group flex-nowrap me-2">
-      <button type="button" class="btn btn-outline-contrast" @click="editRosbridgeServer"
+      <button
+        type="button"
+        class="btn btn-outline-contrast"
+        @click="editRosbridgeServer"
         title="Edit rosbridge server"
       >
-        <font-awesome-icon aria-hidden="true"
-          :icon="'fa-solid ' + (edit_rosbridge_server ? 'fa-xmark' : 'fa-cog')" 
+        <font-awesome-icon
+          aria-hidden="true"
+          :icon="'fa-solid ' + (edit_rosbridge_server ? 'fa-xmark' : 'fa-cog')"
         />
       </button>
       <template v-if="edit_rosbridge_server">
@@ -179,7 +181,6 @@ onMounted(updateAvailableNamespaces)
         <span class="sr-only">Refresh Namespaces</span>
       </button>
     </div>
-
   </div>
 </template>
 

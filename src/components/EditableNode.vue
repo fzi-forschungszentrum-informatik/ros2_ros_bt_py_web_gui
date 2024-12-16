@@ -37,36 +37,38 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import ParamInputs from './ParamInputs.vue'
 import ParamDisplay from './ParamDisplay.vue'
 
-
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
-
 </script>
 
 <template>
-  <div class="d-flex flex-column overflow-auto pb-3" style="max-height: 40vh;">
+  <div class="d-flex flex-column overflow-auto pb-3" style="max-height: 40vh">
     <input
       class="form-control-lg mb-2"
       type="text"
       :value="edit_node_store.new_node_name"
       :disabled="editor_store.selected_subtree.is_subtree"
       @focus="() => edit_node_store.changeCopyMode(false)"
-      @change="(event: Event) => edit_node_store.changeNodeName(
-        (event.target as HTMLInputElement).value )"
+      @change="
+        (event: Event) => edit_node_store.changeNodeName((event.target as HTMLInputElement).value)
+      "
     />
     <div class="d-flex align-items-baseline mb-2">
       <h4 class="text-muted">
         <div v-if="!edit_node_store.is_flow_control_node">
-          {{ edit_node_store.new_node_class }} <small>({{ edit_node_store.new_node_module }})</small>
+          {{ edit_node_store.new_node_class }}
+          <small>({{ edit_node_store.new_node_module }})</small>
         </div>
         <select
           v-else
           class="form-select"
           :value="edit_node_store.new_node_module + edit_node_store.new_node_class"
           :disabled="editor_store.selected_subtree.is_subtree"
-          @change="(event: Event) => edit_node_store.changeNodeClass(
-            (event.target as HTMLInputElement).value )"
+          @change="
+            (event: Event) =>
+              edit_node_store.changeNodeClass((event.target as HTMLInputElement).value)
+          "
         >
           <option
             v-for="node in edit_node_store.flow_control_nodes"

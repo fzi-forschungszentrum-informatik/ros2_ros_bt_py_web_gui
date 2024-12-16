@@ -29,15 +29,15 @@
  -->
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
-import { useROSStore } from '@/stores/ros';
-import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
-import { notify } from '@kyvg/vue3-notification';
+import { useROSStore } from '@/stores/ros'
+import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
-const publish_subtrees_id: string = "publish_subtrees"
+const publish_subtrees_id: string = 'publish_subtrees'
 
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
@@ -51,32 +51,33 @@ function handlePubSubtreesChange(event: Event) {
     return
   }
 
-  ros_store.set_publish_subtrees_service.callService({
-    data: target.checked
-  } as SetBoolRequest,
-  (response: SetBoolResponse) => {
-    if (response.success) {
+  ros_store.set_publish_subtrees_service.callService(
+    {
+      data: target.checked
+    } as SetBoolRequest,
+    (response: SetBoolResponse) => {
+      if (response.success) {
+        notify({
+          title: (target.checked ? 'Enable' : 'Disable') + ' subtree publishing',
+          type: 'success'
+        })
+        editor_store.enableSubtreePublishing(target.checked)
+      } else {
+        notify({
+          title: 'Failed to toggle subtree publishing',
+          text: response.message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
       notify({
-        title: (target.checked ? "Enable" : "Disable") + " subtree publishing",
-        type: 'success'
-      })
-      editor_store.enableSubtreePublishing(target.checked)
-    } else {
-      notify({
-        title: "Failed to toggle subtree publishing",
-        text: response.message,
-        type: 'warn'
+        title: 'Failed to call setPublishSubtrees service',
+        text: error,
+        type: 'error'
       })
     }
-  },
-  (error: string) => {
-    notify({
-      title: "Failed to call setPublishSubtrees service",
-      text: error,
-      type: 'error'
-    })
-  })
-
+  )
 }
 
 function onChange(event: Event) {
@@ -100,9 +101,7 @@ const selected_name = computed<string>(() => {
 
 <template>
   <div>
-
     <div class="input-group my-2">
-
       <label class="input-group-text" for="formTree"> Tree </label>
 
       <select
@@ -129,10 +128,11 @@ const selected_name = computed<string>(() => {
       />
 
       <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
-        <font-awesome-icon :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'" icon="fa-solid fa-bullhorn" />
+        <font-awesome-icon
+          :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
+          icon="fa-solid fa-bullhorn"
+        />
       </label>
-
     </div>
-
   </div>
 </template>

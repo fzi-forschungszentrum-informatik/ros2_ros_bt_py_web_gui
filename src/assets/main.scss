@@ -27,8 +27,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-@import './base.scss';
-@import '@fontsource/source-sans-pro';
+@use './base.scss';
+@use '@fontsource/source-sans-pro';
+@use 'node_modules/bootstrap/scss/bootstrap';
 
 body {
   font-family: 'Source Sans Pro';
@@ -57,5 +58,3 @@ a,
 //$theme-colors: (
 //  "primary": #3fb984,
 //);
-
-@import 'node_modules/bootstrap/scss/bootstrap';

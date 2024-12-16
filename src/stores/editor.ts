@@ -30,7 +30,14 @@
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
-import type { NodeDataWiring, DocumentedNode, TreeMsg, NodeMsg, TrimmedNode, DataEdgeTerminal } from '@/types/types'
+import type {
+  NodeDataWiring,
+  DocumentedNode,
+  TreeMsg,
+  NodeMsg,
+  TrimmedNode,
+  DataEdgeTerminal
+} from '@/types/types'
 import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -64,9 +71,11 @@ export const useEditorStore = defineStore('editor', () => {
   const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
   const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
   const is_dragging = computed<boolean>(() => {
-    return dragging_new_node.value !== undefined || 
-    dragging_existing_node.value !== undefined ||
-    data_edge_endpoint.value !== undefined
+    return (
+      dragging_new_node.value !== undefined ||
+      dragging_existing_node.value !== undefined ||
+      data_edge_endpoint.value !== undefined
+    )
   })
 
   const show_data_graph = ref<boolean>(true)
@@ -79,7 +88,7 @@ export const useEditorStore = defineStore('editor', () => {
     tree: undefined
   })
 
-  const subtree_names = computed<string[]>(() => 
+  const subtree_names = computed<string[]>(() =>
     subtree_states.value.map((tree: TreeMsg) => tree.name)
   )
 
@@ -105,14 +114,14 @@ export const useEditorStore = defineStore('editor', () => {
 
   function startDraggingNewNode(new_dragging_node: DocumentedNode) {
     drag_start_timeout = setTimeout(
-      () => dragging_new_node.value = new_dragging_node, 
+      () => (dragging_new_node.value = new_dragging_node),
       drag_start_delay
     )
   }
 
   function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<TrimmedNode>) {
     drag_start_timeout = setTimeout(
-      () => dragging_existing_node.value = existing_dragging_node, 
+      () => (dragging_existing_node.value = existing_dragging_node),
       drag_start_delay
     )
   }
@@ -207,6 +216,6 @@ export const useEditorStore = defineStore('editor', () => {
     subtree_names,
     selected_edge,
     selectEdge,
-    unselectEdge,
+    unselectEdge
   }
 })

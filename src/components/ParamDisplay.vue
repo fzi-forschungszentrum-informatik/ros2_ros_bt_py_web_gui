@@ -28,12 +28,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
+import { useEditNodeStore } from '@/stores/edit_node'
 import type { ParamData } from '@/types/types'
-import { computed } from 'vue';
+import { computed } from 'vue'
 
 const props = defineProps<{
-  category: 'inputs' | 'outputs',
+  category: 'inputs' | 'outputs'
   data_key: string
 }>()
 
@@ -41,13 +41,12 @@ const edit_node_store = useEditNodeStore()
 
 const param = computed<ParamData | undefined>(() => {
   switch (props.category) {
-    case "inputs":
+    case 'inputs':
       return edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
-    case "outputs":
+    case 'outputs':
       return edit_node_store.new_node_outputs.find((x) => x.key === props.data_key)
   }
 })
-
 </script>
 
 <template>
@@ -92,7 +91,5 @@ const param = computed<ParamData | undefined>(() => {
       <pre>{{ JSON.stringify(param.value.value, null, 2) }}</pre>
     </div>
   </div>
-  <div v-else>
-    Error loading param data
-  </div>
+  <div v-else>Error loading param data</div>
 </template>

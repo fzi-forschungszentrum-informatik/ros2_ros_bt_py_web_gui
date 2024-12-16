@@ -85,10 +85,7 @@ import {
   faCubes
 } from '@fortawesome/free-solid-svg-icons'
 
-import {
-  faSun as faSunAlt,
-  faMoon as faMoonAlt,
-} from '@fortawesome/free-regular-svg-icons'
+import { faSun as faSunAlt, faMoon as faMoonAlt } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
   faSync,

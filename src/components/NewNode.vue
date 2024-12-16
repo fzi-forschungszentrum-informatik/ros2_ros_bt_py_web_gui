@@ -118,9 +118,9 @@ function addToTree() {
   }
 
   const msg = buildNodeMessage(
-    edit_node_store.new_node_module, 
-    edit_node_store.new_node_class, 
-    edit_node_store.new_node_name, 
+    edit_node_store.new_node_module,
+    edit_node_store.new_node_class,
+    edit_node_store.new_node_name,
     edit_node_store.new_node_options
   )
 
@@ -161,7 +161,11 @@ function addToTree() {
 
 <template>
   <div class="d-flex flex-column">
-    <button class="btn btn-block btn-primary" :disabled="!edit_node_store.node_is_valid" @click="addToTree">
+    <button
+      class="btn btn-block btn-primary"
+      :disabled="!edit_node_store.node_is_valid"
+      @click="addToTree"
+    >
       Add to Tree
     </button>
     <label class="pt-2 pb-2">

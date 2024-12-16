@@ -32,7 +32,6 @@ import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-
 export const useMessasgeStore = defineStore('messages', () => {
   const messages_fuse_options = {
     shouldSort: true,
@@ -77,17 +76,17 @@ export const useMessasgeStore = defineStore('messages', () => {
           type: MessageType.MESSAGE //TODO is this correct?
         },
         {
-          msg: new_msg + ".Request",
+          msg: new_msg + '.Request',
           service: true,
           action: false,
           type: MessageType.REQUEST
         },
         {
-          msg: new_msg + ".Response",
+          msg: new_msg + '.Response',
           service: true,
           action: false,
           type: MessageType.RESPONSE
-        },
+        }
       ]
     }
     if (message.action) {
@@ -100,44 +99,46 @@ export const useMessasgeStore = defineStore('messages', () => {
           type: MessageType.MESSAGE //TODO is this correct?
         },
         {
-          msg: new_msg + ".Goal",
+          msg: new_msg + '.Goal',
           action: true,
           service: false,
           type: MessageType.GOAL
         },
         {
-          msg: new_msg + ".Result",
+          msg: new_msg + '.Result',
           action: true,
           service: false,
           type: MessageType.RESULT
         },
         {
-          msg: new_msg + ".Feedback",
+          msg: new_msg + '.Feedback',
           action: true,
           service: false,
           type: MessageType.FEEDBACK
-        },
+        }
       ]
     }
-    return [{
-      msg: message_parts[0] + ".msg." + message_parts[2],
-      service: false,
-      action: false,
-      type: MessageType.MESSAGE
-    }]
+    return [
+      {
+        msg: message_parts[0] + '.msg.' + message_parts[2],
+        service: false,
+        action: false,
+        type: MessageType.MESSAGE
+      }
+    ]
   }
 
   // This is a temporary function to avoid code duplication with mapMessageTypes
   //  it populates the additional ros_fuses, but the parsing of the mapMessageTypes
   //  output is a bit convoluted and not stable against changes.
-  //TODO if the big messages_fuse is ever phased out, merge and redo this with 
+  //TODO if the big messages_fuse is ever phased out, merge and redo this with
   //  the parsing in mapMessageTypes
   function fillRosFuses() {
     ros_msg_fuse.value.setCollection([])
     ros_srv_fuse.value.setCollection([])
     ros_action_fuse.value.setCollection([])
 
-    messages.value.forEach(element => {
+    messages.value.forEach((element) => {
       // All service and action compontents (eg .Request .Response) are messages
       if (element.msg.split('.').length > 3) {
         ros_msg_fuse.value.add(element.msg)

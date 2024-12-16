@@ -48,11 +48,11 @@ const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 
 const props = defineProps<{
-  category: 'options',
+  category: 'options'
   data_key: string
 }>()
 
-const param = computed<ParamData | undefined>(() => 
+const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -62,7 +62,6 @@ const field_names = ref<string[]>([])
 
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined
-
 
 function onFocus() {
   edit_node_store.changeCopyMode(false)
@@ -94,7 +93,6 @@ function updateMessageType() {
   } else {
     message_type = param.value.value.type
   }
-  
 
   const message = getMessageType(message_type)
   if (message.msg === '/dict' || message.msg === '') {
@@ -125,7 +123,6 @@ function updateMessageType() {
           }
           editor.update(new_value)
           handleChange()
-
         } else {
           notify({
             title: 'GetMessageFields Service Error',
@@ -145,14 +142,14 @@ function updateMessageType() {
   }
 }
 
-
 // This fires when param type changes and updates the editor accordingly
-watch(() => {
+watch(
+  () => {
     if (param.value === undefined) {
       return ''
     }
     return param.value.value.type
-  }, 
+  },
   () => {
     if (editor === undefined || param.value === undefined) {
       return
@@ -177,7 +174,6 @@ onMounted(() => {
   if (param.value !== undefined) {
     editor.update(param.value.value.value)
   }
-  
 })
 
 onUnmounted(() => {

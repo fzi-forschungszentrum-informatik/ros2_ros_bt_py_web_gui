@@ -66,8 +66,6 @@ const nodes = computed<DocumentedNode[]>(() => {
     return nodes
   }
 })
-
-
 </script>
 <template>
   <div class="border rounded m-1 pb-2 d-flex flex-column">
@@ -80,9 +78,9 @@ const nodes = computed<DocumentedNode[]>(() => {
       class="text-center cursor-pointer m-2"
     >
       Node List
-      <font-awesome-icon 
-        :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')" 
-        aria-hidden="true" 
+      <font-awesome-icon
+        :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
+        aria-hidden="true"
       />
     </div>
     <div v-if="!nodelist_collapsed" class="scroll-col flex-shrink-1">
@@ -96,7 +94,6 @@ const nodes = computed<DocumentedNode[]>(() => {
 </template>
 
 <style scoped lang="scss">
-
 .scroll-col {
   min-height: 0;
   overflow-y: auto;
@@ -114,7 +111,5 @@ const nodes = computed<DocumentedNode[]>(() => {
     scrollbar-width: thin;
     scrollbar-gutter: stable both-edges;
   }*/
-
 }
-
 </style>

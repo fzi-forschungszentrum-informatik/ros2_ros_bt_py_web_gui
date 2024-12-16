@@ -28,98 +28,98 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor';
-import { useROSStore } from '@/stores/ros';
-import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName';
-import { notify } from '@kyvg/vue3-notification';
-import { computed, ref } from 'vue';
-
+import { useEditorStore } from '@/stores/editor'
+import { useROSStore } from '@/stores/ros'
+import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
+import { notify } from '@kyvg/vue3-notification'
+import { computed, ref } from 'vue'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
-
 const tree_name = computed<string>(() => {
-    if (editor_store.selected_subtree.is_subtree) {
-        return editor_store.selected_subtree.name
-    } else if (editor_store.tree) {
-        return editor_store.tree.name
-    } else {
-      return ''
-    }
+  if (editor_store.selected_subtree.is_subtree) {
+    return editor_store.selected_subtree.name
+  } else if (editor_store.tree) {
+    return editor_store.tree.name
+  } else {
+    return ''
+  }
 })
 
 const new_tree_name = ref<string>(tree_name.value)
 
 const tree_state = computed<string>(() => {
-    if (editor_store.selected_subtree.is_subtree) {
-        return editor_store.selected_subtree.tree!.state
-    } else if (editor_store.tree) {
-        return editor_store.tree.state
-    } else {
-        return 'UNKNOWN'
-    }
+  if (editor_store.selected_subtree.is_subtree) {
+    return editor_store.selected_subtree.tree!.state
+  } else if (editor_store.tree) {
+    return editor_store.tree.state
+  } else {
+    return 'UNKNOWN'
+  }
 })
 
 function renameTree(): void {
-    console.log(new_tree_name.value)
-    ros_store.change_tree_name_service.callService({
-        name: new_tree_name.value,
+  console.log(new_tree_name.value)
+  ros_store.change_tree_name_service.callService(
+    {
+      name: new_tree_name.value
     } as ChangeTreeNameRequest,
     (response: ChangeTreeNameResponse) => {
-        if (response.success) {
-            notify({
-                title: 'Successfully renamed tree!',
-                text: new_tree_name.value,
-                type: 'success'
-            })
-        } else {
-            notify({
-                title: 'Failed to rename tree!',
-                text: response.error_message,
-                type: 'warn'
-            })
-        }
-    }, 
-    (error: string) => {
+      if (response.success) {
         notify({
-            title: 'Failed to call ChangeTreeName service!',
-            text: error,
-            type: 'error'
+          title: 'Successfully renamed tree!',
+          text: new_tree_name.value,
+          type: 'success'
         })
-    })
+      } else {
+        notify({
+          title: 'Failed to rename tree!',
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
+      notify({
+        title: 'Failed to call ChangeTreeName service!',
+        text: error,
+        type: 'error'
+      })
+    }
+  )
 }
-
 </script>
 
 <template>
-    <div class="d-flex align-items-center my-2">
-        <div class="input-group me-1">
-            <label class="input-group-text" for="treeNameForm"> Name </label>
-            <input
-                id="treeNameForm"
-                class="form-control"
-                type="text"
-                :disabled="editor_store.selected_subtree.is_subtree"
-                :value="tree_name"
-                @input="(event: Event) => new_tree_name = (event.target as HTMLInputElement).value"
-            />
-            <button class="btn btn-primary"
-            :disabled="editor_store.selected_subtree.is_subtree"
-            @click="renameTree"
-            >
-                Save
-            </button>
-        </div>
-        <div class="input-group ms-1" style="width: fit-content;">
-            <label class="input-group-text" for="treeStateForm"> State </label>
-            <input
-                id="treeStateForm"
-                class="form-control"
-                type="text"
-                disabled="true"
-                :value="tree_state"
-            />
-        </div>
+  <div class="d-flex align-items-center my-2">
+    <div class="input-group me-1">
+      <label class="input-group-text" for="treeNameForm"> Name </label>
+      <input
+        id="treeNameForm"
+        class="form-control"
+        type="text"
+        :disabled="editor_store.selected_subtree.is_subtree"
+        :value="tree_name"
+        @input="(event: Event) => (new_tree_name = (event.target as HTMLInputElement).value)"
+      />
+      <button
+        class="btn btn-primary"
+        :disabled="editor_store.selected_subtree.is_subtree"
+        @click="renameTree"
+      >
+        Save
+      </button>
     </div>
+    <div class="input-group ms-1" style="width: fit-content">
+      <label class="input-group-text" for="treeStateForm"> State </label>
+      <input
+        id="treeStateForm"
+        class="form-control"
+        type="text"
+        disabled="true"
+        :value="tree_state"
+      />
+    </div>
+  </div>
 </template>

@@ -31,32 +31,35 @@
 import { computed, ref } from 'vue'
 import { VueFinalModal } from 'vue-final-modal'
 import FileBrowser from './FileBrowser.vue'
-import { NameConflictHandler } from '@/utils';
-
+import { NameConflictHandler } from '@/utils'
 
 const emit = defineEmits<{
-  (e: 'select', storage_location: string, file_path: string, conflict_handler: NameConflictHandler): void,
+  (
+    e: 'select',
+    storage_location: string,
+    file_path: string,
+    conflict_handler: NameConflictHandler
+  ): void
   (e: 'close'): void
 }>()
 
-
 // Specify valid file extensions as regex (multiple with | in the capture group)
-const file_type_regex: RegExp = new RegExp("\.(yaml)")
+const file_type_regex: RegExp = new RegExp('\.(yaml)')
 
 const file_filter = ref<RegExp | undefined>(file_type_regex)
 
-const storage_location = ref<string>("")
+const storage_location = ref<string>('')
 const selected_path = ref<string[]>([])
 const is_directory = ref<boolean>(true)
-const input_file_name = ref<string>("")
+const input_file_name = ref<string>('')
 
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
 const file_path = computed<string>(() => {
   if (is_directory.value) {
-    return [...selected_path.value, input_file_name.value].join("/")
+    return [...selected_path.value, input_file_name.value].join('/')
   } else {
-    return [...selected_path.value.slice(0, -1), input_file_name.value].join("/")
+    return [...selected_path.value.slice(0, -1), input_file_name.value].join('/')
   }
 })
 
@@ -64,12 +67,11 @@ function setLocation(path: string[], dir: boolean) {
   selected_path.value = path
   is_directory.value = dir
   if (dir) {
-    input_file_name.value = ""
+    input_file_name.value = ''
   } else {
     input_file_name.value = path[path.length - 1]
   }
 }
-
 </script>
 
 <template>
@@ -78,14 +80,21 @@ function setLocation(path: string[], dir: boolean) {
     content-class="flex flex-col mt-4 mx-4 border rounded space-y-2"
     content-style="background-color: var(--bs-body-bg);"
   >
-  <FileBrowser location="Folder" title="Save Tree to Folder" @close="emit('close')"
-    :file_filter="file_filter" :search_term="input_file_name"
-    @location="(location) => storage_location = location"
-    @select="(path, dir) => setLocation(path, dir)">
+    <FileBrowser
+      location="Folder"
+      title="Save Tree to Folder"
+      @close="emit('close')"
+      :file_filter="file_filter"
+      :search_term="input_file_name"
+      @location="(location) => (storage_location = location)"
+      @select="(path, dir) => setLocation(path, dir)"
+    >
       <div class="d-flex justify-content-between mb-3">
-        <button class="btn btn-primary me-2"
-        :disabled="!file_type_regex.test(input_file_name)"
-        @click="emit('select', storage_location, file_path, handle_name_conflict)">
+        <button
+          class="btn btn-primary me-2"
+          :disabled="!file_type_regex.test(input_file_name)"
+          @click="emit('select', storage_location, file_path, handle_name_conflict)"
+        >
           Select
         </button>
         <select v-model="file_filter" class="form-select me-2">
@@ -99,10 +108,8 @@ function setLocation(path: string[], dir: boolean) {
         </select>
       </div>
       <div class="input-group mb-3">
-        <span class="input-group-text">
-            Name:
-        </span>
-        <input v-model="input_file_name" type="text" class="form-control">
+        <span class="input-group-text"> Name: </span>
+        <input v-model="input_file_name" type="text" class="form-control" />
       </div>
     </FileBrowser>
   </VueFinalModal>

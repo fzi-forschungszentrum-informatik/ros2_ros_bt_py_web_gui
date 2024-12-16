@@ -51,8 +51,6 @@ import LoadSaveControls from './components/LoadSaveControls.vue'
 import NamespaceSelect from './components/NamespaceSelect.vue'
 import TickControls from './components/TickControls.vue'
 
-
-
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
@@ -61,7 +59,7 @@ const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 const dark_mode = ref<boolean>(false)
-// Bootstrap docs say to apply their theme specifier to the root element, 
+// Bootstrap docs say to apply their theme specifier to the root element,
 // hence the plain js solution instead of a cleaner vue approach
 watch(dark_mode, (dark_mode) => {
   if (dark_mode) {
@@ -170,8 +168,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <header v-if="execution_bar_visible" 
-  class="d-flex justify-content-between align-items-center p-2 top-bar">
+  <header
+    v-if="execution_bar_visible"
+    class="d-flex justify-content-between align-items-center p-2 top-bar"
+  >
     <NamespaceSelect></NamespaceSelect>
 
     <TickControls></TickControls>
@@ -180,13 +180,14 @@ onMounted(() => {
   </header>
 
   <main>
-    <div :class="editor_store.is_dragging ? 'cursor-grabbing' : ''" class="container-fluid"
-    @mouseup="() => editor_store.stopDragging()"
-    @mouseleave="() => editor_store.stopDragging()"
+    <div
+      :class="editor_store.is_dragging ? 'cursor-grabbing' : ''"
+      class="container-fluid"
+      @mouseup="() => editor_store.stopDragging()"
+      @mouseleave="() => editor_store.stopDragging()"
     >
       <div class="row row-height">
         <div class="col-3 d-flex flex-column h-100" id="nodelist_container" v-if="nodelist_visible">
-
           <div class="d-flex justify-content-between m-1 mt-2">
             <button
               class="btn btn-outline-primary"
@@ -204,9 +205,19 @@ onMounted(() => {
               />
             </button>
 
-            <button class="btn btn-outline-primary" @click="dark_mode = !dark_mode" title="Change window appearance">
-              <font-awesome-icon :class="dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-moon" />
-              <font-awesome-icon :class="!dark_mode ? '' : 'text-secondary'" icon="fa-regular fa-sun" />
+            <button
+              class="btn btn-outline-primary"
+              @click="dark_mode = !dark_mode"
+              title="Change window appearance"
+            >
+              <font-awesome-icon
+                :class="dark_mode ? '' : 'text-secondary'"
+                icon="fa-regular fa-moon"
+              />
+              <font-awesome-icon
+                :class="!dark_mode ? '' : 'text-secondary'"
+                icon="fa-regular fa-sun"
+              />
             </button>
           </div>
 
@@ -227,35 +238,46 @@ onMounted(() => {
               </div>
             </div>
           </div>
-          <NodeList style="min-height: 0;" />
+          <NodeList style="min-height: 0" />
         </div>
         <div class="col d-flex flex-column" id="main_pane">
           <div class="row justify-content-between bg-secondary">
-
             <!-- Show nodelist button -->
             <button
-            v-if="!nodelist_visible"
-            class="btn btn-outline-light m-2 col-auto order-first"
-            title="Show nodelist"
-            @click="
-              () => {
-                nodelist_visible = !nodelist_visible
-              }
-            "
-          >
-            <font-awesome-icon
-              icon="fa-solid fa-angle-double-right"
-              aria-hidden="true"
-              class="show-button-icon"
-            />
-          </button>
+              v-if="!nodelist_visible"
+              class="btn btn-outline-light m-2 col-auto order-first"
+              title="Show nodelist"
+              @click="
+                () => {
+                  nodelist_visible = !nodelist_visible
+                }
+              "
+            >
+              <font-awesome-icon
+                icon="fa-solid fa-angle-double-right"
+                aria-hidden="true"
+                class="show-button-icon"
+              />
+            </button>
 
             <!--Elements are dynamically reordered when inlining all three-->
             <SelectSubtree class="col col-xl-3 order-xl-1"></SelectSubtree>
 
-            <EditorDisplayButtons :exec-bar-visible="execution_bar_visible" class="col-auto order-xl-3"
-            @show="() => {execution_bar_visible = true; nodelist_visible = true}"
-            @hide="() => {execution_bar_visible = false; nodelist_visible = false}"
+            <EditorDisplayButtons
+              :exec-bar-visible="execution_bar_visible"
+              class="col-auto order-xl-3"
+              @show="
+                () => {
+                  execution_bar_visible = true
+                  nodelist_visible = true
+                }
+              "
+              @hide="
+                () => {
+                  execution_bar_visible = false
+                  nodelist_visible = false
+                }
+              "
             ></EditorDisplayButtons>
 
             <TreeNameStateDisplay class="col-12 col-xl-6 order-xl-2"></TreeNameStateDisplay>
@@ -290,22 +312,20 @@ onMounted(() => {
             </div>
             <div class="col-6">
               <!-- BT Edge selection-->
-              <BehaviorTreeEdge
-                v-if="editor_store.selected_edge !== undefined"
-              ></BehaviorTreeEdge>
+              <BehaviorTreeEdge v-if="editor_store.selected_edge !== undefined"></BehaviorTreeEdge>
               <div v-else class="d-flex flex-column">No Edge Selected</div>
             </div>
           </div>
         </div>
       </div>
     </div>
-    <notifications position="bottom right" :pauseOnHover=true />
+    <notifications position="bottom right" :pauseOnHover="true" />
     <ModalsContainer />
   </main>
 </template>
 
 <style lang="scss">
-@import 'src/assets/utils.scss';
+@use 'src/assets/utils.scss';
 
 .cursor-pointer {
   cursor: pointer;
@@ -314,8 +334,6 @@ onMounted(() => {
 .cursor-grabbing {
   cursor: grabbing;
 }
-
-
 
 .json {
   white-space: pre;
@@ -332,17 +350,13 @@ onMounted(() => {
   background-color: #bebebe;
 }
 
-[data-bs-theme=dark] .top-bar {
+[data-bs-theme='dark'] .top-bar {
   background-color: #4b4b4b;
 }
-
-
 
 .placeholder {
   background: #8e0000;
 }
-
-
 
 .clear-error {
   position: absolute;
@@ -351,13 +365,9 @@ onMounted(() => {
   z-index: 10;
 }
 
-
-
 #nodelist_container {
   border-right: solid;
 }
-
-
 
 div.jsoneditor,
 div.jsoneditor-menu {
@@ -373,8 +383,6 @@ textarea.jsoneditor-text {
   min-height: 35px;
 }
 
-
-
 #loading-icon {
   position: absolute;
   left: 50%;
@@ -384,8 +392,6 @@ textarea.jsoneditor-text {
   text-align: center;
   font: 100px sans-serif;
 }
-
-
 
 @keyframes fade {
   0% {
@@ -432,19 +438,13 @@ textarea.jsoneditor-text {
   animation-delay: 1.2s;
 }
 
-
-
 .cm_available {
   padding: 0.25rem;
   color: #007bff;
 }
 
-
-
 .filebrowser-bar:hover {
   background-color: #007bff;
   color: #ffffff;
 }
-
-
 </style>

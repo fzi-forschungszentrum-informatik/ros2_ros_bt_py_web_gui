@@ -80,7 +80,10 @@ function controlExec(command: TreeExecutionCommands) {
       class="btn btn-primary"
       title="Tick Once"
     >
-      <font-awesome-icon icon="fas fa-check" spin aria-hidden="true"
+      <font-awesome-icon
+        icon="fas fa-check"
+        spin
+        aria-hidden="true"
         v-if="editor_store.running_commands.has(TreeExecutionCommands.TICK_ONCE)"
       />
       <font-awesome-icon v-else icon="fas fa-check" aria-hidden="true" />
@@ -119,7 +122,10 @@ function controlExec(command: TreeExecutionCommands) {
       class="btn btn-primary btn-spaced"
       title="Stop"
     >
-      <font-awesome-icon icon="fas fa-stop" spin aria-hidden="true"
+      <font-awesome-icon
+        icon="fas fa-stop"
+        spin
+        aria-hidden="true"
         v-if="editor_store.running_commands.has(TreeExecutionCommands.STOP)"
       />
       <font-awesome-icon v-else icon="fas fa-stop" aria-hidden="true" />
@@ -131,7 +137,10 @@ function controlExec(command: TreeExecutionCommands) {
       class="btn btn-primary btn-spaced"
       title="Reset"
     >
-      <font-awesome-icon icon="fas fa-undo" spin aria-hidden="true"
+      <font-awesome-icon
+        icon="fas fa-undo"
+        spin
+        aria-hidden="true"
         v-if="editor_store.running_commands.has(TreeExecutionCommands.RESET)"
       />
       <font-awesome-icon v-else icon="fas fa-undo" aria-hidden="true" />
@@ -142,7 +151,10 @@ function controlExec(command: TreeExecutionCommands) {
       class="btn btn-primary btn-spaced"
       title="Shutdown"
     >
-      <font-awesome-icon icon="fas fa-power-off" spin aria-hidden="true"
+      <font-awesome-icon
+        icon="fas fa-power-off"
+        spin
+        aria-hidden="true"
         v-if="editor_store.running_commands.has(TreeExecutionCommands.SHUTDOWN)"
       />
       <font-awesome-icon v-else icon="fas fa-power-off" aria-hidden="true" />
@@ -151,6 +163,4 @@ function controlExec(command: TreeExecutionCommands) {
   </div>
 </template>
 
-<style lang="scss">
-
-</style>
+<style lang="scss"></style>

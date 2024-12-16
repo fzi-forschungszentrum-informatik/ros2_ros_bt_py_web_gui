@@ -56,7 +56,6 @@ const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-
 function buildNodeMsg(): NodeMsg {
   return {
     module: edit_node_store.new_node_module,
@@ -132,7 +131,11 @@ function onClickDeleteWithChildren() {
     return
   }
 
-  if (!window.confirm('Really delete node ' + edit_node_store.selected_node.name + ' and all of its children?')) {
+  if (
+    !window.confirm(
+      'Really delete node ' + edit_node_store.selected_node.name + ' and all of its children?'
+    )
+  ) {
     // Do nothing if user doesn't confirm
     return
   }
@@ -145,7 +148,8 @@ function onClickDeleteWithChildren() {
     (response: RemoveNodeResponse) => {
       if (response.success) {
         notify({
-          title: 'Removed ' + edit_node_store.selected_node!.name + ' and its children successfully!',
+          title:
+            'Removed ' + edit_node_store.selected_node!.name + ' and its children successfully!',
           type: 'success'
         })
         edit_node_store.clearSelection()
@@ -250,18 +254,27 @@ function onClickUpdate() {
   <div class="d-flex flex-column">
     <div class="row g-2 mb-3">
       <div class="btn-group col-4">
-        <button class="btn btn-primary" @click="onClickUpdate"
-        :disabled="!edit_node_store.node_is_valid || editor_store.selected_subtree.is_subtree">
+        <button
+          class="btn btn-primary"
+          @click="onClickUpdate"
+          :disabled="!edit_node_store.node_is_valid || editor_store.selected_subtree.is_subtree"
+        >
           Update Node
         </button>
       </div>
       <div class="btn-group col-8">
-        <button class="btn btn-danger" @click="onClickDelete"
-        :disabled="editor_store.selected_subtree.is_subtree">
+        <button
+          class="btn btn-danger"
+          @click="onClickDelete"
+          :disabled="editor_store.selected_subtree.is_subtree"
+        >
           Delete Node
         </button>
-        <button class="btn btn-danger" @click="onClickDeleteWithChildren"
-        :disabled="editor_store.selected_subtree.is_subtree">
+        <button
+          class="btn btn-danger"
+          @click="onClickDeleteWithChildren"
+          :disabled="editor_store.selected_subtree.is_subtree"
+        >
           Delete Node + Children
         </button>
       </div>

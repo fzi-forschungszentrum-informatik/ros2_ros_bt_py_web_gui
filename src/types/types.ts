@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { FlextreeNode } from "d3-flextree"
+import type { FlextreeNode } from 'd3-flextree'
 
 export type NodeData = {
   key: string
@@ -94,12 +94,12 @@ export type Message = {
 }
 
 export const enum MessageType {
-  MESSAGE=0,
-  REQUEST=1,
-  RESPONSE=2,
-  GOAL=3,
-  FEEDBACK=4,
-  RESULT=5
+  MESSAGE = 0,
+  REQUEST = 1,
+  RESPONSE = 2,
+  GOAL = 3,
+  FEEDBACK = 4,
+  RESULT = 5
 }
 
 export type Messages = {
@@ -126,8 +126,8 @@ export type DebugSettings = {
 }
 
 export const enum FileType {
-  FILE = "file",
-  DIR = "directory"
+  FILE = 'file',
+  DIR = 'directory'
 }
 
 export type PackageStructure = {
@@ -194,9 +194,9 @@ export type DataEdgeTerminal = DataEdgePoint & {
 }
 
 export const enum IOKind {
-  INPUT = "inputs",
-  OUTPUT = "outputs",
-  OTHER = "other",
+  INPUT = 'inputs',
+  OUTPUT = 'outputs',
+  OTHER = 'other'
 }
 
 export type DataEdge = {
@@ -211,11 +211,11 @@ export type DropTarget = {
 }
 
 export const enum Position {
-  TOP = "top",
-  BOTTOM = "bottom",
-  LEFT = "left",
-  RIGHT = "right",
-  CENTER = "center",
+  TOP = 'top',
+  BOTTOM = 'bottom',
+  LEFT = 'left',
+  RIGHT = 'right',
+  CENTER = 'center'
 }
 
 export type TrimmedNodeData = {
@@ -233,5 +233,5 @@ export type TrimmedNode = {
   inputs: TrimmedNodeData[]
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
-  size: {width: number, height: number}
+  size: { width: number; height: number }
 }

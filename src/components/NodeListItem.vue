@@ -109,7 +109,11 @@ function onClick() {
           :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
           aria-hidden="true"
           class="cursor-pointer ms-auto"
-          @click="() => {collapsed = !collapsed}"
+          @click="
+            () => {
+              collapsed = !collapsed
+            }
+          "
         />
       </div>
     </div>
