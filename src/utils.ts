@@ -252,6 +252,14 @@ export function getDefaultValue(
         field_names: []
       }
     }
+  } else if (typeName === 'ros_bt_py.custom_types.FilePath') {
+    return {
+      type: typeName,
+      value: {
+        'py/object': typeName,
+        path: ''
+      }
+    }
   } else {
     //TODO should this check for general ros_types?
     return {

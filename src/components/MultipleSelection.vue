@@ -232,7 +232,6 @@ function saveSubtree(tree: TreeMsg) {
 <template>
   <SelectLocationModal
     v-model="show_selection_modal"
-    title="Select Save Location"
     @close="show_selection_modal = false"
     @select="setSaveLocation"
   />

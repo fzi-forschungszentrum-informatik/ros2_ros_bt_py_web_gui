@@ -155,6 +155,10 @@ export type PyEnum = {
   enum_value: string
   field_names: string[]
 }
+export type PyFilePath = {
+  'py/object': string
+  path: string
+}
 
 export type PyReduce = { 'py/reduce': (PyType | PyTuple | null)[] }
 
@@ -169,6 +173,7 @@ export type ValueTypes =
   | PyOperator
   | PyOperand
   | PyEnum
+  | PyFilePath
 
 export type ParamType = {
   type: string

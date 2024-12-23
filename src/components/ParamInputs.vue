@@ -36,6 +36,7 @@ import MathOperandParam from './param_inputs/MathOperandParam.vue'
 import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
+import FilePathParam from './param_inputs/FilePathParam.vue'
 
 const props = defineProps<{
   category: 'options'
@@ -185,6 +186,12 @@ function onFocus() {
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
+    />
+
+    <FilePathParam 
+      v-else-if="param.value.type === 'ros_bt_py.custom_types.FilePath'"
+      :category="props.category"
+      :data_key="props.data_key"
     />
 
     <div v-else class="form-group">
