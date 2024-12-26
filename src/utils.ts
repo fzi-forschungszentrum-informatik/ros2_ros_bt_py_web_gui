@@ -205,49 +205,49 @@ export function getDefaultValue(
     }
   } else if (typeName === 'ros_bt_py.ros_helpers.LoggerLevel') {
     return {
-      type: 'ros_bt_py.ros_helpers.LoggerLevel',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.ros_helpers.LoggerLevel',
+        'py/object': typeName,
         logger_level: 'Debug'
       }
     }
-  } else if (typeName === 'ros_bt_py.helpers.MathUnaryOperator') {
+  } else if (typeName === 'ros_bt_py.custom_types.MathUnaryOperator') {
     return {
-      type: 'ros_bt_py.helpers.MathUnaryOperator',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.helpers.MathUnaryOperator',
+        'py/object': typeName,
         operator: 'sqrt'
       }
     }
-  } else if (typeName === 'ros_bt_py.helpers.MathBinaryOperator') {
+  } else if (typeName === 'ros_bt_py.custom_types.MathBinaryOperator') {
     return {
-      type: 'ros_bt_py.helpers.MathBinaryOperator',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.helpers.MathBinaryOperator',
+        'py/object': typeName,
         operator: '+'
       }
     }
-  } else if (typeName === 'ros_bt_py.helpers.MathOperandType') {
+  } else if (typeName === 'ros_bt_py.custom_types.MathOperandType') {
     return {
-      type: 'ros_bt_py.helpers.MathOperandType',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.helpers.MathOperandType',
+        'py/object': typeName,
         operand_type: 'float'
       }
     }
-  } else if (typeName === 'ros_bt_py.helpers.MathUnaryOperandType') {
+  } else if (typeName === 'ros_bt_py.custom_types.MathUnaryOperandType') {
     return {
-      type: 'ros_bt_py.helpers.MathUnaryOperandType',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.helpers.MathUnaryOperandType',
+        'py/object': typeName,
         operand_type: 'float'
       }
     }
   } else if (typeName === 'ros_bt_py.ros_helpers.EnumValue') {
     return {
-      type: 'ros_bt_py.ros_helpers.EnumValue',
+      type: typeName,
       value: {
-        'py/object': 'ros_bt_py.ros_helpers.EnumValue',
+        'py/object': typeName,
         enum_value: '',
         field_names: []
       }

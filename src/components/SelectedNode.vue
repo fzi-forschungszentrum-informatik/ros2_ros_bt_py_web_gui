@@ -92,6 +92,7 @@ function buildNodeMsg(): NodeMsg {
     state: ''
   } as NodeMsg
 }
+
 function onClickDelete() {
   if (edit_node_store.selected_node === undefined) {
     console.error("Can't delete a node that doesn't exist")
@@ -125,6 +126,7 @@ function onClickDelete() {
     }
   )
 }
+
 function onClickDeleteWithChildren() {
   if (edit_node_store.selected_node === undefined) {
     console.error("Can't delete a node that doesn't exist")
