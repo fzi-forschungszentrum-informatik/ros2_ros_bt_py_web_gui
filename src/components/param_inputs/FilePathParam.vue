@@ -31,74 +31,75 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import type { ParamData } from '@/types/types'
 import { computed, ref } from 'vue'
-import SelectFileModal from '../modals/SelectFileModal.vue';
-import type { PyFilePath } from '@/types/python_types';
- 
+import SelectFileModal from '../modals/SelectFileModal.vue'
+import type { PyFilePath } from '@/types/python_types'
+
 const edit_node_store = useEditNodeStore()
 
 const props = defineProps<{
-    category: 'options'
-    data_key: string
+  category: 'options'
+  data_key: string
 }>()
 
 const param = computed<ParamData | undefined>(() =>
-    edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
 const show_selection_modal = ref<boolean>(false)
 const from_packages = ref<boolean>(false)
 
-
 function showPackageModal() {
-    from_packages.value = true
-    show_selection_modal.value = true
+  from_packages.value = true
+  show_selection_modal.value = true
 }
 
 function showFileModal() {
-    from_packages.value = false
-    show_selection_modal.value = true
+  from_packages.value = false
+  show_selection_modal.value = true
 }
 
 function selectFile(path: string) {
-    if (param.value === undefined) {
-        console.error('Undefined parameter')
-        return
-    }
-    
-    let file_path_obj = param.value.value.value as PyFilePath
-    file_path_obj.path = path
+  if (param.value === undefined) {
+    console.error('Undefined parameter')
+    return
+  }
 
-    edit_node_store.updateParamValue(param.value.value.type, param.value.key, file_path_obj)
+  let file_path_obj = param.value.value.value as PyFilePath
+  file_path_obj.path = path
 
-    show_selection_modal.value = false
+  edit_node_store.updateParamValue(param.value.value.type, param.value.key, file_path_obj)
+
+  show_selection_modal.value = false
 }
- 
-
 </script>
- 
+
 <template>
-    <SelectFileModal
+  <SelectFileModal
     v-model="show_selection_modal"
     :from-packages="from_packages"
     @close="show_selection_modal = false"
     @select="selectFile"
-    />
-    <div v-if="param !== undefined" class="form-group">
-        <label class="d-block">
-        {{ param.key }}
-        </label>
-        <div class="input-group">
-            <input type="text" class="form-control" :value="(param.value.value as PyFilePath).path" disabled/>
-            <button class="btn btn-primary" @click="showPackageModal">
-                <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
-                <span class="ms-1">Package</span>
-            </button>
-            <button class="btn btn-primary" @click="showFileModal">
-                <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
-                <span className="ms-1">File</span>
-            </button>
-        </div>
+  />
+  <div v-if="param !== undefined" class="form-group">
+    <label class="d-block">
+      {{ param.key }}
+    </label>
+    <div class="input-group">
+      <input
+        type="text"
+        class="form-control"
+        :value="(param.value.value as PyFilePath).path"
+        disabled
+      />
+      <button class="btn btn-primary" @click="showPackageModal">
+        <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
+        <span class="ms-1">Package</span>
+      </button>
+      <button class="btn btn-primary" @click="showFileModal">
+        <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
+        <span className="ms-1">File</span>
+      </button>
     </div>
-    <div v-else>Error loading param data</div>
+  </div>
+  <div v-else>Error loading param data</div>
 </template>
- 

@@ -194,11 +194,7 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
           'py/type': x.value.value
         })
       } else if (x.value.type.startsWith('__')) {
-        const py_value = x.value.value as
-          | PyLogger
-          | PyOperator
-          | PyOperand
-          | PyEnum
+        const py_value = x.value.value as PyLogger | PyOperator | PyOperand | PyEnum
         py_value['py/object' as keyof typeof py_value] = x.value.type.substring('__'.length)
         option.serialized_value = JSON.stringify(x.value.value)
       } else {

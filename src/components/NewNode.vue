@@ -28,11 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type {
-  NodeData,
-  NodeMsg,
-  ParamData,
-} from '@/types/types'
+import type { NodeData, NodeMsg, ParamData } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
 import { python_builtin_types } from '@/utils'
@@ -78,11 +74,7 @@ function buildNodeMessage(
           'py/type': x.value.value
         })
       } else if (x.value.type.startsWith('__')) {
-        const py_value = x.value.value as
-          | PyLogger
-          | PyOperator
-          | PyOperand
-          | PyEnum
+        const py_value = x.value.value as PyLogger | PyOperator | PyOperand | PyEnum
         py_value['py/object' as keyof typeof py_value] = x.value.type.substring('__'.length)
         option.serialized_value = JSON.stringify(x.value.value)
       } else {

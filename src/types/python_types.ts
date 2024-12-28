@@ -28,76 +28,69 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
 export const OrderedDict_Name = 'collections.OrderedDict'
 export const OrderedDict_Value = {
-    'py/reduce': [
-        { 'py/type': OrderedDict_Name },
-        { 'py/tuple': [[]] },
-        null,
-        null,
-        null
-    ]
+  'py/reduce': [{ 'py/type': OrderedDict_Name }, { 'py/tuple': [[]] }, null, null, null]
 }
 
 export type PyLogger = {
-    'py/object': string
-    logger_level: string
+  'py/object': string
+  logger_level: string
 }
 export const LoggerLevel_Name = 'ros_bt_py.ros_helpers.LoggerLevel'
 export const LoggerLevel_Value = {
-    'py/object': LoggerLevel_Name,
-    logger_level: 'Debug'
+  'py/object': LoggerLevel_Name,
+  logger_level: 'Debug'
 } as PyLogger
 
 export type PyOperator = {
-    'py/object': string
-    operator: string
+  'py/object': string
+  operator: string
 }
 export const MathUnaryOperator_Name = 'ros_bt_py.custom_types.MathUnaryOperator'
 export const MathUnaryOperator_Value = {
-    'py/object': MathUnaryOperator_Name,
-    operator: 'sqrt'
+  'py/object': MathUnaryOperator_Name,
+  operator: 'sqrt'
 } as PyOperator
 export const MathBinaryOperator_Name = 'ros_bt_py.custom_types.MathBinaryOperator'
 export const MathBinaryOperator_Value = {
-    'py/object': MathBinaryOperator_Name,
-    operator: '+'
+  'py/object': MathBinaryOperator_Name,
+  operator: '+'
 } as PyOperator
 
 export type PyOperand = {
-    'py/object': string
-    operand_type: string
+  'py/object': string
+  operand_type: string
 }
 export const MathOperandType_Name = 'ros_bt_py.custom_types.MathOperandType'
 export const MathOperandType_Value = {
-    'py/object': MathOperandType_Name,
-    operand_type: 'float'
+  'py/object': MathOperandType_Name,
+  operand_type: 'float'
 } as PyOperand
 export const MathUnaryOperandType_Name = 'ros_bt_py.custom_types.MathUnaryOperandType'
 export const MathUnaryOperandType_Value = {
-    'py/object': MathUnaryOperandType_Name,
-    operand_type: 'float'
+  'py/object': MathUnaryOperandType_Name,
+  operand_type: 'float'
 } as PyOperand
 
 export type PyEnum = {
-    'py/object': string
-    enum_value: string
-    field_names: string[]
+  'py/object': string
+  enum_value: string
+  field_names: string[]
 }
 export const EnumValue_Name = 'ros_bt_py.ros_helpers.EnumValue'
 export const EnumValue_Value = {
-    'py/object': EnumValue_Name,
-    enum_value: '',
-    field_names: []
+  'py/object': EnumValue_Name,
+  enum_value: '',
+  field_names: []
 } as PyEnum
 
 export type PyFilePath = {
-    'py/object': string
-    path: string
+  'py/object': string
+  path: string
 }
 export const FilePath_Name = 'ros_bt_py.custom_types.FilePath'
 export const FilePath_Value = {
-    'py/object': FilePath_Name,
-    path: ''
+  'py/object': FilePath_Name,
+  path: ''
 } as PyFilePath

@@ -51,7 +51,6 @@ export type SelectedSubtree = {
 }
 
 export const useEditorStore = defineStore('editor', () => {
-
   const tree = ref<TreeMsg | undefined>(undefined)
   //const debug_info = ref<DebugInfo | undefined>(undefined)
   const subtree_states = ref<TreeMsg[]>([])

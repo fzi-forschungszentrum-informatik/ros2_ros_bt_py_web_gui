@@ -37,7 +37,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  (e: 'select', path: string): void,
+  (e: 'select', path: string): void
   (e: 'close'): void
 }>()
 
@@ -68,7 +68,6 @@ function setLoadLocation(path: string[], dir: boolean) {
     search_term.value = ''
   }
 }
-
 </script>
 
 <template>
@@ -88,7 +87,11 @@ function setLoadLocation(path: string[], dir: boolean) {
       @select="(path, dir) => setLoadLocation(path, dir)"
     >
       <div class="d-flex justify-content-between mb-3">
-        <button class="btn btn-primary me-2" :disabled="is_directory" @click="emit('select', file_path)">
+        <button
+          class="btn btn-primary me-2"
+          :disabled="is_directory"
+          @click="emit('select', file_path)"
+        >
           Select
         </button>
         <select v-model="file_filter" class="form-select me-2 w-50">
@@ -103,4 +106,3 @@ function setLoadLocation(path: string[], dir: boolean) {
     </FileBrowser>
   </VueFinalModal>
 </template>
- 

@@ -37,7 +37,14 @@ import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import FilePathParam from './param_inputs/FilePathParam.vue'
-import { FilePath_Name, MathBinaryOperator_Name, MathOperandType_Name, MathUnaryOperandType_Name, MathUnaryOperator_Name, OrderedDict_Name } from '@/types/python_types'
+import {
+  FilePath_Name,
+  MathBinaryOperator_Name,
+  MathOperandType_Name,
+  MathUnaryOperandType_Name,
+  MathUnaryOperator_Name,
+  OrderedDict_Name
+} from '@/types/python_types'
 
 const props = defineProps<{
   category: 'options'
@@ -189,7 +196,7 @@ function onFocus() {
       :op_type="'unary'"
     />
 
-    <FilePathParam 
+    <FilePathParam
       v-else-if="param.value.type === FilePath_Name"
       :category="props.category"
       :data_key="props.data_key"
