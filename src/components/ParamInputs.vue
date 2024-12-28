@@ -37,6 +37,7 @@ import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import FilePathParam from './param_inputs/FilePathParam.vue'
+import { FilePath_Name, MathBinaryOperator_Name, MathOperandType_Name, MathUnaryOperandType_Name, MathUnaryOperator_Name, OrderedDict_Name } from '@/types/python_types'
 
 const props = defineProps<{
   category: 'options'
@@ -105,7 +106,7 @@ const json_attrs = computed<any>(() => {
     case 'list':
       break
     case 'dict':
-    case 'collections.OrderedDict':
+    case OrderedDict_Name:
       break
     default:
       break
@@ -189,7 +190,7 @@ function onFocus() {
     />
 
     <FilePathParam 
-      v-else-if="param.value.type === 'ros_bt_py.custom_types.FilePath'"
+      v-else-if="param.value.type === FilePath_Name"
       :category="props.category"
       :data_key="props.data_key"
     />

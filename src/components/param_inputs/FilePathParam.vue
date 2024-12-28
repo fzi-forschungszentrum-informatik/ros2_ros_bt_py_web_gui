@@ -30,10 +30,11 @@
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
-import type { ParamData, PyFilePath, PyOperator } from '@/types/types'
+import type { ParamData } from '@/types/types'
 import { computed, ref } from 'vue'
 import SelectFileModal from '../modals/SelectFileModal.vue';
 import { path } from 'd3';
+import type { PyFilePath } from '@/types/python_types';
  
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()

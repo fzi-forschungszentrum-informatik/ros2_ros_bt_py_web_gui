@@ -28,6 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import { useMessasgeStore } from './stores/message'
+import { EnumValue_Name, EnumValue_Value, FilePath_Name, FilePath_Value, LoggerLevel_Name, LoggerLevel_Value, MathBinaryOperator_Name, MathBinaryOperator_Value, MathOperandType_Name, MathOperandType_Value, MathUnaryOperandType_Name, MathUnaryOperandType_Value, MathUnaryOperator_Name, MathUnaryOperator_Value, OrderedDict_Name, OrderedDict_Value } from './types/python_types'
 import type {
   NodeData,
   NodeDataLocation,
@@ -190,75 +191,45 @@ export function getDefaultValue(
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
-  } else if (typeName === 'collections.OrderedDict') {
+  } else if (typeName === OrderedDict_Name) {
     return {
-      type: 'collections.OrderedDict',
-      value: {
-        'py/reduce': [
-          { 'py/type': 'collections.OrderedDict' },
-          { 'py/tuple': [[]] },
-          null,
-          null,
-          null
-        ]
-      }
+      type: OrderedDict_Name,
+      value: OrderedDict_Value
     }
-  } else if (typeName === 'ros_bt_py.ros_helpers.LoggerLevel') {
+  } else if (typeName === LoggerLevel_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        logger_level: 'Debug'
-      }
+      type: LoggerLevel_Name,
+      value: LoggerLevel_Value
     }
-  } else if (typeName === 'ros_bt_py.custom_types.MathUnaryOperator') {
+  } else if (typeName === MathUnaryOperator_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        operator: 'sqrt'
-      }
+      type: MathUnaryOperator_Name,
+      value: MathUnaryOperator_Value
     }
-  } else if (typeName === 'ros_bt_py.custom_types.MathBinaryOperator') {
+  } else if (typeName === MathBinaryOperator_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        operator: '+'
-      }
+      type: MathBinaryOperator_Name,
+      value: MathBinaryOperator_Value
     }
-  } else if (typeName === 'ros_bt_py.custom_types.MathOperandType') {
+  } else if (typeName === MathOperandType_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        operand_type: 'float'
-      }
+      type: MathOperandType_Name,
+      value: MathOperandType_Value
     }
-  } else if (typeName === 'ros_bt_py.custom_types.MathUnaryOperandType') {
+  } else if (typeName === MathUnaryOperandType_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        operand_type: 'float'
-      }
+      type: MathUnaryOperandType_Name,
+      value: MathUnaryOperandType_Value
     }
-  } else if (typeName === 'ros_bt_py.ros_helpers.EnumValue') {
+  } else if (typeName === EnumValue_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        enum_value: '',
-        field_names: []
-      }
+      type: EnumValue_Name,
+      value: EnumValue_Value
     }
-  } else if (typeName === 'ros_bt_py.custom_types.FilePath') {
+  } else if (typeName === FilePath_Name) {
     return {
-      type: typeName,
-      value: {
-        'py/object': typeName,
-        path: ''
-      }
+      type: FilePath_Name,
+      value: FilePath_Value
     }
   } else {
     //TODO should this check for general ros_types?
@@ -287,7 +258,7 @@ export function getMessageType(str: string): Message {
     return { msg: '', action: false, service: false, type: MessageType.MESSAGE }
   }
 
-  let new_message_parts = message_parts.slice(0, 2)
+  const new_message_parts = message_parts.slice(0, 2)
   // Standardize type .../.../_name/Name to .../.../Name
   if (
     message_parts.length > 3 &&

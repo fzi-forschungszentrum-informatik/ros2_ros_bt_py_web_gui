@@ -37,10 +37,6 @@ import type {
   NodeData,
   DocumentedNode,
   NodeMsg,
-  PyEnum,
-  PyLogger,
-  PyOperand,
-  PyOperator,
   ValueTypes
 } from '@/types/types'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
@@ -51,6 +47,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useNodesStore } from '@/stores/nodes'
 import { useROSStore } from '@/stores/ros'
 import { useEditNodeStore } from '@/stores/edit_node'
+import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -61,6 +58,7 @@ function buildNodeMsg(): NodeMsg {
     module: edit_node_store.new_node_module,
     node_class: edit_node_store.new_node_class,
     name: edit_node_store.new_node_name,
+    //TODO Handle new python_types
     options: edit_node_store.new_node_options.map((x) => {
       const option: NodeData = {
         key: x.key,

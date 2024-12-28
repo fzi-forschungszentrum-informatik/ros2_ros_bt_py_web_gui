@@ -42,10 +42,6 @@ import type {
   NodeDataLocation,
   NodeMsg,
   ParamData,
-  PyEnum,
-  PyLogger,
-  PyOperand,
-  PyOperator,
   TreeMsg,
   TrimmedNode,
   TrimmedNodeData,
@@ -64,6 +60,7 @@ import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNod
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
+import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -201,7 +198,7 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
           'py/type': x.value.value
         })
       } else if (x.value.type.startsWith('__')) {
-        const py_value: PyLogger | PyOperator | PyOperand | PyEnum = x.value.value as
+        const py_value = x.value.value as
           | PyLogger
           | PyOperator
           | PyOperand

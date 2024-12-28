@@ -29,6 +29,7 @@
  */
 
 import type { FlextreeNode } from 'd3-flextree'
+import type { PyEnum, PyFilePath, PyLogger, PyOperand, PyOperator } from './python_types'
 
 export type NodeData = {
   key: string
@@ -138,27 +139,6 @@ export type PackageStructure = {
 
 export type PyType = { 'py/type': string }
 export type PyTuple = { 'py/tuple': never[][] }
-export type PyLogger = {
-  'py/object': string
-  logger_level: string
-}
-export type PyOperator = {
-  'py/object': string
-  operator: string
-}
-export type PyOperand = {
-  'py/object': string
-  operand_type: string
-}
-export type PyEnum = {
-  'py/object': string
-  enum_value: string
-  field_names: string[]
-}
-export type PyFilePath = {
-  'py/object': string
-  path: string
-}
 
 export type PyReduce = { 'py/reduce': (PyType | PyTuple | null)[] }
 

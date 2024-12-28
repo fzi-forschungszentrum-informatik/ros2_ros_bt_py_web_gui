@@ -33,10 +33,6 @@ import type {
   NodeData,
   NodeMsg,
   ParamData,
-  PyEnum,
-  PyLogger,
-  PyOperand,
-  PyOperator
 } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
@@ -46,6 +42,7 @@ import { useROSStore } from '@/stores/ros'
 import { notify } from '@kyvg/vue3-notification'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
 import { useEditNodeStore } from '@/stores/edit_node'
+import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 
 const props = defineProps<{
   parents: NodeMsg[]
@@ -69,6 +66,7 @@ function buildNodeMessage(
     node_class: node_class,
     name: name,
     options: options.map((x) => {
+      //TODO Handle new python_types
       const option: NodeData = {
         key: x.key,
         serialized_value: '',
@@ -82,7 +80,7 @@ function buildNodeMessage(
           'py/type': x.value.value
         })
       } else if (x.value.type.startsWith('__')) {
-        const py_value: PyLogger | PyOperator | PyOperand | PyEnum = x.value.value as
+        const py_value = x.value.value as
           | PyLogger
           | PyOperator
           | PyOperand
