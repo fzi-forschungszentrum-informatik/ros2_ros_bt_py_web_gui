@@ -45,6 +45,8 @@ const param = computed<ParamData | undefined>(() => {
       return edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
     case 'outputs':
       return edit_node_store.new_node_outputs.find((x) => x.key === props.data_key)
+    default:
+      return undefined
   }
 })
 </script>

@@ -42,23 +42,19 @@ import type {
   NodeDataLocation,
   NodeMsg,
   ParamData,
-  TreeMsg,
   TrimmedNode,
   TrimmedNodeData,
   NodeDataWiring
 } from '@/types/types'
 import { Position, IOKind } from '@/types/types'
 import { getDefaultValue, prettyprint_type, python_builtin_types, typesCompatible } from '@/utils'
-import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
-import type { ZoomBehavior } from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
-import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 

@@ -31,15 +31,12 @@ import { useMessasgeStore } from './stores/message'
 import { EnumValue_Name, EnumValue_Value, FilePath_Name, FilePath_Value, LoggerLevel_Name, LoggerLevel_Value, MathBinaryOperator_Name, MathBinaryOperator_Value, MathOperandType_Name, MathOperandType_Value, MathUnaryOperandType_Name, MathUnaryOperandType_Value, MathUnaryOperator_Name, MathUnaryOperator_Value, OrderedDict_Name, OrderedDict_Value } from './types/python_types'
 import type {
   NodeData,
-  NodeDataLocation,
   TreeMsg,
   ValueTypes,
   DataEdgeTerminal,
   Message
 } from './types/types'
 import { IOKind, MessageType } from './types/types'
-
-import * as d3 from 'd3'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
 let idx = 0

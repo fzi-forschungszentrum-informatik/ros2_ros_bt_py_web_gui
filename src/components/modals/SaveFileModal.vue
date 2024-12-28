@@ -201,7 +201,7 @@ function saveTree() {
           <option :value="undefined">All files</option>
         </select>
         <select v-model="handle_name_conflict" class="form-select">
-          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
+          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt" :key="opt">
             {{ opt }}
           </option>
         </select>

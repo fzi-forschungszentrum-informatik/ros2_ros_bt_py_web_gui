@@ -28,16 +28,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useNodesStore } from '@/stores/nodes'
-import type { DocumentedNode, ParamData } from '@/types/types'
-import { computed } from 'vue'
 import { getShortDoc } from '@/utils'
 import { useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import ParamInputs from './ParamInputs.vue'
 import ParamDisplay from './ParamDisplay.vue'
 
-const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 </script>

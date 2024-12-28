@@ -29,15 +29,13 @@
  -->
 <script setup lang="ts">
 import type {
-  DocumentedNode,
   NodeData,
   NodeMsg,
   ParamData,
 } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
-import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
-import { useEditorStore } from '@/stores/editor'
+import { python_builtin_types } from '@/utils'
 import { useROSStore } from '@/stores/ros'
 import { notify } from '@kyvg/vue3-notification'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'

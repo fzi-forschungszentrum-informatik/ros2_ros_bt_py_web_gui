@@ -31,7 +31,6 @@
 import { VueFinalModal } from 'vue-final-modal'
 import FileBrowser from './FileBrowser.vue'
 import { computed, ref } from 'vue'
-import { useROSStore } from '@/stores/ros'
 
 const props = defineProps<{
   fromPackages: boolean

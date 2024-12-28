@@ -29,7 +29,6 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type {
   GetMessageFieldsRequest,
@@ -43,7 +42,6 @@ import JSONEditor from 'jsoneditor'
 import 'jsoneditor/dist/jsoneditor.min.css'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
-const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 const ros_store = useROSStore()
 

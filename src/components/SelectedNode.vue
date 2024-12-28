@@ -28,23 +28,18 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
+import { python_builtin_types } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
-import { ref } from 'vue'
 import EditableNode from './EditableNode.vue'
 import type {
-  ParamData,
   NodeData,
-  DocumentedNode,
   NodeMsg,
-  ValueTypes
 } from '@/types/types'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
 
 import { useEditorStore } from '@/stores/editor'
-import { useNodesStore } from '@/stores/nodes'
 import { useROSStore } from '@/stores/ros'
 import { useEditNodeStore } from '@/stores/edit_node'
 import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
