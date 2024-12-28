@@ -28,13 +28,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import type { PyObject } from './types'
+
 export const OrderedDict_Name = 'collections.OrderedDict'
 export const OrderedDict_Value = {
   'py/reduce': [{ 'py/type': OrderedDict_Name }, { 'py/tuple': [[]] }, null, null, null]
 }
 
-export type PyLogger = {
-  'py/object': string
+export type PyLogger = PyObject & {
   logger_level: string
 }
 export const LoggerLevel_Name = 'ros_bt_py.ros_helpers.LoggerLevel'
@@ -43,8 +44,7 @@ export const LoggerLevel_Value = {
   logger_level: 'Debug'
 } as PyLogger
 
-export type PyOperator = {
-  'py/object': string
+export type PyOperator = PyObject & {
   operator: string
 }
 export const MathUnaryOperator_Name = 'ros_bt_py.custom_types.MathUnaryOperator'
@@ -58,8 +58,7 @@ export const MathBinaryOperator_Value = {
   operator: '+'
 } as PyOperator
 
-export type PyOperand = {
-  'py/object': string
+export type PyOperand = PyObject & {
   operand_type: string
 }
 export const MathOperandType_Name = 'ros_bt_py.custom_types.MathOperandType'
@@ -73,8 +72,7 @@ export const MathUnaryOperandType_Value = {
   operand_type: 'float'
 } as PyOperand
 
-export type PyEnum = {
-  'py/object': string
+export type PyEnum = PyObject & {
   enum_value: string
   field_names: string[]
 }
@@ -85,8 +83,7 @@ export const EnumValue_Value = {
   field_names: []
 } as PyEnum
 
-export type PyFilePath = {
-  'py/object': string
+export type PyFilePath = PyObject & {
   path: string
 }
 export const FilePath_Name = 'ros_bt_py.custom_types.FilePath'
@@ -94,3 +91,21 @@ export const FilePath_Value = {
   'py/object': FilePath_Name,
   path: ''
 } as PyFilePath
+
+export type RosType = PyObject & {
+  type_str: string
+}
+export const RosServiceType_Name = 'ros_bt_py.custom_types.RosServiceType'
+export const RosServiceType_Value = {
+  'py/object': RosServiceType_Name,
+  type_str: ''
+} as RosType
+
+export type RosName = PyObject & {
+  name: string
+}
+export const RosServiceName_Name = 'ros_bt_py.custom_types.RosServiceName'
+export const RosServiceName_Value = {
+  'py/object': RosServiceName_Name,
+  name: ''
+} as RosName

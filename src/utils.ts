@@ -44,7 +44,11 @@ import {
   MathUnaryOperator_Name,
   MathUnaryOperator_Value,
   OrderedDict_Name,
-  OrderedDict_Value
+  OrderedDict_Value,
+  RosServiceName_Name,
+  RosServiceName_Value,
+  RosServiceType_Name,
+  RosServiceType_Value
 } from './types/python_types'
 import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal, Message } from './types/types'
 import { IOKind, MessageType } from './types/types'
@@ -238,6 +242,16 @@ export function getDefaultValue(
     return {
       type: FilePath_Name,
       value: FilePath_Value
+    }
+  } else if (typeName === RosServiceName_Name) {
+    return {
+      type: RosServiceName_Name,
+      value: RosServiceName_Value
+    }
+  } else if (typeName === RosServiceType_Name) {
+    return {
+      type: RosServiceType_Name,
+      value: RosServiceType_Value
     }
   } else {
     //TODO should this check for general ros_types?

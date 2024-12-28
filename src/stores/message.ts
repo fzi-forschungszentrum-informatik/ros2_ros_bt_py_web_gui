@@ -139,20 +139,22 @@ export const useMessasgeStore = defineStore('messages', () => {
     ros_action_fuse.value.setCollection([])
 
     messages.value.forEach((element) => {
+      const msg_parts = element.msg.split('.')
+      const new_msg = msg_parts.join('/')
       // All service and action compontents (eg .Request .Response) are messages
-      if (element.msg.split('.').length > 3) {
-        ros_msg_fuse.value.add(element.msg)
+      if (msg_parts.length > 3) {
+        ros_msg_fuse.value.add(new_msg)
         return
       }
       if (element.service) {
-        ros_srv_fuse.value.add(element.msg)
+        ros_srv_fuse.value.add(new_msg)
         return
       }
       if (element.action) {
-        ros_action_fuse.value.add(element.msg)
+        ros_action_fuse.value.add(new_msg)
         return
       }
-      ros_msg_fuse.value.add(element.msg)
+      ros_msg_fuse.value.add(new_msg)
     })
   }
 
