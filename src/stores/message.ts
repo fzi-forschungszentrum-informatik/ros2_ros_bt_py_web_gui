@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { MessageType, type Message } from '@/types/types'
+import { MessageType, type Channel, type Channels, type Message } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
@@ -51,11 +51,18 @@ export const useMessasgeStore = defineStore('messages', () => {
 
   // These additional fuses are meant to substitute/replace the above messages_fuse
   //  to allow to search specific kinds of ros types dependent on what is needed.
-  const ros_fuse_options = structuredClone(messages_fuse_options)
-  ros_fuse_options.keys = []
-  const ros_msg_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
-  const ros_srv_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
-  const ros_action_fuse = ref<Fuse<string>>(new Fuse([], ros_fuse_options))
+  const ros_type_fuse_options = structuredClone(messages_fuse_options)
+  ros_type_fuse_options.keys = []
+  const ros_name_fuse_options = structuredClone(messages_fuse_options)
+  ros_name_fuse_options.keys = ['name', 'type']
+
+  const ros_topic_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
+  const ros_service_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
+  const ros_action_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
+
+  const ros_topic_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
+  const ros_service_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
+  const ros_action_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
 
   function areMessagesAvailable(available: boolean) {
     messages_available.value = available
@@ -134,27 +141,27 @@ export const useMessasgeStore = defineStore('messages', () => {
   //TODO if the big messages_fuse is ever phased out, merge and redo this with
   //  the parsing in mapMessageTypes
   function fillRosFuses() {
-    ros_msg_fuse.value.setCollection([])
-    ros_srv_fuse.value.setCollection([])
-    ros_action_fuse.value.setCollection([])
+    ros_topic_type_fuse.value.setCollection([])
+    ros_service_type_fuse.value.setCollection([])
+    ros_action_type_fuse.value.setCollection([])
 
     messages.value.forEach((element) => {
       const msg_parts = element.msg.split('.')
       const new_msg = msg_parts.join('/')
       // All service and action compontents (eg .Request .Response) are messages
       if (msg_parts.length > 3) {
-        ros_msg_fuse.value.add(new_msg)
+        ros_topic_type_fuse.value.add(new_msg)
         return
       }
       if (element.service) {
-        ros_srv_fuse.value.add(new_msg)
+        ros_service_type_fuse.value.add(new_msg)
         return
       }
       if (element.action) {
-        ros_action_fuse.value.add(new_msg)
+        ros_action_type_fuse.value.add(new_msg)
         return
       }
-      ros_msg_fuse.value.add(new_msg)
+      ros_topic_type_fuse.value.add(new_msg)
     })
   }
 
@@ -164,14 +171,24 @@ export const useMessasgeStore = defineStore('messages', () => {
     messages_fuse.value.setCollection(messages.value)
   }
 
+  function updateMessageChannels(new_channels: Channels) {
+    ros_topic_name_fuse.value.setCollection(new_channels.topics)
+    ros_service_name_fuse.value.setCollection(new_channels.services)
+    ros_action_name_fuse.value.setCollection(new_channels.actions)
+  }
+
   return {
     messages,
     messages_fuse,
     messages_available,
-    ros_msg_fuse,
-    ros_srv_fuse,
-    ros_action_fuse,
+    ros_topic_type_fuse,
+    ros_service_type_fuse,
+    ros_action_type_fuse,
+    ros_topic_name_fuse,
+    ros_service_name_fuse,
+    ros_action_name_fuse,
     areMessagesAvailable,
-    updateAvailableMessages
+    updateAvailableMessages,
+    updateMessageChannels,
   }
 })

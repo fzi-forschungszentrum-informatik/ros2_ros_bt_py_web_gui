@@ -106,6 +106,17 @@ export type Messages = {
   messages: Message[]
 }
 
+export type Channel = {
+  name: string
+  type: string
+}
+
+export type Channels = {
+  topics: Channel[]
+  services: Channel[]
+  actions: Channel[]
+}
+
 export type DocumentedNode = NodeMsg & {
   doc: string
   tags: string[]

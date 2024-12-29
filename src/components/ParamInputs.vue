@@ -44,9 +44,11 @@ import {
   MathUnaryOperandType_Name,
   MathUnaryOperator_Name,
   OrderedDict_Name,
-  RosServiceType_Name
+  RosServiceType_Name,
+  RosServiceName_Name
 } from '@/types/python_types'
 import RosTypeInput from './param_inputs/RosTypeInput.vue'
+import RosNameInput from './param_inputs/RosNameInput.vue'
 
 const props = defineProps<{
   category: 'options'
@@ -206,6 +208,12 @@ function onFocus() {
 
     <RosTypeInput
       v-else-if="param.value.type === RosServiceType_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'service'"
+    />
+    <RosNameInput
+      v-else-if="param.value.type === RosServiceName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'service'"

@@ -107,6 +107,10 @@ function updateSubtreeInfoSubscription() {
   ros_store.subtree_info_sub.subscribe(onNewSubtreeInfoMsg)
 }
 
+function updateChannelssubscription() {
+  ros_store.channels_sub.subscribe(messages_store.updateMessageChannels)
+}
+
 function handleNodeSearch(event: Event) {
   const target = event.target as HTMLInputElement
   node_search.value = target.value
@@ -154,6 +158,7 @@ ros_store.$onAction(({ name, after }) => {
     updateTreeSubscription()
     updateSubtreeInfoSubscription()
     updateMessagesSubscription()
+    updateChannelssubscription()
     updatePackagesSubscription()
   })
 })
@@ -163,6 +168,7 @@ onMounted(() => {
   updateTreeSubscription()
   updateSubtreeInfoSubscription()
   updateMessagesSubscription()
+  updateChannelssubscription()
   updatePackagesSubscription()
 })
 </script>

@@ -273,7 +273,7 @@ export function treeIsEditable(tree_msg: TreeMsg) {
 }
 
 export function getMessageType(str: string): Message {
-  const message_store = useMessasgeStore() // This doesn't work outside functions in .ts files
+  const message_store = useMessasgeStore()
   const message_parts = str.split('.')
   if (message_parts.length < 3) {
     console.error('Invalid message passed')

@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, Messages, TreeMsg, SubtreeInfo } from '@/types/types'
+import type { Packages, Messages, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -191,6 +191,15 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'messages',
         messageType: 'ros_bt_py_interfaces/msg/Messages',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+    const channels_sub = ref<ROSLIB.Topic<Channels>>(
+      new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'message_channels',
+        messageType: 'ros_bt_py_interfaces/msg/MessageChannels',
         latch: true,
         reconnect_on_close: true
       })
@@ -406,6 +415,16 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
 
+      channels_sub.value.unsubscribe()
+      channels_sub.value.removeAllListeners()
+      channels_sub.value = new ROSLIB.Topic({
+        ros: ros.value,
+        name: namespace.value + 'message_channels',
+        messageType: 'ros_bt_py_interfaces/msg/MessageChannels',
+        latch: true,
+        reconnect_on_close: true
+      })
+
       set_publish_subtrees_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
@@ -616,6 +635,7 @@ export const useROSStore = defineStore(
       subtree_info_sub,
       packages_sub,
       messages_sub,
+      channels_sub,
       connect,
       setUrl,
       changeNamespace,
