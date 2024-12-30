@@ -214,72 +214,72 @@ export function getDefaultValue(
   } else if (typeName === OrderedDict_Name) {
     return {
       type: OrderedDict_Name,
-      value: OrderedDict_Value
+      value: structuredClone(OrderedDict_Value)
     }
   } else if (typeName === LoggerLevel_Name) {
     return {
       type: LoggerLevel_Name,
-      value: LoggerLevel_Value
+      value: structuredClone(LoggerLevel_Value)
     }
   } else if (typeName === MathUnaryOperator_Name) {
     return {
       type: MathUnaryOperator_Name,
-      value: MathUnaryOperator_Value
+      value: structuredClone(MathUnaryOperator_Value)
     }
   } else if (typeName === MathBinaryOperator_Name) {
     return {
       type: MathBinaryOperator_Name,
-      value: MathBinaryOperator_Value
+      value: structuredClone(MathBinaryOperator_Value)
     }
   } else if (typeName === MathOperandType_Name) {
     return {
       type: MathOperandType_Name,
-      value: MathOperandType_Value
+      value: structuredClone(MathOperandType_Value)
     }
   } else if (typeName === MathUnaryOperandType_Name) {
     return {
       type: MathUnaryOperandType_Name,
-      value: MathUnaryOperandType_Value
+      value: structuredClone(MathUnaryOperandType_Value)
     }
   } else if (typeName === EnumValue_Name) {
     return {
       type: EnumValue_Name,
-      value: EnumValue_Value
+      value: structuredClone(EnumValue_Value)
     }
   } else if (typeName === FilePath_Name) {
     return {
       type: FilePath_Name,
-      value: FilePath_Value
+      value: structuredClone(FilePath_Value)
     }
   } else if (typeName === RosTopicName_Name) {
     return {
       type: RosTopicName_Name,
-      value: RosTopicName_Value
+      value: structuredClone(RosTopicName_Value)
     }
   } else if (typeName === RosTopicType_Name) {
     return {
       type: RosTopicType_Name,
-      value: RosTopicType_Value
+      value: structuredClone(RosTopicType_Value)
     }
   } else if (typeName === RosServiceName_Name) {
     return {
       type: RosServiceName_Name,
-      value: RosServiceName_Value
+      value: structuredClone(RosServiceName_Value)
     }
   } else if (typeName === RosServiceType_Name) {
     return {
       type: RosServiceType_Name,
-      value: RosServiceType_Value
+      value: structuredClone(RosServiceType_Value)
     }
   } else if (typeName === RosActionName_Name) {
     return {
       type: RosActionName_Name,
-      value: RosActionName_Value
+      value: structuredClone(RosActionName_Value)
     }
   } else if (typeName === RosActionType_Name) {
     return {
       type: RosActionType_Name,
-      value: RosActionType_Value
+      value: structuredClone(RosActionType_Value)
     }
   } else {
     //TODO should this check for general ros_types?
