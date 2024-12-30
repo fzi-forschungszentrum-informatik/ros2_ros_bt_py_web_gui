@@ -45,6 +45,10 @@ import {
   MathUnaryOperator_Value,
   OrderedDict_Name,
   OrderedDict_Value,
+  RosActionName_Name,
+  RosActionName_Value,
+  RosActionType_Name,
+  RosActionType_Value,
   RosServiceName_Name,
   RosServiceName_Value,
   RosServiceType_Name,
@@ -252,6 +256,16 @@ export function getDefaultValue(
     return {
       type: RosServiceType_Name,
       value: RosServiceType_Value
+    }
+  } else if (typeName === RosActionName_Name) {
+    return {
+      type: RosActionName_Name,
+      value: RosActionName_Value
+    }
+  } else if (typeName === RosActionType_Name) {
+    return {
+      type: RosActionType_Name,
+      value: RosActionType_Value
     }
   } else {
     //TODO should this check for general ros_types?

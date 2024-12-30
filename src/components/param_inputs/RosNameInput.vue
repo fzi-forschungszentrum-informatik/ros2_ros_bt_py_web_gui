@@ -55,9 +55,22 @@ const param = computed<ParamData | undefined>(() =>
 )
 
 // Find a type parameter to reference when searching and set when selecting
-const type_param = computed<ParamData | undefined>(() => 
-  edit_node_store.new_node_options.find((x) => x.value.type === RosServiceType_Name)
-)
+const type_param = computed<ParamData | undefined>(() => {
+  let type_param_name: string
+  switch (props.type) {
+    case 'message':
+      type_param_name = ''
+      break
+    case 'service':
+      type_param_name = RosServiceType_Name
+      break
+    case 'action':
+      type_param_name = ''
+    default:
+      return undefined
+  }
+  return edit_node_store.new_node_options.find((x) => x.value.type === RosServiceType_Name)
+})
 
 const search_fuse = computed<Fuse<Channel> | undefined>(() => {
   switch (props.type) {

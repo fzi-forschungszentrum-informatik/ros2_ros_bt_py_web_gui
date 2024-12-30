@@ -100,6 +100,11 @@ export const RosServiceType_Value = {
   'py/object': RosServiceType_Name,
   type_str: ''
 } as RosType
+export const RosActionType_Name = 'ros_bt_py.custom_types.RosActionType'
+export const RosActionType_Value = {
+  'py/object': RosActionType_Name,
+  type_str: ''
+} as RosType
 
 export type RosName = PyObject & {
   name: string
@@ -107,5 +112,10 @@ export type RosName = PyObject & {
 export const RosServiceName_Name = 'ros_bt_py.custom_types.RosServiceName'
 export const RosServiceName_Value = {
   'py/object': RosServiceName_Name,
+  name: ''
+} as RosName
+export const RosActionName_Name = 'ros_bt_py.custom_types.RosActionName'
+export const RosActionName_Value = {
+  'py/object': RosActionName_Name,
   name: ''
 } as RosName
