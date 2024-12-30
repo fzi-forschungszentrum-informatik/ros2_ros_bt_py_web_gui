@@ -52,7 +52,11 @@ import {
   RosServiceName_Name,
   RosServiceName_Value,
   RosServiceType_Name,
-  RosServiceType_Value
+  RosServiceType_Value,
+  RosTopicName_Name,
+  RosTopicName_Value,
+  RosTopicType_Name,
+  RosTopicType_Value
 } from './types/python_types'
 import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal, Message } from './types/types'
 import { IOKind, MessageType } from './types/types'
@@ -246,6 +250,16 @@ export function getDefaultValue(
     return {
       type: FilePath_Name,
       value: FilePath_Value
+    }
+  } else if (typeName === RosTopicName_Name) {
+    return {
+      type: RosTopicName_Name,
+      value: RosTopicName_Value
+    }
+  } else if (typeName === RosTopicType_Name) {
+    return {
+      type: RosTopicType_Name,
+      value: RosTopicType_Value
     }
   } else if (typeName === RosServiceName_Name) {
     return {

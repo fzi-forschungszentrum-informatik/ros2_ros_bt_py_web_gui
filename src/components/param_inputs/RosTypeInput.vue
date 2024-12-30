@@ -45,7 +45,7 @@ const messages_store = useMessasgeStore()
 const props = defineProps<{
   category: 'options'
   data_key: string
-  type: 'message' | 'service' | 'action'
+  type: 'topic' | 'service' | 'action'
 }>()
 
 let search_results = ref<string[]>([])
@@ -56,7 +56,7 @@ const param = computed<ParamData | undefined>(() =>
 
 const search_fuse = computed<Fuse<string> | undefined>(() => {
   switch (props.type) {
-    case 'message':
+    case 'topic':
       return messages_store.ros_topic_type_fuse
     case 'service':
       return messages_store.ros_service_type_fuse

@@ -32,7 +32,7 @@
 import { useEditNodeStore } from '@/stores/edit_node';
 import { useEditorStore } from '@/stores/editor';
 import { useMessasgeStore } from '@/stores/message';
-import { RosServiceType_Name, type RosName, type RosType } from '@/types/python_types';
+import { RosActionType_Name, RosServiceType_Name, RosTopicType_Name, type RosName, type RosType } from '@/types/python_types';
 import type { Channel, Message, ParamData } from '@/types/types';
 import Fuse from 'fuse.js';
 import { computed, ref } from 'vue';
@@ -45,7 +45,7 @@ const messages_store = useMessasgeStore()
 const props = defineProps<{
   category: 'options'
   data_key: string
-  type: 'message' | 'service' | 'action'
+  type: 'topic' | 'service' | 'action'
 }>()
 
 let search_results = ref<Channel[]>([])
@@ -58,23 +58,23 @@ const param = computed<ParamData | undefined>(() =>
 const type_param = computed<ParamData | undefined>(() => {
   let type_param_name: string
   switch (props.type) {
-    case 'message':
-      type_param_name = ''
+    case 'topic':
+      type_param_name = RosTopicType_Name
       break
     case 'service':
       type_param_name = RosServiceType_Name
       break
     case 'action':
-      type_param_name = ''
+      type_param_name = RosActionType_Name
     default:
       return undefined
   }
-  return edit_node_store.new_node_options.find((x) => x.value.type === RosServiceType_Name)
+  return edit_node_store.new_node_options.find((x) => x.value.type === type_param_name)
 })
 
 const search_fuse = computed<Fuse<Channel> | undefined>(() => {
   switch (props.type) {
-    case 'message':
+    case 'topic':
       return messages_store.ros_topic_name_fuse
     case 'service':
       return messages_store.ros_service_name_fuse

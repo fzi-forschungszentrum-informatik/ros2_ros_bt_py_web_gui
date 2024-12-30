@@ -95,6 +95,11 @@ export const FilePath_Value = {
 export type RosType = PyObject & {
   type_str: string
 }
+export const RosTopicType_Name = 'ros_bt_py.custom_types.RosTopicType'
+export const RosTopicType_Value = {
+  'py/object': RosTopicType_Name,
+  type_str: ''
+} as RosType
 export const RosServiceType_Name = 'ros_bt_py.custom_types.RosServiceType'
 export const RosServiceType_Value = {
   'py/object': RosServiceType_Name,
@@ -109,6 +114,11 @@ export const RosActionType_Value = {
 export type RosName = PyObject & {
   name: string
 }
+export const RosTopicName_Name = 'ros_bt_py.custom_types.RosTopicName'
+export const RosTopicName_Value = {
+  'py/object': RosTopicName_Name,
+  name: ''
+} as RosName
 export const RosServiceName_Name = 'ros_bt_py.custom_types.RosServiceName'
 export const RosServiceName_Value = {
   'py/object': RosServiceName_Name,

@@ -44,6 +44,8 @@ import {
   MathUnaryOperandType_Name,
   MathUnaryOperator_Name,
   OrderedDict_Name,
+  RosTopicType_Name,
+  RosTopicName_Name,
   RosServiceType_Name,
   RosServiceName_Name,
   RosActionType_Name,
@@ -206,6 +208,19 @@ function onFocus() {
       v-else-if="param.value.type === FilePath_Name"
       :category="props.category"
       :data_key="props.data_key"
+    />
+
+    <RosTypeInput
+      v-else-if="param.value.type === RosTopicType_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'topic'"
+    />
+    <RosNameInput
+      v-else-if="param.value.type === RosTopicName_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'topic'"
     />
 
     <RosTypeInput
