@@ -202,7 +202,10 @@ export function getDefaultValue(
       // This double call is necessary to dereference first the type of the optionref target and then its default value
       //TODO Check if this is consistent (are the `options` always populated in the same manner?)
       return getDefaultValue(
-        getDefaultValue(prettyprint_type(optionType.serialized_value), options).value as string,
+        getDefaultValue(
+          prettyprint_type(optionType.serialized_value), 
+          options
+        ).value as string,
         options
       )
     } else {
@@ -298,45 +301,6 @@ export function getDist(a: number[], b: number[]) {
 
 export function treeIsEditable(tree_msg: TreeMsg) {
   return tree_msg.state === 'EDITABLE'
-}
-
-export function getMessageType(str: string): Message {
-  const message_store = useMessasgeStore()
-  const message_parts = str.split('.')
-  if (message_parts.length < 3) {
-    console.error('Invalid message passed')
-    return { msg: '', action: false, service: false, type: MessageType.MESSAGE }
-  }
-
-  const new_message_parts = message_parts.slice(0, 2)
-  // Standardize type .../.../_name/Name to .../.../Name
-  if (
-    message_parts.length > 3 &&
-    message_parts[2] === message_parts[3].replace(/[A-Z]/g, (x) => '_' + x.toLowerCase())
-  ) {
-    new_message_parts.push(...message_parts.slice(3))
-  } else {
-    new_message_parts.push(...message_parts.slice(2))
-  }
-
-  // Caution, since this is the store member, don't edit it
-  const msg_ref = message_store.messages.find((item) => item.msg === new_message_parts.join('.'))
-
-  if (msg_ref === undefined) {
-    console.error('Invalid message passed')
-    return {
-      msg: new_message_parts.slice(0, 3).join('/'),
-      action: false,
-      service: false,
-      type: MessageType.MESSAGE
-    }
-  }
-  return {
-    msg: new_message_parts.slice(0, 3).join('/'),
-    type: msg_ref.type,
-    action: msg_ref.action,
-    service: msg_ref.service
-  }
 }
 
 export function getShortDoc(doc: string) {

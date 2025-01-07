@@ -30,20 +30,13 @@
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
-import type {
-  GetMessageFieldsRequest,
-  GetMessageFieldsResponse
-} from '@/types/services/GetMessageFields'
 import type { ParamData } from '@/types/types'
-import { getMessageType } from '@/utils'
-import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
 
 import 'jsoneditor/dist/jsoneditor.min.css'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const edit_node_store = useEditNodeStore()
-const ros_store = useROSStore()
 
 const props = defineProps<{
   category: 'options'
@@ -55,8 +48,6 @@ const param = computed<ParamData | undefined>(() =>
 )
 
 const is_valid = ref<boolean>(true)
-const pyobjectstring = ref<string | undefined>(undefined)
-const field_names = ref<string[]>([])
 
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined
@@ -78,68 +69,6 @@ function handleChange() {
   }
 }
 
-//TODO maybe this would be better placed in the getDefaultValue utility function
-function updateMessageType() {
-  if (param.value === undefined) {
-    return
-  }
-
-  // Trim the leading '__' that is sometimes added
-  let message_type: string
-  if (param.value.value.type.startsWith('__')) {
-    message_type = param.value.value.type.substring('__'.length)
-  } else {
-    message_type = param.value.value.type
-  }
-
-  const message = getMessageType(message_type)
-  if (message.msg === '/dict' || message.msg === '') {
-    /*notify({
-      title: 'Cannot request message infos!',
-      text: 'Message is a dict not a ROS message!',
-      type: 'warn'
-    })*/
-    return
-  } else {
-    ros_store.get_message_fields_service.callService(
-      {
-        message_type: message.msg,
-        service: message.service,
-        action: message.action,
-        type: message.type
-      } as GetMessageFieldsRequest,
-      (response: GetMessageFieldsResponse) => {
-        if (response.success) {
-          pyobjectstring.value = response.fields
-          field_names.value = response.field_names
-
-          const new_value = JSON.parse(response.fields)
-          console.log(new_value)
-
-          if (editor === undefined) {
-            return
-          }
-          editor.update(new_value)
-          handleChange()
-        } else {
-          notify({
-            title: 'GetMessageFields Service Error',
-            text: response.error_message,
-            type: 'error'
-          })
-        }
-      },
-      (failed) => {
-        notify({
-          title: 'Failure calling GetMessageFields Service',
-          text: failed,
-          type: 'error'
-        })
-      }
-    )
-  }
-}
-
 // This fires when param type changes and updates the editor accordingly
 watch(
   () => {
@@ -153,7 +82,6 @@ watch(
       return
     }
     editor.update(param.value.value.value)
-    updateMessageType()
   }
 )
 
