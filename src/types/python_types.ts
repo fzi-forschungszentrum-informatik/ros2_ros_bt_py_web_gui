@@ -47,12 +47,12 @@ export const LoggerLevel_Value = {
 export type PyOperator = PyObject & {
   operator: string
 }
-export const MathUnaryOperator_Name = 'ros_bt_py.custom_types.MathUnaryOperator'
+export const MathUnaryOperator_Name = 'ros_bt_py.helpers.MathUnaryOperator'
 export const MathUnaryOperator_Value = {
   'py/object': MathUnaryOperator_Name,
   operator: 'sqrt'
 } as PyOperator
-export const MathBinaryOperator_Name = 'ros_bt_py.custom_types.MathBinaryOperator'
+export const MathBinaryOperator_Name = 'ros_bt_py.helpers.MathBinaryOperator'
 export const MathBinaryOperator_Value = {
   'py/object': MathBinaryOperator_Name,
   operator: '+'
@@ -61,12 +61,12 @@ export const MathBinaryOperator_Value = {
 export type PyOperand = PyObject & {
   operand_type: string
 }
-export const MathOperandType_Name = 'ros_bt_py.custom_types.MathOperandType'
+export const MathOperandType_Name = 'ros_bt_py.helpers.MathOperandType'
 export const MathOperandType_Value = {
   'py/object': MathOperandType_Name,
   operand_type: 'float'
 } as PyOperand
-export const MathUnaryOperandType_Name = 'ros_bt_py.custom_types.MathUnaryOperandType'
+export const MathUnaryOperandType_Name = 'ros_bt_py.helpers.MathUnaryOperandType'
 export const MathUnaryOperandType_Value = {
   'py/object': MathUnaryOperandType_Name,
   operand_type: 'float'
