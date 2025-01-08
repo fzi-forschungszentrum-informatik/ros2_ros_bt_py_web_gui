@@ -27,37 +27,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import {
-  EnumValue_Name,
-  EnumValue_Value,
-  FilePath_Name,
-  FilePath_Value,
-  LoggerLevel_Name,
-  LoggerLevel_Value,
-  MathBinaryOperator_Name,
-  MathBinaryOperator_Value,
-  MathOperandType_Name,
-  MathOperandType_Value,
-  MathUnaryOperandType_Name,
-  MathUnaryOperandType_Value,
-  MathUnaryOperator_Name,
-  MathUnaryOperator_Value,
-  OrderedDict_Name,
-  OrderedDict_Value,
-  RosActionName_Name,
-  RosActionName_Value,
-  RosActionType_Name,
-  RosActionType_Value,
-  RosServiceName_Name,
-  RosServiceName_Value,
-  RosServiceType_Name,
-  RosServiceType_Value,
-  RosTopicName_Name,
-  RosTopicName_Value,
-  RosTopicType_Name,
-  RosTopicType_Value
-} from './types/python_types'
-import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal, ParamData, PyObject, ParamType } from './types/types'
+import { getPythonTypeDefault, isPythonTypeWithDefault } from './types/python_types'
+import type { NodeData, TreeMsg, DataEdgeTerminal, ParamData, PyObject, ParamType } from './types/types'
 import { IOKind } from './types/types'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
@@ -201,7 +172,6 @@ export function getDefaultValue(
     })
     if (optionType) {
       // This double call is necessary to dereference first the type of the optionref target and then its default value
-      //TODO Check if this is consistent (are the `options` always populated in the same manner?)
       return getDefaultValue(
         getDefaultValue(
           prettyprint_type(optionType.serialized_value), 
@@ -215,77 +185,12 @@ export function getDefaultValue(
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
-  //TODO This explicit listing of python types is tedious.
-  // Maybe a general check and value find would be better.
-  } else if (typeName === OrderedDict_Name) {
+  // This checks all types defined in `python_types`
+  // which provide default values
+  } else if (isPythonTypeWithDefault(typeName)) {
     return {
-      type: OrderedDict_Name,
-      value: structuredClone(OrderedDict_Value)
-    }
-  } else if (typeName === LoggerLevel_Name) {
-    return {
-      type: LoggerLevel_Name,
-      value: structuredClone(LoggerLevel_Value)
-    }
-  } else if (typeName === MathUnaryOperator_Name) {
-    return {
-      type: MathUnaryOperator_Name,
-      value: structuredClone(MathUnaryOperator_Value)
-    }
-  } else if (typeName === MathBinaryOperator_Name) {
-    return {
-      type: MathBinaryOperator_Name,
-      value: structuredClone(MathBinaryOperator_Value)
-    }
-  } else if (typeName === MathOperandType_Name) {
-    return {
-      type: MathOperandType_Name,
-      value: structuredClone(MathOperandType_Value)
-    }
-  } else if (typeName === MathUnaryOperandType_Name) {
-    return {
-      type: MathUnaryOperandType_Name,
-      value: structuredClone(MathUnaryOperandType_Value)
-    }
-  } else if (typeName === EnumValue_Name) {
-    return {
-      type: EnumValue_Name,
-      value: structuredClone(EnumValue_Value)
-    }
-  } else if (typeName === FilePath_Name) {
-    return {
-      type: FilePath_Name,
-      value: structuredClone(FilePath_Value)
-    }
-  } else if (typeName === RosTopicName_Name) {
-    return {
-      type: RosTopicName_Name,
-      value: structuredClone(RosTopicName_Value)
-    }
-  } else if (typeName === RosTopicType_Name) {
-    return {
-      type: RosTopicType_Name,
-      value: structuredClone(RosTopicType_Value)
-    }
-  } else if (typeName === RosServiceName_Name) {
-    return {
-      type: RosServiceName_Name,
-      value: structuredClone(RosServiceName_Value)
-    }
-  } else if (typeName === RosServiceType_Name) {
-    return {
-      type: RosServiceType_Name,
-      value: structuredClone(RosServiceType_Value)
-    }
-  } else if (typeName === RosActionName_Name) {
-    return {
-      type: RosActionName_Name,
-      value: structuredClone(RosActionName_Value)
-    }
-  } else if (typeName === RosActionType_Name) {
-    return {
-      type: RosActionType_Name,
-      value: structuredClone(RosActionType_Value)
+      type: typeName,
+      value: getPythonTypeDefault(typeName) || {}
     }
   } else {
     return {

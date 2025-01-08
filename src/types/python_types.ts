@@ -28,104 +28,116 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { PyObject } from './types'
+import type { PyObject, PyReduce } from './types'
+
+const PyDefaultValues = new Map<string, PyObject | PyReduce>()
 
 export const OrderedDict_Name = 'collections.OrderedDict'
-export const OrderedDict_Value = {
+PyDefaultValues.set(OrderedDict_Name, {
   'py/reduce': [{ 'py/type': OrderedDict_Name }, { 'py/tuple': [[]] }, null, null, null]
-}
+} as PyReduce )
 
 export type PyLogger = PyObject & {
   logger_level: string
 }
 export const LoggerLevel_Name = 'ros_bt_py.ros_helpers.LoggerLevel'
-export const LoggerLevel_Value = {
+PyDefaultValues.set(LoggerLevel_Name, {
   'py/object': LoggerLevel_Name,
   logger_level: 'Debug'
-} as PyLogger
+} as PyLogger )
 
 export type PyOperator = PyObject & {
   operator: string
 }
 export const MathUnaryOperator_Name = 'ros_bt_py.helpers.MathUnaryOperator'
-export const MathUnaryOperator_Value = {
+PyDefaultValues.set(MathUnaryOperator_Name, {
   'py/object': MathUnaryOperator_Name,
   operator: 'sqrt'
-} as PyOperator
+} as PyOperator )
 export const MathBinaryOperator_Name = 'ros_bt_py.helpers.MathBinaryOperator'
-export const MathBinaryOperator_Value = {
+PyDefaultValues.set(MathBinaryOperator_Name, {
   'py/object': MathBinaryOperator_Name,
   operator: '+'
-} as PyOperator
+} as PyOperator )
 
 export type PyOperand = PyObject & {
   operand_type: string
 }
 export const MathOperandType_Name = 'ros_bt_py.helpers.MathOperandType'
-export const MathOperandType_Value = {
+PyDefaultValues.set(MathOperandType_Name, {
   'py/object': MathOperandType_Name,
   operand_type: 'float'
-} as PyOperand
+} as PyOperand )
 export const MathUnaryOperandType_Name = 'ros_bt_py.helpers.MathUnaryOperandType'
-export const MathUnaryOperandType_Value = {
+PyDefaultValues.set(MathUnaryOperandType_Name, {
   'py/object': MathUnaryOperandType_Name,
   operand_type: 'float'
-} as PyOperand
+} as PyOperand )
 
 export type PyEnum = PyObject & {
   enum_value: string
   field_names: string[]
 }
 export const EnumValue_Name = 'ros_bt_py.ros_helpers.EnumValue'
-export const EnumValue_Value = {
+PyDefaultValues.set(EnumValue_Name, {
   'py/object': EnumValue_Name,
   enum_value: '',
   field_names: []
-} as PyEnum
+} as PyEnum )
 
 export type PyFilePath = PyObject & {
   path: string
 }
 export const FilePath_Name = 'ros_bt_py.custom_types.FilePath'
-export const FilePath_Value = {
+PyDefaultValues.set(FilePath_Name, {
   'py/object': FilePath_Name,
   path: ''
-} as PyFilePath
+} as PyFilePath )
 
 export type RosType = PyObject & {
   type_str: string
 }
 export const RosTopicType_Name = 'ros_bt_py.custom_types.RosTopicType'
-export const RosTopicType_Value = {
+PyDefaultValues.set(RosTopicType_Name, {
   'py/object': RosTopicType_Name,
   type_str: ''
-} as RosType
+} as RosType )
 export const RosServiceType_Name = 'ros_bt_py.custom_types.RosServiceType'
-export const RosServiceType_Value = {
+PyDefaultValues.set(RosServiceType_Name, {
   'py/object': RosServiceType_Name,
   type_str: ''
-} as RosType
+} as RosType )
 export const RosActionType_Name = 'ros_bt_py.custom_types.RosActionType'
-export const RosActionType_Value = {
+PyDefaultValues.set(RosActionType_Name, {
   'py/object': RosActionType_Name,
   type_str: ''
-} as RosType
+} as RosType )
 
 export type RosName = PyObject & {
   name: string
 }
 export const RosTopicName_Name = 'ros_bt_py.custom_types.RosTopicName'
-export const RosTopicName_Value = {
+PyDefaultValues.set(RosTopicName_Name, {
   'py/object': RosTopicName_Name,
   name: ''
-} as RosName
+} as RosName )
 export const RosServiceName_Name = 'ros_bt_py.custom_types.RosServiceName'
-export const RosServiceName_Value = {
+PyDefaultValues.set(RosServiceName_Name, {
   'py/object': RosServiceName_Name,
   name: ''
-} as RosName
+} as RosName )
 export const RosActionName_Name = 'ros_bt_py.custom_types.RosActionName'
-export const RosActionName_Value = {
+PyDefaultValues.set(RosActionName_Name, {
   'py/object': RosActionName_Name,
   name: ''
-} as RosName
+} as RosName )
+
+export function isPythonTypeWithDefault(type: string) {
+  return PyDefaultValues.has(type)
+}
+
+export function getPythonTypeDefault(type: string) {
+  return structuredClone(
+    PyDefaultValues.get(type)
+  )
+}
