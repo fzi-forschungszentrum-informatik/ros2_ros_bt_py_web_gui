@@ -50,6 +50,17 @@ const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
+const display_value = computed<string>(() => {
+  if (param.value === undefined) {
+    return ''
+  }
+  let value = (param.value?.value.value as string)
+  if (python_builtin_types.includes(value)) {
+    value = 'builtins.' + value
+  }
+  return value
+})
+
 // These track two conditions for displaying the result dropdown.
 //   One is for focusing the input, the other for navigating the result menu
 let hide_results = ref<boolean>(true)
@@ -67,11 +78,7 @@ function onChange(event: Event) {
   const results = messages_store.messages_fuse.search(new_type_name)
   messages_results.value = results.slice(0, 5).map((x) => x.item)
 
-  if (python_builtin_types.indexOf(new_type_name) >= 0) {
-    edit_node_store.updateParamValue(props.category, props.data_key, '__builtin__.' + new_type_name)
-  } else {
-    edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
-  }
+  edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
 }
 
 function selectSearchResult(search_result: string) {
@@ -104,7 +111,7 @@ function releaseDropdown() {
       <input
         type="text"
         class="form-control mt-2"
-        :value="(param.value.value as string)"
+        :value="display_value"
         :disabled="editor_store.selected_subtree.is_subtree"
         @input="onChange"
         @focus="focusInput"

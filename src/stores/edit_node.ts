@@ -28,12 +28,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DocumentedNode, NodeData, NodeMsg, ParamData, ValueTypes } from '@/types/types'
+import type { DocumentedNode, NodeData, NodeMsg, ParamData, PyObject, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, prettyprint_type } from '@/utils'
+import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -198,7 +198,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       const type = prettyprint_type(x.serialized_type)
       let json_value = JSON.parse(x.serialized_value)
       if (type === 'type') {
-        json_value = json_value['py/type'].replace('__builtin__.', '').replace('builtins.', '')
+        json_value = json_value['py/type']
       }
       return {
         key: x.key,
@@ -358,7 +358,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
             // referenced option
             return {
               key: current_item.key,
-              value: getDefaultValue(opt_value.replace('__builtin__.', '').replace('builtins.', ''))
+              value: getDefaultValue(opt_value)
             }
           }
         }
@@ -384,6 +384,48 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       new_node_outputs.value = new_node_outputs.value.map(map_fun)
     }
   }
+
+  function serializeNodeOptions(): NodeData[] {
+    return new_node_options.value.map((x) => {
+      const option: NodeData = {
+        key: x.key,
+        serialized_value: '',
+        serialized_type: '' // This is left blank intentionally
+      }
+      if (x.value.type === 'type') {
+        if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
+          x.value.value = 'builtins.' + x.value.value;
+        }
+        option.serialized_value = JSON.stringify({
+          'py/type': x.value.value
+        })
+      } else if (x.value.type.startsWith('__')) {
+        //TODO This should be changed to not generate "bad" defaults
+        const val = x.value.value as PyObject
+        val['py/object'] = x.value.type.substring('__'.length)
+        option.serialized_value = JSON.stringify(x.value.value)
+      } else {
+        option.serialized_value = JSON.stringify(x.value.value)
+      }
+      return option
+    })
+  }
+
+  function buildNodeMsg(): NodeMsg {
+    return {
+      module: new_node_module.value,
+      node_class: new_node_class.value,
+      name: new_node_name.value,
+      max_children: 0,
+      child_names: [],
+      options: serializeNodeOptions(),
+      inputs: [],
+      outputs: [],
+      version: '',
+      state: '',
+    }
+  }
+
 
   return {
     selected_node,
@@ -411,6 +453,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     changeCopyMode,
     changeNodeName,
     changeNodeClass,
-    updateParamValue
+    updateParamValue,
+    serializeNodeOptions,
+    buildNodeMsg,
   }
 })

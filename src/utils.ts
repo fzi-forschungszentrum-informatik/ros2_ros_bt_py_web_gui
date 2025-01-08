@@ -27,7 +27,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { useMessasgeStore } from './stores/message'
 import {
   EnumValue_Name,
   EnumValue_Value,
@@ -92,13 +91,15 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   return prettyprint_type(from.type) === prettyprint_type(to.type)
 }
 
+//TODO This appears to be wrong or outdated.
+// How do we want to handle unsupported types?
 export const python_builtin_types = [
   'int',
   'float',
-  'long',
+  //'long',
   'str',
-  'basestring',
-  'unicode',
+  //'basestring',
+  //'unicode',
   'bool',
   'list',
   'dict',
@@ -214,6 +215,8 @@ export function getDefaultValue(
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
+  //TODO This explicit listing of python types is tedious.
+  // Maybe a general check and value find would be better.
   } else if (typeName === OrderedDict_Name) {
     return {
       type: OrderedDict_Name,

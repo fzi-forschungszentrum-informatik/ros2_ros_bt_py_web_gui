@@ -31,7 +31,7 @@
 import { python_builtin_types } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import EditableNode from './EditableNode.vue'
-import type { NodeData, NodeMsg } from '@/types/types'
+import type { NodeData, NodeMsg, PyObject } from '@/types/types'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
@@ -39,49 +39,10 @@ import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/Set
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
-
-function buildNodeMsg(): NodeMsg {
-  return {
-    module: edit_node_store.new_node_module,
-    node_class: edit_node_store.new_node_class,
-    name: edit_node_store.new_node_name,
-    //TODO Handle new python_types
-    options: edit_node_store.new_node_options.map((x) => {
-      const option: NodeData = {
-        key: x.key,
-        serialized_value: '',
-        serialized_type: ''
-      }
-      if (x.value.type === 'type') {
-        if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
-          x.value.value = '__builtin__.' + x.value.value
-          //x.value.value = 'builtins.' + x.value.value;
-        }
-        option.serialized_value = JSON.stringify({
-          'py/type': x.value.value
-        })
-      } else if (x.value.type.startsWith('__')) {
-        const val = x.value.value as PyLogger | PyOperator | PyOperand | PyEnum
-        val['py/object'] = x.value.type.substring('__'.length)
-        option.serialized_value = JSON.stringify(x.value.value)
-      } else {
-        option.serialized_value = JSON.stringify(x.value.value)
-      }
-      return option
-    }),
-    inputs: [],
-    outputs: [],
-    max_children: 0,
-    child_names: [],
-    version: '',
-    state: ''
-  } as NodeMsg
-}
 
 function onClickDelete() {
   if (edit_node_store.selected_node === undefined) {
@@ -166,27 +127,7 @@ function updateNode() {
       node_name: edit_node_store.selected_node.name,
       rename_node: true,
       new_name: edit_node_store.new_node_name,
-      options: edit_node_store.new_node_options.map((x) => {
-        const option = {
-          key: x.key,
-          serialized_value: ''
-        }
-        if (x.value.type === 'type') {
-          if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
-            x.value.value = ('__builtin__.' + x.value.value) as string
-          }
-          option.serialized_value = JSON.stringify({
-            'py/type': x.value.value
-          })
-        } else if (x.value.type.startsWith('__')) {
-          const val = x.value.value as PyOperand | PyLogger | PyOperator | PyOperand | PyEnum
-          val['py/object'] = x.value.type.substring('__'.length)
-          option.serialized_value = JSON.stringify(val)
-        } else {
-          option.serialized_value = JSON.stringify(x.value.value)
-        }
-        return option
-      })
+      options: edit_node_store.serializeNodeOptions()
     } as SetOptionsRequest,
     (response: SetOptionsResponse) => {
       if (response.success) {
@@ -209,7 +150,6 @@ function updateNode() {
 
 function onClickUpdate() {
   if (edit_node_store.node_is_morphed) {
-    const msg = buildNodeMsg()
     if (edit_node_store.selected_node === undefined) {
       console.error("Can't morph a node that doesn't exist")
       return
@@ -217,12 +157,12 @@ function onClickUpdate() {
     ros_store.morph_node_service.callService(
       {
         node_name: edit_node_store.selected_node.name,
-        new_node: msg
+        new_node: edit_node_store.buildNodeMsg()
       } as MorphNodeRequest,
       (response: MorphNodeResponse) => {
         if (response.success) {
           notify({
-            title: 'Morphed node ' + edit_node_store.selected_node!.name + ' successfully!',
+            title: 'Morphed node ' + edit_node_store.new_node_name + ' successfully!',
             type: 'success'
           })
           edit_node_store.node_is_morphed = false
