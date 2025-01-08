@@ -57,7 +57,7 @@ import {
   RosTopicType_Name,
   RosTopicType_Value
 } from './types/python_types'
-import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal } from './types/types'
+import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal, ParamData, PyObject, ParamType } from './types/types'
 import { IOKind } from './types/types'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
@@ -147,7 +147,7 @@ export function prettyprint_type(jsonpickled_type: string) {
 export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
-): { type: string; value: ValueTypes } {
+): ParamType {
   if (typeName === 'type') {
     return {
       type: 'type',
@@ -288,12 +288,37 @@ export function getDefaultValue(
       value: structuredClone(RosActionType_Value)
     }
   } else {
-    //TODO should this check for general ros_types?
     return {
       type: '__' + typeName,
       value: {}
     }
   }
+}
+
+export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
+  return node_options.map((x) => {
+    const option: NodeData = {
+      key: x.key,
+      serialized_value: '',
+      serialized_type: '' // This is left blank intentionally
+    }
+    if (x.value.type === 'type') {
+      if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
+        x.value.value = 'builtins.' + x.value.value;
+      }
+      option.serialized_value = JSON.stringify({
+        'py/type': x.value.value
+      })
+    } else if (x.value.type.startsWith('__')) {
+      //TODO This should be changed to not generate "bad" defaults
+      const val = x.value.value as PyObject
+      val['py/object'] = x.value.type.substring('__'.length)
+      option.serialized_value = JSON.stringify(x.value.value)
+    } else {
+      option.serialized_value = JSON.stringify(x.value.value)
+    }
+    return option
+  })
 }
 
 // Get the distance between two sets of coordinates (expected to be
