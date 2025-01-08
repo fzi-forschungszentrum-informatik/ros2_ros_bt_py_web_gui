@@ -58,8 +58,8 @@ import {
   RosTopicType_Name,
   RosTopicType_Value
 } from './types/python_types'
-import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal, Message } from './types/types'
-import { IOKind, MessageType } from './types/types'
+import type { NodeData, TreeMsg, ValueTypes, DataEdgeTerminal } from './types/types'
+import { IOKind } from './types/types'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
 let idx = 0

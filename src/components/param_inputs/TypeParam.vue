@@ -31,7 +31,7 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
-import type { Message, ParamData } from '@/types/types'
+import type { ParamData } from '@/types/types'
 import { python_builtin_types } from '@/utils'
 import { computed, ref } from 'vue'
 
@@ -44,7 +44,7 @@ const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 const messages_store = useMessasgeStore()
 
-let messages_results = ref<Message[]>([])
+let messages_results = ref<string[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
@@ -74,8 +74,8 @@ function onChange(event: Event) {
   }
 }
 
-function selectSearchResult(search_result: Message) {
-  edit_node_store.updateParamValue(props.category, props.data_key, search_result.msg)
+function selectSearchResult(search_result: string) {
+  edit_node_store.updateParamValue(props.category, props.data_key, search_result)
   releaseDropdown()
 }
 
@@ -127,14 +127,14 @@ function releaseDropdown() {
       >
         <div
           v-for="result in messages_results"
-          :key="result.msg"
+          :key="result"
           class="list-group-item search-result"
           tabindex="0"
           @click="() => selectSearchResult(result)"
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          {{ result.msg }}
+          {{ result }}
         </div>
       </div>
     </div>

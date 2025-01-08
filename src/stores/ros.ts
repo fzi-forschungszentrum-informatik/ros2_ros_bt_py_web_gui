@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import ROSLIB from 'roslib'
-import type { Packages, Messages, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
+import type { Packages, MessageTypes, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -186,11 +186,11 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
-    const messages_sub = ref<ROSLIB.Topic<Messages>>(
+    const messages_sub = ref<ROSLIB.Topic<MessageTypes>>(
       new ROSLIB.Topic({
         ros: ros.value,
-        name: namespace.value + 'messages',
-        messageType: 'ros_bt_py_interfaces/msg/Messages',
+        name: namespace.value + 'message_types',
+        messageType: 'ros_bt_py_interfaces/msg/MessageTypes',
         latch: true,
         reconnect_on_close: true
       })
@@ -399,8 +399,8 @@ export const useROSStore = defineStore(
       messages_sub.value.removeAllListeners()
       messages_sub.value = new ROSLIB.Topic({
         ros: ros.value,
-        name: namespace.value + 'messages',
-        messageType: 'ros_bt_py_interfaces/msg/Messages',
+        name: namespace.value + 'message_types',
+        messageType: 'ros_bt_py_interfaces/msg/MessageTypes',
         latch: true,
         reconnect_on_close: true
       })

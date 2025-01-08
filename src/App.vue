@@ -35,7 +35,7 @@ import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
 import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
+import type { MessageTypes, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
 import { useEditorStore } from './stores/editor'
 import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
@@ -80,11 +80,11 @@ function updatePackagesSubscription() {
   ros_store.packages_sub.subscribe(onNewPackagesMsg)
 }
 
-function onNewMessagesMsg(msg: Messages) {
+function onNewMessagesMsg(msg: MessageTypes) {
   if (!messages_store.messages_available) {
     messages_store.areMessagesAvailable(true)
   }
-  messages_store.updateAvailableMessages(msg.messages)
+  messages_store.updateAvailableMessages(msg)
 }
 
 function updateMessagesSubscription() {

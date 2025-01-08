@@ -29,7 +29,6 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import { useROSStore } from '@/stores/ros'
 import type { ParamData } from '@/types/types'
 import JSONEditor from 'jsoneditor'
 
