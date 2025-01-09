@@ -54,7 +54,7 @@ const display_value = computed<string>(() => {
   if (param.value === undefined) {
     return ''
   }
-  let value = (param.value?.value.value as string)
+  let value = param.value.value.value as string
   if (python_builtin_types.includes(value)) {
     value = 'builtins.' + value
   }

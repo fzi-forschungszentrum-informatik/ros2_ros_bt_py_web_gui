@@ -29,14 +29,13 @@
 -->
 
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import { useEditorStore } from '@/stores/editor';
-import { useMessasgeStore } from '@/stores/message';
-import type { RosType } from '@/types/python_types';
-import type { ParamData } from '@/types/types';
-import Fuse from 'fuse.js';
-import { computed, ref } from 'vue';
-
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
+import { useMessasgeStore } from '@/stores/message'
+import type { RosType } from '@/types/python_types'
+import type { ParamData } from '@/types/types'
+import Fuse from 'fuse.js'
+import { computed, ref } from 'vue'
 
 const edit_node_store = useEditNodeStore()
 const editor_store = useEditorStore()

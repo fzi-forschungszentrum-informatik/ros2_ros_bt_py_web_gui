@@ -29,14 +29,19 @@
 -->
 
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import { useEditorStore } from '@/stores/editor';
-import { useMessasgeStore } from '@/stores/message';
-import { RosActionType_Name, RosServiceType_Name, RosTopicType_Name, type RosName, type RosType } from '@/types/python_types';
-import type { Channel, ParamData } from '@/types/types';
-import Fuse from 'fuse.js';
-import { computed, ref } from 'vue';
-
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
+import { useMessasgeStore } from '@/stores/message'
+import {
+  RosActionType_Name,
+  RosServiceType_Name,
+  RosTopicType_Name,
+  type RosName,
+  type RosType
+} from '@/types/python_types'
+import type { Channel, ParamData } from '@/types/types'
+import Fuse from 'fuse.js'
+import { computed, ref } from 'vue'
 
 const edit_node_store = useEditNodeStore()
 const editor_store = useEditorStore()
@@ -66,6 +71,7 @@ const type_param = computed<ParamData | undefined>(() => {
       break
     case 'action':
       type_param_name = RosActionType_Name
+      break
     default:
       return undefined
   }
@@ -103,13 +109,13 @@ function onInput(event: Event) {
 
   let results
   if (type_param.value === undefined) {
-    results = search_fuse.value.search({name: new_name})
+    results = search_fuse.value.search({ name: new_name })
   } else {
     const type = (type_param.value.value.value as RosType).type_str
     if (type === '') {
-      results = search_fuse.value.search({name: new_name})
+      results = search_fuse.value.search({ name: new_name })
     } else {
-      results = search_fuse.value.search({name: new_name, type: type})
+      results = search_fuse.value.search({ name: new_name, type: type })
     }
   }
 
@@ -203,7 +209,7 @@ function releaseDropdown() {
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          {{ result.name }}<br>
+          {{ result.name }}<br />
           <small>{{ result.type }}</small>
         </div>
       </div>

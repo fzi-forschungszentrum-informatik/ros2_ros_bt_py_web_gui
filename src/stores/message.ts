@@ -106,6 +106,6 @@ export const useMessasgeStore = defineStore('messages', () => {
     ros_action_name_fuse,
     areMessagesAvailable,
     updateAvailableMessages,
-    updateMessageChannels,
+    updateMessageChannels
   }
 })

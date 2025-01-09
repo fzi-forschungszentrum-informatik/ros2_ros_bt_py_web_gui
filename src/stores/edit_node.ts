@@ -28,12 +28,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DocumentedNode, NodeData, NodeMsg, ParamData, PyObject, ValueTypes } from '@/types/types'
+import type { DocumentedNode, NodeData, NodeMsg, ParamData, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, prettyprint_type, python_builtin_types, serializeNodeOptions } from '@/utils'
+import { getDefaultValue, prettyprint_type, serializeNodeOptions } from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -383,10 +383,9 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       inputs: [],
       outputs: [],
       version: '',
-      state: '',
+      state: ''
     }
   }
-
 
   return {
     selected_node,
@@ -415,6 +414,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     changeNodeName,
     changeNodeClass,
     updateParamValue,
-    buildNodeMsg,
+    buildNodeMsg
   }
 })

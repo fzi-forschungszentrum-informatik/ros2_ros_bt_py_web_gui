@@ -28,7 +28,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import { getPythonTypeDefault, isPythonTypeWithDefault } from './types/python_types'
-import type { NodeData, TreeMsg, DataEdgeTerminal, ParamData, PyObject, ParamType } from './types/types'
+import type { 
+  NodeData, 
+  TreeMsg, 
+  DataEdgeTerminal, 
+  ParamData, 
+  PyObject, 
+  ParamType 
+} from './types/types'
 import { IOKind } from './types/types'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly

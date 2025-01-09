@@ -28,10 +28,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type { NodeData, NodeMsg, ParamData, PyObject } from '@/types/types'
+import type { NodeMsg } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
-import { python_builtin_types } from '@/utils'
 import { useROSStore } from '@/stores/ros'
 import { notify } from '@kyvg/vue3-notification'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'

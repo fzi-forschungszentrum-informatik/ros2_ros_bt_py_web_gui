@@ -49,7 +49,7 @@ import {
   RosServiceType_Name,
   RosServiceName_Name,
   RosActionType_Name,
-  RosActionName_Name,
+  RosActionName_Name
 } from '@/types/python_types'
 import RosTypeParam from './param_inputs/RosTypeParam.vue'
 import RosNameParam from './param_inputs/RosNameParam.vue'

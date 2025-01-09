@@ -44,11 +44,10 @@ import type {
   ParamData,
   TrimmedNode,
   TrimmedNodeData,
-  NodeDataWiring,
-  PyObject
+  NodeDataWiring
 } from '@/types/types'
 import { Position, IOKind } from '@/types/types'
-import { getDefaultValue, prettyprint_type, python_builtin_types, serializeNodeOptions, typesCompatible } from '@/utils'
+import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
@@ -57,7 +56,6 @@ import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import type { PyEnum, PyLogger, PyOperand, PyOperator } from '@/types/python_types'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -149,10 +147,7 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
   const options = node.options.map((opt: NodeData) => {
     return {
       key: opt.key,
-      value: getDefaultValue(
-        prettyprint_type(opt.serialized_value), 
-        node.options,
-      )
+      value: getDefaultValue(prettyprint_type(opt.serialized_value), node.options)
     } as ParamData
   })
 

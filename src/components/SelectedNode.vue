@@ -28,10 +28,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { python_builtin_types, serializeNodeOptions } from '@/utils'
+import { serializeNodeOptions } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import EditableNode from './EditableNode.vue'
-import type { NodeData, NodeMsg, PyObject } from '@/types/types'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
