@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { python_builtin_types } from '@/utils'
+import { python_builtin_types, serializeNodeOptions } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import EditableNode from './EditableNode.vue'
 import type { NodeData, NodeMsg, PyObject } from '@/types/types'
@@ -127,7 +127,7 @@ function updateNode() {
       node_name: edit_node_store.selected_node.name,
       rename_node: true,
       new_name: edit_node_store.new_node_name,
-      options: edit_node_store.serializeNodeOptions()
+      options: serializeNodeOptions(edit_node_store.new_node_options)
     } as SetOptionsRequest,
     (response: SetOptionsResponse) => {
       if (response.success) {
