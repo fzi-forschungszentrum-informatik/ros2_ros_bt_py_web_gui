@@ -76,7 +76,7 @@ function onChange(event: Event) {
   let new_type_name = target.value || ''
   new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
   const results = messages_store.messages_fuse.search(new_type_name)
-  messages_results.value = results.slice(0, 5).map((x) => x.item)
+  messages_results.value = results.map((x) => x.item)
 
   edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
 }
@@ -127,7 +127,7 @@ function releaseDropdown() {
     </label>
     <div class="mb-2 search-results">
       <div
-        class="list-group"
+        class="list-group rounded-top-0"
         :class="{ 'd-none': hide_results && !keep_results }"
         @mouseenter="forceDropdown"
         @mouseleave="releaseDropdown"
@@ -141,7 +141,8 @@ function releaseDropdown() {
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          {{ result }}
+          <!--Insert a zero-width space after each dot to allow line breaks-->
+          {{ result.replace(/\./g, '.\u200B') }}
         </div>
       </div>
     </div>
@@ -150,15 +151,5 @@ function releaseDropdown() {
 </template>
 
 <style scoped lang="scss">
-.search-results {
-  padding-left: 10px;
-}
 
-.search-result:hover {
-  background-color: #007bff;
-}
-
-.search-result-highlighted {
-  background-color: #007bff;
-}
 </style>

@@ -32,8 +32,8 @@
 import { useEditNodeStore } from '@/stores/edit_node';
 import { useEditorStore } from '@/stores/editor';
 import { useMessasgeStore } from '@/stores/message';
-import type { RosType } from '@/types/python_types';
-import type { Message, ParamData } from '@/types/types';
+import { RosActionType_Name, RosServiceType_Name, RosTopicType_Name, type RosName, type RosType } from '@/types/python_types';
+import type { Channel, ParamData } from '@/types/types';
 import Fuse from 'fuse.js';
 import { computed, ref } from 'vue';
 
@@ -48,20 +48,38 @@ const props = defineProps<{
   type: 'topic' | 'service' | 'action'
 }>()
 
-let search_results = ref<string[]>([])
+let search_results = ref<Channel[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
-const search_fuse = computed<Fuse<string> | undefined>(() => {
+// Find a type parameter to reference when searching and set when selecting
+const type_param = computed<ParamData | undefined>(() => {
+  let type_param_name: string
   switch (props.type) {
     case 'topic':
-      return messages_store.ros_topic_type_fuse
+      type_param_name = RosTopicType_Name
+      break
     case 'service':
-      return messages_store.ros_service_type_fuse
+      type_param_name = RosServiceType_Name
+      break
     case 'action':
-      return messages_store.ros_action_type_fuse
+      type_param_name = RosActionType_Name
+    default:
+      return undefined
+  }
+  return edit_node_store.new_node_options.find((x) => x.value.type === type_param_name)
+})
+
+const search_fuse = computed<Fuse<Channel> | undefined>(() => {
+  switch (props.type) {
+    case 'topic':
+      return messages_store.ros_topic_name_fuse
+    case 'service':
+      return messages_store.ros_service_name_fuse
+    case 'action':
+      return messages_store.ros_action_name_fuse
     default:
       return undefined
   }
@@ -81,11 +99,23 @@ function onInput(event: Event) {
   }
 
   const target = event.target as HTMLInputElement
-  let new_type_name = target.value || ''
-  const results = search_fuse.value.search(new_type_name)
-  search_results.value = results.slice(0, 5).map((x) => x.item)
+  let new_name = target.value || ''
 
-  setValue(new_type_name)
+  let results
+  if (type_param.value === undefined) {
+    results = search_fuse.value.search({name: new_name})
+  } else {
+    const type = (type_param.value.value.value as RosType).type_str
+    if (type === '') {
+      results = search_fuse.value.search({name: new_name})
+    } else {
+      results = search_fuse.value.search({name: new_name, type: type})
+    }
+  }
+
+  search_results.value = results.map((x) => x.item)
+
+  setValue(new_name)
 }
 
 function setValue(new_value: string) {
@@ -94,14 +124,27 @@ function setValue(new_value: string) {
     return
   }
 
-  let type_obj = param.value.value.value as RosType
-  type_obj.type_str = new_value
+  let name_obj = param.value.value.value as RosName
+  name_obj.name = new_value
 
-  edit_node_store.updateParamValue(props.category, props.data_key, type_obj)
+  edit_node_store.updateParamValue(props.category, props.data_key, name_obj)
 }
 
-function selectSearchResult(search_result: string) {
-  setValue(search_result)
+function setType(new_value: string) {
+  if (type_param.value === undefined) {
+    // No type param to set
+    return
+  }
+
+  let type_obj = type_param.value.value.value as RosType
+  type_obj.type_str = new_value
+
+  edit_node_store.updateParamValue(props.category, type_param.value.key, type_obj)
+}
+
+function selectSearchResult(search_result: Channel) {
+  setValue(search_result.name)
+  setType(search_result.type)
   releaseDropdown()
 }
 
@@ -130,7 +173,7 @@ function releaseDropdown() {
       <input
         type="text"
         class="form-control mt-2"
-        :value="(param.value.value as RosType).type_str"
+        :value="(param.value.value as RosName).name"
         :disabled="editor_store.selected_subtree.is_subtree"
         @input="onInput"
         @focus="focusInput"
@@ -146,21 +189,22 @@ function releaseDropdown() {
     </label>
     <div class="mb-2 search-results">
       <div
-        class="list-group"
+        class="list-group rounded-top-0"
         :class="{ 'd-none': hide_results && !keep_results }"
         @mouseenter="forceDropdown"
         @mouseleave="releaseDropdown"
       >
         <div
           v-for="result in search_results"
-          :key="result"
+          :key="result.name"
           class="list-group-item search-result"
           tabindex="0"
           @click="() => selectSearchResult(result)"
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          {{ result }}
+          {{ result.name }}<br>
+          <small>{{ result.type }}</small>
         </div>
       </div>
     </div>
@@ -169,15 +213,5 @@ function releaseDropdown() {
 </template>
 
 <style scoped lang="scss">
-.search-results {
-  padding-left: 10px;
-}
 
-.search-result:hover {
-  background-color: #007bff;
-}
-
-.search-result-highlighted {
-  background-color: #007bff;
-}
 </style>

@@ -60,3 +60,15 @@
   --bs-btn-disabled-border-color: var(--bs-body-color);
   --bs-gradient: none;
 }
+
+.search-results {
+  padding-left: 5px;
+  padding-right: 5px;
+
+  max-height: 11em;
+  overflow-y: auto;
+}
+
+.search-result:hover {
+  background-color: #007bff;
+}

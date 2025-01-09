@@ -51,8 +51,8 @@ import {
   RosActionType_Name,
   RosActionName_Name,
 } from '@/types/python_types'
-import RosTypeInput from './param_inputs/RosTypeInput.vue'
-import RosNameInput from './param_inputs/RosNameInput.vue'
+import RosTypeParam from './param_inputs/RosTypeParam.vue'
+import RosNameParam from './param_inputs/RosNameParam.vue'
 
 const props = defineProps<{
   category: 'options'
@@ -210,39 +210,39 @@ function onFocus() {
       :data_key="props.data_key"
     />
 
-    <RosTypeInput
+    <RosTypeParam
       v-else-if="param.value.type === RosTopicType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'topic'"
     />
-    <RosNameInput
+    <RosNameParam
       v-else-if="param.value.type === RosTopicName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'topic'"
     />
 
-    <RosTypeInput
+    <RosTypeParam
       v-else-if="param.value.type === RosServiceType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'service'"
     />
-    <RosNameInput
+    <RosNameParam
       v-else-if="param.value.type === RosServiceName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'service'"
     />
 
-    <RosTypeInput
+    <RosTypeParam
       v-else-if="param.value.type === RosActionType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'action'"
     />
-    <RosNameInput
+    <RosNameParam
       v-else-if="param.value.type === RosActionName_Name"
       :category="props.category"
       :data_key="props.data_key"
