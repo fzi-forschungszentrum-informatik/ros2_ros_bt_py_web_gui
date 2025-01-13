@@ -11,5 +11,9 @@ module.exports = {
   ],
   parserOptions: {
     ecmaVersion: 'latest'
+  },
+  rules: {
+    'no-fallthrough': 1,
+    'no-inner-declarations': 1
   }
 }
