@@ -51,7 +51,7 @@ const ros_store = useROSStore()
 const treatable_errors: string[] = []
 
 // Specify valid file extensions as regex (multiple with | in the capture group)
-const file_type_regex: RegExp = new RegExp('\.(yaml)')
+const file_type_regex: RegExp = /\.(yaml)$/
 
 const file_filter = ref<RegExp | undefined>(file_type_regex)
 
