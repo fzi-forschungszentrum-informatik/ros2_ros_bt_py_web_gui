@@ -30,7 +30,8 @@
  <script setup lang="ts">
  import { useEditNodeStore } from '@/stores/edit_node';
  import { useEditorStore } from '@/stores/editor';
- import type { ParamData, PyOperand } from '@/types/types';
+import type { PyOperand } from '@/types/python_types';
+ import type { ParamData } from '@/types/types';
  import { computed } from 'vue';
  
  
