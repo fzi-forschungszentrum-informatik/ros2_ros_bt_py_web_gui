@@ -42,27 +42,19 @@ import type {
   NodeDataLocation,
   NodeMsg,
   ParamData,
-  PyEnum,
-  PyLogger,
-  PyOperand,
-  PyOperator,
-  TreeMsg,
   TrimmedNode,
   TrimmedNodeData,
   NodeDataWiring
 } from '@/types/types'
 import { Position, IOKind } from '@/types/types'
-import { getDefaultValue, prettyprint_type, python_builtin_types, typesCompatible } from '@/utils'
-import { faArrowDown19 } from '@fortawesome/free-solid-svg-icons'
+import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
-import type { ZoomBehavior } from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
-import type { ReplaceNodeRequest, ReplaceNodeResponse } from '@/types/services/ReplaceNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 const editor_store = useEditorStore()
@@ -152,34 +144,10 @@ function resetView() {
 }
 
 function buildNodeMessage(node: DocumentedNode): NodeMsg {
-  function getDefaultValues(paramList: NodeData[], options?: NodeData[] | null) {
-    options = options || []
-
-    return paramList.map((x) => {
-      return {
-        key: x.key,
-        value: getDefaultValue(prettyprint_type(x.serialized_value), options)
-      }
-    })
-  }
-  const default_options = getDefaultValues(node.options)
-  const options = default_options.map((x) => {
-    if (x.value.type === 'unset_optionref') {
-      const optionref: string = x.value.value as string
-      const optionTypeName = optionref.substring('Ref to "'.length, optionref.length - 1)
-      const optionType = default_options.find((x) => {
-        return x.key === optionTypeName
-      })
-      if (optionType && optionType.value) {
-        return {
-          key: x.key,
-          value: getDefaultValue(optionType.value.value as string)
-        }
-      }
-    }
+  const options = node.options.map((opt: NodeData) => {
     return {
-      key: x.key,
-      value: x.value
+      key: opt.key,
+      value: getDefaultValue(prettyprint_type(opt.serialized_value), node.options)
     } as ParamData
   })
 
@@ -187,32 +155,7 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
     module: node.module,
     node_class: node.node_class,
     name: node.name,
-    options: options.map((x) => {
-      const option: NodeData = {
-        key: x.key,
-        serialized_value: '',
-        serialized_type: ''
-      }
-      if (x.value.type === 'type') {
-        if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
-          x.value.value = '__builtin__.' + x.value.value
-        }
-        option.serialized_value = JSON.stringify({
-          'py/type': x.value.value
-        })
-      } else if (x.value.type.startsWith('__')) {
-        const py_value: PyLogger | PyOperator | PyOperand | PyEnum = x.value.value as
-          | PyLogger
-          | PyOperator
-          | PyOperand
-          | PyEnum
-        py_value['py/object' as keyof typeof py_value] = x.value.type.substring('__'.length)
-        option.serialized_value = JSON.stringify(x.value.value)
-      } else {
-        option.serialized_value = JSON.stringify(x.value.value)
-      }
-      return option
-    }),
+    options: serializeNodeOptions(options),
     child_names: [],
     inputs: [],
     outputs: [],

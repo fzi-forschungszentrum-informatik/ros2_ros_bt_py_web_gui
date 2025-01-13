@@ -28,20 +28,9 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type {
-  DocumentedNode,
-  NodeData,
-  NodeMsg,
-  ParamData,
-  PyEnum,
-  PyLogger,
-  PyOperand,
-  PyOperator
-} from '@/types/types'
+import type { NodeMsg } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
-import { getDefaultValue, prettyprint_type, python_builtin_types } from '@/utils'
-import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import { notify } from '@kyvg/vue3-notification'
 import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
@@ -58,51 +47,6 @@ const selected_parent = ref<string | undefined>(
   props.parents.length > 0 ? props.parents[0].name : undefined
 )
 
-function buildNodeMessage(
-  module: string,
-  node_class: string,
-  name: string,
-  options: ParamData[]
-): NodeMsg {
-  return {
-    module: module,
-    node_class: node_class,
-    name: name,
-    options: options.map((x) => {
-      const option: NodeData = {
-        key: x.key,
-        serialized_value: '',
-        serialized_type: ''
-      }
-      if (x.value.type === 'type') {
-        if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
-          x.value.value = '__builtin__.' + x.value.value
-        }
-        option.serialized_value = JSON.stringify({
-          'py/type': x.value.value
-        })
-      } else if (x.value.type.startsWith('__')) {
-        const py_value: PyLogger | PyOperator | PyOperand | PyEnum = x.value.value as
-          | PyLogger
-          | PyOperator
-          | PyOperand
-          | PyEnum
-        py_value['py/object' as keyof typeof py_value] = x.value.type.substring('__'.length)
-        option.serialized_value = JSON.stringify(x.value.value)
-      } else {
-        option.serialized_value = JSON.stringify(x.value.value)
-      }
-      return option
-    }),
-    child_names: [],
-    inputs: [],
-    outputs: [],
-    version: '',
-    max_children: 0,
-    state: ''
-  }
-}
-
 function addToTree() {
   if (!ros_store.connected) {
     notify({
@@ -117,17 +61,10 @@ function addToTree() {
     return
   }
 
-  const msg = buildNodeMessage(
-    edit_node_store.new_node_module,
-    edit_node_store.new_node_class,
-    edit_node_store.new_node_name,
-    edit_node_store.new_node_options
-  )
-
   ros_store.add_node_service.callService(
     {
       parent_name: selected_parent.value,
-      node: msg,
+      node: edit_node_store.buildNodeMsg(),
       allow_rename: true
     } as AddNodeRequest,
     (response: AddNodeResponse) => {
@@ -142,7 +79,7 @@ function addToTree() {
         })
       } else {
         notify({
-          title: 'Failed to add ' + msg.name + ' to the tree!',
+          title: 'Failed to add ' + edit_node_store.new_node_name + ' to the tree!',
           text: response.error_message,
           type: 'warn'
         })

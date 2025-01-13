@@ -27,18 +27,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { useMessasgeStore } from './stores/message'
-import type {
-  NodeData,
-  NodeDataLocation,
-  TreeMsg,
-  ValueTypes,
-  DataEdgeTerminal,
-  Message
+import { getPythonTypeDefault, isPythonTypeWithDefault } from './types/python_types'
+import type { 
+  NodeData, 
+  TreeMsg, 
+  DataEdgeTerminal, 
+  ParamData, 
+  PyObject, 
+  ParamType 
 } from './types/types'
-import { IOKind, MessageType } from './types/types'
-
-import * as d3 from 'd3'
+import { IOKind } from './types/types'
 
 // uuid is used to assign unique IDs to tags so we can use labels properly
 let idx = 0
@@ -71,13 +69,15 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   return prettyprint_type(from.type) === prettyprint_type(to.type)
 }
 
+//TODO This appears to be wrong or outdated.
+// How do we want to handle unsupported types?
 export const python_builtin_types = [
   'int',
   'float',
-  'long',
+  //'long',
   'str',
-  'basestring',
-  'unicode',
+  //'basestring',
+  //'unicode',
   'bool',
   'list',
   'dict',
@@ -125,7 +125,7 @@ export function prettyprint_type(jsonpickled_type: string) {
 export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
-): { type: string; value: ValueTypes } {
+): ParamType {
   if (typeName === 'type') {
     return {
       type: 'type',
@@ -179,9 +179,11 @@ export function getDefaultValue(
     })
     if (optionType) {
       // This double call is necessary to dereference first the type of the optionref target and then its default value
-      //TODO Check if this is consistent (are the `options` always populated in the same manner?)
       return getDefaultValue(
-        getDefaultValue(prettyprint_type(optionType.serialized_value), options).value as string,
+        getDefaultValue(
+          prettyprint_type(optionType.serialized_value), 
+          options
+        ).value as string,
         options
       )
     } else {
@@ -190,75 +192,45 @@ export function getDefaultValue(
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
-  } else if (typeName === 'collections.OrderedDict') {
+  // This checks all types defined in `python_types`
+  // which provide default values
+  } else if (isPythonTypeWithDefault(typeName)) {
     return {
-      type: 'collections.OrderedDict',
-      value: {
-        'py/reduce': [
-          { 'py/type': 'collections.OrderedDict' },
-          { 'py/tuple': [[]] },
-          null,
-          null,
-          null
-        ]
-      }
-    }
-  } else if (typeName === 'ros_bt_py.ros_helpers.LoggerLevel') {
-    return {
-      type: 'ros_bt_py.ros_helpers.LoggerLevel',
-      value: {
-        'py/object': 'ros_bt_py.ros_helpers.LoggerLevel',
-        logger_level: 'Debug'
-      }
-    }
-  } else if (typeName === 'ros_bt_py.helpers.MathUnaryOperator') {
-    return {
-      type: 'ros_bt_py.helpers.MathUnaryOperator',
-      value: {
-        'py/object': 'ros_bt_py.helpers.MathUnaryOperator',
-        operator: 'sqrt'
-      }
-    }
-  } else if (typeName === 'ros_bt_py.helpers.MathBinaryOperator') {
-    return {
-      type: 'ros_bt_py.helpers.MathBinaryOperator',
-      value: {
-        'py/object': 'ros_bt_py.helpers.MathBinaryOperator',
-        operator: '+'
-      }
-    }
-  } else if (typeName === 'ros_bt_py.helpers.MathOperandType') {
-    return {
-      type: 'ros_bt_py.helpers.MathOperandType',
-      value: {
-        'py/object': 'ros_bt_py.helpers.MathOperandType',
-        operand_type: 'float'
-      }
-    }
-  } else if (typeName === 'ros_bt_py.helpers.MathUnaryOperandType') {
-    return {
-      type: 'ros_bt_py.helpers.MathUnaryOperandType',
-      value: {
-        'py/object': 'ros_bt_py.helpers.MathUnaryOperandType',
-        operand_type: 'float'
-      }
-    }
-  } else if (typeName === 'ros_bt_py.ros_helpers.EnumValue') {
-    return {
-      type: 'ros_bt_py.ros_helpers.EnumValue',
-      value: {
-        'py/object': 'ros_bt_py.ros_helpers.EnumValue',
-        enum_value: '',
-        field_names: []
-      }
+      type: typeName,
+      value: getPythonTypeDefault(typeName) || {}
     }
   } else {
-    //TODO should this check for general ros_types?
     return {
       type: '__' + typeName,
       value: {}
     }
   }
+}
+
+export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
+  return node_options.map((x) => {
+    const option: NodeData = {
+      key: x.key,
+      serialized_value: '',
+      serialized_type: '' // This is left blank intentionally
+    }
+    if (x.value.type === 'type') {
+      if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
+        x.value.value = 'builtins.' + x.value.value;
+      }
+      option.serialized_value = JSON.stringify({
+        'py/type': x.value.value
+      })
+    } else if (x.value.type.startsWith('__')) {
+      //TODO This should be changed to not generate "bad" defaults
+      const val = x.value.value as PyObject
+      val['py/object'] = x.value.type.substring('__'.length)
+      option.serialized_value = JSON.stringify(x.value.value)
+    } else {
+      option.serialized_value = JSON.stringify(x.value.value)
+    }
+    return option
+  })
 }
 
 // Get the distance between two sets of coordinates (expected to be
@@ -269,45 +241,6 @@ export function getDist(a: number[], b: number[]) {
 
 export function treeIsEditable(tree_msg: TreeMsg) {
   return tree_msg.state === 'EDITABLE'
-}
-
-export function getMessageType(str: string): Message {
-  const message_store = useMessasgeStore() // This doesn't work outside functions in .ts files
-  const message_parts = str.split('.')
-  if (message_parts.length < 3) {
-    console.error('Invalid message passed')
-    return { msg: '', action: false, service: false, type: MessageType.MESSAGE }
-  }
-
-  let new_message_parts = message_parts.slice(0, 2)
-  // Standardize type .../.../_name/Name to .../.../Name
-  if (
-    message_parts.length > 3 &&
-    message_parts[2] === message_parts[3].replace(/[A-Z]/g, (x) => '_' + x.toLowerCase())
-  ) {
-    new_message_parts.push(...message_parts.slice(3))
-  } else {
-    new_message_parts.push(...message_parts.slice(2))
-  }
-
-  // Caution, since this is the store member, don't edit it
-  const msg_ref = message_store.messages.find((item) => item.msg === new_message_parts.join('.'))
-
-  if (msg_ref === undefined) {
-    console.error('Invalid message passed')
-    return {
-      msg: new_message_parts.slice(0, 3).join('/'),
-      action: false,
-      service: false,
-      type: MessageType.MESSAGE
-    }
-  }
-  return {
-    msg: new_message_parts.slice(0, 3).join('/'),
-    type: msg_ref.type,
-    action: msg_ref.action,
-    service: msg_ref.service
-  }
 }
 
 export function getShortDoc(doc: string) {

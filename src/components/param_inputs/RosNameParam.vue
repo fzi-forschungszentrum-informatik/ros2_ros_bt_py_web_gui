@@ -26,39 +26,69 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
+
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
-import type { ParamData } from '@/types/types'
-import { python_builtin_types } from '@/utils'
+import {
+  RosActionType_Name,
+  RosServiceType_Name,
+  RosTopicType_Name,
+  type RosName,
+  type RosType
+} from '@/types/python_types'
+import type { Channel, ParamData } from '@/types/types'
+import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
+
+const edit_node_store = useEditNodeStore()
+const editor_store = useEditorStore()
+const messages_store = useMessasgeStore()
 
 const props = defineProps<{
   category: 'options'
   data_key: string
+  type: 'topic' | 'service' | 'action'
 }>()
 
-const editor_store = useEditorStore()
-const edit_node_store = useEditNodeStore()
-const messages_store = useMessasgeStore()
-
-let messages_results = ref<string[]>([])
+let search_results = ref<Channel[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
-const display_value = computed<string>(() => {
-  if (param.value === undefined) {
-    return ''
+// Find a type parameter to reference when searching and set when selecting
+const type_param = computed<ParamData | undefined>(() => {
+  let type_param_name: string
+  switch (props.type) {
+    case 'topic':
+      type_param_name = RosTopicType_Name
+      break
+    case 'service':
+      type_param_name = RosServiceType_Name
+      break
+    case 'action':
+      type_param_name = RosActionType_Name
+      break
+    default:
+      return undefined
   }
-  let value = param.value.value.value as string
-  if (python_builtin_types.includes(value)) {
-    value = 'builtins.' + value
+  return edit_node_store.new_node_options.find((x) => x.value.type === type_param_name)
+})
+
+const search_fuse = computed<Fuse<Channel> | undefined>(() => {
+  switch (props.type) {
+    case 'topic':
+      return messages_store.ros_topic_name_fuse
+    case 'service':
+      return messages_store.ros_service_name_fuse
+    case 'action':
+      return messages_store.ros_action_name_fuse
+    default:
+      return undefined
   }
-  return value
 })
 
 // These track two conditions for displaying the result dropdown.
@@ -66,23 +96,61 @@ const display_value = computed<string>(() => {
 let hide_results = ref<boolean>(true)
 let keep_results = ref<boolean>(false)
 
-function onChange(event: Event) {
-  if (param.value === undefined) {
+function onInput(event: Event) {
+  if (param.value === undefined ||
+    search_fuse.value === undefined
+  ) {
     console.error('Undefined parameter')
     return
   }
 
   const target = event.target as HTMLInputElement
-  let new_type_name = target.value || ''
-  new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
-  const results = messages_store.messages_fuse.search(new_type_name)
-  messages_results.value = results.map((x) => x.item)
+  let new_name = target.value || ''
 
-  edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
+  let results
+  if (type_param.value === undefined) {
+    results = search_fuse.value.search({ name: new_name })
+  } else {
+    const type = (type_param.value.value.value as RosType).type_str
+    if (type === '') {
+      results = search_fuse.value.search({ name: new_name })
+    } else {
+      results = search_fuse.value.search({ name: new_name, type: type })
+    }
+  }
+
+  search_results.value = results.map((x) => x.item)
+
+  setValue(new_name)
 }
 
-function selectSearchResult(search_result: string) {
-  edit_node_store.updateParamValue(props.category, props.data_key, search_result)
+function setValue(new_value: string) {
+  if (param.value === undefined) {
+    console.error('Undefined parameter')
+    return
+  }
+
+  let name_obj = param.value.value.value as RosName
+  name_obj.name = new_value
+
+  edit_node_store.updateParamValue(props.category, props.data_key, name_obj)
+}
+
+function setType(new_value: string) {
+  if (type_param.value === undefined) {
+    // No type param to set
+    return
+  }
+
+  let type_obj = type_param.value.value.value as RosType
+  type_obj.type_str = new_value
+
+  edit_node_store.updateParamValue(props.category, type_param.value.key, type_obj)
+}
+
+function selectSearchResult(search_result: Channel) {
+  setValue(search_result.name)
+  setType(search_result.type)
   releaseDropdown()
 }
 
@@ -111,9 +179,9 @@ function releaseDropdown() {
       <input
         type="text"
         class="form-control mt-2"
-        :value="display_value"
+        :value="(param.value.value as RosName).name"
         :disabled="editor_store.selected_subtree.is_subtree"
-        @input="onChange"
+        @input="onInput"
         @focus="focusInput"
         @blur="unfocusInput"
         @keyup.esc="
@@ -133,16 +201,16 @@ function releaseDropdown() {
         @mouseleave="releaseDropdown"
       >
         <div
-          v-for="result in messages_results"
-          :key="result"
+          v-for="result in search_results"
+          :key="result.name"
           class="list-group-item search-result"
           tabindex="0"
           @click="() => selectSearchResult(result)"
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          <!--Insert a zero-width space after each dot to allow line breaks-->
-          {{ result.replace(/\./g, '.\u200B') }}
+          {{ result.name }}<br />
+          <small>{{ result.type }}</small>
         </div>
       </div>
     </div>

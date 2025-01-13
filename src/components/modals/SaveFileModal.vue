@@ -45,7 +45,7 @@ const ros_store = useROSStore()
 const editor_store = useEditorStore()
 
 // Specify valid file extensions as regex (multiple with | in the capture group)
-const file_type_regex: RegExp = new RegExp('\.(yaml)')
+const file_type_regex: RegExp = /\.(yaml)$/
 
 const file_filter = ref<RegExp | undefined>(file_type_regex)
 
@@ -201,7 +201,7 @@ function saveTree() {
           <option :value="undefined">All files</option>
         </select>
         <select v-model="handle_name_conflict" class="form-select">
-          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt">
+          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt" :key="opt">
             {{ opt }}
           </option>
         </select>

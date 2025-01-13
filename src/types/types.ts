@@ -86,24 +86,21 @@ export type Packages = {
   packages: Package[]
 }
 
-export type Message = {
-  msg: string
-  service: boolean
-  action: boolean
-  type: MessageType
+export type MessageTypes = {
+  topics: string[]
+  services: string[]
+  actions: string[]
 }
 
-export const enum MessageType {
-  MESSAGE = 0,
-  REQUEST = 1,
-  RESPONSE = 2,
-  GOAL = 3,
-  FEEDBACK = 4,
-  RESULT = 5
+export type Channel = {
+  name: string
+  type: string
 }
 
-export type Messages = {
-  messages: Message[]
+export type Channels = {
+  topics: Channel[]
+  services: Channel[]
+  actions: Channel[]
 }
 
 export type DocumentedNode = NodeMsg & {
@@ -136,25 +133,10 @@ export type PackageStructure = {
   type: FileType
 }
 
+export type PyObject = { 'py/object': string }
+
 export type PyType = { 'py/type': string }
 export type PyTuple = { 'py/tuple': never[][] }
-export type PyLogger = {
-  'py/object': string
-  logger_level: string
-}
-export type PyOperator = {
-  'py/object': string
-  operator: string
-}
-export type PyOperand = {
-  'py/object': string
-  operand_type: string
-}
-export type PyEnum = {
-  'py/object': string
-  enum_value: string
-  field_names: string[]
-}
 
 export type PyReduce = { 'py/reduce': (PyType | PyTuple | null)[] }
 
@@ -165,10 +147,7 @@ export type ValueTypes =
   | []
   | Record<string, never>
   | PyReduce
-  | PyLogger
-  | PyOperator
-  | PyOperand
-  | PyEnum
+  | PyObject
 
 export type ParamType = {
   type: string

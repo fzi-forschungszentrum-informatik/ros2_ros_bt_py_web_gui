@@ -34,11 +34,9 @@ import type {
   NodeDataWiring,
   DocumentedNode,
   TreeMsg,
-  NodeMsg,
   TrimmedNode,
   DataEdgeTerminal
 } from '@/types/types'
-import { useNodesStore } from './nodes'
 import { notify } from '@kyvg/vue3-notification'
 
 export enum EditorSkin {
@@ -53,8 +51,6 @@ export type SelectedSubtree = {
 }
 
 export const useEditorStore = defineStore('editor', () => {
-  const nodes_store = useNodesStore()
-
   const tree = ref<TreeMsg | undefined>(undefined)
   //const debug_info = ref<DebugInfo | undefined>(undefined)
   const subtree_states = ref<TreeMsg[]>([])

@@ -36,6 +36,23 @@ import MathOperandParam from './param_inputs/MathOperandParam.vue'
 import { computed } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
+import FilePathParam from './param_inputs/FilePathParam.vue'
+import {
+  FilePath_Name,
+  MathBinaryOperator_Name,
+  MathOperandType_Name,
+  MathUnaryOperandType_Name,
+  MathUnaryOperator_Name,
+  OrderedDict_Name,
+  RosTopicType_Name,
+  RosTopicName_Name,
+  RosServiceType_Name,
+  RosServiceName_Name,
+  RosActionType_Name,
+  RosActionName_Name
+} from '@/types/python_types'
+import RosTypeParam from './param_inputs/RosTypeParam.vue'
+import RosNameParam from './param_inputs/RosNameParam.vue'
 
 const props = defineProps<{
   category: 'options'
@@ -104,7 +121,7 @@ const json_attrs = computed<any>(() => {
     case 'list':
       break
     case 'dict':
-    case 'collections.OrderedDict':
+    case OrderedDict_Name:
       break
     default:
       break
@@ -163,28 +180,73 @@ function onFocus() {
     />
     
     <MathOperatorParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
+      v-else-if="param.value.type === MathUnaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
+      v-else-if="param.value.type === MathUnaryOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
-      :op_type="'binary'"
+      :op_type="'unary'"
     />
     <MathOperatorParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathBinaryOperator'"
+      v-else-if="param.value.type === MathBinaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
+      v-else-if="param.value.type === MathOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
-      :op_type="'unary'"
+      :op_type="'binary'"
+    />
+
+    <FilePathParam
+      v-else-if="param.value.type === FilePath_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+    />
+
+    <RosTypeParam
+      v-else-if="param.value.type === RosTopicType_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'topic'"
+    />
+    <RosNameParam
+      v-else-if="param.value.type === RosTopicName_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'topic'"
+    />
+
+    <RosTypeParam
+      v-else-if="param.value.type === RosServiceType_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'service'"
+    />
+    <RosNameParam
+      v-else-if="param.value.type === RosServiceName_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'service'"
+    />
+
+    <RosTypeParam
+      v-else-if="param.value.type === RosActionType_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'action'"
+    />
+    <RosNameParam
+      v-else-if="param.value.type === RosActionName_Name"
+      :category="props.category"
+      :data_key="props.data_key"
+      :type="'action'"
     />
 
     <div v-else class="form-group">

@@ -33,10 +33,10 @@ import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
-import { computed, onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { Messages, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
-import { EditorSkin, useEditorStore } from './stores/editor'
+import type { MessageTypes, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
+import { useEditorStore } from './stores/editor'
 import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
 import SelectSubtree from './components/SelectSubtree.vue'
@@ -80,11 +80,11 @@ function updatePackagesSubscription() {
   ros_store.packages_sub.subscribe(onNewPackagesMsg)
 }
 
-function onNewMessagesMsg(msg: Messages) {
+function onNewMessagesMsg(msg: MessageTypes) {
   if (!messages_store.messages_available) {
     messages_store.areMessagesAvailable(true)
   }
-  messages_store.updateAvailableMessages(msg.messages)
+  messages_store.updateAvailableMessages(msg)
 }
 
 function updateMessagesSubscription() {
@@ -105,6 +105,10 @@ function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
 
 function updateSubtreeInfoSubscription() {
   ros_store.subtree_info_sub.subscribe(onNewSubtreeInfoMsg)
+}
+
+function updateChannelssubscription() {
+  ros_store.channels_sub.subscribe(messages_store.updateMessageChannels)
 }
 
 function handleNodeSearch(event: Event) {
@@ -154,6 +158,7 @@ ros_store.$onAction(({ name, after }) => {
     updateTreeSubscription()
     updateSubtreeInfoSubscription()
     updateMessagesSubscription()
+    updateChannelssubscription()
     updatePackagesSubscription()
   })
 })
@@ -163,6 +168,7 @@ onMounted(() => {
   updateTreeSubscription()
   updateSubtreeInfoSubscription()
   updateMessagesSubscription()
+  updateChannelssubscription()
   updatePackagesSubscription()
 })
 </script>

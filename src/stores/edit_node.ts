@@ -33,7 +33,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, prettyprint_type } from '@/utils'
+import { getDefaultValue, prettyprint_type, serializeNodeOptions } from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -198,7 +198,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       const type = prettyprint_type(x.serialized_type)
       let json_value = JSON.parse(x.serialized_value)
       if (type === 'type') {
-        json_value = json_value['py/type'].replace('__builtin__.', '').replace('builtins.', '')
+        json_value = json_value['py/type']
       }
       return {
         key: x.key,
@@ -312,38 +312,25 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         return
       }
 
-      const option_ref_keys = reference_node.value.options
-        .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-        .map((x): [string, string] => [
-          x.key,
-          prettyprint_type(x.serialized_value).substring(
-            'OptionRef('.length,
-            prettyprint_type(x.serialized_value).length - 1
+      function findOptionRefs(ref_list: NodeData[]): [string, string][] {
+        return ref_list.filter((x) => 
+            prettyprint_type(x.serialized_value).startsWith('OptionRef(')
           )
-        ])
-        .filter((x) => x[1] === key)
+          .map((x): [string, string] => [
+            x.key,
+            prettyprint_type(x.serialized_value).substring(
+              'OptionRef('.length,
+              prettyprint_type(x.serialized_value).length - 1
+            )
+          ])
+          .filter((x) => x[1] === key)
+      }
 
-      const input_ref_keys = reference_node.value.inputs
-        .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-        .map((x): [string, string] => [
-          x.key,
-          prettyprint_type(x.serialized_value).substring(
-            'OptionRef('.length,
-            prettyprint_type(x.serialized_value).length - 1
-          )
-        ])
-        .filter((x) => x[1] === key)
+      const option_ref_keys = findOptionRefs(reference_node.value.options)
 
-      const output_ref_keys = reference_node.value.outputs
-        .filter((x) => prettyprint_type(x.serialized_value).startsWith('OptionRef('))
-        .map((x): [string, string] => [
-          x.key,
-          prettyprint_type(x.serialized_value).substring(
-            'OptionRef('.length,
-            prettyprint_type(x.serialized_value).length - 1
-          )
-        ])
-        .filter((x) => x[1] === key)
+      const input_ref_keys = findOptionRefs(reference_node.value.inputs)
+
+      const output_ref_keys = findOptionRefs(reference_node.value.outputs)
 
       new_node_options.value = new_node_options.value.map(map_fun)
       function resolve_refs(refs: [string, string][], current_item: ParamData): ParamData {
@@ -358,7 +345,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
             // referenced option
             return {
               key: current_item.key,
-              value: getDefaultValue(opt_value.replace('__builtin__.', '').replace('builtins.', ''))
+              value: getDefaultValue(opt_value)
             }
           }
         }
@@ -382,6 +369,21 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       new_node_inputs.value = new_node_inputs.value.map(map_fun)
     } else if (paramType.toLowerCase() === 'outputs') {
       new_node_outputs.value = new_node_outputs.value.map(map_fun)
+    }
+  }
+
+  function buildNodeMsg(): NodeMsg {
+    return {
+      module: new_node_module.value,
+      node_class: new_node_class.value,
+      name: new_node_name.value,
+      max_children: 0,
+      child_names: [],
+      options: serializeNodeOptions(new_node_options.value),
+      inputs: [],
+      outputs: [],
+      version: '',
+      state: ''
     }
   }
 
@@ -411,6 +413,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     changeCopyMode,
     changeNodeName,
     changeNodeClass,
-    updateParamValue
+    updateParamValue,
+    buildNodeMsg
   }
 })
