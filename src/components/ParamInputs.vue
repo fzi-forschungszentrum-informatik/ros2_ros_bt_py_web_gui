@@ -180,28 +180,28 @@ function onFocus() {
     />
     
     <MathOperatorParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperator'"
+      v-else-if="param.value.type === MathUnaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathOperandType'"
+      v-else-if="param.value.type === MathUnaryOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
-      :op_type="'binary'"
+      :op_type="'unary'"
     />
     <MathOperatorParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathBinaryOperator'"
+      v-else-if="param.value.type === MathBinaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === 'ros_bt_py.helpers.MathUnaryOperandType'"
+      v-else-if="param.value.type === MathOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
-      :op_type="'unary'"
+      :op_type="'binary'"
     />
 
     <FilePathParam
