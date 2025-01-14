@@ -35,7 +35,7 @@ const PyDefaultValues = new Map<string, PyObject | PyReduce>()
 export const OrderedDict_Name = 'collections.OrderedDict'
 PyDefaultValues.set(OrderedDict_Name, {
   'py/reduce': [{ 'py/type': OrderedDict_Name }, { 'py/tuple': [[]] }, null, null, null]
-} as PyReduce )
+} as PyReduce)
 
 export type PyLogger = PyObject & {
   logger_level: string
@@ -44,7 +44,7 @@ export const LoggerLevel_Name = 'ros_bt_py.ros_helpers.LoggerLevel'
 PyDefaultValues.set(LoggerLevel_Name, {
   'py/object': LoggerLevel_Name,
   logger_level: 'Debug'
-} as PyLogger )
+} as PyLogger)
 
 export type PyOperator = PyObject & {
   operator: string
@@ -53,12 +53,12 @@ export const MathUnaryOperator_Name = 'ros_bt_py.helpers.MathUnaryOperator'
 PyDefaultValues.set(MathUnaryOperator_Name, {
   'py/object': MathUnaryOperator_Name,
   operator: 'sqrt'
-} as PyOperator )
+} as PyOperator)
 export const MathBinaryOperator_Name = 'ros_bt_py.helpers.MathBinaryOperator'
 PyDefaultValues.set(MathBinaryOperator_Name, {
   'py/object': MathBinaryOperator_Name,
   operator: '+'
-} as PyOperator )
+} as PyOperator)
 
 export type PyOperand = PyObject & {
   operand_type: string
@@ -67,12 +67,12 @@ export const MathOperandType_Name = 'ros_bt_py.helpers.MathOperandType'
 PyDefaultValues.set(MathOperandType_Name, {
   'py/object': MathOperandType_Name,
   operand_type: 'float'
-} as PyOperand )
+} as PyOperand)
 export const MathUnaryOperandType_Name = 'ros_bt_py.helpers.MathUnaryOperandType'
 PyDefaultValues.set(MathUnaryOperandType_Name, {
   'py/object': MathUnaryOperandType_Name,
   operand_type: 'float'
-} as PyOperand )
+} as PyOperand)
 
 export type PyEnum = PyObject & {
   enum_value: string
@@ -83,7 +83,7 @@ PyDefaultValues.set(EnumValue_Name, {
   'py/object': EnumValue_Name,
   enum_value: '',
   field_names: []
-} as PyEnum )
+} as PyEnum)
 
 export type PyFilePath = PyObject & {
   path: string
@@ -92,7 +92,7 @@ export const FilePath_Name = 'ros_bt_py.custom_types.FilePath'
 PyDefaultValues.set(FilePath_Name, {
   'py/object': FilePath_Name,
   path: ''
-} as PyFilePath )
+} as PyFilePath)
 
 export type RosType = PyObject & {
   type_str: string
@@ -101,17 +101,17 @@ export const RosTopicType_Name = 'ros_bt_py.custom_types.RosTopicType'
 PyDefaultValues.set(RosTopicType_Name, {
   'py/object': RosTopicType_Name,
   type_str: 'std_msgs/msg/Empty'
-} as RosType )
+} as RosType)
 export const RosServiceType_Name = 'ros_bt_py.custom_types.RosServiceType'
 PyDefaultValues.set(RosServiceType_Name, {
   'py/object': RosServiceType_Name,
   type_str: 'std_srvs/srv/Empty'
-} as RosType )
+} as RosType)
 export const RosActionType_Name = 'ros_bt_py.custom_types.RosActionType'
 PyDefaultValues.set(RosActionType_Name, {
   'py/object': RosActionType_Name,
-  type_str: 'ros_bt_py_interfaces/action/Empty'
-} as RosType )
+  type_str: 'example_interfaces/action/Fibonacci'
+} as RosType)
 
 export type RosName = PyObject & {
   name: string
@@ -120,24 +120,22 @@ export const RosTopicName_Name = 'ros_bt_py.custom_types.RosTopicName'
 PyDefaultValues.set(RosTopicName_Name, {
   'py/object': RosTopicName_Name,
   name: ''
-} as RosName )
+} as RosName)
 export const RosServiceName_Name = 'ros_bt_py.custom_types.RosServiceName'
 PyDefaultValues.set(RosServiceName_Name, {
   'py/object': RosServiceName_Name,
   name: ''
-} as RosName )
+} as RosName)
 export const RosActionName_Name = 'ros_bt_py.custom_types.RosActionName'
 PyDefaultValues.set(RosActionName_Name, {
   'py/object': RosActionName_Name,
   name: ''
-} as RosName )
+} as RosName)
 
 export function isPythonTypeWithDefault(type: string) {
   return PyDefaultValues.has(type)
 }
 
 export function getPythonTypeDefault(type: string) {
-  return structuredClone(
-    PyDefaultValues.get(type)
-  )
+  return structuredClone(PyDefaultValues.get(type))
 }
