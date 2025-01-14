@@ -107,17 +107,7 @@ function onInput(event: Event) {
   const target = event.target as HTMLInputElement
   let new_name = target.value || ''
 
-  let results
-  if (type_param.value === undefined) {
-    results = search_fuse.value.search({ name: new_name })
-  } else {
-    const type = (type_param.value.value.value as RosType).type_str
-    if (type === '') {
-      results = search_fuse.value.search({ name: new_name })
-    } else {
-      results = search_fuse.value.search({ name: new_name, type: type })
-    }
-  }
+  const results = search_fuse.value.search({ name: new_name })
 
   search_results.value = results.map((x) => x.item)
 
