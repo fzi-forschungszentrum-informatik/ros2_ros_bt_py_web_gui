@@ -100,17 +100,17 @@ export type RosType = PyObject & {
 export const RosTopicType_Name = 'ros_bt_py.custom_types.RosTopicType'
 PyDefaultValues.set(RosTopicType_Name, {
   'py/object': RosTopicType_Name,
-  type_str: ''
+  type_str: 'std_msgs/msg/Empty'
 } as RosType )
 export const RosServiceType_Name = 'ros_bt_py.custom_types.RosServiceType'
 PyDefaultValues.set(RosServiceType_Name, {
   'py/object': RosServiceType_Name,
-  type_str: ''
+  type_str: 'std_srvs/srv/Empty'
 } as RosType )
 export const RosActionType_Name = 'ros_bt_py.custom_types.RosActionType'
 PyDefaultValues.set(RosActionType_Name, {
   'py/object': RosActionType_Name,
-  type_str: ''
+  type_str: 'ros_bt_py_interfaces/action/Empty'
 } as RosType )
 
 export type RosName = PyObject & {
