@@ -82,8 +82,36 @@ const tree_state_styles = computed<any>(() => {
   }
   return {
     backgroundColor: 'var(' + bg_color_var + ')',
-    borderColor: 'var(' + border_color_var + ')'
+    //borderColor: 'var(' + border_color_var + ')'
   }
+})
+
+const tree_state_icon = computed<string>(() => {
+  let icon: string
+  switch (tree_state.value) {
+    case TreeState.ERROR:
+      icon = 'fa-exclamation'
+      break
+    case TreeState.IDLE:
+      icon = 'fa-pause'
+      break
+    case TreeState.STOP_REQUESTED:
+      icon = 'fa-pause'
+      break
+    case TreeState.TICKING:
+      icon = 'fa-bolt'
+      break
+    case TreeState.WAITING_FOR_TICK:
+      icon = 'fa-hourglass-half'
+      break
+    case TreeState.EDITABLE:
+      icon = 'fa-pen'
+      break
+    default:
+      icon = ''
+      break
+  }
+  return 'fa-solid ' + icon
 })
 
 watchEffect(errorPopUp)
@@ -151,18 +179,15 @@ function renameTree(): void {
     </div>
     <div class="col-auto">
       <div class="input-group state-display">
-        <label class="input-group-text" :style="tree_state_styles" for="treeStateForm">
-          State
-        </label>
-        <input
-          id="treeStateForm"
-          class="form-control"
+        <label class="input-group-text"> State </label>
+        <label
+          class="input-group-text"
           :style="tree_state_styles"
-          style="width: fit-content"
-          type="text"
-          disabled="true"
-          :value="tree_state"
-        />
+          style="width: 12em"
+        >
+          <font-awesome-icon :icon="tree_state_icon" class="me-2" />
+          {{ tree_state }}
+        </label>
       </div>
     </div>
   </div>
@@ -171,12 +196,12 @@ function renameTree(): void {
 <style lang="scss" scoped>
 
 .state-display {
-  --bg-color-waiting-for-tick: #caca00;
-  --bg-color-idle: #006fe5;
-  --bg-color-ticking: #00c52e;
-  --bg-color-error: #dc0016;
-  --bg-color-stop-requested: #bf5f00;
-  --bg-color-default: #a5a5a5;
+  --bg-color-waiting-for-tick: #ffff51;
+  --bg-color-idle: #4da3ff;
+  --bg-color-ticking: #5bff81;
+  --bg-color-error: #f74b5c;
+  --bg-color-stop-requested: #ff9d3b;
+  --bg-color-default: #c1c1c1;
 }
 
 [data-bs-theme='dark'] .state-display {

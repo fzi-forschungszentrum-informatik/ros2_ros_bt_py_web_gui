@@ -82,7 +82,12 @@ import {
   faBullhorn,
   faXmark,
   faFileCode,
-  faCubes
+  faCubes,
+  faBolt,
+  faExclamation,
+  faHourglassHalf,
+  faPen,
+  faPause
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faSun as faSunAlt, faMoon as faMoonAlt } from '@fortawesome/free-regular-svg-icons'
@@ -121,7 +126,12 @@ library.add(
   faFileCode,
   faCubes,
   faSunAlt,
-  faMoonAlt
+  faMoonAlt,
+  faBolt,
+  faExclamation,
+  faHourglassHalf,
+  faPen,
+  faPause
 )
 
 const app = createApp(App)
