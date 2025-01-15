@@ -46,7 +46,7 @@ import type {
   TrimmedNodeData,
   NodeDataWiring
 } from '@/types/types'
-import { Position, IOKind } from '@/types/types'
+import { Position, IOKind, NodeState } from '@/types/types'
 import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
@@ -161,7 +161,7 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
     outputs: [],
     version: '',
     max_children: 0,
-    state: ''
+    state: NodeState.UNINITIALIZED,
   }
 }
 
@@ -239,11 +239,6 @@ function dragPanTimerHandler() {
 
 watchEffect(drawEverything)
 function drawEverything() {
-  if (editor_store.tree === undefined) {
-    console.warn('Tree is undefined')
-    return
-  }
-
   if (g_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
@@ -258,13 +253,9 @@ function drawEverything() {
       serialized_type: nodeData.serialized_type
     }) as TrimmedNodeData
 
-  const current_tree = editor_store.selected_subtree.is_subtree
-    ? editor_store.selected_subtree.tree
-    : editor_store.tree
-
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = current_tree!.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree!.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
@@ -282,7 +273,7 @@ function drawEverything() {
   const forest_root: TrimmedNode = {
     node_class: '',
     module: '',
-    state: '',
+    state: NodeState.UNASSIGNED,
     max_children: -1,
     name: forest_root_name,
     child_names: [],
@@ -357,7 +348,7 @@ function drawEverything() {
 
   drawEdges(tree_layout)
   drawDropTargets(tree_layout)
-  drawDataGraph(tree_layout, current_tree!.data_wirings)
+  drawDataGraph(tree_layout, editor_store.current_tree!.data_wirings)
 }
 
 function drawNewNodes(
@@ -453,22 +444,22 @@ function colorNodes(
     .transition(tree_transition)
     .style('border-color', (d) => {
       switch (d.data.state) {
-        case 'RUNNING': {
+        case NodeState.RUNNING: {
           return 'var(--node-color-running)'
         }
-        case 'IDLE': {
+        case NodeState.IDLE: {
           return 'var(--node-color-idle)'
         }
-        case 'SUCCEEDED': {
+        case NodeState.SUCCEEDED: {
           return 'var(--node-color-succeeded)'
         }
-        case 'FAILED': {
+        case NodeState.FAILED: {
           return 'var(--node-color-failed)'
         }
-        case 'SHUTDOWN': {
+        case NodeState.SHUTDOWN: {
           return 'var(--node-color-shutdown)'
         }
-        case 'UNINITIALIZED':
+        case NodeState.UNINITIALIZED:
         default: {
           return 'var(--node-color-default)'
         }
@@ -1049,11 +1040,6 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
 }
 
 function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {
-  if (editor_store.tree === undefined) {
-    console.warn('No tree received yet')
-    return
-  }
-
   if (g_data_graph_ref.value === undefined || g_data_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
