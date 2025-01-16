@@ -244,6 +244,11 @@ function drawEverything() {
     return
   }
 
+  if (editor_store.current_tree === undefined) {
+    console.warn("Nothing to draw")
+    return
+  }
+
   // Prepare transition config for synchronization
   tree_transition = d3.transition().duration(100).ease(d3.easeQuad)
 
@@ -255,7 +260,7 @@ function drawEverything() {
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree!.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
@@ -348,7 +353,7 @@ function drawEverything() {
 
   drawEdges(tree_layout)
   drawDropTargets(tree_layout)
-  drawDataGraph(tree_layout, editor_store.current_tree!.data_wirings)
+  drawDataGraph(tree_layout, editor_store.current_tree.data_wirings)
 }
 
 function drawNewNodes(
