@@ -385,15 +385,6 @@ function drawNewNodes(
   const body = fo
     .append<HTMLBodyElement>('xhtml:body')
     .classed(node_body_css_class + ' p-2', true)
-    .style('min-height', (d) => {
-      // We need to ensure a minimum height, in case the node body
-      // would otherwise be shorter than the number of grippers
-      // requires.
-      const inputs = d.data.inputs || []
-      const outputs = d.data.outputs || []
-      const max_num_grippers = Math.max(inputs.length, outputs.length)
-      return (io_gripper_size + io_gripper_spacing) * max_num_grippers + 'px'
-    })
 
   // These elements get filled in updateNodeBody
   body.append('h4').classed(node_name_css_class, true)
@@ -417,6 +408,18 @@ function updateNodeBody(
   body.select<HTMLHeadingElement>('.' + node_name_css_class).html((d) => d.data.name)
 
   body.select<HTMLHeadingElement>('.' + node_class_css_class).html((d) => d.data.node_class)
+
+  body.style('min-height', (d) => {
+      // We need to ensure a minimum height, in case the node body
+      // would otherwise be shorter than the number of grippers
+      // requires.
+      const inputs = d.data.inputs || []
+      const outputs = d.data.outputs || []
+      const max_num_grippers = Math.max(inputs.length, outputs.length)
+      return io_gripper_size * max_num_grippers + 
+        io_gripper_spacing * (max_num_grippers + 1) +
+        'px'
+    })
 
   // The width and height has to be readjusted as if the zoom was at k=1.0
   const k = d3.zoomTransform(viewport_ref.value!).k
