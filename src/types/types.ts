@@ -36,13 +36,27 @@ export type NodeData = {
   serialized_type: string
 }
 
+export const enum NodeState {
+  RUNNING = 'RUNNING',
+  IDLE = 'IDLE',
+  SUCCEEDED = 'SUCCEEDED',
+  FAILED = 'FAILED',
+  SHUTDOWN = 'SHUTDOWN',
+  UNINITIALIZED = 'UNINITIALIZED',
+
+  UNASSIGNED = 'UNASSIGNED',
+  ASSIGNED = 'ASSIGNED',
+  BROKEN = 'BROKEN',
+  PAUSED = 'PAUSED',
+}
+
 export type NodeMsg = {
   module: string
   node_class: string
   version: string
   max_children: number
   name: string
-  state: string
+  state: NodeState
   child_names: string[]
   options: NodeData[]
   inputs: NodeData[]
@@ -61,6 +75,15 @@ export type NodeDataWiring = {
   target: NodeDataLocation
 }
 
+export const enum TreeState {
+  IDLE = 'IDLE',
+  EDITABLE = 'EDITABLE',
+  TICKING = 'TICKING',
+  WAITING_FOR_TICK = 'WAITING_FOR_TICK',
+  STOP_REQUESTED = 'STOP_REQUESTED',
+  ERROR = 'ERROR',
+}
+
 export type TreeMsg = {
   name: string
   path: string
@@ -68,7 +91,7 @@ export type TreeMsg = {
   nodes: NodeMsg[]
   data_wirings: NodeDataWiring[]
   trick_frequency_hz: number
-  state: string
+  state: TreeState
   public_node_data: NodeDataLocation[]
 }
 
@@ -205,7 +228,7 @@ export type TrimmedNodeData = {
 export type TrimmedNode = {
   node_class: string
   module: string
-  state: string
+  state: NodeState
   max_children: number
   name: string
   child_names: string[]

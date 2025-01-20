@@ -84,6 +84,13 @@ export const useEditorStore = defineStore('editor', () => {
     tree: undefined
   })
 
+  const current_tree = computed<TreeMsg | undefined>(() => {
+    if (selected_subtree.value.is_subtree) {
+      return selected_subtree.value.tree
+    }
+    return tree.value
+  })
+
   const subtree_names = computed<string[]>(() =>
     subtree_states.value.map((tree: TreeMsg) => tree.name)
   )
@@ -185,6 +192,7 @@ export const useEditorStore = defineStore('editor', () => {
 
   return {
     tree,
+    current_tree,
     publish_subtrees,
     debug,
     subtree_states,

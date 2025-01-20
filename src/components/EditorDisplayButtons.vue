@@ -43,7 +43,7 @@ const editor_store = useEditorStore()
 </script>
 
 <template>
-  <div class="d-flex align-items-center">
+  <div class="d-flex align-items-center h-100">
     <div class="btn-group">
       <button
         class="btn btn-primary"

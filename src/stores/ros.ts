@@ -84,13 +84,14 @@ import type {
   LoadTreeFromPathResponse
 } from '@/types/services/LoadTreeFromPath'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
+import { useNodesStore } from './nodes'
 
 export const useROSStore = defineStore(
   'ros',
   () => {
     const messages_store = useMessasgeStore()
     const packages_store = usePackageStore()
-
+    const nodes_store = useNodesStore()
     const ros = ref<ROSLIB.Ros>(new ROSLIB.Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
@@ -562,6 +563,8 @@ export const useROSStore = defineStore(
         name: namespace.value + 'load_tree_from_path',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
       })
+
+      nodes_store.getNodes('')
     }
 
     function connect() {
