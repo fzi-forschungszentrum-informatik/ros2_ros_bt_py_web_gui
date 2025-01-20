@@ -196,16 +196,16 @@ function renameTree(): void {
 <style lang="scss" scoped>
 
 .state-display {
-  --bg-color-waiting-for-tick: #ffff51;
+  --bg-color-waiting-for-tick: #e5d900;
   --bg-color-idle: #4da3ff;
-  --bg-color-ticking: #5bff81;
+  --bg-color-ticking: #06af00;
   --bg-color-error: #f74b5c;
   --bg-color-stop-requested: #ff9d3b;
   --bg-color-default: #c1c1c1;
 }
 
 [data-bs-theme='dark'] .state-display {
-  --bg-color-waiting-for-tick: #6d6d00;
+  --bg-color-waiting-for-tick: #c1ae00;
   --bg-color-idle: #002f60;
   --bg-color-ticking: #005d16;
   --bg-color-error: #6e010c;
