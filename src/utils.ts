@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { getPythonTypeDefault, isPythonTypeWithDefault } from './types/python_types'
+import { getPythonTypeDefault, HintedType_Name, isPythonTypeWithDefault } from './types/python_types'
 import type { 
   NodeData, 
   TreeMsg, 
@@ -69,8 +69,6 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   return prettyprint_type(from.type) === prettyprint_type(to.type)
 }
 
-//TODO This appears to be wrong or outdated.
-// How do we want to handle unsupported types?
 export const python_builtin_types = [
   'int',
   'float',
@@ -82,7 +80,7 @@ export const python_builtin_types = [
   'list',
   'dict',
   'set',
-  'type'
+  'type' //TODO Is this reasonable to allow?
 ]
 
 export function prettyprint_type(jsonpickled_type: string) {
@@ -113,7 +111,7 @@ export function prettyprint_type(jsonpickled_type: string) {
   // Fully hide HintedType, the Typeparam recovers hints on its own
   if (
     json_type['py/object'] !== undefined &&
-    json_type['py/object'] === 'ros_bt_py.custom_types.HintedType'
+    json_type['py/object'] === HintedType_Name
   ) {
     return 'type'
   }
