@@ -29,13 +29,18 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
+import { useROSStore } from '@/stores/ros'
+import { RosTopicType_Name, type RosType } from '@/types/python_types'
+import type { GetMessageFieldsRequest, GetMessageFieldsResponse } from '@/types/services/GetMessageFields'
 import type { ParamData } from '@/types/types'
+import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
 
 import 'jsoneditor/dist/jsoneditor.min.css'
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 
 const edit_node_store = useEditNodeStore()
+const ros_store = useROSStore()
 
 const props = defineProps<{
   category: 'options'
@@ -50,6 +55,12 @@ const is_valid = ref<boolean>(true)
 
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined
+
+// Checks if there is a parameter that could be used to fetch
+// a default value for Ros Messages
+const topic_ref_param = computed<ParamData | undefined>(() => 
+  edit_node_store.new_node_options.find((x) => x.value.type === RosTopicType_Name)
+)
 
 function onFocus() {
   edit_node_store.changeCopyMode(false)
@@ -66,6 +77,49 @@ function handleChange() {
   } catch (e) {
     is_valid.value = false
   }
+}
+
+function fetchRosMessageDefault() {
+  if (topic_ref_param.value === undefined) {
+    console.warn("Nothing to fetch")
+    return
+  }
+  const message_type = (topic_ref_param.value.value.value as RosType).type_str
+  console.log(message_type)
+  ros_store.get_message_fields_service.callService(
+    {
+      message_type: message_type
+    } as GetMessageFieldsRequest,
+    (response: GetMessageFieldsResponse) => {
+      console.log(response)
+      if (response.success) {
+        const fields_json = JSON.parse(response.fields)
+        if (editor !== undefined) {
+          editor.update(fields_json)
+        }
+        edit_node_store.updateParamValue(props.category, props.data_key, fields_json)
+        notify({
+          title: 'Successfully loaded message fields!',
+          text: '',
+          type: 'success'
+        })
+      } else {
+        notify({
+          title: 'Failed to load message fields!',
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
+      notify({
+        title: 'Failed to call GetMessageFields service!',
+        text: error,
+        type: 'error'
+      })
+    }
+  )
+  console.log("Sent message fields request")
 }
 
 // This fires when param type changes and updates the editor accordingly
@@ -109,5 +163,16 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <div class="d-flex align-items-center justify-content-between mb-1">
+    <label>
+      {{ param?.key }}
+    </label>
+    <button v-if="topic_ref_param"
+      class="btn btn-primary btn-sm"
+      @click="fetchRosMessageDefault"
+    >
+      Fetch default message fields
+    </button>
+  </div>
   <div id="editor" ref="editor_ref" @focus="onFocus"></div>
 </template>

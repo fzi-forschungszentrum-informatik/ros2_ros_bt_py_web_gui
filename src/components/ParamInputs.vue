@@ -249,11 +249,8 @@ function onFocus() {
       :type="'action'"
     />
 
-    <div v-else class="form-group">
-      <label class="d-block">
-        {{ param.key }}
-        <JSONInput v-bind="json_attrs" :category="props.category" :data_key="props.data_key" />
-      </label>
+    <div v-else class="form-group position-relative">
+      <JSONInput v-bind="json_attrs" :category="props.category" :data_key="props.data_key" />
     </div>
   </div>
   <div v-else>Error loading param data</div>
