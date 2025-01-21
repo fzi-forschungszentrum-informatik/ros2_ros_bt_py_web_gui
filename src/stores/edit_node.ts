@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { NodeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
+import { NodeState, TreeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'

@@ -174,7 +174,7 @@ function onFocus() {
     </div>
 
     <TypeParam
-      v-else-if="param.value.type === 'type'"
+      v-else-if="param.value.type.startsWith('type')"
       :category="props.category"
       :data_key="props.data_key"
     />

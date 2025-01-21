@@ -111,6 +111,13 @@ export function prettyprint_type(jsonpickled_type: string) {
   }
 
   if (
+    json_type['py/object'] !== undefined &&
+    json_type['py/object'] === 'ros_bt_py.custom_types.HintedType'
+  ) {
+    return 'type(' + json_type['hints'] + ')'
+  }
+
+  if (
     json_type['py/reduce'] !== undefined &&
     json_type['py/reduce'][0] !== undefined &&
     json_type['py/reduce'][0]['py/type'] !== undefined &&
@@ -126,9 +133,9 @@ export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
 ): ParamType {
-  if (typeName === 'type') {
+  if (typeName.startsWith('type')) {
     return {
-      type: 'type',
+      type: typeName,
       value: 'int'
     }
   } else if (typeName === 'int' || typeName === 'long') {
@@ -214,7 +221,7 @@ export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
       serialized_value: '',
       serialized_type: '' // This is left blank intentionally
     }
-    if (x.value.type === 'type') {
+    if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }
