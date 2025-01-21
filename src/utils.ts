@@ -110,11 +110,12 @@ export function prettyprint_type(jsonpickled_type: string) {
     return 'OptionRef(' + json_type['option_key'] + ')'
   }
 
+  // Fully hide HintedType, the Typeparam recovers hints on its own
   if (
     json_type['py/object'] !== undefined &&
     json_type['py/object'] === 'ros_bt_py.custom_types.HintedType'
   ) {
-    return 'type(' + json_type['hints'] + ')'
+    return 'type'
   }
 
   if (
@@ -133,9 +134,9 @@ export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
 ): ParamType {
-  if (typeName.startsWith('type')) {
+  if (typeName === 'type') {
     return {
-      type: typeName,
+      type: 'type',
       value: 'int'
     }
   } else if (typeName === 'int' || typeName === 'long') {
@@ -221,7 +222,7 @@ export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
       serialized_value: '',
       serialized_type: '' // This is left blank intentionally
     }
-    if (x.value.type.startsWith('type')) {
+    if (x.value.type === 'type') {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }
