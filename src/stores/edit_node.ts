@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { NodeState, TreeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
+import type { DocumentedNode, NodeData, NodeMsg, ParamData, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
@@ -379,7 +379,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       inputs: [],
       outputs: [],
       version: '',
-      state: NodeState.UNINITIALIZED
+      state: ''
     }
   }
 
