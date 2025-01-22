@@ -31,7 +31,6 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
-import { HintedType_Name } from '@/types/python_types'
 import type { ParamData } from '@/types/types'
 import { python_builtin_types } from '@/utils'
 import Fuse from 'fuse.js'
@@ -52,27 +51,15 @@ const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
-const type_hints = computed<string[]>(() => {
-  if (edit_node_store.reference_node === undefined) {
-    console.warn("Ref node unset")
-    return []
-  }
-  const ref_option = edit_node_store.reference_node.options.find(
-    (x) => x.key === props.data_key
-  )
-  if (ref_option === undefined) {
-    console.warn("Invalid option key")
-    return []
-  }
-  const ref_data = JSON.parse(ref_option.serialized_value)
-  if (ref_data['py/object'] === HintedType_Name) {
-    return ref_data['hints']
-  }
-  return []
-})
-
 const search_fuse = computed<Fuse<string>>(() => {
-  if (type_hints.value.includes('builtin')) {
+  if (param.value === undefined) {
+    return messages_store.messages_fuse
+  }
+  const match = param.value.value.type.match(/type\((.+)\)/)
+  if (match === null) {
+    return messages_store.messages_fuse
+  }
+  if (match[1] === 'builtin') {
     return new Fuse<string>(python_builtin_types)
   }
   return messages_store.messages_fuse

@@ -58,9 +58,26 @@ let editor: JSONEditor | undefined = undefined
 
 // Checks if there is a parameter that could be used to fetch
 // a default value for Ros Messages
-const topic_ref_param = computed<ParamData | undefined>(() => 
-  edit_node_store.new_node_options.find((x) => x.value.type === RosTopicType_Name)
-)
+const is_topic_ref = computed<boolean>(() => {
+  if (param.value === undefined) {
+    return false
+  }
+  const match = param.value.value.type.match(/dict\((.+)\)/)
+  if (match === null) {
+    return false
+  }
+  if (match[1] === 'ros') {
+    return true
+  }
+  return false
+})
+
+const topic_ref_param = computed<ParamData | undefined>(() => {
+  if (!is_topic_ref.value) {
+    return undefined
+  }
+  return edit_node_store.new_node_options.find((x) => x.value.type === RosTopicType_Name)
+})
 
 function onFocus() {
   edit_node_store.changeCopyMode(false)

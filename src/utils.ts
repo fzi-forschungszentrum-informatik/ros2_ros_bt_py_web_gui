@@ -27,7 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { getPythonTypeDefault, HintedType_Name, isPythonTypeWithDefault } from './types/python_types'
+import { 
+  getPythonTypeDefault, 
+  isPythonTypeWithDefault, 
+  TypeWrapper_Name, 
+  type TypeWrapper 
+} from './types/python_types'
 import type { 
   NodeData, 
   TreeMsg, 
@@ -83,7 +88,7 @@ export const python_builtin_types = [
   'type' //TODO Is this reasonable to allow?
 ]
 
-export function prettyprint_type(jsonpickled_type: string) {
+export function prettyprint_type(jsonpickled_type: string): string {
   const json_type = JSON.parse(jsonpickled_type)
   if (json_type['py/type'] !== undefined) {
     // shorten the CapabilityType
@@ -111,9 +116,12 @@ export function prettyprint_type(jsonpickled_type: string) {
   // Fully hide HintedType, the Typeparam recovers hints on its own
   if (
     json_type['py/object'] !== undefined &&
-    json_type['py/object'] === HintedType_Name
+    json_type['py/object'] === TypeWrapper_Name
   ) {
-    return 'type'
+    const wrapper = json_type as TypeWrapper
+    return prettyprint_type(
+      JSON.stringify(wrapper.actual_type)
+    ) + '(' + wrapper.info + ')'
   }
 
   if (
@@ -132,9 +140,9 @@ export function getDefaultValue(
   typeName: string,
   options: NodeData[] | null = null
 ): ParamType {
-  if (typeName === 'type') {
+  if (typeName.startsWith('type')) {
     return {
-      type: 'type',
+      type: typeName,
       value: 'int'
     }
   } else if (typeName === 'int' || typeName === 'long') {
@@ -167,9 +175,9 @@ export function getDefaultValue(
       type: 'list',
       value: []
     }
-  } else if (typeName === 'dict') {
+  } else if (typeName.startsWith('dict')) {
     return {
-      type: 'dict',
+      type: typeName,
       value: {}
     }
   } else if (typeName.startsWith('OptionRef(')) {
@@ -220,7 +228,7 @@ export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
       serialized_value: '',
       serialized_type: '' // This is left blank intentionally
     }
-    if (x.value.type === 'type') {
+    if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }

@@ -111,24 +111,6 @@ const input_attrs = computed<any>(() => {
   }
 })
 
-// Below gives the attributes for data types handled by <JSONInput>
-//  no type_values check since this is also the fallback
-const json_attrs = computed<any>(() => {
-  if (param.value === undefined) {
-    return undefined
-  }
-  switch (param.value.value.type) {
-    case 'list':
-      break
-    case 'dict':
-    case OrderedDict_Name:
-      break
-    default:
-      break
-  }
-  return {}
-})
-
 // Handles value changes for the <input> element
 function onChange(event: Event) {
   if (param.value === undefined) {
@@ -174,7 +156,7 @@ function onFocus() {
     </div>
 
     <TypeParam
-      v-else-if="param.value.type === 'type'"
+      v-else-if="param.value.type.startsWith('type')"
       :category="props.category"
       :data_key="props.data_key"
     />
@@ -250,7 +232,7 @@ function onFocus() {
     />
 
     <div v-else class="form-group position-relative">
-      <JSONInput v-bind="json_attrs" :category="props.category" :data_key="props.data_key" />
+      <JSONInput :category="props.category" :data_key="props.data_key" />
     </div>
   </div>
   <div v-else>Error loading param data</div>
