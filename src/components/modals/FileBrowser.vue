@@ -244,7 +244,7 @@ function setChosenLocation(value: Package | null) {
     } else {
       getFolderStructure()
     }
-    emit('location', value.path)
+    emit('location', value.package)
   }
 }
 
