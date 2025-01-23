@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DocumentedNode, NodeData, NodeMsg, ParamData, ValueTypes } from '@/types/types'
+import { NodeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
@@ -157,11 +157,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       }
     }
 
-    const current_tree = editor_store.selected_subtree.is_subtree
-      ? editor_store.selected_subtree.tree
-      : editor_store.tree
-
-    const new_selected_node = current_tree!.nodes.find(
+    const new_selected_node = editor_store.current_tree!.nodes.find(
       (x: NodeMsg) => x.name === new_selected_node_name
     )
 
@@ -383,7 +379,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       inputs: [],
       outputs: [],
       version: '',
-      state: ''
+      state: NodeState.UNINITIALIZED
     }
   }
 

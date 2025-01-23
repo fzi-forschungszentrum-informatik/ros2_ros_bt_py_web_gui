@@ -267,26 +267,31 @@ onMounted(() => {
             </button>
 
             <!--Elements are dynamically reordered when inlining all three-->
-            <SelectSubtree class="col col-xl-3 order-xl-1"></SelectSubtree>
+            <div class="col col-xl-3 order-xl-1">
+              <SelectSubtree />
+            </div>
 
-            <EditorDisplayButtons
-              :exec-bar-visible="execution_bar_visible"
-              class="col-auto order-xl-3"
-              @show="
-                () => {
-                  execution_bar_visible = true
-                  nodelist_visible = true
-                }
-              "
-              @hide="
-                () => {
-                  execution_bar_visible = false
-                  nodelist_visible = false
-                }
-              "
-            ></EditorDisplayButtons>
+            <div class="col-auto order-xl-3">
+              <EditorDisplayButtons
+                :exec-bar-visible="execution_bar_visible"
+                @show="
+                  () => {
+                    execution_bar_visible = true
+                    nodelist_visible = true
+                  }
+                "
+                @hide="
+                  () => {
+                    execution_bar_visible = false
+                    nodelist_visible = false
+                  }
+                "
+              />
+            </div>
 
-            <TreeNameStateDisplay class="col-12 col-xl-6 order-xl-2"></TreeNameStateDisplay>
+            <div class="col-12 col-xl order-xl-2">
+              <TreeNameStateDisplay />
+            </div>
           </div>
 
           <div class="row edit_canvas flex-grow-1 pb-2">

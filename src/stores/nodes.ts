@@ -31,8 +31,14 @@ import type { DocumentedNode } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
+import { useROSStore } from './ros'
+import type { GetAvailableNodesRequest, GetAvailableNodesResponse } from '@/types/services/GetAvailableNodes'
+import { notify } from '@kyvg/vue3-notification'
 
 export const useNodesStore = defineStore('nodes', () => {
+
+  const ros_store = useROSStore()
+
   const nodes_fuse_options = {
     shouldSort: true,
     threshold: 0.3,
@@ -76,12 +82,43 @@ export const useNodesStore = defineStore('nodes', () => {
     filtered_nodes.value = []
   }
 
+  function getNodes(package_name: string) {
+    ros_store.get_available_nodes_service.callService(
+      {
+        node_modules: [package_name]
+      } as GetAvailableNodesRequest,
+      (response: GetAvailableNodesResponse) => {
+        if (response.success) {
+          updateAvailableNode(response.available_nodes)
+          notify({
+            title: 'Updated available BT nodes!',
+            type: 'success'
+          })
+        } else {
+          notify({
+            title: 'Failed to update available BT nodes!',
+            text: response.error_message,
+            type: 'error'
+          })
+        }
+      },
+      (failed: string) => {
+        notify({
+          title: 'Failed to call GetAvailableNodes service!',
+          text: failed,
+          type: 'error'
+        })
+      }
+    )
+  }
+
   return {
     nodes,
     nodes_fuse,
     filtered_nodes,
     updateAvailableNode,
     filterNodes,
-    clearFilteredNodes
+    clearFilteredNodes,
+    getNodes,
   }
 })

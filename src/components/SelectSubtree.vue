@@ -100,39 +100,37 @@ const selected_name = computed<string>(() => {
 </script>
 
 <template>
-  <div>
-    <div class="input-group my-2">
-      <label class="input-group-text" for="formTree"> Tree </label>
+  <div class="input-group my-2">
+    <label class="input-group-text" for="formTree"> Tree </label>
 
-      <select
-        id="formTree"
-        class="form-select"
-        :value="editor_store.subtree_names.indexOf(selected_name)"
-        @change="onChange"
-      >
-        <option value="-1">Main Tree</option>
-        <optgroup label="Subtrees">
-          <option v-for="(name, index) in editor_store.subtree_names" :key="name" :value="index">
-            {{ name }}
-          </option>
-        </optgroup>
-      </select>
+    <select
+      id="formTree"
+      class="form-select"
+      :value="editor_store.subtree_names.indexOf(selected_name)"
+      @change="onChange"
+    >
+      <option value="-1">Main Tree</option>
+      <optgroup label="Subtrees">
+        <option v-for="(name, index) in editor_store.subtree_names" :key="name" :value="index">
+          {{ name }}
+        </option>
+      </optgroup>
+    </select>
 
-      <input
-        type="checkbox"
-        :id="publish_subtrees_id"
-        class="btn-check"
-        autocomplete="off"
-        :checked="editor_store.publish_subtrees"
-        @change="handlePubSubtreesChange"
+    <input
+      type="checkbox"
+      :id="publish_subtrees_id"
+      class="btn-check"
+      autocomplete="off"
+      :checked="editor_store.publish_subtrees"
+      @change="handlePubSubtreesChange"
+    />
+
+    <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
+      <font-awesome-icon
+        :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
+        icon="fa-solid fa-bullhorn"
       />
-
-      <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
-        <font-awesome-icon
-          :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
-          icon="fa-solid fa-bullhorn"
-        />
-      </label>
-    </div>
+    </label>
   </div>
 </template>

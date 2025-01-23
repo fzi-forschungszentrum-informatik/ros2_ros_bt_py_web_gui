@@ -52,38 +52,6 @@ function handlePackageNameChange(event: Event) {
   package_name.value = target.value
 }
 
-function getNodes(package_name: string) {
-  ros_store.get_available_nodes_service.callService(
-    {
-      node_modules: [package_name]
-    } as GetAvailableNodesRequest,
-    (response: GetAvailableNodesResponse) => {
-      if (response.success) {
-        nodes_store.updateAvailableNode(response.available_nodes)
-        notify({
-          title: 'Updated available BT nodes!',
-          type: 'success'
-        })
-      } else {
-        notify({
-          title: 'Failed to update available BT nodes!',
-          text: response.error_message,
-          type: 'error'
-        })
-      }
-    },
-    (failed: string) => {
-      notify({
-        title: 'Failed to call GetAvailableNodes service!',
-        text: failed,
-        type: 'error'
-      })
-    }
-  )
-}
-onMounted(() => {
-  getNodes('')
-})
 </script>
 
 <template>
@@ -95,7 +63,10 @@ onMounted(() => {
     </div>
     <div class="m-2" v-if="!collapsed">
       <div class="d-grid gap-2 mb-2">
-        <button id="refresh" class="btn btn-block btn-primary mt-2" @click="() => getNodes('')">
+        <button id="refresh" 
+          class="btn btn-block btn-primary mt-2" 
+          @click="() => nodes_store.getNodes('')"
+        >
           Refresh
         </button>
       </div>
@@ -112,7 +83,7 @@ onMounted(() => {
         <button
           type="button"
           className="btn btn-block btn-outline-primary"
-          @click="() => getNodes(package_name)"
+          @click="() => nodes_store.getNodes(package_name)"
           id="loadPackageFormConfirm"
         >
           Load package
