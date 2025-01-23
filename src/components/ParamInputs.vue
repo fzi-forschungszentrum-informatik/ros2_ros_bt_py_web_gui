@@ -43,7 +43,6 @@ import {
   MathOperandType_Name,
   MathUnaryOperandType_Name,
   MathUnaryOperator_Name,
-  OrderedDict_Name,
   RosTopicType_Name,
   RosTopicName_Name,
   RosServiceType_Name,

@@ -28,16 +28,10 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useROSStore } from '@/stores/ros'
-import type {
-  GetAvailableNodesRequest,
-  GetAvailableNodesResponse
-} from '@/types/services/GetAvailableNodes'
+import { ref } from 'vue'
 import { useNodesStore } from '@/stores/nodes'
-import { notify } from '@kyvg/vue3-notification'
 
-const ros_store = useROSStore()
+
 const nodes_store = useNodesStore()
 
 const collapsed = ref<boolean>(false)
