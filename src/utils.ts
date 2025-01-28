@@ -136,48 +136,57 @@ export function prettyprint_type(jsonpickled_type: string): string {
   return 'Unknown type object: ' + jsonpickled_type
 }
 
+export function getTypeAndInfo(typeStr: string): [string, string] {
+  let match
+  if (typeStr.startsWith('OptionRef(')) {
+    match = typeStr.match(/(.*\(.*\))\((.*)\)/)
+  } else {
+    match = typeStr.match(/(.*)\((.*)\)/)
+  }
+  if (match === null) {
+    return [typeStr, '']
+  }
+  return [match[1], match[2]]
+}
+
 export function getDefaultValue(
-  typeName: string,
+  typeStr: string,
   options: NodeData[] | null = null
 ): ParamType {
-  if (typeName.startsWith('type')) {
+  const typeName = getTypeAndInfo(typeStr)[0]
+  if (typeName === 'type') {
     return {
-      type: typeName,
+      type: typeStr,
       value: 'int'
     }
-  } else if (typeName === 'int' || typeName === 'long') {
+  } else if (typeName === 'int') {
     return {
-      type: 'int',
+      type: typeStr,
       value: 0
     }
-  } else if (
-    typeName === 'str' ||
-    typeName === 'basestring' ||
-    typeName === 'unicode' ||
-    typeName === 'string'
-  ) {
+  } else if (typeName === 'string') {
     return {
-      type: 'string',
+      type: typeStr,
       value: 'foo'
     }
   } else if (typeName === 'float') {
     return {
-      type: 'float',
+      type: typeStr,
       value: 1.2
     }
   } else if (typeName === 'bool') {
     return {
-      type: 'bool',
+      type: typeStr,
       value: true
     }
   } else if (typeName === 'list') {
     return {
-      type: 'list',
+      type: typeStr,
       value: []
     }
-  } else if (typeName.startsWith('dict')) {
+  } else if (typeName === 'dict') {
     return {
-      type: typeName,
+      type: typeStr,
       value: {}
     }
   } else if (typeName.startsWith('OptionRef(')) {
@@ -210,12 +219,12 @@ export function getDefaultValue(
   // which provide default values
   } else if (isPythonTypeWithDefault(typeName)) {
     return {
-      type: typeName,
+      type: typeStr,
       value: getPythonTypeDefault(typeName) || {}
     }
   } else {
     return {
-      type: '__' + typeName,
+      type: '__' + typeStr,
       value: {}
     }
   }

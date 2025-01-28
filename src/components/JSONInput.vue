@@ -62,11 +62,7 @@ const is_topic_ref = computed<boolean>(() => {
   if (param.value === undefined) {
     return false
   }
-  const match = param.value.value.type.match(/dict\((.+)\)/)
-  if (match === null) {
-    return false
-  }
-  if (match[1] === 'ros') {
+  if (param.value.value.type === 'dict(ros)') {
     return true
   }
   return false

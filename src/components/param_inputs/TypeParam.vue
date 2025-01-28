@@ -32,7 +32,7 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { ParamData } from '@/types/types'
-import { python_builtin_types } from '@/utils'
+import { getTypeAndInfo, python_builtin_types } from '@/utils'
 import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
 
@@ -55,11 +55,8 @@ const search_fuse = computed<Fuse<string>>(() => {
   if (param.value === undefined) {
     return messages_store.messages_fuse
   }
-  const match = param.value.value.type.match(/type\((.+)\)/)
-  if (match === null) {
-    return messages_store.messages_fuse
-  }
-  if (match[1] === 'builtin') {
+  const info = getTypeAndInfo(param.value.value.type)[1]
+  if (info === 'builtin') {
     return new Fuse<string>(python_builtin_types)
   }
   return messages_store.messages_fuse
