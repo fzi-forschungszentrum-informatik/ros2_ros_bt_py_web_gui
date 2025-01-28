@@ -59,6 +59,8 @@ export const useMessasgeStore = defineStore('messages', () => {
   const ros_service_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
   const ros_action_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
 
+  const ros_all_messages_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
+
   const ros_topic_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
   const ros_service_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
   const ros_action_name_fuse = ref<Fuse<Channel>>(new Fuse([], ros_name_fuse_options))
@@ -73,8 +75,19 @@ export const useMessasgeStore = defineStore('messages', () => {
       return
     }
     messages.value.push(
-      message_parts[0] + '.msg.' + message_parts[2]
+      message_parts[0] + '.' + message_parts[1] + '.' + message_parts[2]
     )
+  }
+
+  function addServiceMessages(message: string): void {
+    ros_all_messages_fuse.value.add(message + '_Request')
+    ros_all_messages_fuse.value.add(message + '_Response')
+  }
+
+  function addActionMessages(message: string): void {
+    ros_all_messages_fuse.value.add(message + '_Goal')
+    ros_all_messages_fuse.value.add(message + '_Result')
+    ros_all_messages_fuse.value.add(message + '_Feedback')
   }
 
   function updateAvailableMessages(new_messages: MessageTypes) {
@@ -82,6 +95,10 @@ export const useMessasgeStore = defineStore('messages', () => {
     ros_topic_type_fuse.value.setCollection(new_messages.topics)
     ros_service_type_fuse.value.setCollection(new_messages.services)
     ros_action_type_fuse.value.setCollection(new_messages.actions)
+
+    ros_all_messages_fuse.value.setCollection(new_messages.topics)
+    new_messages.services.forEach(addServiceMessages)
+    new_messages.actions.forEach(addActionMessages)
 
     new_messages.topics.forEach(addMessageTypes)
 
@@ -101,6 +118,7 @@ export const useMessasgeStore = defineStore('messages', () => {
     ros_topic_type_fuse,
     ros_service_type_fuse,
     ros_action_type_fuse,
+    ros_all_messages_fuse,
     ros_topic_name_fuse,
     ros_service_name_fuse,
     ros_action_name_fuse,

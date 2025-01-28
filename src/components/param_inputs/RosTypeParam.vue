@@ -34,6 +34,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { RosType } from '@/types/python_types'
 import type { ParamData } from '@/types/types'
+import { getTypeAndInfo } from '@/utils'
 import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
 
@@ -54,6 +55,12 @@ const param = computed<ParamData | undefined>(() =>
 )
 
 const search_fuse = computed<Fuse<string> | undefined>(() => {
+  if (param.value !== undefined) {
+    const info = getTypeAndInfo(param.value.value.type)[1]
+    if (info === 'full') {
+      return messages_store.ros_all_messages_fuse
+    }
+  }
   switch (props.type) {
     case 'topic':
       return messages_store.ros_topic_type_fuse
