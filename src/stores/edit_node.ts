@@ -193,8 +193,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     function getValues(x: NodeData): ParamData {
       const type = prettyprint_type(x.serialized_type)
       let json_value = JSON.parse(x.serialized_value)
-      if (type === 'type') {
-        json_value = json_value['py/type']
+      if (type.startsWith('type')) {
+        json_value = prettyprint_type(x.serialized_value)
       }
       return {
         key: x.key,

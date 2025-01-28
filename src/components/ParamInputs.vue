@@ -43,7 +43,6 @@ import {
   MathOperandType_Name,
   MathUnaryOperandType_Name,
   MathUnaryOperator_Name,
-  OrderedDict_Name,
   RosTopicType_Name,
   RosTopicName_Name,
   RosServiceType_Name,
@@ -53,6 +52,7 @@ import {
 } from '@/types/python_types'
 import RosTypeParam from './param_inputs/RosTypeParam.vue'
 import RosNameParam from './param_inputs/RosNameParam.vue'
+import { getTypeAndInfo } from '@/utils'
 
 const props = defineProps<{
   category: 'options'
@@ -66,11 +66,20 @@ const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
+const param_type = computed<string>(() => {
+  if (param.value === undefined) {
+    return ''
+  }
+  return getTypeAndInfo(param.value.value.type)[0]
+})
+
 // Below lists the data types that are handled by <input>...
 const input_type_values = ['int', 'float', 'bool', 'string', 'unset_optionref']
 //  ...and gives the appropriate attributes.
 const input_attrs = computed<any>(() => {
-  if (param.value === undefined || !input_type_values.includes(param.value.value.type)) {
+  if (param.value === undefined ||
+    !input_type_values.includes(param_type.value)
+  ) {
     return undefined
   }
   let type: string,
@@ -79,7 +88,7 @@ const input_attrs = computed<any>(() => {
     cssclass: string[] = ['form-control'],
     checked: boolean = false,
     disabled: boolean = editor_store.selected_subtree.is_subtree
-  switch (param.value.value.type) {
+  switch (param_type.value) {
     case 'int':
       step = 1.0
     case 'float':
@@ -109,24 +118,6 @@ const input_attrs = computed<any>(() => {
     checked: checked,
     disabled: disabled
   }
-})
-
-// Below gives the attributes for data types handled by <JSONInput>
-//  no type_values check since this is also the fallback
-const json_attrs = computed<any>(() => {
-  if (param.value === undefined) {
-    return undefined
-  }
-  switch (param.value.value.type) {
-    case 'list':
-      break
-    case 'dict':
-    case OrderedDict_Name:
-      break
-    default:
-      break
-  }
-  return {}
 })
 
 // Handles value changes for the <input> element
@@ -174,86 +165,83 @@ function onFocus() {
     </div>
 
     <TypeParam
-      v-else-if="param.value.type === 'type'"
+      v-else-if="param_type === 'type'"
       :category="props.category"
       :data_key="props.data_key"
     />
     
     <MathOperatorParam
-      v-else-if="param.value.type === MathUnaryOperator_Name"
+      v-else-if="param_type === MathUnaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === MathUnaryOperandType_Name"
+      v-else-if="param_type === MathUnaryOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'unary'"
     />
     <MathOperatorParam
-      v-else-if="param.value.type === MathBinaryOperator_Name"
+      v-else-if="param_type === MathBinaryOperator_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
     />
     <MathOperandParam
-      v-else-if="param.value.type === MathOperandType_Name"
+      v-else-if="param_type === MathOperandType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :op_type="'binary'"
     />
 
     <FilePathParam
-      v-else-if="param.value.type === FilePath_Name"
+      v-else-if="param_type === FilePath_Name"
       :category="props.category"
       :data_key="props.data_key"
     />
 
     <RosTypeParam
-      v-else-if="param.value.type === RosTopicType_Name"
+      v-else-if="param_type === RosTopicType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'topic'"
     />
     <RosNameParam
-      v-else-if="param.value.type === RosTopicName_Name"
+      v-else-if="param_type === RosTopicName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'topic'"
     />
 
     <RosTypeParam
-      v-else-if="param.value.type === RosServiceType_Name"
+      v-else-if="param_type === RosServiceType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'service'"
     />
     <RosNameParam
-      v-else-if="param.value.type === RosServiceName_Name"
+      v-else-if="param_type === RosServiceName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'service'"
     />
 
     <RosTypeParam
-      v-else-if="param.value.type === RosActionType_Name"
+      v-else-if="param_type === RosActionType_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'action'"
     />
     <RosNameParam
-      v-else-if="param.value.type === RosActionName_Name"
+      v-else-if="param_type === RosActionName_Name"
       :category="props.category"
       :data_key="props.data_key"
       :type="'action'"
     />
 
-    <div v-else class="form-group">
-      <label class="d-block">
-        {{ param.key }}
-        <JSONInput v-bind="json_attrs" :category="props.category" :data_key="props.data_key" />
-      </label>
+    <div v-else class="form-group position-relative">
+      <JSONInput :category="props.category" :data_key="props.data_key" />
     </div>
   </div>
   <div v-else>Error loading param data</div>
