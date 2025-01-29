@@ -238,6 +238,7 @@ onMounted(() => {
                   ref="nodelist_input_ref"
                   class="form-control"
                   v-bind:value="node_search"
+                  placeholder="Node Name"
                   @input="handleNodeSearch"
                   @keydown="handleNodeSearchClear"
                 />

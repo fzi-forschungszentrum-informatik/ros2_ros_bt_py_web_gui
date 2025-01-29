@@ -208,7 +208,12 @@ function saveTree() {
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text"> Name: </span>
-        <input v-model="input_file_name" type="text" class="form-control" />
+        <input 
+          v-model="input_file_name" 
+          type="text" 
+          class="form-control" 
+          placeholder="Name of File to Save (also acts as a search bar)"
+        />
       </div>
     </FileBrowser>
   </VueFinalModal>
