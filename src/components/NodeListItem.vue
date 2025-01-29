@@ -96,15 +96,18 @@ function onClick() {
   >
     <div class="d-flex justify-content-between">
       <div class="d-flex w-100">
-        <h4 class="text-truncate">
+        <div class="h4 text-truncate">
           {{ node.node_class }}
-        </h4>
-        <font-awesome-icon
+          <small class="text-muted">
+            {{ node.module }}
+          </small>
+        </div>
+        <!--<font-awesome-icon
           icon="fa-solid fa-question-circle"
           class="ps-2 pe-2"
           aria-hidden="true"
           :title="getShortDoc(node.doc)"
-        />
+        />-->
         <font-awesome-icon
           :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
           aria-hidden="true"
@@ -117,9 +120,6 @@ function onClick() {
         />
       </div>
     </div>
-    <h5 :title="node.module" class="node_module text-truncate text-muted">
-      {{ node.module }}
-    </h5>
     <div>
       {{
         node_type +
@@ -128,6 +128,9 @@ function onClick() {
         ')'
       }}
     </div>
+    <!--<div :class="collapsed ? 'node-doc-trimmed' : ''">
+      {{ getShortDoc(node.doc) }}
+    </div>-->
     <div v-if="!collapsed">
       <div v-if="node.tags.length > 0" class="list-group-item mt-1">
         Tags:
@@ -164,5 +167,10 @@ function onClick() {
 
 .grab:hover {
   cursor: grab;
+}
+
+.node-doc-trimmed{
+  overflow-y: hidden;
+  max-height: 2rem;
 }
 </style>
