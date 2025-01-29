@@ -103,6 +103,7 @@ const tree_node_css_class: string = 'node'
 const node_body_css_class: string = 'btnode'
 const node_name_css_class: string = 'node_name'
 const node_class_css_class: string = 'class_name'
+const node_state_css_class: string = 'node_state'
 const tree_edge_css_class: string = 'link'
 const drop_target_css_class: string = 'drop_target'
 const data_vert_group_css_class: string = 'gripper-group'
@@ -384,11 +385,12 @@ function drawNewNodes(
 
   const body = fo
     .append<HTMLBodyElement>('xhtml:body')
-    .classed(node_body_css_class + ' p-2', true)
+    .classed(node_body_css_class, true)
 
   // These elements get filled in updateNodeBody
   body.append('h4').classed(node_name_css_class, true)
   body.append('h5').classed(node_class_css_class, true)
+  body.append('div').classed(node_state_css_class, true)
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
@@ -408,6 +410,8 @@ function updateNodeBody(
   body.select<HTMLHeadingElement>('.' + node_name_css_class).html((d) => d.data.name)
 
   body.select<HTMLHeadingElement>('.' + node_class_css_class).html((d) => d.data.node_class)
+
+  body.select<HTMLDivElement>('.' + node_state_css_class).html((d) => d.data.state)
 
   body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body

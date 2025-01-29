@@ -69,6 +69,8 @@ rect.selection {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+
+  padding: 0.6rem;
 }
 
 .lightmode .btnode {
@@ -90,6 +92,13 @@ rect.selection {
 
 .lightmode .btnode h5 {
   color: #454954;
+}
+
+.btnode div.node_state {
+  //color: #808080;
+  font-size: small;
+  position: absolute;
+  bottom: 0;
 }
 
 path.data-hover,
