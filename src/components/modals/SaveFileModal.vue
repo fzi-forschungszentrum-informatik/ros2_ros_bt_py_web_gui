@@ -91,7 +91,7 @@ function saveTree() {
   const save_tree_request: SaveTreeRequest = {
     storage_path: storage_location.value,
     filepath: file_path.value,
-    tree: editor_store.tree, //TODO should we allow saving subtrees?
+    tree: editor_store.tree,
     allow_overwrite: allow_overwrite,
     allow_rename: allow_rename
   }
