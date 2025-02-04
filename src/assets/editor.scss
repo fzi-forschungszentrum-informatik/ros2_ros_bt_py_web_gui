@@ -99,10 +99,10 @@ rect.selection {
 }
 
 .btnode div.node_state {
-  //color: #808080;
-  font-size: small;
-  position: absolute;
-  bottom: 0;
+  //font-size: small;
+  margin-top: 20px;
+  margin-left: 5px;
+  text-wrap: nowrap;
 }
 
 path.data-hover,
@@ -135,4 +135,11 @@ path.data-select {
 
 .drawing-indicator {
   pointer-events: none;
+}
+
+.btnode .icon {
+  width: 1em;
+  height: 1em;
+  vertical-align: -0.125em;
+  margin-right: 5px;
 }

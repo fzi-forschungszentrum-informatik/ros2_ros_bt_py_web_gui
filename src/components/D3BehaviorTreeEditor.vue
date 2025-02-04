@@ -397,6 +397,37 @@ function drawNewNodes(
   return fo
 }
 
+function showNodeState(state: string): string {
+  // When adding svg icons here, we need to apply
+  // class="icon" to the svg element and
+  // fill="currentColor" to the path element
+  let icon_svg = ''
+  switch (state) {
+    case NodeState.RUNNING:
+      // Fontawesome bolt icon
+      icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M349.4 44.6c5.9-13.7 1.5-29.7-10.6-38.5s-28.6-8-39.9 1.8l-256 224c-10 8.8-13.6 22.9-8.9 35.3S50.7 288 64 288l111.5 0L98.6 467.4c-5.9 13.7-1.5 29.7 10.6 38.5s28.6 8 39.9-1.8l256-224c10-8.8 13.6-22.9 8.9-35.3s-16.6-20.7-30-20.7l-111.5 0L349.4 44.6z"/></svg>'
+      break
+    case NodeState.IDLE:
+      // Fontawesome pause icon
+      icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 320 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M48 64C21.5 64 0 85.5 0 112L0 400c0 26.5 21.5 48 48 48l32 0c26.5 0 48-21.5 48-48l0-288c0-26.5-21.5-48-48-48L48 64zm192 0c-26.5 0-48 21.5-48 48l0 288c0 26.5 21.5 48 48 48l32 0c26.5 0 48-21.5 48-48l0-288c0-26.5-21.5-48-48-48l-32 0z"/></svg>'
+      break
+    case NodeState.SUCCEEDED:
+      // Fontawesome check icon
+      icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 448 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M438.6 105.4c12.5 12.5 12.5 32.8 0 45.3l-256 256c-12.5 12.5-32.8 12.5-45.3 0l-128-128c-12.5-12.5-12.5-32.8 0-45.3s32.8-12.5 45.3 0L160 338.7 393.4 105.4c12.5-12.5 32.8-12.5 45.3 0z"/></svg>'
+      break
+    case NodeState.FAILED:
+      // Fontawesome xmark icon
+      icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 384 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M342.6 150.6c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L192 210.7 86.6 105.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L146.7 256 41.4 361.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L192 301.3 297.4 406.6c12.5 12.5 32.8 12.5 45.3 0s12.5-32.8 0-45.3L237.3 256 342.6 150.6z"/></svg>'
+      break
+    case NodeState.SHUTDOWN:
+    default:
+      // Fontawesome power-off icon
+      icon_svg = '<svg xmlns="http://www.w3.org/2000/svg" class="icon" viewBox="0 0 512 512"><!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32l0 224c0 17.7 14.3 32 32 32s32-14.3 32-32l0-224zM143.5 120.6c13.6-11.3 15.4-31.5 4.1-45.1s-31.5-15.4-45.1-4.1C49.7 115.4 16 181.8 16 256c0 132.5 107.5 240 240 240s240-107.5 240-240c0-74.2-33.8-140.6-86.6-184.6c-13.6-11.3-33.8-9.4-45.1 4.1s-9.4 33.8 4.1 45.1c38.9 32.3 63.5 81 63.5 135.4c0 97.2-78.8 176-176 176s-176-78.8-176-176c0-54.4 24.7-103.1 63.5-135.4z"/></svg>'
+      break
+  }
+  return icon_svg + state
+}
+
 function updateNodeBody(
   selection: d3.Selection<
     SVGForeignObjectElement,
@@ -407,11 +438,14 @@ function updateNodeBody(
 ) {
   const body = selection.select<HTMLBodyElement>('.' + node_body_css_class)
 
-  body.select<HTMLHeadingElement>('.' + node_name_css_class).html((d) => d.data.name)
+  body.select<HTMLHeadingElement>('.' + node_name_css_class)
+      .html((d) => d.data.name)
 
-  body.select<HTMLHeadingElement>('.' + node_class_css_class).html((d) => d.data.node_class)
+  body.select<HTMLHeadingElement>('.' + node_class_css_class)
+      .html((d) => d.data.node_class)
 
-  body.select<HTMLDivElement>('.' + node_state_css_class).html((d) => d.data.state)
+  body.select<HTMLDivElement>('.' + node_state_css_class)
+      .html((d) => showNodeState(d.data.state))
 
   body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body
@@ -456,25 +490,19 @@ function colorNodes(
     .transition(tree_transition)
     .style('border-color', (d) => {
       switch (d.data.state) {
-        case NodeState.RUNNING: {
+        case NodeState.RUNNING:
           return 'var(--node-color-running)'
-        }
-        case NodeState.IDLE: {
+        case NodeState.IDLE:
           return 'var(--node-color-idle)'
-        }
-        case NodeState.SUCCEEDED: {
+        case NodeState.SUCCEEDED:
           return 'var(--node-color-succeeded)'
-        }
-        case NodeState.FAILED: {
+        case NodeState.FAILED:
           return 'var(--node-color-failed)'
-        }
-        case NodeState.SHUTDOWN: {
+        case NodeState.SHUTDOWN:
           return 'var(--node-color-shutdown)'
-        }
         case NodeState.UNINITIALIZED:
-        default: {
+        default:
           return 'var(--node-color-default)'
-        }
       }
     })
 }
