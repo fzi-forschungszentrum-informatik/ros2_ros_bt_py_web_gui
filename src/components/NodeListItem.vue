@@ -31,7 +31,6 @@
 import type { DocumentedNode } from '@/types/types'
 import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
-import { getShortDoc } from '@/utils'
 import IOTableEntry from './IOTableEntry.vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 
@@ -61,13 +60,14 @@ const highlighted_classes = computed<string>(() => {
   }
 })
 
-const node_type = computed<string>(() => {
-  if (props.node.max_children < 0) {
-    return 'Flow control'
-  } else if (props.node.max_children > 0) {
-    return 'Decorator'
+//TODO This distinction seems odd, shouldn't Leaf=0, Deco=1, Flow=others
+const node_type_icon = computed<string>(() => {
+  if (props.node.max_children === 1) {
+    return 'fa-link'
+  } else if (props.node.max_children === 0) {
+    return 'fa-leaf'
   } else {
-    return 'Leaf'
+    return 'fa-network-wired'
   }
 })
 
@@ -94,43 +94,30 @@ function onClick() {
       }
     "
   >
-    <div class="d-flex justify-content-between">
-      <div class="d-flex w-100">
-        <div class="h4 text-truncate">
-          {{ node.node_class }}
-          <small class="text-muted">
-            {{ node.module }}
-          </small>
-        </div>
-        <!--<font-awesome-icon
-          icon="fa-solid fa-question-circle"
-          class="ps-2 pe-2"
-          aria-hidden="true"
-          :title="getShortDoc(node.doc)"
-        />-->
-        <font-awesome-icon
-          :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
-          aria-hidden="true"
-          class="cursor-pointer ms-auto"
-          @click="
-            () => {
-              collapsed = !collapsed
-            }
-          "
-        />
+    <div class="d-flex w-100">
+      <div class="text-truncate fs-4">
+      {{ node.node_class }}
       </div>
+      <div class="text-muted mx-1 my-auto">
+        <font-awesome-icon
+          :icon="'fa-solid ' + node_type_icon"
+        />
+        {{ (node.max_children > 0 ? '(' + node.max_children + ')' : '') }}
+      </div>
+      <font-awesome-icon
+        :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
+        aria-hidden="true"
+        class="cursor-pointer ms-auto"
+        @click="
+          () => {
+            collapsed = !collapsed
+          }
+        "
+      />
     </div>
-    <div>
-      {{
-        node_type +
-        ' (max_children: ' +
-        (props.node.max_children >= 0 ? props.node.max_children : '∞') +
-        ')'
-      }}
+    <div class="text-muted">
+      {{ node.module }}
     </div>
-    <!--<div :class="collapsed ? 'node-doc-trimmed' : ''">
-      {{ getShortDoc(node.doc) }}
-    </div>-->
     <div v-if="!collapsed">
       <div v-if="node.tags.length > 0" class="list-group-item mt-1">
         Tags:
@@ -160,6 +147,7 @@ function onClick() {
 </template>
 
 <style scoped lang="scss">
+
 .tag:hover {
   border: 1px solid #007bff !important;
   cursor: pointer;
@@ -169,8 +157,4 @@ function onClick() {
   cursor: grab;
 }
 
-.node-doc-trimmed{
-  overflow-y: hidden;
-  max-height: 2rem;
-}
 </style>
