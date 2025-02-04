@@ -33,6 +33,7 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import IOTableEntry from './IOTableEntry.vue'
 import { useEditNodeStore } from '@/stores/edit_node'
+import { getShortDoc } from '@/utils'
 
 const props = defineProps<{
   node: DocumentedNode
@@ -60,7 +61,6 @@ const highlighted_classes = computed<string>(() => {
   }
 })
 
-//TODO This distinction seems odd, shouldn't Leaf=0, Deco=1, Flow=others
 const node_type_icon = computed<string>(() => {
   if (props.node.max_children === 1) {
     return 'fa-link'
@@ -71,7 +71,8 @@ const node_type_icon = computed<string>(() => {
   }
 })
 
-const collapsed = ref<boolean>(true)
+const show_details = ref<boolean>(false)
+const show_description = ref<boolean>(true)
 
 function onClick() {
   console.log('click ' + props.node.name)
@@ -98,34 +99,49 @@ function onClick() {
       <div class="text-truncate fs-4">
       {{ node.node_class }}
       </div>
-      <div class="text-muted mx-1 my-auto">
+      <div class="text-muted mx-2 my-auto">
         <font-awesome-icon
           :icon="'fa-solid ' + node_type_icon"
         />
         {{ (node.max_children > 0 ? '(' + node.max_children + ')' : '') }}
       </div>
       <font-awesome-icon
-        :icon="'fa-solid ' + (collapsed ? 'fa-angle-down' : 'fa-angle-up')"
+        :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
-        class="cursor-pointer ms-auto"
-        @click="
-          () => {
-            collapsed = !collapsed
-          }
-        "
+        class="cursor-pointer ms-auto p-1"
+        @click="() => show_details = !show_details"
       />
     </div>
     <div class="text-muted">
       {{ node.module }}
     </div>
-    <div v-if="!collapsed">
-      <div v-if="node.tags.length > 0" class="list-group-item mt-1">
-        Tags:
-        <span v-for="tag in node.tags" class="border rounded p-2 m-1 tag" v-bind:key="tag">{{
-          tag
-        }}</span>
-      </div>
+    <div v-if="show_details" class="mt-3">
+      <!--TODO tags temporarily removed, since they're unusable right now
+      <div v-if="node.tags.length > 0" class="d-flex flex-wrap mb-2">
+        <button v-for="tag in node.tags" 
+          class="btn btn-outline-contrast px-2 py-1 m-1" 
+          :key="tag"
+        >
+          {{ tag }}
+        </button>
+      </div>-->
       <div class="list-group">
+        <div v-if="getShortDoc(node.doc) !== ''" class="list-group-item">
+          <div class="d-flex w-100">
+            <div class="fs-5">
+              Description
+            </div>
+            <font-awesome-icon
+              :icon="'fa-solid ' + (show_description ? 'fa-angle-up' : 'fa-angle-down')"
+              aria-hidden="true"
+              class="cursor-pointer ms-auto"
+              @click="() => show_description = !show_description"
+            />
+          </div>
+          <div v-if="show_description">
+            {{ getShortDoc(node.doc) }}
+          </div>
+        </div>
         <IOTableEntry
           v-if="node.options.length > 0"
           title="Options"
@@ -147,11 +163,6 @@ function onClick() {
 </template>
 
 <style scoped lang="scss">
-
-.tag:hover {
-  border: 1px solid #007bff !important;
-  cursor: pointer;
-}
 
 .grab:hover {
   cursor: grab;

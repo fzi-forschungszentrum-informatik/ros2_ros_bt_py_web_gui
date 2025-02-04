@@ -30,30 +30,35 @@
 <script setup lang="ts">
 import type { NodeData } from '@/types/types'
 import { prettyprint_type } from '@/utils'
+import { ref } from 'vue';
 
 defineProps<{
   io_node_data: NodeData[]
   title: string
 }>()
+
+const show_details = ref<boolean>(true)
+
 </script>
 
 <template>
-  <div class="io_values list-group-item">
-    <h5>{{ title }}</h5>
-    <table class="table">
-      <tbody>
-        <tr v-for="node_data in io_node_data" :key="title + node_data.key">
-          <td :title="node_data.key" class="io_key text-truncate maxw0">
-            {{ node_data.key }}
-          </td>
-          <td
-            :title="prettyprint_type(node_data.serialized_value)"
-            class="io_type text-truncate maxw0 text-muted pl-2"
-          >
-            {{ prettyprint_type(node_data.serialized_value) }}
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="list-group-item">
+    <div class="d-flex w-100">
+      <div class="fs-5">{{ title }}</div>
+      <font-awesome-icon
+        :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
+        aria-hidden="true"
+        class="cursor-pointer ms-auto"
+        @click="() => show_details = !show_details"
+      />
+    </div>
+    <template v-if="show_details" v-for="node_data in io_node_data" :key="title + node_data.key">
+      <div class="text-truncate">
+        {{ node_data.key }}
+      </div>
+      <div class="text-truncate text-muted ms-2 mb-2">
+        {{ prettyprint_type(node_data.serialized_value) }}
+      </div>
+    </template>
   </div>
 </template>
