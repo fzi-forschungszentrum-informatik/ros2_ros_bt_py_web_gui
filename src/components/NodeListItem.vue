@@ -87,13 +87,7 @@ function onClick() {
     tabindex="0"
     @click="onClick"
     @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
-    @keydown="
-      (event) => {
-        if (event.key == 'Enter') {
-          edit_node_store.nodeListSelectionChange(node)
-        }
-      }
-    "
+    @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
   >
     <div class="d-flex w-100">
       <div class="text-truncate fs-4">
