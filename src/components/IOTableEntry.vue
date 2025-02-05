@@ -52,13 +52,15 @@ const show_details = ref<boolean>(true)
         @click="() => show_details = !show_details"
       />
     </div>
-    <template v-if="show_details" v-for="node_data in io_node_data" :key="title + node_data.key">
-      <div class="text-truncate">
-        {{ node_data.key }}
-      </div>
-      <div class="text-truncate text-muted ms-2 mb-2">
-        {{ prettyprint_type(node_data.serialized_value) }}
-      </div>
+    <template v-if="show_details">
+      <template v-for="node_data in io_node_data" :key="title + node_data.key">
+        <div class="text-truncate">
+          {{ node_data.key }}
+        </div>
+        <div class="text-truncate text-muted ms-2 mb-2">
+          {{ prettyprint_type(node_data.serialized_value) }}
+        </div>
+      </template>
     </template>
   </div>
 </template>

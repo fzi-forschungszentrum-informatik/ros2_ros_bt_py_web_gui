@@ -74,16 +74,18 @@ function getNodeCss(node: DocumentedNode): string {
                 aria-hidden="true"
             />
         </div>
-        <div v-if="!nodelist_collapsed" v-for="node in flow_control_nodes"
-            class="border rounded px-2 py-1 m-1"
-            :class="getNodeCss(node)"
-            tabindex="0"
-            @click="edit_node_store.nodeListSelectionChange(node)"
-            @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
-            @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
-        >
-            {{ node.name }}
-        </div>
+        <template v-if="!nodelist_collapsed">
+            <div v-for="node in flow_control_nodes" :key="node.node_class + node.module"
+                class="border rounded px-2 py-1 m-1"
+                :class="getNodeCss(node)"
+                tabindex="0"
+                @click="edit_node_store.nodeListSelectionChange(node)"
+                @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
+                @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
+            >
+                {{ node.name }}
+            </div>
+        </template>
     </div>
 </template>
 
