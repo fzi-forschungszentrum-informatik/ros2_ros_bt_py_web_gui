@@ -89,10 +89,11 @@ const pan_per_frame: number = 10.0
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
 
-const io_edge_offset: number = 10
-const io_edge_wrap_factor: number = 100
-const io_edge_wrap_clamp: number = 5
-const io_edge_wrap_invert_thresh: number = 50
+const io_edge_offset: number = 20
+const io_edge_bump_thresh: number = 50
+const io_edge_bump_factor: number = 0.02
+const io_edge_curve_offset: number = 5
+const io_edge_curve_factor: number = 0.0001
 
 const forest_root_name: string = '__forest_root'
 const node_spacing: number = 80
@@ -1355,19 +1356,39 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
     .x((p) => p.x + io_gripper_size / 2)
     .y((p) => p.y + io_gripper_size / 2)
     .curve(d3.curveCatmullRom.alpha(0.9))
-  let wraparound = Math.abs(source.x - target.x) / io_edge_wrap_factor
-  wraparound = Math.min(Math.max(wraparound, 0), io_edge_wrap_clamp)
-  const invert_source = target.y - source.y > io_edge_wrap_invert_thresh
-  const invert_target = source.y - target.y > io_edge_wrap_invert_thresh
+  let y_offset = 0
+  if (Math.abs(source.y - target.y) < io_edge_bump_thresh) {
+    y_offset = Math.min(source.y, target.y) - 
+      io_edge_bump_factor * Math.abs(source.x - target.x)
+  }
   const source_offset: DataEdgePoint = {
     x: source.x + io_edge_offset,
-    y: source.y - wraparound * (invert_source ? -1 : 1)
+    y: source.y
   }
   const target_offset: DataEdgePoint = {
     x: target.x - io_edge_offset,
-    y: target.y - wraparound * (invert_target ? -1 : 1)
+    y: target.y
   }
-  return lineGen([source, source_offset, target_offset, target])
+  const midpoint: DataEdgePoint = {
+    x: (source.x + target.x) / 2,
+    y: y_offset ? y_offset : (source.y + target.y) / 2
+  }
+  // Backwards edges require some extra work
+  if (source.x > target.x) {
+    if (y_offset === 0) {
+      source_offset.y += io_edge_curve_factor * (target.y - source.y) +
+        Math.sign(target.y - source.y) * io_edge_curve_offset
+      target_offset.y += io_edge_curve_factor * (source.y - target.y) +
+        Math.sign(source.y - target.y) * io_edge_curve_offset
+    } else {
+      const curve_offset = io_edge_curve_offset + 
+        io_edge_curve_factor * Math.abs(source.x - target.x)
+      source_offset.y -= curve_offset
+      midpoint.y -= curve_offset * 4
+      target_offset.y -= curve_offset
+    }
+  }
+  return lineGen([source, source_offset, midpoint, target_offset, target])
 }
 
 watchEffect(toggleDataEdgeTargets)
