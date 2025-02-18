@@ -599,7 +599,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   if (drop_targets.length === 0) {
     tree_layout.data.size.width = drop_target_root_size
     tree_layout.data.size.height = drop_target_root_size
-    drop_targets.push({ node: tree_layout, position: Position.CENTER })
+    drop_targets.push({ node: tree_layout, position: Position.BOTTOM })
   }
 
   // Join those with the existing drop targets and draw them
@@ -698,39 +698,74 @@ async function moveExistingNode(drop_target: DropTarget) {
   }
 
   const node_name = editor_store.dragging_existing_node.data.name
-  let parent_name = ''
-  let index = -1
 
-  // If this is not the root target, set the parent and position
-  if (drop_target.node.parent) {
-    // Set parent and index
-    if (drop_target.position === Position.BOTTOM) {
-      parent_name = drop_target.node.data.name
-      index = 0
-    } else if (drop_target.node.parent.data.name !== forest_root_name) {
-      parent_name = drop_target.node.parent.data.name
-      index = drop_target.node.parent.children!.indexOf(drop_target.node)
+  if (!drop_target.node.parent) {
+    console.error('A tree with an existing node should never show the root target')
+    return
+  }
+
+  if (drop_target.position === Position.BOTTOM) {
+    await moveNode(node_name, drop_target.node.data.name, 0)
+    return
+  }
+
+  if (
+    drop_target.position === Position.LEFT ||
+    drop_target.position === Position.RIGHT
+  ) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
-
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
-
-    // if the node is moved in it's own row (same parent), we need to offset the index
+    // If the node is moved in it's own row (same parent), we need to offset the index
     if (
       parent_name === editor_store.dragging_existing_node.parent!.data.name &&
-      index >
-        drop_target.node.parent.children!.findIndex(
-          (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
-        )
+      index > drop_target.node.parent.children!.findIndex(
+        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+      )
     ) {
       index--
     }
+    await moveNode(node_name, parent_name, index)
+    return
   }
 
-  await moveNode(node_name, parent_name, index)
+  // Checks on whether the new node is an appropriate replacement/ancestor
+  // are presumed done based on whether this target was available in the first place.
 
-  moveChildNodes(node_name, drop_target)
+  if (drop_target.position === Position.TOP) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
+    }
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+    // If the node is moved in it's own row (same parent), we need to offset the index
+    if (
+      parent_name === editor_store.dragging_existing_node.parent!.data.name &&
+      index > drop_target.node.parent.children!.findIndex(
+        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+      )
+    ) {
+      index--
+    }
+
+    // Care has to be taken regarding order of operations to not overload the parent node.
+    // Insert new node at the end, then move node to old position
+    await moveNode(drop_target.node.data.name, node_name, -1)
+    await moveNode(node_name, parent_name, index)
+  }
+
+  if (drop_target.position === Position.CENTER) {
+    //TODO Use replace node service?
+
+    return
+  }
+
+  
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -780,6 +815,7 @@ function toggleExistingNodeTargets() {
           )
         case Position.TOP:
           return (
+            editor_store.dragging_existing_node!.data.max_children !== -1 &&
             editor_store.dragging_existing_node!.data.child_names.length >=
             editor_store.dragging_existing_node!.data.max_children
           )
@@ -806,36 +842,67 @@ function toggleExistingNodeTargets() {
 }
 
 async function addNewNode(drop_target: DropTarget) {
-  let msg: NodeMsg
-
-  if (editor_store.dragging_new_node !== undefined) {
-    msg = buildNodeMessage(editor_store.dragging_new_node)
-  } else {
+  if (editor_store.dragging_new_node === undefined){
     console.warn('Tried to add new node by dragging but none selected')
     return
   }
 
-  let parent_name = ''
-  let index = -1
+  const msg = buildNodeMessage(editor_store.dragging_new_node)
 
-  // If this is not the root target, set the parent and position
-  if (drop_target.node.parent) {
-    // Set parent and index
-    if (drop_target.position === Position.BOTTOM) {
-      parent_name = drop_target.node.data.name
-      index = 0
-    } else if (drop_target.node.parent.data.name !== forest_root_name) {
-      parent_name = drop_target.node.parent.data.name
-      index = drop_target.node.parent.children!.indexOf(drop_target.node)
+  // Insert below at index 0, also handles root insert
+  if (drop_target.position === Position.BOTTOM) {
+    let parent_name = drop_target.node.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
+    await addNode(msg, parent_name, 0)
+    return
+  }
 
+  if (!drop_target.node.parent) {
+    console.error('All non-root targets should have a set parent node')
+    return
+  }
+
+  if (
+    drop_target.position === Position.LEFT ||
+    drop_target.position === Position.RIGHT
+  ) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
+    }
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
+    await addNode(msg, parent_name, index)
+    return
   }
 
-  const actual_node_name = await addNode(msg, parent_name, index)
-  moveChildNodes(actual_node_name, drop_target)
+  // Checks on whether the new node is an appropriate replacement/ancestor
+  // are presumed done based on whether this target was available in the first place.
+
+  if (drop_target.position === Position.TOP) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
+    }
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+
+    // Care has to be taken regarding order of operations to not overload the parent node.
+    // Insert at top temporarily
+    const new_node_name = await addNode(msg, '', -1)
+    await moveNode(drop_target.node.data.name, new_node_name, 0)
+    await moveNode(new_node_name, parent_name, index)
+  }
+
+  if (drop_target.position === Position.CENTER) {
+    //TODO Use replace node service?
+
+    return
+  }
+
 }
 
 watchEffect(toggleNewNodeTargets)
