@@ -38,12 +38,13 @@ import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/Set
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import { useEditNodeStore } from '@/stores/edit_node'
+import { removeNode } from '@/tree_manipulation'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-function onClickDelete() {
+async function onClickDelete() {
   if (edit_node_store.selected_node === undefined) {
     console.error("Can't delete a node that doesn't exist")
     return
@@ -54,27 +55,8 @@ function onClickDelete() {
     return
   }
 
-  ros_store.remove_node_service.callService(
-    {
-      node_name: edit_node_store.selected_node.name,
-      remove_children: false
-    } as RemoveNodeRequest,
-    (response: RemoveNodeResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Removed ' + edit_node_store.selected_node!.name + ' successfully!',
-          type: 'success'
-        })
-        edit_node_store.clearSelection()
-      } else {
-        notify({
-          title: 'Failed to remove node ' + edit_node_store.selected_node!.name + '!',
-          text: response.error_message,
-          type: 'error'
-        })
-      }
-    }
-  )
+  await removeNode(edit_node_store.selected_node.name, false)
+  edit_node_store.clearSelection()
 }
 
 function onClickDeleteWithChildren() {

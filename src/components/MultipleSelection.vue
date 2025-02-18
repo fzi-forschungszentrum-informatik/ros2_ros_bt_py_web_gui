@@ -41,6 +41,7 @@ import type { TreeMsg } from '@/types/types'
 import { NameConflictHandler, parseConflictHandler } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
+import { removeNode } from '@/tree_manipulation'
 
 const ros_store = useROSStore()
 const edit_node_store = useEditNodeStore()
@@ -56,7 +57,7 @@ const show_selection_modal = ref<boolean>(false)
 
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
-function deleteNodes() {
+async function deleteNodes() {
   if (
     !window.confirm(
       'Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?'
@@ -66,38 +67,19 @@ function deleteNodes() {
     return
   }
 
+  const p_list: Promise<void>[] = []
   edit_node_store.selected_node_names.forEach((name: string) => {
-    ros_store.remove_node_service.callService(
-      {
-        node_name: name,
-        remove_children: false
-      } as RemoveNodeRequest,
-      (response: RemoveNodeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Removed ' + name + ' successfully!',
-            type: 'success'
-          })
+    p_list.push(
+      removeNode(name, false).then(
+        () => {
           edit_node_store.selected_node_names = edit_node_store.selected_node_names.filter(
             (value: string) => value !== name
           )
-        } else {
-          notify({
-            title: 'Failed to delete node!',
-            text: response.error_message,
-            type: 'warn'
-          })
         }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call DeleteNode service!',
-          text: error,
-          type: 'error'
-        })
-      }
+      )
     )
   })
+  await Promise.all(p_list)
 }
 
 function selectSubtreeSaveLocation() {
