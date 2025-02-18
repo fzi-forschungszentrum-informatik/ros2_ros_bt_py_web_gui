@@ -74,7 +74,7 @@ const param_type = computed<string>(() => {
 })
 
 // Below lists the data types that are handled by <input>...
-const input_type_values = ['int', 'float', 'bool', 'string', 'unset_optionref']
+const input_type_values = ['int', 'float', 'bool', 'str', 'unset_optionref']
 //  ...and gives the appropriate attributes.
 const input_attrs = computed<any>(() => {
   if (param.value === undefined ||
@@ -102,7 +102,7 @@ const input_attrs = computed<any>(() => {
       break
     case 'unset_optionref':
       disabled = true
-    case 'string':
+    case 'str':
       type = 'text'
       value = param.value.value.value as string
       break
