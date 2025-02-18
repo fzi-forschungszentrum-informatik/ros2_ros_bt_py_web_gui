@@ -32,6 +32,7 @@ import { useROSStore } from "./stores/ros"
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from "./types/services/AddNodeAtIndex"
 import type { MoveNodeRequest, MoveNodeResponse } from "./types/services/MoveNode"
 import type { RemoveNodeRequest, RemoveNodeResponse } from "./types/services/RemoveNode"
+import type { ReplaceNodeRequest, ReplaceNodeResponse } from "./types/services/ReplaceNode"
 import type { NodeMsg } from "./types/types"
 import { notify } from '@kyvg/vue3-notification'
 
@@ -188,4 +189,54 @@ export function removeNode(
             }
         )
     })
+}
+
+export function replaceNode(
+    old_node_name: string,
+    new_node_name: string,
+    send_notify: boolean = true
+): Promise<void> {
+
+    const ros_store = useROSStore()
+
+    // Supress notifications for all callbacks
+    let local_notify
+    if (send_notify) {
+        local_notify = notify
+    } else {
+        local_notify = (args: any) => {}
+    }
+
+    return new Promise<void>((resolve, reject) => {
+        ros_store.replace_node_service.callService({
+            old_node_name: old_node_name,
+            new_node_name: new_node_name
+        } as ReplaceNodeRequest,
+        (response: ReplaceNodeResponse) => {
+            if (response.success) {
+                local_notify({
+                    title: 'Replaced node ' + old_node_name,
+                    text: 'with node ' + new_node_name,
+                    type: 'success'
+                })
+                resolve()
+            } else {
+                local_notify({
+                    title: 'Failed to replace node',
+                    text: response.error_message,
+                    type: 'warn'
+                })
+                reject(response.error_message)
+            }
+        },
+        (error: string) => {
+            local_notify({
+                title: 'Failed to call ReplaceNode service',
+                text: error,
+                type: 'error'
+            })
+            reject(error)
+        })
+    })
+
 }

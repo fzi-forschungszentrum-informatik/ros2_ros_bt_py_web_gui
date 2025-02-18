@@ -50,7 +50,7 @@ import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatibl
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
-import { addNode, moveNode, removeNode } from '@/tree_manipulation'
+import { addNode, moveNode, removeNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
@@ -757,15 +757,16 @@ async function moveExistingNode(drop_target: DropTarget) {
     // Insert new node at the end, then move node to old position
     await moveNode(drop_target.node.data.name, node_name, -1)
     await moveNode(node_name, parent_name, index)
-  }
-
-  if (drop_target.position === Position.CENTER) {
-    //TODO Use replace node service?
-
     return
   }
 
-  
+  if (drop_target.position === Position.CENTER) {
+    await replaceNode(drop_target.node.data.name, node_name)
+    return
+  }
+
+  console.warn("Couldn't identify drop target position, this should never happen")
+
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -895,13 +896,16 @@ async function addNewNode(drop_target: DropTarget) {
     const new_node_name = await addNode(msg, '', -1)
     await moveNode(drop_target.node.data.name, new_node_name, 0)
     await moveNode(new_node_name, parent_name, index)
+    return
   }
 
   if (drop_target.position === Position.CENTER) {
-    //TODO Use replace node service?
-
+    const new_node_name = await addNode(msg, '', -1)
+    await replaceNode(drop_target.node.data.name, new_node_name)
     return
   }
+
+  console.warn("Couldn't identify drop target position, this should never happen")
 
 }
 

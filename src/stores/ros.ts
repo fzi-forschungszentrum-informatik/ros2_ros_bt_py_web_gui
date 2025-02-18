@@ -492,6 +492,12 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
       })
 
+      replace_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'replace_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
+      })
+
       set_options_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
