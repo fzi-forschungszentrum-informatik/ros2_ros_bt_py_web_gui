@@ -31,7 +31,6 @@
 import { EditorSkin, useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
-import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
 import type {
   DataEdgePoint,
   DataEdgeTerminal,
@@ -51,10 +50,9 @@ import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatibl
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
+import { addNode, moveNode, removeNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
-import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
-import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 const editor_store = useEditorStore()
@@ -693,7 +691,7 @@ function dropTargetGroupVisibility(): string {
   return 'hidden'
 }
 
-function moveExistingNode(drop_target: DropTarget) {
+async function moveExistingNode(drop_target: DropTarget) {
   if (editor_store.dragging_existing_node === undefined) {
     console.warn('Tried to move existing node by dragging but none selected')
     return
@@ -730,35 +728,9 @@ function moveExistingNode(drop_target: DropTarget) {
     }
   }
 
-  ros_store.move_node_service.callService(
-    {
-      node_name: node_name,
-      new_parent_name: parent_name,
-      new_child_index: index
-    } as MoveNodeRequest,
-    (response: MoveNodeResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Moved node ' + node_name,
-          type: 'success'
-        })
-        moveChildNodes(node_name, drop_target)
-      } else {
-        notify({
-          title: 'Failed to move node ' + drop_target.node.data.name,
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (error: string) => {
-      notify({
-        title: 'Failed to call moveNode service',
-        text: error,
-        type: 'error'
-      })
-    }
-  )
+  await moveNode(node_name, parent_name, index)
+
+  moveChildNodes(node_name, drop_target)
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -833,7 +805,7 @@ function toggleExistingNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function addNewNode(drop_target: DropTarget) {
+async function addNewNode(drop_target: DropTarget) {
   let msg: NodeMsg
 
   if (editor_store.dragging_new_node !== undefined) {
@@ -862,39 +834,8 @@ function addNewNode(drop_target: DropTarget) {
     }
   }
 
-  ros_store.add_node_at_index_service.callService(
-    {
-      parent_name: parent_name,
-      node: msg,
-      allow_rename: true,
-      new_child_index: index
-    } as AddNodeAtIndexRequest,
-    (response: AddNodeAtIndexResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Added node ' + response.actual_node_name,
-          type: 'success'
-        })
-        // If this isn't the root target, we might have to move around nodes
-        if (drop_target.node.parent) {
-          moveChildNodes(response.actual_node_name, drop_target)
-        }
-      } else {
-        notify({
-          title: 'Failed to add node ' + msg.name,
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (error: string) => {
-      notify({
-        title: 'Failed to call addNodeAtIndex service',
-        text: error,
-        type: 'error'
-      })
-    }
-  )
+  const actual_node_name = await addNode(msg, parent_name, index)
+  moveChildNodes(actual_node_name, drop_target)
 }
 
 watchEffect(toggleNewNodeTargets)
@@ -944,7 +885,7 @@ function toggleNewNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
+async function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
   if (new_node_name === '') {
     // This means something went wrong with moving the node, thus we can't move it around
     console.warn("Didn't get a node name back")
@@ -956,94 +897,15 @@ function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
   // For now we trust the hiding of inappropriate drop targets.
 
   if (drop_target.position === Position.TOP) {
-    ros_store.move_node_service.callService(
-      {
-        node_name: drop_target.node.data.name,
-        new_parent_name: new_node_name,
-        new_child_index: 0
-      } as MoveNodeRequest,
-      (response: MoveNodeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Moved node ' + drop_target.node.data.name,
-            type: 'success'
-          })
-        } else {
-          notify({
-            title: 'Failed to move node ' + drop_target.node.data.name,
-            text: response.error_message,
-            type: 'warn'
-          })
-        }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call moveNode service',
-          text: error,
-          type: 'error'
-        })
-      }
-    )
+    await moveNode(drop_target.node.data.name, new_node_name, 0)
   }
 
   if (drop_target.position === Position.CENTER) {
     drop_target.node.data.child_names.forEach((child_name) => {
-      ros_store.move_node_service.callService(
-        {
-          node_name: child_name,
-          new_parent_name: new_node_name,
-          new_child_index: -1
-        } as MoveNodeRequest,
-        (response: MoveNodeResponse) => {
-          if (response.success) {
-            notify({
-              title: 'Moved node ' + child_name,
-              type: 'success'
-            })
-          } else {
-            notify({
-              title: 'Failed to move node ' + child_name,
-              text: response.error_message,
-              type: 'warn'
-            })
-          }
-        },
-        (error: string) => {
-          notify({
-            title: 'Failed to call moveNode service',
-            text: error,
-            type: 'error'
-          })
-        }
-      )
+      //TODO handle promises
+      moveNode(child_name, new_node_name, -1)
     })
-    ros_store.remove_node_service.callService(
-      {
-        node_name: drop_target.node.data.name,
-        remove_children: false
-      } as RemoveNodeRequest,
-      (response: RemoveNodeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Removed node',
-            type: 'success'
-          })
-        } else {
-          notify({
-            title: 'Failed to remove node',
-            text: response.error_message,
-            type: 'warn'
-          })
-        }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call removeNode service',
-          text: error,
-          type: 'error'
-        })
-      }
-    )
+    await removeNode(drop_target.node.data.name, false)
   }
 }
 
