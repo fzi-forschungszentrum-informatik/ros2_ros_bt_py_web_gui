@@ -67,6 +67,7 @@ rect.selection {
   border-width: 6px;
   /* border-color is specified through d3 */
   color: #eff0f4;
+  min-width: 100px;
   max-width: 200px;
   overflow-wrap: break-word;
   -webkit-user-select: none;
@@ -88,6 +89,10 @@ rect.selection {
   stroke: #111215;
   stroke-width: 6px;
   paint-order: stroke;
+}
+
+.btnode h4 {
+  word-break: break-all;
 }
 
 .btnode h5 {
@@ -138,8 +143,7 @@ path.data-select {
 }
 
 .btnode .icon {
-  width: 1em;
-  height: 1em;
-  vertical-align: -0.125em;
-  margin-right: 5px;
+  width: 1.5em;
+  height: 1.5em;
+  margin-left: 5px;
 }
