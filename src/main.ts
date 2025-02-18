@@ -89,7 +89,6 @@ import {
   faPen,
   faPause,
   faLeaf,
-  faChartArea,
   faLink,
   faNetworkWired
 } from '@fortawesome/free-solid-svg-icons'

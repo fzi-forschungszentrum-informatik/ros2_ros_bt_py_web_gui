@@ -63,7 +63,7 @@ function getNodeCss(node: DocumentedNode): string {
 </script>
 
 <template>
-    <div class="d-flex flex-wrap border rounded mb-2 p-1">
+    <div class="border rounded mb-2">
         <div
             @click="nodelist_collapsed = !nodelist_collapsed"
             class="w-100 text-center cursor-pointer m-2"
@@ -74,18 +74,23 @@ function getNodeCss(node: DocumentedNode): string {
                 aria-hidden="true"
             />
         </div>
-        <template v-if="!nodelist_collapsed">
+        <div v-if="!nodelist_collapsed" class="d-flex flex-wrap m-1">
             <div v-for="node in flow_control_nodes" :key="node.node_class + node.module"
-                class="border rounded px-2 py-1 m-1"
+                class="border rounded m-1 image-container"
                 :class="getNodeCss(node)"
                 tabindex="0"
                 @click="edit_node_store.nodeListSelectionChange(node)"
                 @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
                 @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
             >
-                {{ node.name }}
+                <template v-if="node.name === 'NameSwitch'">
+                    <font-awesome-icon class="icon" icon="fa-solid fa-network-wired" />
+                </template>
+                <template v-else>
+                    <img class="image" :src="'/src/assets/flow_control_icons/' + node.name + '.svg'">
+                </template>
             </div>
-        </template>
+        </div>
     </div>
 </template>
 
@@ -93,6 +98,25 @@ function getNodeCss(node: DocumentedNode): string {
 
 .grab:hover {
   cursor: grab;
+}
+
+.image-container {
+    width: 35px;
+    height: 30px;
+    text-align: center;
+}
+
+.icon {
+    margin: auto;
+    vertical-align: middle;
+    height: 20px;
+    width: 20px;
+}
+
+.image {
+    vertical-align: middle;
+    height: 25px;
+    width: 25px;
 }
 
 </style>
