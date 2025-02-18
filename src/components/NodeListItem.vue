@@ -62,7 +62,7 @@ const highlighted_classes = computed<string>(() => {
 })
 
 const node_type_icon = computed<string>(() => {
-  if (props.node.max_children === 1) {
+  if (props.node.max_children > 0) {
     return 'fa-link'
   } else if (props.node.max_children === 0) {
     return 'fa-leaf'
@@ -103,7 +103,7 @@ function onClick() {
         :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
         class="cursor-pointer ms-auto p-1"
-        @click="() => show_details = !show_details"
+        @click.stop="() => show_details = !show_details"
       />
     </div>
     <div class="text-muted">
