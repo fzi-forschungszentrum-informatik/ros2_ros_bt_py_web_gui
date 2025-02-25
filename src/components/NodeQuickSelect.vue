@@ -84,10 +84,10 @@ function getNodeCss(node: DocumentedNode): string {
                 @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
             >
                 <template v-if="node.name === 'NameSwitch'">
-                    <font-awesome-icon class="icon" icon="fa-solid fa-network-wired" />
+                    <font-awesome-icon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
                 </template>
                 <template v-else>
-                    <img class="image" :src="'/src/assets/flow_control_icons/' + node.name + '.svg'">
+                    <img :title="node.name" class="image" :src="'/src/assets/flow_control_icons/' + node.name + '.svg'">
                 </template>
             </div>
         </div>
