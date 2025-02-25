@@ -95,6 +95,7 @@ const io_edge_curve_offset: number = 5
 const io_edge_curve_factor: number = 0.0001
 
 const forest_root_name: string = '__forest_root'
+const node_padding: number = 10
 const node_spacing: number = 80
 const drop_target_root_size: number = 150
 
@@ -278,8 +279,9 @@ function drawEverything() {
       options: node.options.map(onlyKeyAndType),
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
-      size: { width: 1, height: 1 }
-    }
+      size: { width: 1, height: 1 },
+      offset: {x: 0, y: 0}
+    } as TrimmedNode
   })
 
   const forest_root: TrimmedNode = {
@@ -292,7 +294,8 @@ function drawEverything() {
     inputs: [],
     outputs: [],
     options: [],
-    size: { width: 0, height: 0 }
+    size: { width: 0, height: 0 },
+    offset: {x: 0, y: 0}
   }
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -346,7 +349,7 @@ function drawEverything() {
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
 
   const node = g_vertex
-    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
     .data(
       root.descendants().filter((node) => node.data.name !== forest_root_name),
       (node) => node.id!
@@ -366,8 +369,8 @@ function drawEverything() {
 function drawNewNodes(
   selection: d3.Selection<d3.EnterElement, d3.HierarchyNode<TrimmedNode>, SVGGElement, never>
 ) {
-  const fo = selection
-    .append('foreignObject')
+  const group = selection
+    .append<SVGGElement>('g')
     .classed(tree_node_css_class, true)
     // The two css-classes below are currently unused
     .classed('node--internal', (d) => d.children !== undefined && d.children.length > 0)
@@ -383,31 +386,26 @@ function drawNewNodes(
 
   // No tree modifying if displaying a subtree
   if (!editor_store.selected_subtree.is_subtree) {
-    fo.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
+    group.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
       event.stopPropagation()
     })
   }
 
-  const body = fo
-    .append<HTMLBodyElement>('xhtml:body')
-    .classed(node_body_css_class, true)
+  group.append<SVGRectElement>('rect')
+      .classed(node_body_css_class, true)
 
-  // These elements get filled in updateNodeBody
-  body.append('svg')
-      .classed(node_state_css_class, true)
-      .style('float', 'right')
-    .append('path')
-      .attr('fill', 'currentColor')
-  body.append('h4')
+  group.append<SVGTextElement>('text')
       .classed(node_name_css_class, true)
-  body.append('h5')
+
+  group.append<SVGTextElement>('text')
       .classed(node_class_css_class, true)
+      .attr('dy', 40)
   
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
-  return fo
+  return group
 }
 
 function getIcon(state: string) {
@@ -428,37 +426,20 @@ function getIcon(state: string) {
 
 function updateNodeBody(
   selection: d3.Selection<
-    SVGForeignObjectElement,
+    SVGGElement,
     d3.HierarchyNode<TrimmedNode>,
     SVGGElement,
     never
   >
 ) {
-  const body = selection.select<HTMLBodyElement>('.' + node_body_css_class)
 
-  body.select<HTMLHeadingElement>('.' + node_name_css_class)
-      .html((d) => d.data.name)
+  selection.select<SVGTextElement>('.' + node_name_css_class)
+      .text((d) => d.data.name)
 
-  body.select<HTMLHeadingElement>('.' + node_class_css_class)
-      .html((d) => d.data.node_class)
+  selection.select<SVGTextElement>('.' + node_class_css_class)
+      .text((d) => d.data.node_class)
 
-  body.select<SVGElement>('.' + node_state_css_class)
-      .attr('viewBox', (node) => {
-        const icon = getIcon(node.data.state)
-        return "0 0 " + icon[0] + " " + icon[1]
-      })
-    .select<SVGPathElement>('path')
-      .attr('d', (node) => {
-        const icon = getIcon(node.data.state)
-        if (typeof icon[4] === "string") {
-          return icon[4]
-        } else {
-          console.warn("Potentially unhandled multivalue path", icon[4])
-          return icon[4].join('')
-        }
-      })
-
-  body.style('min-height', (d) => {
+  /*body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body
       // would otherwise be shorter than the number of grippers
       // requires.
@@ -468,38 +449,52 @@ function updateNodeBody(
       return io_gripper_size * max_num_grippers + 
         io_gripper_spacing * (max_num_grippers + 1) +
         'px'
-    })
+    })*/
 
-  // The width and height has to be readjusted as if the zoom was at k=1.0
-  const k = d3.zoomTransform(viewport_ref.value!).k
+  // Reset width and height of background rect
+  selection
+    .select<SVGRectElement>('.' + node_body_css_class)
+      .attr('x', null)
+      .attr('y', null)
+      .attr('width', null)
+      .attr('height', null)
 
-  // Set width and height on foreignObject
-  body.each(function (d) {
-    const rect = this.getBoundingClientRect()
-    d.data.size.width = rect.width / k
-    d.data.size.height = rect.height / k
+  // Get width and height from text content
+  selection.each(function (d) {
+    const inputs = d.data.inputs || []
+    const outputs = d.data.outputs || []
+    const max_num_grippers = Math.max(inputs.length, outputs.length)
+    const min_height = io_gripper_size * max_num_grippers + 
+      io_gripper_spacing * (max_num_grippers + 1)
+    const rect = this.getBBox()
+    d.data.offset.x = rect.x - node_padding
+    d.data.offset.y = rect.y - node_padding
+    d.data.size.width = rect.width + 2 * node_padding
+    d.data.size.height = Math.max(rect.height + 2 * node_padding, min_height)
   })
 
   selection
-    .transition(tree_transition)
-    .attr('width', (d) => d.data.size.width)
-    .attr('height', (d) => d.data.size.height)
+    .select<SVGRectElement>('.' + node_body_css_class)
+      .attr('x', (d) => d.data.offset.x)
+      .attr('y', (d) => d.data.offset.y)
+      .attr('width', (d) => d.data.size.width)
+      .attr('height', (d) => d.data.size.height)
 
   return selection
 }
 
 function colorNodes(
   selection: d3.Selection<
-    SVGForeignObjectElement,
+    SVGGElement,
     d3.HierarchyNode<TrimmedNode>,
     SVGGElement,
     never
   >
 ) {
   selection
-    .select<HTMLBodyElement>('.' + node_body_css_class)
+    .select<SVGRectElement>('.' + node_body_css_class)
     .transition(tree_transition)
-    .style('border-color', (d) => {
+    .style('stroke', (d) => {
       switch (d.data.state) {
         case NodeState.RUNNING:
           return 'var(--node-color-running)'
@@ -520,7 +515,7 @@ function colorNodes(
 
 function layoutTree(
   selection: d3.Selection<
-    SVGForeignObjectElement,
+    SVGGElement,
     d3.HierarchyNode<TrimmedNode>,
     SVGGElement,
     never
@@ -570,9 +565,11 @@ function layoutTree(
       (node) => node.id!
     )
     .transition(tree_transition)
-    .attr('x', (d: FlextreeNode<TrimmedNode>) => d.x - d.data.size.width / 2.0)
-    .attr('y', (d: FlextreeNode<TrimmedNode>) => d.y)
-  // Setting x and y seems sufficient, compared to an explicit transform
+    .attr('transform', (d: FlextreeNode<TrimmedNode>) => {
+      const x = d.x - d.data.size.width / 2.0
+      const y = d.y
+      return 'translate(' + x + ', ' + y + ')'
+    })
 
   return tree_layout
 }
@@ -602,11 +599,17 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
         .linkVertical<SVGPathElement, HierarchyLink<TrimmedNode>, [number, number]>()
         .source((link: HierarchyLink<TrimmedNode>) => {
           const source = link.source as FlextreeNode<TrimmedNode>
-          return [source.x, source.y + source.data.size.height]
+          return [
+            source.x + source.data.offset.x, 
+            source.y + source.data.offset.y + source.data.size.height
+          ]
         })
         .target((link: HierarchyLink<TrimmedNode>) => {
           const target = link.target as FlextreeNode<TrimmedNode>
-          return [target.x, target.y]
+          return [
+            target.x + target.data.offset.x, 
+            target.y + target.data.offset.y
+          ]
         })
     )
 }
@@ -675,38 +678,32 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
           return d.node.data.size.height
         case Position.TOP:
         case Position.BOTTOM:
-          return 0.45 * node_spacing
+          return 0.5 * node_spacing
         default:
           return 0
       }
     })
     .attr('x', (d) => {
-      switch (d.position) {
-        case Position.LEFT:
-          return d.node.x - node_spacing - 0.5 * d.node.data.size.width
-        case Position.RIGHT:
-          return d.node.x + 0.5 * d.node.data.size.width
-        case Position.TOP:
-        case Position.BOTTOM:
-        case Position.CENTER:
-          return d.node.x - 0.5 * d.node.data.size.width
-        default:
-          return 0
+      let x = d.node.x + d.node.data.offset.x
+      if (d.position === Position.RIGHT) {
+        x += 0.5 * d.node.data.size.width
+      } else {
+        x -= 0.5 * d.node.data.size.width
+        if (d.position === Position.LEFT) {
+          x -= node_spacing
+        }
       }
+      return x
     })
     .attr('y', (d) => {
-      switch (d.position) {
-        case Position.LEFT:
-        case Position.RIGHT:
-        case Position.CENTER:
-          return d.node.y
-        case Position.TOP:
-          return d.node.y - 0.5 * node_spacing
-        case Position.BOTTOM:
-          return d.node.y + d.node.data.size.height
-        default:
-          return 0
+      let y = d.node.y + d.node.data.offset.y
+      if (d.position === Position.TOP) {
+        y -= 0.5 * node_spacing
       }
+      if (d.position === Position.BOTTOM) {
+        y += d.node.data.size.height
+      }
+      return y
     })
     .attr('opacity', 0.2)
     .on('mouseover.highlight', function () {
@@ -1021,8 +1018,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
         kind: IOKind.INPUT,
         key: input.key,
         type: input.serialized_type,
-        x: node.x - node.data.size.width * 0.5 - io_gripper_size,
-        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        x: node.x + node.data.offset.x - node.data.size.width * 0.5 - io_gripper_size,
+        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
     node.data.outputs.map((output: TrimmedNodeData, index: number) => {
@@ -1032,8 +1029,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
         kind: IOKind.OUTPUT,
         key: output.key,
         type: output.serialized_type,
-        x: node.x + node.data.size.width * 0.5,
-        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        x: node.x + node.data.offset.x + node.data.size.width * 0.5,
+        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
   })
@@ -1457,7 +1454,7 @@ onMounted(() => {
   const viewport = d3.select(viewport_ref.value)
 
   zoomObject = d3.zoom<SVGSVGElement, unknown>()
-  zoomObject.scaleExtent([0.3, 1.0])
+  zoomObject.scaleExtent([0.3, 10.0])
 
   const container = d3.select<SVGGElement, never>(svg_g_ref.value)
 

@@ -236,4 +236,5 @@ export type TrimmedNode = {
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
   size: { width: number; height: number }
+  offset: {x: number, y: number}
 }

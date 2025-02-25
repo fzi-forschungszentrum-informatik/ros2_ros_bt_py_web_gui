@@ -41,14 +41,6 @@ rect.selection {
   fill: transparent;
 }
 
-.node-selected {
-  background: #27406d !important;
-}
-
-.lightmode .node-selected {
-  background: #76a6ff !important;
-}
-
 .node {
   cursor: pointer;
 }
@@ -60,27 +52,23 @@ rect.selection {
 }
 
 .btnode {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  /* border-color is specified through d3 */
-  color: #eff0f4;
-  min-width: 200px;
-  max-width: 350px;
-  overflow-wrap: break-word;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+  fill: #2a2d36;
+  stroke-width: 5px;
 
-  padding: 0.6rem;
 }
 
-.lightmode .btnode {
-  background-color: #dedede;
-  color: #000000;
+.node_name, .class_name {
+  dominant-baseline: auto;
+}
+
+.node_name {
+  fill: white;
+  font-size: 36px;
+}
+
+.class_name {
+  fill: #858e99;
+  font-size: 24px;
 }
 
 .label {
@@ -89,25 +77,6 @@ rect.selection {
   stroke: #111215;
   stroke-width: 6px;
   paint-order: stroke;
-}
-
-.btnode h4 {
-  word-break: break-all;
-}
-
-.btnode h5 {
-  color: #858e99;
-}
-
-.lightmode .btnode h5 {
-  color: #454954;
-}
-
-.btnode div.node_state {
-  //font-size: small;
-  margin-top: 20px;
-  margin-left: 5px;
-  text-wrap: nowrap;
 }
 
 path.data-hover,
