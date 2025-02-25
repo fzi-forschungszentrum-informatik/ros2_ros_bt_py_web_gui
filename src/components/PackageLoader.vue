@@ -34,7 +34,7 @@ import { useNodesStore } from '@/stores/nodes'
 
 const nodes_store = useNodesStore()
 
-const collapsed = ref<boolean>(false)
+const collapsed = ref<boolean>(true)
 const package_name = ref<string>('ros_bt_py.nodes.sequence')
 
 function toggleCollapsed() {
