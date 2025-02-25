@@ -50,7 +50,7 @@ import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatibl
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
-import { addNode, moveNode, removeNode, replaceNode } from '@/tree_manipulation'
+import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
@@ -954,30 +954,6 @@ function toggleNewNodeTargets() {
       }
     })
     .attr('visibility', 'hidden')
-}
-
-async function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
-  if (new_node_name === '') {
-    // This means something went wrong with moving the node, thus we can't move it around
-    console.warn("Didn't get a node name back")
-    return
-  }
-
-  // NOTE Checking if the node allows children would require pulling the
-  // node information out of the store, since this callback is delayed.
-  // For now we trust the hiding of inappropriate drop targets.
-
-  if (drop_target.position === Position.TOP) {
-    await moveNode(drop_target.node.data.name, new_node_name, 0)
-  }
-
-  if (drop_target.position === Position.CENTER) {
-    drop_target.node.data.child_names.forEach((child_name) => {
-      //TODO handle promises
-      moveNode(child_name, new_node_name, -1)
-    })
-    await removeNode(drop_target.node.data.name, false)
-  }
 }
 
 function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {

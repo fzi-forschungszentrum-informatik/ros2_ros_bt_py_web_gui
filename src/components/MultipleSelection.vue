@@ -40,7 +40,6 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import type { TreeMsg } from '@/types/types'
 import { NameConflictHandler, parseConflictHandler } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
-import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import { removeNode } from '@/tree_manipulation'
 
 const ros_store = useROSStore()

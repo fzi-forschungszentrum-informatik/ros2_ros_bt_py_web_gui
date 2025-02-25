@@ -31,7 +31,6 @@
 import type { NodeMsg } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
-import { useROSStore } from '@/stores/ros'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { addNode } from '@/tree_manipulation'
 
