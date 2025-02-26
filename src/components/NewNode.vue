@@ -31,68 +31,35 @@
 import type { NodeMsg } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
-import { useROSStore } from '@/stores/ros'
-import { notify } from '@kyvg/vue3-notification'
-import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
 import { useEditNodeStore } from '@/stores/edit_node'
+import { addNode } from '@/tree_manipulation'
 
 const props = defineProps<{
   parents: NodeMsg[]
 }>()
 
 const edit_node_store = useEditNodeStore()
-const ros_store = useROSStore()
 
-const selected_parent = ref<string | undefined>(
-  props.parents.length > 0 ? props.parents[0].name : undefined
+const selected_parent = ref<string>(
+  props.parents.length > 0 ? props.parents[0].name : ''
 )
 
-function addToTree() {
-  if (!ros_store.connected) {
-    notify({
-      title: 'Service not available!',
-      text: 'ROS not connected, cannot call services!',
-      type: 'error'
-    })
-  }
+async function addToTree() {
 
   if (edit_node_store.reference_node === undefined) {
     console.error("Undefined node reference, can't add node to tree")
     return
   }
 
-  ros_store.add_node_service.callService(
-    {
-      parent_name: selected_parent.value,
-      node: edit_node_store.buildNodeMsg(),
-      allow_rename: true
-    } as AddNodeRequest,
-    (response: AddNodeResponse) => {
-      if (response.success) {
-        edit_node_store.clearNodeHasChanged()
-        console.log('Added node to tree as ' + response.actual_node_name)
-        edit_node_store.editorSelectionChange(response.actual_node_name)
-        notify({
-          title: 'Added not to tree!',
-          text: 'Node added as: ' + response.actual_node_name,
-          type: 'success'
-        })
-      } else {
-        notify({
-          title: 'Failed to add ' + edit_node_store.new_node_name + ' to the tree!',
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (failed: string) => {
-      notify({
-        title: 'Failed to call AddNode service',
-        text: failed,
-        type: 'error'
-      })
-    }
+  const new_node_name = await addNode(
+    edit_node_store.buildNodeMsg(), 
+    selected_parent.value, 
+    -1
   )
+
+  edit_node_store.clearNodeHasChanged()
+  edit_node_store.editorSelectionChange(new_node_name)
+
 }
 </script>
 
@@ -110,7 +77,7 @@ function addToTree() {
       <select
         class="custom-select d-block"
         :disabled="parents.length === 0"
-        :value="selected_parent"
+        v-model="selected_parent"
       >
         <option v-for="parent in parents" :key="parent.name" :value="parent.name">
           {{ parent.name }}

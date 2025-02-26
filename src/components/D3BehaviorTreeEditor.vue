@@ -31,7 +31,6 @@
 import { EditorSkin, useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
-import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from '@/types/services/AddNodeAtIndex'
 import type {
   DataEdgePoint,
   DataEdgeTerminal,
@@ -51,10 +50,9 @@ import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatibl
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
 import { onMounted, ref, watch, watchEffect } from 'vue'
+import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
-import type { MoveNodeRequest, MoveNodeResponse } from '@/types/services/MoveNode'
-import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 
 const editor_store = useEditorStore()
@@ -601,7 +599,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   if (drop_targets.length === 0) {
     tree_layout.data.size.width = drop_target_root_size
     tree_layout.data.size.height = drop_target_root_size
-    drop_targets.push({ node: tree_layout, position: Position.CENTER })
+    drop_targets.push({ node: tree_layout, position: Position.BOTTOM })
   }
 
   // Join those with the existing drop targets and draw them
@@ -693,72 +691,82 @@ function dropTargetGroupVisibility(): string {
   return 'hidden'
 }
 
-function moveExistingNode(drop_target: DropTarget) {
+async function moveExistingNode(drop_target: DropTarget) {
   if (editor_store.dragging_existing_node === undefined) {
     console.warn('Tried to move existing node by dragging but none selected')
     return
   }
 
   const node_name = editor_store.dragging_existing_node.data.name
-  let parent_name = ''
-  let index = -1
 
-  // If this is not the root target, set the parent and position
-  if (drop_target.node.parent) {
-    // Set parent and index
-    if (drop_target.position === Position.BOTTOM) {
-      parent_name = drop_target.node.data.name
-      index = 0
-    } else if (drop_target.node.parent.data.name !== forest_root_name) {
-      parent_name = drop_target.node.parent.data.name
-      index = drop_target.node.parent.children!.indexOf(drop_target.node)
+  if (!drop_target.node.parent) {
+    console.error('A tree with an existing node should never show the root target')
+    return
+  }
+
+  if (drop_target.position === Position.BOTTOM) {
+    await moveNode(node_name, drop_target.node.data.name, 0)
+    return
+  }
+
+  if (
+    drop_target.position === Position.LEFT ||
+    drop_target.position === Position.RIGHT
+  ) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
-
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
-
-    // if the node is moved in it's own row (same parent), we need to offset the index
+    // If the node is moved in it's own row (same parent), we need to offset the index
     if (
       parent_name === editor_store.dragging_existing_node.parent!.data.name &&
-      index >
-        drop_target.node.parent.children!.findIndex(
-          (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
-        )
+      index > drop_target.node.parent.children!.findIndex(
+        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+      )
     ) {
       index--
     }
+    await moveNode(node_name, parent_name, index)
+    return
   }
 
-  ros_store.move_node_service.callService(
-    {
-      node_name: node_name,
-      new_parent_name: parent_name,
-      new_child_index: index
-    } as MoveNodeRequest,
-    (response: MoveNodeResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Moved node ' + node_name,
-          type: 'success'
-        })
-        moveChildNodes(node_name, drop_target)
-      } else {
-        notify({
-          title: 'Failed to move node ' + drop_target.node.data.name,
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (error: string) => {
-      notify({
-        title: 'Failed to call moveNode service',
-        text: error,
-        type: 'error'
-      })
+  // Checks on whether the new node is an appropriate replacement/ancestor
+  // are presumed done based on whether this target was available in the first place.
+
+  if (drop_target.position === Position.TOP) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
-  )
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+    // If the node is moved in it's own row (same parent), we need to offset the index
+    if (
+      parent_name === editor_store.dragging_existing_node.parent!.data.name &&
+      index > drop_target.node.parent.children!.findIndex(
+        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+      )
+    ) {
+      index--
+    }
+
+    // Care has to be taken regarding order of operations to not overload the parent node.
+    // Insert new node at the end, then move node to old position
+    await moveNode(drop_target.node.data.name, node_name, -1)
+    await moveNode(node_name, parent_name, index)
+    return
+  }
+
+  if (drop_target.position === Position.CENTER) {
+    await replaceNode(drop_target.node.data.name, node_name)
+    return
+  }
+
+  console.warn("Couldn't identify drop target position, this should never happen")
+
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -808,6 +816,7 @@ function toggleExistingNodeTargets() {
           )
         case Position.TOP:
           return (
+            editor_store.dragging_existing_node!.data.max_children !== -1 &&
             editor_store.dragging_existing_node!.data.child_names.length >=
             editor_store.dragging_existing_node!.data.max_children
           )
@@ -833,68 +842,71 @@ function toggleExistingNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function addNewNode(drop_target: DropTarget) {
-  let msg: NodeMsg
-
-  if (editor_store.dragging_new_node !== undefined) {
-    msg = buildNodeMessage(editor_store.dragging_new_node)
-  } else {
+async function addNewNode(drop_target: DropTarget) {
+  if (editor_store.dragging_new_node === undefined){
     console.warn('Tried to add new node by dragging but none selected')
     return
   }
 
-  let parent_name = ''
-  let index = -1
+  const msg = buildNodeMessage(editor_store.dragging_new_node)
 
-  // If this is not the root target, set the parent and position
-  if (drop_target.node.parent) {
-    // Set parent and index
-    if (drop_target.position === Position.BOTTOM) {
-      parent_name = drop_target.node.data.name
-      index = 0
-    } else if (drop_target.node.parent.data.name !== forest_root_name) {
-      parent_name = drop_target.node.parent.data.name
-      index = drop_target.node.parent.children!.indexOf(drop_target.node)
+  // Insert below at index 0, also handles root insert
+  if (drop_target.position === Position.BOTTOM) {
+    let parent_name = drop_target.node.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
+    await addNode(msg, parent_name, 0)
+    return
+  }
 
+  if (!drop_target.node.parent) {
+    console.error('All non-root targets should have a set parent node')
+    return
+  }
+
+  if (
+    drop_target.position === Position.LEFT ||
+    drop_target.position === Position.RIGHT
+  ) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
+    }
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
+    await addNode(msg, parent_name, index)
+    return
   }
 
-  ros_store.add_node_at_index_service.callService(
-    {
-      parent_name: parent_name,
-      node: msg,
-      allow_rename: true,
-      new_child_index: index
-    } as AddNodeAtIndexRequest,
-    (response: AddNodeAtIndexResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Added node ' + response.actual_node_name,
-          type: 'success'
-        })
-        // If this isn't the root target, we might have to move around nodes
-        if (drop_target.node.parent) {
-          moveChildNodes(response.actual_node_name, drop_target)
-        }
-      } else {
-        notify({
-          title: 'Failed to add node ' + msg.name,
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (error: string) => {
-      notify({
-        title: 'Failed to call addNodeAtIndex service',
-        text: error,
-        type: 'error'
-      })
+  // Checks on whether the new node is an appropriate replacement/ancestor
+  // are presumed done based on whether this target was available in the first place.
+
+  if (drop_target.position === Position.TOP) {
+    let parent_name = drop_target.node.parent.data.name
+    if (parent_name === forest_root_name) {
+      parent_name = ''
     }
-  )
+    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+
+    // Care has to be taken regarding order of operations to not overload the parent node.
+    // Insert at top temporarily
+    const new_node_name = await addNode(msg, '', -1)
+    await moveNode(drop_target.node.data.name, new_node_name, 0)
+    await moveNode(new_node_name, parent_name, index)
+    return
+  }
+
+  if (drop_target.position === Position.CENTER) {
+    const new_node_name = await addNode(msg, '', -1)
+    await replaceNode(drop_target.node.data.name, new_node_name)
+    return
+  }
+
+  console.warn("Couldn't identify drop target position, this should never happen")
+
 }
 
 watchEffect(toggleNewNodeTargets)
@@ -942,109 +954,6 @@ function toggleNewNodeTargets() {
       }
     })
     .attr('visibility', 'hidden')
-}
-
-function moveChildNodes(new_node_name: string, drop_target: DropTarget) {
-  if (new_node_name === '') {
-    // This means something went wrong with moving the node, thus we can't move it around
-    console.warn("Didn't get a node name back")
-    return
-  }
-
-  // NOTE Checking if the node allows children would require pulling the
-  // node information out of the store, since this callback is delayed.
-  // For now we trust the hiding of inappropriate drop targets.
-
-  if (drop_target.position === Position.TOP) {
-    ros_store.move_node_service.callService(
-      {
-        node_name: drop_target.node.data.name,
-        new_parent_name: new_node_name,
-        new_child_index: 0
-      } as MoveNodeRequest,
-      (response: MoveNodeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Moved node ' + drop_target.node.data.name,
-            type: 'success'
-          })
-        } else {
-          notify({
-            title: 'Failed to move node ' + drop_target.node.data.name,
-            text: response.error_message,
-            type: 'warn'
-          })
-        }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call moveNode service',
-          text: error,
-          type: 'error'
-        })
-      }
-    )
-  }
-
-  if (drop_target.position === Position.CENTER) {
-    drop_target.node.data.child_names.forEach((child_name) => {
-      ros_store.move_node_service.callService(
-        {
-          node_name: child_name,
-          new_parent_name: new_node_name,
-          new_child_index: -1
-        } as MoveNodeRequest,
-        (response: MoveNodeResponse) => {
-          if (response.success) {
-            notify({
-              title: 'Moved node ' + child_name,
-              type: 'success'
-            })
-          } else {
-            notify({
-              title: 'Failed to move node ' + child_name,
-              text: response.error_message,
-              type: 'warn'
-            })
-          }
-        },
-        (error: string) => {
-          notify({
-            title: 'Failed to call moveNode service',
-            text: error,
-            type: 'error'
-          })
-        }
-      )
-    })
-    ros_store.remove_node_service.callService(
-      {
-        node_name: drop_target.node.data.name,
-        remove_children: false
-      } as RemoveNodeRequest,
-      (response: RemoveNodeResponse) => {
-        if (response.success) {
-          notify({
-            title: 'Removed node',
-            type: 'success'
-          })
-        } else {
-          notify({
-            title: 'Failed to remove node',
-            text: response.error_message,
-            type: 'warn'
-          })
-        }
-      },
-      (error: string) => {
-        notify({
-          title: 'Failed to call removeNode service',
-          text: error,
-          type: 'error'
-        })
-      }
-    )
-  }
 }
 
 function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {

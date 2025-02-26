@@ -99,9 +99,8 @@ export function prettyprint_type(jsonpickled_type: string): string {
     return json_type['py/type']
       .replace('__builtin__.', '')
       .replace('builtins.', '')
-      .replace(/^basestring$/, 'string')
-      .replace(/^unicode$/, 'string')
-      .replace(/^str$/, 'string')
+      .replace(/^basestring$/, 'str')
+      .replace(/^unicode$/, 'str')
   }
 
   // If the type doesn't have a py/type field, maybe it's an
@@ -164,7 +163,7 @@ export function getDefaultValue(
       type: typeStr,
       value: 0
     }
-  } else if (typeName === 'string') {
+  } else if (typeName === 'str') {
     return {
       type: typeStr,
       value: 'foo'

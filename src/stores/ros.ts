@@ -49,7 +49,6 @@ import type {
   GetAvailableNodesRequest,
   GetAvailableNodesResponse
 } from '@/types/services/GetAvailableNodes'
-import type { AddNodeRequest, AddNodeResponse } from '@/types/services/AddNode'
 import type {
   GetMessageFieldsRequest,
   GetMessageFieldsResponse
@@ -139,14 +138,6 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'clear',
         serviceType: 'ros_bt_py_interfaces/srv/ClearTree'
-      })
-    )
-
-    const add_node_service = ref<ROSLIB.Service<AddNodeRequest, AddNodeResponse>>(
-      new ROSLIB.Service({
-        ros: ros.value,
-        name: namespace.value + 'add_node',
-        serviceType: 'ros_bt_py_interfaces/srv/AddNode'
       })
     )
 
@@ -468,12 +459,6 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
       })
 
-      add_node_service.value = new ROSLIB.Service({
-        ros: ros.value,
-        name: namespace.value + 'add_node',
-        serviceType: 'ros_bt_py_interfaces/srv/AddNode'
-      })
-
       get_message_fields_service.value = new ROSLIB.Service({
         ros: ros.value,
         name: namespace.value + 'get_message_fields',
@@ -490,6 +475,12 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
+      })
+
+      replace_node_service.value = new ROSLIB.Service({
+        ros: ros.value,
+        name: namespace.value + 'replace_node',
+        serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
       })
 
       set_options_service.value = new ROSLIB.Service({
@@ -616,7 +607,6 @@ export const useROSStore = defineStore(
       control_tree_execution_service,
       clear_tree_service,
       get_available_nodes_service,
-      add_node_service,
       get_message_fields_service,
       unwire_data_service,
       remove_node_service,
