@@ -184,7 +184,12 @@ function loadTree() {
         </select>
         <div class="input-group">
           <span class="input-group-text"> Search: </span>
-          <input v-model="search_term" type="text" class="form-control" />
+          <input 
+            v-model="search_term" 
+            type="text" 
+            class="form-control" 
+            placeholder="Search Folder or File"
+          />
         </div>
       </div>
     </FileBrowser>

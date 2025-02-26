@@ -296,6 +296,7 @@ onMounted(() => {
         :disabled="chosen_location !== null"
         type="text"
         class="form-control"
+        :placeholder="'Search ' + props.location + ' Name'"
       />
       <button @click="setChosenLocation(null)" class="btn btn-outline-secondary">
         <font-awesome-icon icon="fa-solid fa-xmark" />

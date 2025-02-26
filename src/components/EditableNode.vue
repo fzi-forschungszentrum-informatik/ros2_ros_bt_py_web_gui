@@ -33,9 +33,12 @@ import { useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import ParamInputs from './ParamInputs.vue'
 import ParamDisplay from './ParamDisplay.vue'
+import { ref } from 'vue'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
+
+const show_description = ref<boolean>(false)
 </script>
 
 <template>
@@ -75,16 +78,29 @@ const edit_node_store = useEditNodeStore()
           </option>
         </select>
       </h4>
-      <!--TODO Maybe move node doc to an easier to read location-->
-      <font-awesome-icon
-        v-if="edit_node_store.reference_node"
-        icon="fa-solid fa-question-circle"
-        class="px-2"
-        aria-hidden="true"
-        v-bind:title="getShortDoc(edit_node_store.reference_node.doc)"
-      />
     </div>
-    <div class="mb-2">
+    <div
+      v-if="
+        edit_node_store.reference_node && 
+        getShortDoc(edit_node_store.reference_node.doc) !== ''
+      " 
+      class="mb-3"
+    >
+      <div class="d-flex align-items-baseline cursor-pointer" 
+        @click="() => show_description = !show_description"
+      >
+        <h5>Description</h5>
+        <font-awesome-icon
+          :icon="'fa-solid ' + (show_description ? 'fa-angle-up' : 'fa-angle-down')"
+          aria-hidden="true"
+          class="ms-2"
+        />
+      </div>
+      <div v-if="show_description" class="mx-2">
+        {{ getShortDoc(edit_node_store.reference_node.doc) }}
+      </div>
+    </div>
+    <div class="mb-3">
       <h5>Options</h5>
       <div class="list-group">
         <ParamInputs
@@ -95,7 +111,7 @@ const edit_node_store = useEditNodeStore()
         ></ParamInputs>
       </div>
     </div>
-    <div class="mb-2">
+    <div class="mb-3">
       <h5>Input</h5>
       <div class="list-group">
         <ParamDisplay
@@ -106,7 +122,7 @@ const edit_node_store = useEditNodeStore()
         ></ParamDisplay>
       </div>
     </div>
-    <div className="mb-2">
+    <div className="mb-3">
       <h5>Output</h5>
       <div class="list-group">
         <ParamDisplay

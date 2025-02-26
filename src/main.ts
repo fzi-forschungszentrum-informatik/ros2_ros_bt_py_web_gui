@@ -87,7 +87,10 @@ import {
   faExclamation,
   faHourglassHalf,
   faPen,
-  faPause
+  faPause,
+  faLeaf,
+  faLink,
+  faNetworkWired
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faSun as faSunAlt, faMoon as faMoonAlt } from '@fortawesome/free-regular-svg-icons'
@@ -131,7 +134,10 @@ library.add(
   faExclamation,
   faHourglassHalf,
   faPen,
-  faPause
+  faPause,
+  faLeaf,
+  faNetworkWired,
+  faLink
 )
 
 const app = createApp(App)

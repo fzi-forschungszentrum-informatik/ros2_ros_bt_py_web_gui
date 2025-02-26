@@ -50,6 +50,7 @@ import EditorDisplayButtons from './components/EditorDisplayButtons.vue'
 import LoadSaveControls from './components/LoadSaveControls.vue'
 import NamespaceSelect from './components/NamespaceSelect.vue'
 import TickControls from './components/TickControls.vue'
+import NodeQuickSelect from './components/NodeQuickSelect.vue'
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
@@ -229,6 +230,7 @@ onMounted(() => {
 
           <div class="m-1">
             <PackageLoader />
+            <NodeQuickSelect />
             <div class="border rounded">
               <div class="input-group p-2">
                 <label for="nodelist_search" class="input-group-text"> Search: </label>
@@ -238,6 +240,7 @@ onMounted(() => {
                   ref="nodelist_input_ref"
                   class="form-control"
                   v-bind:value="node_search"
+                  placeholder="Node Name"
                   @input="handleNodeSearch"
                   @keydown="handleNodeSearchClear"
                 />

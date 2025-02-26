@@ -641,7 +641,7 @@ export const useROSStore = defineStore(
   {
     persist: {
       paths: ['namespace', 'url', 'available_namespaces'],
-      storage: sessionStorage,
+      storage: localStorage,
       afterRestore: (context) => {
         context.store.updateROSServices()
         context.store.connect()

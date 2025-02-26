@@ -54,6 +54,7 @@ import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
+import { faBolt, faCheck, faPause, faPowerOff, faXmark, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -87,10 +88,11 @@ const pan_per_frame: number = 10.0
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
 
-const io_edge_offset: number = 10
-const io_edge_wrap_factor: number = 100
-const io_edge_wrap_clamp: number = 5
-const io_edge_wrap_invert_thresh: number = 50
+const io_edge_offset: number = 20
+const io_edge_bump_thresh: number = 50
+const io_edge_bump_factor: number = 0.02
+const io_edge_curve_offset: number = 5
+const io_edge_curve_factor: number = 0.0001
 
 const forest_root_name: string = '__forest_root'
 const node_spacing: number = 80
@@ -101,6 +103,7 @@ const tree_node_css_class: string = 'node'
 const node_body_css_class: string = 'btnode'
 const node_name_css_class: string = 'node_name'
 const node_class_css_class: string = 'class_name'
+const node_state_css_class: string = 'icon'
 const tree_edge_css_class: string = 'link'
 const drop_target_css_class: string = 'drop_target'
 const data_vert_group_css_class: string = 'gripper-group'
@@ -382,15 +385,39 @@ function drawNewNodes(
 
   const body = fo
     .append<HTMLBodyElement>('xhtml:body')
-    .classed(node_body_css_class + ' p-2', true)
+    .classed(node_body_css_class, true)
 
   // These elements get filled in updateNodeBody
-  body.append('h4').classed(node_name_css_class, true)
-  body.append('h5').classed(node_class_css_class, true)
+  body.append('svg')
+      .classed(node_state_css_class, true)
+      .style('float', 'right')
+    .append('path')
+      .attr('fill', 'currentColor')
+  body.append('h4')
+      .classed(node_name_css_class, true)
+  body.append('h5')
+      .classed(node_class_css_class, true)
+  
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
   return fo
+}
+
+function getIcon(state: string) {
+  switch (state) {
+    case NodeState.RUNNING:
+      return faBolt.icon
+    case NodeState.IDLE:
+      return faPause.icon
+    case NodeState.SUCCEEDED:
+      return faCheck.icon
+    case NodeState.FAILED:
+      return faXmark.icon
+    case NodeState.SHUTDOWN:
+    default:
+      return faPowerOff.icon
+  }
 }
 
 function updateNodeBody(
@@ -403,9 +430,27 @@ function updateNodeBody(
 ) {
   const body = selection.select<HTMLBodyElement>('.' + node_body_css_class)
 
-  body.select<HTMLHeadingElement>('.' + node_name_css_class).html((d) => d.data.name)
+  body.select<HTMLHeadingElement>('.' + node_name_css_class)
+      .html((d) => d.data.name)
 
-  body.select<HTMLHeadingElement>('.' + node_class_css_class).html((d) => d.data.node_class)
+  body.select<HTMLHeadingElement>('.' + node_class_css_class)
+      .html((d) => d.data.node_class)
+
+  body.select<SVGElement>('.' + node_state_css_class)
+      .attr('viewBox', (node) => {
+        const icon = getIcon(node.data.state)
+        return "0 0 " + icon[0] + " " + icon[1]
+      })
+    .select<SVGPathElement>('path')
+      .attr('d', (node) => {
+        const icon = getIcon(node.data.state)
+        if (typeof icon[4] === "string") {
+          return icon[4]
+        } else {
+          console.warn("Potentially unhandled multivalue path", icon[4])
+          return icon[4].join('')
+        }
+      })
 
   body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body
@@ -450,25 +495,19 @@ function colorNodes(
     .transition(tree_transition)
     .style('border-color', (d) => {
       switch (d.data.state) {
-        case NodeState.RUNNING: {
+        case NodeState.RUNNING:
           return 'var(--node-color-running)'
-        }
-        case NodeState.IDLE: {
+        case NodeState.IDLE:
           return 'var(--node-color-idle)'
-        }
-        case NodeState.SUCCEEDED: {
+        case NodeState.SUCCEEDED:
           return 'var(--node-color-succeeded)'
-        }
-        case NodeState.FAILED: {
+        case NodeState.FAILED:
           return 'var(--node-color-failed)'
-        }
-        case NodeState.SHUTDOWN: {
+        case NodeState.SHUTDOWN:
           return 'var(--node-color-shutdown)'
-        }
         case NodeState.UNINITIALIZED:
-        default: {
+        default:
           return 'var(--node-color-default)'
-        }
       }
     })
 }
@@ -1232,19 +1271,39 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
     .x((p) => p.x + io_gripper_size / 2)
     .y((p) => p.y + io_gripper_size / 2)
     .curve(d3.curveCatmullRom.alpha(0.9))
-  let wraparound = Math.abs(source.x - target.x) / io_edge_wrap_factor
-  wraparound = Math.min(Math.max(wraparound, 0), io_edge_wrap_clamp)
-  const invert_source = target.y - source.y > io_edge_wrap_invert_thresh
-  const invert_target = source.y - target.y > io_edge_wrap_invert_thresh
+  let y_offset = 0
+  if (Math.abs(source.y - target.y) < io_edge_bump_thresh) {
+    y_offset = Math.min(source.y, target.y) - 
+      io_edge_bump_factor * Math.abs(source.x - target.x)
+  }
   const source_offset: DataEdgePoint = {
     x: source.x + io_edge_offset,
-    y: source.y - wraparound * (invert_source ? -1 : 1)
+    y: source.y
   }
   const target_offset: DataEdgePoint = {
     x: target.x - io_edge_offset,
-    y: target.y - wraparound * (invert_target ? -1 : 1)
+    y: target.y
   }
-  return lineGen([source, source_offset, target_offset, target])
+  const midpoint: DataEdgePoint = {
+    x: (source.x + target.x) / 2,
+    y: y_offset ? y_offset : (source.y + target.y) / 2
+  }
+  // Backwards edges require some extra work
+  if (source.x > target.x) {
+    if (y_offset === 0) {
+      source_offset.y += io_edge_curve_factor * (target.y - source.y) +
+        Math.sign(target.y - source.y) * io_edge_curve_offset
+      target_offset.y += io_edge_curve_factor * (source.y - target.y) +
+        Math.sign(source.y - target.y) * io_edge_curve_offset
+    } else {
+      const curve_offset = io_edge_curve_offset + 
+        io_edge_curve_factor * Math.abs(source.x - target.x)
+      source_offset.y -= curve_offset
+      midpoint.y -= curve_offset * 4
+      target_offset.y -= curve_offset
+    }
+  }
+  return lineGen([source, source_offset, midpoint, target_offset, target])
 }
 
 watchEffect(toggleDataEdgeTargets)
