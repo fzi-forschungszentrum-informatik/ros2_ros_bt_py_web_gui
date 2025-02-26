@@ -28,20 +28,25 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import { useEditorStore } from '@/stores/editor';
-import { useNodesStore } from '@/stores/nodes';
-import type { DocumentedNode } from '@/types/types';
-import { computed, ref } from 'vue';
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
+import { useNodesStore } from '@/stores/nodes'
+import type { DocumentedNode } from '@/types/types'
+import { computed, ref } from 'vue'
+
+import FallbackIcon  from "@/assets/flow_control_icons/Fallback.svg"
+import MemoryFallbackIcon  from "@/assets/flow_control_icons/MemoryFallback.svg"
+import MemorySequenceIcon  from "@/assets/flow_control_icons/MemorySequence.svg"
+import ParallelIcon  from "@/assets/flow_control_icons/Parallel.svg"
+import ParallelFailureTolereanceIcon  from "@/assets/flow_control_icons/ParallelFailureTolerance.svg"
+import SequenceIcon  from "@/assets/flow_control_icons/Sequence.svg"
 
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-const flow_control_nodes = computed<DocumentedNode[]>(() => 
-    nodes_store.nodes.filter(
-        (node: DocumentedNode) => node.max_children === -1
-    )
+const flow_control_nodes = computed<DocumentedNode[]>(() =>
+  nodes_store.nodes.filter((node: DocumentedNode) => node.max_children === -1)
 )
 
 const nodelist_collapsed = ref<boolean>(false)
@@ -49,74 +54,95 @@ const nodelist_collapsed = ref<boolean>(false)
 const css_grab = 'grab'
 const css_highlight = 'border-primary'
 function getNodeCss(node: DocumentedNode): string {
-    if (!editor_store.dragging_new_node) {
-        return css_grab
-    }
-    if (editor_store.dragging_new_node.node_class === node.node_class &&
-        editor_store.dragging_new_node.module === node.module
-    ) {
-        return css_highlight
-    }
+  if (!editor_store.dragging_new_node) {
     return css_grab
+  }
+  if (
+    editor_store.dragging_new_node.node_class === node.node_class &&
+    editor_store.dragging_new_node.module === node.module
+  ) {
+    return css_highlight
+  }
+  return css_grab
 }
 
+
+// A helper function that returns the correct URL for a given node name.
+function getIconSrc(nodeName: string): string {
+  switch (nodeName){
+    case 'Fallback':
+      return FallbackIcon
+    case 'MemoryFallback':
+      return MemoryFallbackIcon
+    case 'MemorySequence':
+      return MemorySequenceIcon
+    case 'Parallel':
+      return ParallelIcon
+    case 'ParallelFailureTolerance':
+      return ParallelFailureTolereanceIcon
+    case 'Sequence':
+      return SequenceIcon
+    default:
+      return ''
+  }
+}
 </script>
 
 <template>
-    <div class="border rounded mb-2">
-        <div
-            @click="nodelist_collapsed = !nodelist_collapsed"
-            class="w-100 text-center cursor-pointer m-2"
-        >
-            Flow Control Nodes
-            <font-awesome-icon
-                :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
-                aria-hidden="true"
-            />
-        </div>
-        <div v-if="!nodelist_collapsed" class="d-flex flex-wrap m-1">
-            <div v-for="node in flow_control_nodes" :key="node.node_class + node.module"
-                class="border rounded m-1 image-container"
-                :class="getNodeCss(node)"
-                tabindex="0"
-                @click="edit_node_store.nodeListSelectionChange(node)"
-                @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
-                @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
-            >
-                <template v-if="node.name === 'NameSwitch'">
-                    <font-awesome-icon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
-                </template>
-                <template v-else>
-                    <img :title="node.name" class="image" :src="'/src/assets/flow_control_icons/' + node.name + '.svg'">
-                </template>
-            </div>
-        </div>
+  <div class="border rounded mb-2">
+    <div
+      @click="nodelist_collapsed = !nodelist_collapsed"
+      class="w-100 text-center cursor-pointer m-2"
+    >
+      Flow Control Nodes
+      <font-awesome-icon
+        :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
+        aria-hidden="true"
+      />
     </div>
+    <div v-if="!nodelist_collapsed" class="d-flex flex-wrap m-1">
+      <div
+        v-for="node in flow_control_nodes"
+        :key="node.node_class + node.module"
+        class="border rounded m-1 image-container"
+        :class="getNodeCss(node)"
+        tabindex="0"
+        @click="edit_node_store.nodeListSelectionChange(node)"
+        @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
+        @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
+      >
+        <template v-if="node.name === 'NameSwitch'">
+          <font-awesome-icon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
+        </template>
+        <template v-else>
+          <img :title="node.name" class="image" :src="getIconSrc(node.name)" />
+        </template>
+      </div>
+    </div>
+  </div>
 </template>
 
 <style scoped lang="scss">
-
 .grab:hover {
   cursor: grab;
 }
 
 .image-container {
-    width: 35px;
-    height: 30px;
-    text-align: center;
+  width: 35px;
+  height: 30px;
+  text-align: center;
 }
 
 .icon {
-    margin: auto;
-    vertical-align: middle;
-    height: 20px;
-    width: 20px;
+  margin: auto;
+  vertical-align: middle;
+  height: 20px;
+  width: 20px;
 }
 
 .image {
-    vertical-align: middle;
-    height: 25px;
-    width: 25px;
+  vertical-align: middle;
+  height: 25px;
+  width: 25px;
 }
-
 </style>
