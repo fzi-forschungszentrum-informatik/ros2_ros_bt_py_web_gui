@@ -27,7 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { getPythonTypeDefault, isPythonTypeWithDefault } from './types/python_types'
+import { 
+  getPythonTypeDefault, 
+  isPythonTypeWithDefault, 
+  TypeWrapper_Name, 
+  type TypeWrapper 
+} from './types/python_types'
 import type { 
   NodeData, 
   TreeMsg, 
@@ -69,8 +74,6 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   return prettyprint_type(from.type) === prettyprint_type(to.type)
 }
 
-//TODO This appears to be wrong or outdated.
-// How do we want to handle unsupported types?
 export const python_builtin_types = [
   'int',
   'float',
@@ -82,10 +85,10 @@ export const python_builtin_types = [
   'list',
   'dict',
   'set',
-  'type'
+  'type' //TODO Is this reasonable to allow?
 ]
 
-export function prettyprint_type(jsonpickled_type: string) {
+export function prettyprint_type(jsonpickled_type: string): string {
   const json_type = JSON.parse(jsonpickled_type)
   if (json_type['py/type'] !== undefined) {
     // shorten the CapabilityType
@@ -110,6 +113,17 @@ export function prettyprint_type(jsonpickled_type: string) {
     return 'OptionRef(' + json_type['option_key'] + ')'
   }
 
+  // Fully hide HintedType, the Typeparam recovers hints on its own
+  if (
+    json_type['py/object'] !== undefined &&
+    json_type['py/object'] === TypeWrapper_Name
+  ) {
+    const wrapper = json_type as TypeWrapper
+    return prettyprint_type(
+      JSON.stringify(wrapper.actual_type)
+    ) + '(' + wrapper.info + ')'
+  }
+
   if (
     json_type['py/reduce'] !== undefined &&
     json_type['py/reduce'][0] !== undefined &&
@@ -122,48 +136,57 @@ export function prettyprint_type(jsonpickled_type: string) {
   return 'Unknown type object: ' + jsonpickled_type
 }
 
+export function getTypeAndInfo(typeStr: string): [string, string] {
+  let match
+  if (typeStr.startsWith('OptionRef(')) {
+    match = typeStr.match(/(.*\(.*\))\((.*)\)/)
+  } else {
+    match = typeStr.match(/(.*)\((.*)\)/)
+  }
+  if (match === null) {
+    return [typeStr, '']
+  }
+  return [match[1], match[2]]
+}
+
 export function getDefaultValue(
-  typeName: string,
+  typeStr: string,
   options: NodeData[] | null = null
 ): ParamType {
+  const typeName = getTypeAndInfo(typeStr)[0]
   if (typeName === 'type') {
     return {
-      type: 'type',
+      type: typeStr,
       value: 'int'
     }
-  } else if (typeName === 'int' || typeName === 'long') {
+  } else if (typeName === 'int') {
     return {
-      type: 'int',
+      type: typeStr,
       value: 0
     }
-  } else if (
-    typeName === 'str' ||
-    typeName === 'basestring' ||
-    typeName === 'unicode' ||
-    typeName === 'string'
-  ) {
+  } else if (typeName === 'string') {
     return {
-      type: 'string',
+      type: typeStr,
       value: 'foo'
     }
   } else if (typeName === 'float') {
     return {
-      type: 'float',
+      type: typeStr,
       value: 1.2
     }
   } else if (typeName === 'bool') {
     return {
-      type: 'bool',
+      type: typeStr,
       value: true
     }
   } else if (typeName === 'list') {
     return {
-      type: 'list',
+      type: typeStr,
       value: []
     }
   } else if (typeName === 'dict') {
     return {
-      type: 'dict',
+      type: typeStr,
       value: {}
     }
   } else if (typeName.startsWith('OptionRef(')) {
@@ -196,12 +219,12 @@ export function getDefaultValue(
   // which provide default values
   } else if (isPythonTypeWithDefault(typeName)) {
     return {
-      type: typeName,
+      type: typeStr,
       value: getPythonTypeDefault(typeName) || {}
     }
   } else {
     return {
-      type: '__' + typeName,
+      type: '__' + typeStr,
       value: {}
     }
   }
@@ -214,7 +237,7 @@ export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
       serialized_value: '',
       serialized_type: '' // This is left blank intentionally
     }
-    if (x.value.type === 'type') {
+    if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }

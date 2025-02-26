@@ -58,7 +58,7 @@ const tree_state = computed<TreeState>(() => {
 
 const tree_state_styles = computed<any>(() => {
   let bg_color_var = ''
-  let border_color_var = '--bs-body-color'
+  //let border_color_var = '--bs-body-color'
   switch (tree_state.value) {
     case TreeState.ERROR:
       bg_color_var = '--bg-color-error'

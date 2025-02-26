@@ -32,7 +32,8 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { ParamData } from '@/types/types'
-import { python_builtin_types } from '@/utils'
+import { getTypeAndInfo, python_builtin_types } from '@/utils'
+import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
 
 const props = defineProps<{
@@ -44,11 +45,22 @@ const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 const messages_store = useMessasgeStore()
 
-let messages_results = ref<string[]>([])
+let search_results = ref<string[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
+
+const search_fuse = computed<Fuse<string>>(() => {
+  if (param.value === undefined) {
+    return messages_store.messages_fuse
+  }
+  const info = getTypeAndInfo(param.value.value.type)[1]
+  if (info === 'builtin') {
+    return new Fuse<string>(python_builtin_types)
+  }
+  return messages_store.messages_fuse
+})
 
 const display_value = computed<string>(() => {
   if (param.value === undefined) {
@@ -75,8 +87,8 @@ function onChange(event: Event) {
   const target = event.target as HTMLInputElement
   let new_type_name = target.value || ''
   new_type_name = new_type_name.replace('__builtin__.', '').replace('builtins.', '')
-  const results = messages_store.messages_fuse.search(new_type_name)
-  messages_results.value = results.map((x) => x.item)
+  const results = search_fuse.value.search(new_type_name)
+  search_results.value = results.map((x) => x.item)
 
   edit_node_store.updateParamValue(props.category, props.data_key, new_type_name)
 }
@@ -84,6 +96,15 @@ function onChange(event: Event) {
 function selectSearchResult(search_result: string) {
   edit_node_store.updateParamValue(props.category, props.data_key, search_result)
   releaseDropdown()
+}
+
+function displaySearchResult(value: string): string {
+  // Show builtins prefix if appropriate
+  if (python_builtin_types.includes(value)) {
+    value = 'builtins.' + value
+  }
+  // Allow line breaks at dots
+  return value.replace(/\./g, '.\u200B')
 }
 
 function focusInput() {
@@ -133,7 +154,7 @@ function releaseDropdown() {
         @mouseleave="releaseDropdown"
       >
         <div
-          v-for="result in messages_results"
+          v-for="result in search_results"
           :key="result"
           class="list-group-item search-result"
           tabindex="0"
@@ -141,8 +162,7 @@ function releaseDropdown() {
           @keyup.enter="() => selectSearchResult(result)"
           @keyup.esc="releaseDropdown"
         >
-          <!--Insert a zero-width space after each dot to allow line breaks-->
-          {{ result.replace(/\./g, '.\u200B') }}
+          {{ displaySearchResult(result) }}
         </div>
       </div>
     </div>

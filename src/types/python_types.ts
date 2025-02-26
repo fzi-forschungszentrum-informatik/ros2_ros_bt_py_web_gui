@@ -32,6 +32,12 @@ import type { PyObject, PyReduce } from './types'
 
 const PyDefaultValues = new Map<string, PyObject | PyReduce>()
 
+export type TypeWrapper = PyObject & {
+  actual_type: string
+  info: string
+}
+export const TypeWrapper_Name = 'ros_bt_py.custom_types.TypeWrapper'
+
 export const OrderedDict_Name = 'collections.OrderedDict'
 PyDefaultValues.set(OrderedDict_Name, {
   'py/reduce': [{ 'py/type': OrderedDict_Name }, { 'py/tuple': [[]] }, null, null, null]
