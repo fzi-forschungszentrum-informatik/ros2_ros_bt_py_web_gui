@@ -29,7 +29,7 @@
  */
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import ROSLIB from 'roslib'
+import {Service, Topic, Ros} from 'roslib'
 import type { Packages, MessageTypes, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
 import type {
   ServicesForTypeRequest,
@@ -91,32 +91,32 @@ export const useROSStore = defineStore(
     const messages_store = useMessasgeStore()
     const packages_store = usePackageStore()
     const nodes_store = useNodesStore()
-    const ros = ref<ROSLIB.Ros>(new ROSLIB.Ros({}))
+    const ros = ref<Ros>(new Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
     const services_for_type_service = ref<
-      ROSLIB.Service<ServicesForTypeRequest, ServicesForTypeResponse>
+      Service<ServicesForTypeRequest, ServicesForTypeResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: '/rosapi/services_for_type',
         serviceType: 'rosapi/ServicesForType'
       })
     )
 
-    const load_tree_service = ref<ROSLIB.Service<LoadTreeRequest, LoadTreeResponse>>(
-      new ROSLIB.Service({
+    const load_tree_service = ref<Service<LoadTreeRequest, LoadTreeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'load_tree',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTree'
       })
     )
 
-    const fix_yaml_service = ref<ROSLIB.Service<FixYamlRequest, FixYamlResponse>>(
-      new ROSLIB.Service({
+    const fix_yaml_service = ref<Service<FixYamlRequest, FixYamlResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'fix_yaml',
         serviceType: 'ros_bt_py_interfaces/srv/FixYaml'
@@ -124,33 +124,33 @@ export const useROSStore = defineStore(
     )
 
     const control_tree_execution_service = ref<
-      ROSLIB.Service<ControlTreeExecutionRequest, ControlTreeExecutionResponse>
+      Service<ControlTreeExecutionRequest, ControlTreeExecutionResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'control_tree_execution',
         serviceType: 'ros_bt_py_interfaces/srv/ControlTreeExecution'
       })
     )
 
-    const clear_tree_service = ref<ROSLIB.Service<ClearTreeRequest, ClearTreeResponse>>(
-      new ROSLIB.Service({
+    const clear_tree_service = ref<Service<ClearTreeRequest, ClearTreeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'clear',
         serviceType: 'ros_bt_py_interfaces/srv/ClearTree'
       })
     )
 
-    const set_publish_subtrees_service = ref<ROSLIB.Service<SetBoolRequest, SetBoolResponse>>(
-      new ROSLIB.Service({
+    const set_publish_subtrees_service = ref<Service<SetBoolRequest, SetBoolResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
         serviceType: 'std_srvs/srv/SetBool'
       })
     )
 
-    const tree_sub = ref<ROSLIB.Topic<TreeMsg>>(
-      new ROSLIB.Topic({
+    const tree_sub = ref<Topic<TreeMsg>>(
+      new Topic({
         ros: ros.value,
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
@@ -159,8 +159,8 @@ export const useROSStore = defineStore(
       })
     )
 
-    const subtree_info_sub = ref<ROSLIB.Topic<SubtreeInfo>>(
-      new ROSLIB.Topic({
+    const subtree_info_sub = ref<Topic<SubtreeInfo>>(
+      new Topic({
         ros: ros.value,
         name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
@@ -169,8 +169,8 @@ export const useROSStore = defineStore(
       })
     )
 
-    const packages_sub = ref<ROSLIB.Topic<Packages>>(
-      new ROSLIB.Topic({
+    const packages_sub = ref<Topic<Packages>>(
+      new Topic({
         ros: ros.value,
         name: namespace.value + 'packages',
         messageType: 'ros_bt_py_interfaces/msg/Packages',
@@ -178,8 +178,8 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
-    const messages_sub = ref<ROSLIB.Topic<MessageTypes>>(
-      new ROSLIB.Topic({
+    const messages_sub = ref<Topic<MessageTypes>>(
+      new Topic({
         ros: ros.value,
         name: namespace.value + 'message_types',
         messageType: 'ros_bt_py_interfaces/msg/MessageTypes',
@@ -187,8 +187,8 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
-    const channels_sub = ref<ROSLIB.Topic<Channels>>(
-      new ROSLIB.Topic({
+    const channels_sub = ref<Topic<Channels>>(
+      new Topic({
         ros: ros.value,
         name: namespace.value + 'message_channels',
         messageType: 'ros_bt_py_interfaces/msg/MessageChannels',
@@ -198,9 +198,9 @@ export const useROSStore = defineStore(
     )
 
     const get_available_nodes_service = ref<
-      ROSLIB.Service<GetAvailableNodesRequest, GetAvailableNodesResponse>
+      Service<GetAvailableNodesRequest, GetAvailableNodesResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'get_available_nodes',
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
@@ -208,57 +208,57 @@ export const useROSStore = defineStore(
     )
 
     const get_message_fields_service = ref<
-      ROSLIB.Service<GetMessageFieldsRequest, GetMessageFieldsResponse>
+      Service<GetMessageFieldsRequest, GetMessageFieldsResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'get_message_fields',
         serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
       })
     )
 
-    const unwire_data_service = ref<ROSLIB.Service<WireNodeDataRequest, WireNodeDataResponse>>(
-      new ROSLIB.Service({
+    const unwire_data_service = ref<Service<WireNodeDataRequest, WireNodeDataResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
     )
 
-    const remove_node_service = ref<ROSLIB.Service<RemoveNodeRequest, RemoveNodeResponse>>(
-      new ROSLIB.Service({
+    const remove_node_service = ref<Service<RemoveNodeRequest, RemoveNodeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_pt_interfaces/srv/RemoveNode'
       })
     )
 
-    const replace_node_service = ref<ROSLIB.Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
-      new ROSLIB.Service({
+    const replace_node_service = ref<Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'replace_node',
         serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
       })
     )
 
-    const set_options_service = ref<ROSLIB.Service<SetOptionsRequest, SetOptionsResponse>>(
-      new ROSLIB.Service({
+    const set_options_service = ref<Service<SetOptionsRequest, SetOptionsResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
         serviceType: 'ros_bt_pt_interfaces/srv/SetOptions'
       })
     )
 
-    const morph_node_service = ref<ROSLIB.Service<MorphNodeRequest, MorphNodeResponse>>(
-      new ROSLIB.Service({
+    const morph_node_service = ref<Service<MorphNodeRequest, MorphNodeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'morph_node',
         serviceType: 'ros_bt_pt_interfaces/srv/MorphNode'
       })
     )
 
-    const move_node_service = ref<ROSLIB.Service<MoveNodeRequest, MoveNodeResponse>>(
-      new ROSLIB.Service({
+    const move_node_service = ref<Service<MoveNodeRequest, MoveNodeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'move_node',
         serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
@@ -266,17 +266,17 @@ export const useROSStore = defineStore(
     )
 
     const add_node_at_index_service = ref<
-      ROSLIB.Service<AddNodeAtIndexRequest, AddNodeAtIndexResponse>
+      Service<AddNodeAtIndexRequest, AddNodeAtIndexResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'add_node_at_index',
         serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
       })
     )
 
-    const wire_data_service = ref<ROSLIB.Service<WireNodeDataRequest, WireNodeDataResponse>>(
-      new ROSLIB.Service({
+    const wire_data_service = ref<Service<WireNodeDataRequest, WireNodeDataResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'wire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
@@ -284,9 +284,9 @@ export const useROSStore = defineStore(
     )
 
     const generate_subtree_service = ref<
-      ROSLIB.Service<GenerateSubtreeRequest, GenerateSubtreeResponse>
+      Service<GenerateSubtreeRequest, GenerateSubtreeResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'generate_subtree',
         serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
@@ -294,9 +294,9 @@ export const useROSStore = defineStore(
     )
 
     const get_storage_folders_service = ref<
-      ROSLIB.Service<GetStorageFoldersRequest, GetStorageFoldersResponse>
+      Service<GetStorageFoldersRequest, GetStorageFoldersResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'get_storage_folders',
         serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
@@ -304,9 +304,9 @@ export const useROSStore = defineStore(
     )
 
     const get_folder_structure_service = ref<
-      ROSLIB.Service<GetFolderStructureRequest, GetFolderStructureResponse>
+      Service<GetFolderStructureRequest, GetFolderStructureResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'get_folder_structure',
         serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
@@ -314,17 +314,17 @@ export const useROSStore = defineStore(
     )
 
     const get_package_structure_service = ref<
-      ROSLIB.Service<GetPackageStructureRequest, GetPackageStructureResponse>
+      Service<GetPackageStructureRequest, GetPackageStructureResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'get_package_structure',
         serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
       })
     )
 
-    const save_tree_service = ref<ROSLIB.Service<SaveTreeRequest, SaveTreeResponse>>(
-      new ROSLIB.Service({
+    const save_tree_service = ref<Service<SaveTreeRequest, SaveTreeResponse>>(
+      new Service({
         ros: ros.value,
         name: namespace.value + 'save_tree',
         serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
@@ -332,9 +332,9 @@ export const useROSStore = defineStore(
     )
 
     const change_tree_name_service = ref<
-      ROSLIB.Service<ChangeTreeNameRequest, ChangeTreeNameResponse>
+      Service<ChangeTreeNameRequest, ChangeTreeNameResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'change_tree_name',
         serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
@@ -342,9 +342,9 @@ export const useROSStore = defineStore(
     )
 
     const load_tree_from_path_service = ref<
-      ROSLIB.Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
+      Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
     >(
-      new ROSLIB.Service({
+      new Service({
         ros: ros.value,
         name: namespace.value + 'load_tree_from_path',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
@@ -369,7 +369,7 @@ export const useROSStore = defineStore(
     function updateROSServices() {
       tree_sub.value.unsubscribe()
       tree_sub.value.removeAllListeners()
-      tree_sub.value = new ROSLIB.Topic({
+      tree_sub.value = new Topic({
         ros: ros.value,
         name: namespace.value + 'tree',
         messageType: 'ros_bt_py_interfaces/msg/Tree',
@@ -379,7 +379,7 @@ export const useROSStore = defineStore(
 
       subtree_info_sub.value.unsubscribe()
       subtree_info_sub.value.removeAllListeners()
-      subtree_info_sub.value = new ROSLIB.Topic({
+      subtree_info_sub.value = new Topic({
         ros: ros.value,
         name: namespace.value + 'debug/subtree_info',
         messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
@@ -389,7 +389,7 @@ export const useROSStore = defineStore(
 
       messages_sub.value.unsubscribe()
       messages_sub.value.removeAllListeners()
-      messages_sub.value = new ROSLIB.Topic({
+      messages_sub.value = new Topic({
         ros: ros.value,
         name: namespace.value + 'message_types',
         messageType: 'ros_bt_py_interfaces/msg/MessageTypes',
@@ -399,7 +399,7 @@ export const useROSStore = defineStore(
 
       packages_sub.value.unsubscribe()
       packages_sub.value.removeAllListeners()
-      packages_sub.value = new ROSLIB.Topic({
+      packages_sub.value = new Topic({
         ros: ros.value,
         name: namespace.value + 'packages',
         messageType: 'ros_bt_py_interfaces/msg/Packages',
@@ -409,7 +409,7 @@ export const useROSStore = defineStore(
 
       channels_sub.value.unsubscribe()
       channels_sub.value.removeAllListeners()
-      channels_sub.value = new ROSLIB.Topic({
+      channels_sub.value = new Topic({
         ros: ros.value,
         name: namespace.value + 'message_channels',
         messageType: 'ros_bt_py_interfaces/msg/MessageChannels',
@@ -417,139 +417,139 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
 
-      set_publish_subtrees_service.value = new ROSLIB.Service({
+      set_publish_subtrees_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
         serviceType: 'std_srvs/srv/SetBool'
       })
 
-      services_for_type_service.value = new ROSLIB.Service({
+      services_for_type_service.value = new Service({
         ros: ros.value,
         name: '/rosapi/services_for_type',
         serviceType: 'rosapi/ServicesForType'
       })
 
-      load_tree_service.value = new ROSLIB.Service({
+      load_tree_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'load_tree',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTree'
       })
 
-      fix_yaml_service.value = new ROSLIB.Service({
+      fix_yaml_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'fix_yaml',
         serviceType: 'ros_bt_py_interfaces/srv/FixYaml'
       })
 
-      control_tree_execution_service.value = new ROSLIB.Service({
+      control_tree_execution_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'control_tree_execution',
         serviceType: 'ros_bt_py_interfaces/srv/ControlTreeExecution'
       })
 
-      clear_tree_service.value = new ROSLIB.Service({
+      clear_tree_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'clear',
         serviceType: 'ros_bt_py_interfaces/srv/ClearTree'
       })
 
-      get_available_nodes_service.value = new ROSLIB.Service({
+      get_available_nodes_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'get_available_nodes',
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
       })
 
-      get_message_fields_service.value = new ROSLIB.Service({
+      get_message_fields_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'get_message_fields',
         serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
       })
 
-      unwire_data_service.value = new ROSLIB.Service({
+      unwire_data_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
 
-      remove_node_service.value = new ROSLIB.Service({
+      remove_node_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'remove_node',
         serviceType: 'ros_bt_py_interfaces/srv/RemoveNode'
       })
 
-      replace_node_service.value = new ROSLIB.Service({
+      replace_node_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'replace_node',
         serviceType: 'ros_bt_pt_interfaces/srv/ReplaceNode'
       })
 
-      set_options_service.value = new ROSLIB.Service({
+      set_options_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
         serviceType: 'ros_bt_py_interfaces/srv/SetOptions'
       })
 
-      morph_node_service.value = new ROSLIB.Service({
+      morph_node_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'morph_node',
         serviceType: 'ros_bt_py_interfaces/srv/MorphNode'
       })
 
-      generate_subtree_service.value = new ROSLIB.Service({
+      generate_subtree_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'generate_subtree',
         serviceType: 'ros_bt_py_interfaces/srv/GenerateSubtree'
       })
 
-      wire_data_service.value = new ROSLIB.Service({
+      wire_data_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'wire_data',
         serviceType: 'ros_bt_py_interfaces/srv/WireNodeData'
       })
 
-      add_node_at_index_service.value = new ROSLIB.Service({
+      add_node_at_index_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'add_node_at_index',
         serviceType: 'ros_bt_py_interfaces/srv/AddNodeAtIndex'
       })
 
-      move_node_service.value = new ROSLIB.Service({
+      move_node_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'move_node',
         serviceType: 'ros_bt_py_interfaces/srv/MoveNode'
       })
 
-      get_storage_folders_service.value = new ROSLIB.Service({
+      get_storage_folders_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'get_storage_folders',
         serviceType: 'ros_bt_py_interfaces/srv/GetStorageFolders'
       })
 
-      get_folder_structure_service.value = new ROSLIB.Service({
+      get_folder_structure_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'get_folder_structure',
         serviceType: 'ros_bt_py_interfaces/srv/GetFolderStructure'
       })
 
-      get_package_structure_service.value = new ROSLIB.Service({
+      get_package_structure_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'get_package_structure',
         serviceType: 'ros_bt_py_interfaces/srv/GetPackageStructure'
       })
 
-      save_tree_service.value = new ROSLIB.Service({
+      save_tree_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'save_tree',
         serviceType: 'ros_bt_py_interfaces/srv/SaveTree'
       })
 
-      change_tree_name_service.value = new ROSLIB.Service({
+      change_tree_name_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'change_tree_name',
         serviceType: 'ros_bt_py_interfaces/srv/ChangeTreeName'
       })
 
-      load_tree_from_path_service.value = new ROSLIB.Service({
+      load_tree_from_path_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'load_tree_from_path',
         serviceType: 'ros_bt_py_interfaces/srv/LoadTreeFromPath'
@@ -640,9 +640,9 @@ export const useROSStore = defineStore(
   },
   {
     persist: {
-      paths: ['namespace', 'url', 'available_namespaces'],
+      pick: ['namespace', 'url', 'available_namespaces'],
       storage: localStorage,
-      afterRestore: (context) => {
+      afterHydrate: (context) => {
         context.store.updateROSServices()
         context.store.connect()
       }

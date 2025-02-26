@@ -100,7 +100,7 @@ function getIconSrc(nodeName: string): string {
         aria-hidden="true"
       />
     </div>
-    <div v-if="!nodelist_collapsed" class="d-flex flex-wrap m-1">
+    <div v-if="!nodelist_collapsed" class="d-flex flex-wrap justify-content-center m-1">
       <div
         v-for="node in flow_control_nodes"
         :key="node.node_class + node.module"

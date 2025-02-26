@@ -1655,5 +1655,5 @@ onMounted(() => {
 
 <!--Cannot use "scoped" here because that ignores elements added dynamically-->
 <style lang="scss">
-@use 'src/assets/editor.scss';
+@use '@/assets/editor.scss';
 </style>
