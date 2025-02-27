@@ -249,7 +249,7 @@ onMounted(() => {
           </div>
           <NodeList style="min-height: 0" />
         </div>
-        <div class="col d-flex flex-column" id="main_pane">
+        <div class="col-9 d-flex flex-column" id="main_pane">
           <div class="row justify-content-between bg-secondary">
             <!-- Show nodelist button -->
             <button
