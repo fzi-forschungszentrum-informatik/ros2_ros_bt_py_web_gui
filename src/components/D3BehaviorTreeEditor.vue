@@ -85,6 +85,8 @@ const pan_rate: number = 30
 const drag_pan_boundary: number = 50
 const pan_per_frame: number = 10.0
 
+const line_wrap_regex: RegExp = /[a-z][A-Z]|[_\- ][a-zA-Z]/gd
+
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
 
@@ -97,6 +99,10 @@ const io_edge_curve_factor: number = 0.0001
 const forest_root_name: string = '__forest_root'
 const node_padding: number = 10
 const node_spacing: number = 80
+const node_width: number = 300
+const icon_width: number = 30
+const node_name_height: number = 40
+const node_class_height: number = 30
 const drop_target_root_size: number = 150
 
 // constants for css classes & ids used with d3
@@ -104,7 +110,7 @@ const tree_node_css_class: string = 'node'
 const node_body_css_class: string = 'btnode'
 const node_name_css_class: string = 'node_name'
 const node_class_css_class: string = 'class_name'
-const node_state_css_class: string = 'icon'
+const node_state_css_class: string = 'state_icon'
 const tree_edge_css_class: string = 'link'
 const drop_target_css_class: string = 'drop_target'
 const data_vert_group_css_class: string = 'gripper-group'
@@ -142,7 +148,7 @@ function resetView() {
   const viewport = d3.select(viewport_ref.value)
   const height = viewport.node()!.getBoundingClientRect().height
 
-  viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
+  viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 60.0)
 }
 
 function buildNodeMessage(node: DocumentedNode): NodeMsg {
@@ -400,7 +406,12 @@ function drawNewNodes(
 
   group.append<SVGTextElement>('text')
       .classed(node_class_css_class, true)
-      .attr('dy', 40)
+
+  group.append('svg')
+      .classed(node_state_css_class, true)
+      .attr('width', icon_width)
+      .attr('height', icon_width)
+    .append('path')
   
 
   // The join pattern requires a return of the appended elements
@@ -424,6 +435,118 @@ function getIcon(state: string) {
   }
 }
 
+function layoutText(
+  element: SVGGElement
+): number {
+
+  // Track width of longest line and return that for box sizing
+  let max_width: number = 0
+
+  const group_elem = d3.select<SVGGElement, d3.HierarchyNode<TrimmedNode>>(element)
+
+  const name_elem = group_elem.select<SVGTextElement>('.' + node_name_css_class)
+  const class_elem = group_elem.select<SVGTextElement>('.' + node_class_css_class)
+
+  const node_name = group_elem.datum().data.name
+  const node_class = group_elem.datum().data.node_class
+
+  name_elem.selectAll<SVGTSpanElement, never>('tspan')
+    .remove()
+
+  class_elem.selectAll<SVGTSpanElement, never>('tspan')
+    .remove()
+
+  let title_lines: number = 0
+
+  // Find positions for potential line breaks
+  let wrap_indices: number[] = [0]
+  for(const match of node_name.matchAll(line_wrap_regex)) {
+    wrap_indices.push(match.index + 1)
+  }
+  wrap_indices.push(node_name.length)
+  wrap_indices.reverse()
+
+  // Place text into multiple lines
+  let current_index: number = 0
+  while (current_index < node_name.length) {
+
+    // Prepare DOM-element for next line
+    const tspan = name_elem.append('tspan')
+    tspan.attr('x', 0)
+    if (current_index > 0) {
+      tspan.attr('dy', node_name_height)
+    }
+
+    // Shorten current line until it is below max-width or consists of a single word
+    let new_idx: number = wrap_indices[0]
+    for (const idx of wrap_indices) {
+      if (idx <= current_index) {
+        break
+      }
+      tspan.text(node_name.slice(current_index, idx))
+      new_idx = idx
+      let width = node_width
+      if (current_index === 0) {
+        // Reduce width of first line to make space for icon
+        width -= icon_width + node_padding
+      } 
+      if (tspan.node()!.getComputedTextLength() < width) {
+        break
+      }
+    }
+
+    // Update variables for next line
+    if (current_index === 0) {
+      max_width = tspan.node()!.getComputedTextLength() + icon_width + node_padding
+    } else {
+      max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
+    }
+    current_index = new_idx
+    title_lines += 1
+  }
+
+  class_elem.attr('y', title_lines * node_name_height)
+
+  // Find positions for potential line breaks
+  wrap_indices = [0]
+  for(const match of node_class.matchAll(line_wrap_regex)) {
+    wrap_indices.push(match.index + 1)
+  }
+  wrap_indices.push(node_class.length)
+  wrap_indices.reverse()
+
+  // Place text into multiple lines
+  current_index = 0
+  while (current_index < node_class.length) {
+
+    // Prepare DOM-element for next line
+    const tspan = class_elem.append('tspan')
+    tspan.attr('x', 0)
+    if (current_index > 0) {
+      tspan.attr('dy', node_class_height)
+    }
+
+    // Shorten current line until it is below max-width or consists of a single word
+    let new_idx: number = wrap_indices[0]
+    for (const idx of wrap_indices) {
+      if (idx <= current_index) {
+        break // Nothing left to cut
+      }
+      tspan.text(node_class.slice(current_index, idx))
+      new_idx = idx
+      if (tspan.node()!.getComputedTextLength() < node_width) {
+        break // Line is short enough
+      }
+    }
+
+    // Update variables for next line
+    max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
+    current_index = new_idx
+  }
+
+  return max_width
+}
+
 function updateNodeBody(
   selection: d3.Selection<
     SVGGElement,
@@ -433,23 +556,10 @@ function updateNodeBody(
   >
 ) {
 
-  selection.select<SVGTextElement>('.' + node_name_css_class)
-      .text((d) => d.data.name)
-
-  selection.select<SVGTextElement>('.' + node_class_css_class)
-      .text((d) => d.data.node_class)
-
-  /*body.style('min-height', (d) => {
-      // We need to ensure a minimum height, in case the node body
-      // would otherwise be shorter than the number of grippers
-      // requires.
-      const inputs = d.data.inputs || []
-      const outputs = d.data.outputs || []
-      const max_num_grippers = Math.max(inputs.length, outputs.length)
-      return io_gripper_size * max_num_grippers + 
-        io_gripper_spacing * (max_num_grippers + 1) +
-        'px'
-    })*/
+  selection
+      .each(function (node) 
+        { node.data.size.width = layoutText(this) }
+      )
 
   // Reset width and height of background rect
   selection
@@ -468,9 +578,10 @@ function updateNodeBody(
       io_gripper_spacing * (max_num_grippers + 1)
     const rect = this.getBBox()
     d.data.offset.x = rect.x - node_padding
-    d.data.offset.y = rect.y - node_padding
-    d.data.size.width = rect.width + 2 * node_padding
-    d.data.size.height = Math.max(rect.height + 2 * node_padding, min_height)
+    d.data.offset.y = rect.y
+    // Width has already been set by text layout function
+    d.data.size.width += 2 * node_padding
+    d.data.size.height = Math.max(rect.height + node_padding, min_height)
   })
 
   selection
@@ -479,6 +590,25 @@ function updateNodeBody(
       .attr('y', (d) => d.data.offset.y)
       .attr('width', (d) => d.data.size.width)
       .attr('height', (d) => d.data.size.height)
+
+  selection
+    .select<SVGElement>('.' + node_state_css_class)
+      .attr('viewBox', (node) => {
+        const icon = getIcon(node.data.state)
+        return "0 0 " + icon[0] + " " + icon[1]
+      })
+      .attr('x', (node) => node.data.size.width - icon_width - 2 * node_padding)
+      .attr('y', (node) => node.data.offset.y + node_padding)
+    .select<SVGPathElement>('path')
+      .attr('d', (node) => {
+        const icon = getIcon(node.data.state)
+        if (typeof icon[4] === "string") {
+          return icon[4]
+        } else {
+          console.warn("Potentially unhandled multivalue path", icon[4])
+          return icon[4].join('')
+        }
+      })
 
   return selection
 }

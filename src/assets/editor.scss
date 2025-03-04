@@ -54,7 +54,18 @@ rect.selection {
 .btnode {
   fill: #2a2d36;
   stroke-width: 5px;
+}
 
+.lightmode .btnode {
+  fill: #dedede;
+}
+
+.node-selected {
+  fill: #27406d !important;
+}
+
+.lightmode .node-selected {
+  fill: #76a6ff !important;
 }
 
 .node_name, .class_name {
@@ -66,9 +77,25 @@ rect.selection {
   font-size: 36px;
 }
 
+.lightmode .node_name {
+  fill: black;
+}
+
 .class_name {
   fill: #858e99;
-  font-size: 24px;
+  font-size: 28px;
+}
+
+.lightmode .class_name {
+  fill: #454954;
+}
+
+.state_icon path {
+  fill: white;
+}
+
+.lightmode .state_icon path {
+  fill: black;
 }
 
 .label {
@@ -109,10 +136,4 @@ path.data-select {
 
 .drawing-indicator {
   pointer-events: none;
-}
-
-.btnode .icon {
-  width: 1.5em;
-  height: 1.5em;
-  margin-left: 5px;
 }
