@@ -217,7 +217,8 @@ export const enum Position {
   BOTTOM = 'bottom',
   LEFT = 'left',
   RIGHT = 'right',
-  CENTER = 'center'
+  CENTER = 'center',
+  ROOT = 'root'
 }
 
 export type TrimmedNodeData = {

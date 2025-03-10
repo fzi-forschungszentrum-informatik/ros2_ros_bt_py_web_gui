@@ -775,9 +775,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   // If there are no drop targets to draw, draw one at root
   // Adjust the size of the drop target here. Don't do this on init, it ruins the tree layout
   if (drop_targets.length === 0) {
-    tree_layout.data.size.width = drop_target_root_size
-    tree_layout.data.size.height = drop_target_root_size
-    drop_targets.push({ node: tree_layout, position: Position.BOTTOM })
+    drop_targets.push({ node: tree_layout, position: Position.ROOT })
   }
 
   // Join those with the existing drop targets and draw them
@@ -796,6 +794,8 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         case Position.BOTTOM:
         case Position.CENTER:
           return d.node.data.size.width
+        case Position.ROOT:
+          return drop_target_root_size
         default:
           return 0
       }
@@ -809,6 +809,8 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         case Position.TOP:
         case Position.BOTTOM:
           return 0.5 * node_spacing
+        case Position.ROOT:
+          return drop_target_root_size
         default:
           return 0
       }
@@ -1007,6 +1009,8 @@ function toggleExistingNodeTargets() {
             drop_target.node.parent!.data.child_names.length >=
               drop_target.node.parent!.data.max_children
           )
+        case Position.ROOT:
+          // This should never happen, as an existing node implies a non-empty tree
         default:
           return true
       }
@@ -1022,18 +1026,19 @@ async function addNewNode(drop_target: DropTarget) {
 
   const msg = buildNodeMessage(editor_store.dragging_new_node)
 
-  // Insert below at index 0, also handles root insert
-  if (drop_target.position === Position.BOTTOM) {
-    let parent_name = drop_target.node.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
-    await addNode(msg, parent_name, 0)
+  if (drop_target.position === Position.ROOT) {
+    await addNode(msg, '', 0)
     return
   }
 
   if (!drop_target.node.parent) {
     console.error('All non-root targets should have a set parent node')
+    return
+  }
+
+  if (drop_target.position === Position.BOTTOM) {
+    let parent_name = drop_target.node.data.name
+    await addNode(msg, parent_name, 0)
     return
   }
 
@@ -1121,6 +1126,8 @@ function toggleNewNodeTargets() {
             drop_target.node.parent!.data.child_names.length >=
               drop_target.node.parent!.data.max_children
           )
+        case Position.ROOT:
+          return false
         default:
           return true
       }
@@ -1584,7 +1591,7 @@ onMounted(() => {
   const viewport = d3.select(viewport_ref.value)
 
   zoomObject = d3.zoom<SVGSVGElement, unknown>()
-  zoomObject.scaleExtent([0.3, 10.0])
+  zoomObject.scaleExtent([0.3, 1.0])
 
   const container = d3.select<SVGGElement, never>(svg_g_ref.value)
 
