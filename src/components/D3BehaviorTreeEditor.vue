@@ -147,8 +147,10 @@ function resetView() {
   }
   const viewport = d3.select(viewport_ref.value)
   const height = viewport.node()!.getBoundingClientRect().height
+  const zoom_factor = d3.zoomTransform(viewport_ref.value).k
+  const offset = height * 0.5 / zoom_factor - 60.0
 
-  viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 60.0)
+  viewport.call(zoomObject.translateTo, 0.0, offset)
 }
 
 function buildNodeMessage(node: DocumentedNode): NodeMsg {
