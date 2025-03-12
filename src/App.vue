@@ -193,7 +193,7 @@ onMounted(() => {
       @mouseup="() => editor_store.stopDragging()"
       @mouseleave="() => editor_store.stopDragging()"
     >
-      <div class="row row-height">
+      <div class="row" :class="execution_bar_visible ? 'row-height' : 'vh-100'">
         <div v-if="nodelist_visible" id="nodelist_container" class="col-3 d-flex flex-column h-100">
           <div class="d-flex justify-content-between m-1 mt-2">
             <button
@@ -249,7 +249,11 @@ onMounted(() => {
           </div>
           <NodeList style="min-height: 0" />
         </div>
-        <div id="main_pane" class="col-9 d-flex flex-column">
+        <div 
+          id="main_pane" 
+          class="d-flex flex-column"
+          :class="nodelist_visible ? 'col-9' : 'col-12'"
+        >
           <div class="row justify-content-between bg-secondary">
             <!-- Show nodelist button -->
             <button
