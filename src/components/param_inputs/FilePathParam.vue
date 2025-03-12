@@ -92,11 +92,11 @@ function selectFile(path: string) {
         disabled
       />
       <button class="btn btn-primary" @click="showPackageModal">
-        <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
         <span class="ms-1">Package</span>
       </button>
       <button class="btn btn-primary" @click="showFileModal">
-        <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
         <span className="ms-1">File</span>
       </button>
     </div>

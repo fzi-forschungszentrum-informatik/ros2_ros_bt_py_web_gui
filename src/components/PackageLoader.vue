@@ -52,8 +52,8 @@ function handlePackageNameChange(event: Event) {
   <div class="border rounded mb-2">
     <div class="text-center cursor-pointer font-weight-bold m-2" @click="toggleCollapsed">
       Package Loader
-      <font-awesome-icon v-if="!collapsed" icon="fa-solid fa-angle-up" aria-hidden="true" />
-      <font-awesome-icon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
+      <FontAwesomeIcon v-if="!collapsed" icon="fa-solid fa-angle-up" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fa-solid fa-angle-down" aria-hidden="true" />
     </div>
     <div v-if="!collapsed" class="m-2">
       <div class="d-grid gap-2 mb-2">

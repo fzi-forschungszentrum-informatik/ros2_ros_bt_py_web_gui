@@ -420,7 +420,7 @@ function saveTree() {
       :disabled="editor_store.selected_subtree.is_subtree"
       @click="() => newTree()"
     >
-      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
       <span class="ms-1 hide-button-text">New</span>
     </button>
     <div class="btn-group btn-spaced" role="group">
@@ -432,7 +432,7 @@ function saveTree() {
         aria-expanded="false"
         :disabled="editor_store.selected_subtree.is_subtree"
       >
-        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
         <span class="ms-1 hide-button-text">Load</span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
@@ -443,7 +443,7 @@ function saveTree() {
             :disabled="editor_store.selected_subtree.is_subtree"
             @click="() => loadFromPackage()"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
+            <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
             <span class="ms-1">Package</span>
           </button>
         </li>
@@ -454,7 +454,7 @@ function saveTree() {
             :disabled="editor_store.selected_subtree.is_subtree"
             @click="() => loadFromFile()"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
+            <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
             <span className="ms-1">File</span>
           </button>
         </li>
@@ -466,7 +466,7 @@ function saveTree() {
       :disabled="editor_store.selected_subtree.is_subtree"
       @click="() => saveToFile()"
     >
-      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Save</span>
     </button>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
@@ -476,7 +476,7 @@ function saveTree() {
       :disabled="editor_store.selected_subtree.is_subtree"
       @click="() => openFileDialog()"
     >
-      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
     <button
@@ -485,7 +485,7 @@ function saveTree() {
       :disabled="editor_store.selected_subtree.is_subtree"
       @click="() => saveTree()"
     >
-      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Download</span>
     </button>
   </div>

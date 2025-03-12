@@ -205,7 +205,7 @@ onMounted(() => {
                 }
               "
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 icon="fa-solid fa-angle-double-left"
                 aria-hidden="true"
                 class="show-button-icon"
@@ -217,11 +217,11 @@ onMounted(() => {
               title="Change window appearance"
               @click="dark_mode = !dark_mode"
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 :class="dark_mode ? '' : 'text-secondary'"
                 icon="fa-regular fa-moon"
               />
-              <font-awesome-icon
+              <FontAwesomeIcon
                 :class="!dark_mode ? '' : 'text-secondary'"
                 icon="fa-regular fa-sun"
               />
@@ -262,7 +262,7 @@ onMounted(() => {
                 }
               "
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 icon="fa-solid fa-angle-double-right"
                 aria-hidden="true"
                 class="show-button-icon"

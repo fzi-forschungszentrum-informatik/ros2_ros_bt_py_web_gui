@@ -50,7 +50,7 @@ const editor_store = useEditorStore()
         title="Toggle Data Graph"
         @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
       >
-        <font-awesome-icon
+        <FontAwesomeIcon
           :class="editor_store.show_data_graph ? 'text-white' : 'text-white-50'"
           icon="fa-solid fa-route"
         />
@@ -61,7 +61,7 @@ const editor_store = useEditorStore()
         title="Hide User Interface"
         @click="emits('hide')"
       >
-        <font-awesome-icon icon="fa-solid fa-window-maximize" />
+        <FontAwesomeIcon icon="fa-solid fa-window-maximize" />
       </button>
       <button
         v-else
@@ -69,18 +69,18 @@ const editor_store = useEditorStore()
         title="Show User Interface"
         @click="emits('show')"
       >
-        <font-awesome-icon icon="fa-solid fa-window-restore" />
+        <FontAwesomeIcon icon="fa-solid fa-window-restore" />
       </button>
       <button
         class="btn btn-primary btn-spaced"
         title="Change tree layout (layers/subtrees)"
         @click="() => (editor_store.is_layer_mode = !editor_store.is_layer_mode)"
       >
-        <font-awesome-icon
+        <FontAwesomeIcon
           :class="editor_store.is_layer_mode ? 'text-white' : 'text-white-50'"
           icon="fa-solid fa-layer-group"
         />
-        <font-awesome-icon
+        <FontAwesomeIcon
           :class="editor_store.is_layer_mode ? 'text-white-50' : 'text-white'"
           icon="fa-solid fa-tree"
         />
@@ -90,11 +90,11 @@ const editor_store = useEditorStore()
         title="Change editor appearance"
         @click="editor_store.cycleEditorSkin"
       >
-        <font-awesome-icon
+        <FontAwesomeIcon
           :class="editor_store.skin === EditorSkin.DARK ? 'text-white' : 'text-white-50'"
           icon="fa-solid fa-moon"
         />
-        <font-awesome-icon
+        <FontAwesomeIcon
           :class="editor_store.skin === EditorSkin.LIGHT ? 'text-white' : 'text-white-50'"
           icon="fa-solid fa-sun"
         />

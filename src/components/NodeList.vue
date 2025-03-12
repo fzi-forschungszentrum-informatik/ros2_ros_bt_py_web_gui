@@ -74,7 +74,7 @@ const nodes = computed<DocumentedNode[]>(() => {
       @click="nodelist_collapsed = !nodelist_collapsed"
     >
       Node List
-      <font-awesome-icon
+      <FontAwesomeIcon
         :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
         aria-hidden="true"
       />

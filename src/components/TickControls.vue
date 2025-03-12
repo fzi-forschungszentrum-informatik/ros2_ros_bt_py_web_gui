@@ -80,13 +80,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Tick Once"
       @click="() => controlExec(TreeExecutionCommands.TICK_ONCE)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.TICK_ONCE)"
         icon="fas fa-check"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-check" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-check" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control">Tick Once</span>
     </button>
     <button
@@ -94,13 +94,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Tick Periodically"
       @click="() => controlExec(TreeExecutionCommands.TICK_PERIODICALLY)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.TICK_PERIODICALLY)"
         icon="fas fa-sync"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-sync" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-sync" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control"> Tick Periodically </span>
     </button>
     <button
@@ -108,13 +108,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Tick Until Result"
       @click="() => controlExec(TreeExecutionCommands.TICK_UNTIL_RESULT)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.TICK_UNTIL_RESULT)"
         icon="fas fa-play"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-play" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-play" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control"> Tick Until Result </span>
     </button>
     <button
@@ -122,13 +122,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Stop"
       @click="() => controlExec(TreeExecutionCommands.STOP)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.STOP)"
         icon="fas fa-stop"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-stop" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-stop" aria-hidden="true" />
       <i class="{stop_classes}"></i>
       <span class="ms-1 hide-button-text-control">Stop</span>
     </button>
@@ -137,13 +137,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Reset"
       @click="() => controlExec(TreeExecutionCommands.RESET)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.RESET)"
         icon="fas fa-undo"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-undo" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-undo" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control">Reset</span>
     </button>
     <button
@@ -151,13 +151,13 @@ function controlExec(command: TreeExecutionCommands) {
       title="Shutdown"
       @click="() => controlExec(TreeExecutionCommands.SHUTDOWN)"
     >
-      <font-awesome-icon
+      <FontAwesomeIcon
         v-if="editor_store.running_commands.has(TreeExecutionCommands.SHUTDOWN)"
         icon="fas fa-power-off"
         spin
         aria-hidden="true"
       />
-      <font-awesome-icon v-else icon="fas fa-power-off" aria-hidden="true" />
+      <FontAwesomeIcon v-else icon="fas fa-power-off" aria-hidden="true" />
       <span class="ms-1 hide-button-text-control">Shutdown</span>
     </button>
   </div>

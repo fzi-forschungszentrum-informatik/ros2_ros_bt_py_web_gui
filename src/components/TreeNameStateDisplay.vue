@@ -185,7 +185,7 @@ function renameTree(): void {
           :style="tree_state_styles"
           style="width: 12em"
         >
-          <font-awesome-icon :icon="tree_state_icon" class="me-2" />
+          <FontAwesomeIcon :icon="tree_state_icon" class="me-2" />
           {{ tree_state }}
         </label>
       </div>

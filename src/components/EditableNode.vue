@@ -90,7 +90,7 @@ const show_description = ref<boolean>(false)
         @click="() => show_description = !show_description"
       >
         <h5>Description</h5>
-        <font-awesome-icon
+        <FontAwesomeIcon
           :icon="'fa-solid ' + (show_description ? 'fa-angle-up' : 'fa-angle-down')"
           aria-hidden="true"
           class="ms-2"

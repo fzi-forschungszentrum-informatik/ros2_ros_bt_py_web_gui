@@ -127,7 +127,7 @@ onMounted(updateAvailableNamespaces)
 
 <template>
   <div class="d-flex align-items-center">
-    <font-awesome-icon
+    <FontAwesomeIcon
       icon="fa-solid fa-wifi"
       aria-hidden="true"
       class="mx-2 fs-4"
@@ -141,7 +141,7 @@ onMounted(updateAvailableNamespaces)
         title="Edit rosbridge server"
         @click="editRosbridgeServer"
       >
-        <font-awesome-icon
+        <FontAwesomeIcon
           aria-hidden="true"
           :icon="'fa-solid ' + (edit_rosbridge_server ? 'fa-xmark' : 'fa-cog')"
         />
@@ -177,7 +177,7 @@ onMounted(updateAvailableNamespaces)
         </option>
       </select>
       <button type="button" class="btn btn-outline-contrast" @click="updateAvailableNamespaces">
-        <font-awesome-icon icon="fa-solid fa-sync" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-sync" aria-hidden="true" />
         <span class="sr-only">Refresh Namespaces</span>
       </button>
     </div>

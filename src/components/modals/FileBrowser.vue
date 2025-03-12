@@ -283,7 +283,7 @@ onMounted(() => {
 
 <template>
   <button class="btn float-end" @click="emit('close')">
-    <font-awesome-icon class="fa-3x" style="opacity: 0.1" icon="fa-solid fa-xmark" />
+    <FontAwesomeIcon class="fa-3x" style="opacity: 0.1" icon="fa-solid fa-xmark" />
   </button>
 
   <h1 class="fs-1 mb-3 mt-4 mx-4">{{ props.title }}</h1>
@@ -299,7 +299,7 @@ onMounted(() => {
         :placeholder="'Search ' + props.location + ' Name'"
       />
       <button class="btn btn-outline-secondary" @click="setChosenLocation(null)">
-        <font-awesome-icon icon="fa-solid fa-xmark" />
+        <FontAwesomeIcon icon="fa-solid fa-xmark" />
       </button>
     </div>
     <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
@@ -309,7 +309,7 @@ onMounted(() => {
         class="btn btn-outline-contrast ms-4 mb-3 text-start"
         @click="setChosenLocation(location)"
       >
-        <font-awesome-icon icon="fa-solid fa-cubes" class="me-1" />
+        <FontAwesomeIcon icon="fa-solid fa-cubes" class="me-1" />
         {{ location.package }}
       </button>
     </div>
@@ -321,7 +321,7 @@ onMounted(() => {
           class="btn btn-outline-secondary"
           @click="setCurrentFolder(current_folder.parent!)"
         >
-          <font-awesome-icon icon="fa-solid fa-angle-up" />
+          <FontAwesomeIcon icon="fa-solid fa-angle-up" />
         </button>
         <button
           v-for="elem in current_folder.ancestors().slice(0, -1).reverse()"
@@ -340,12 +340,12 @@ onMounted(() => {
           :class="{ active: elem.data.item_id === current_item?.data.item_id }"
           @click="setCurrentFolder(elem)"
         >
-          <font-awesome-icon
+          <FontAwesomeIcon
             v-if="elem.data.type === FileType.DIR"
             icon="fa-solid fa-folder-open"
             style="width: 20px"
           />
-          <font-awesome-icon
+          <FontAwesomeIcon
             v-if="elem.data.type === FileType.FILE"
             icon="fa-solid fa-file-code"
             style="width: 20px"
