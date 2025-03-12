@@ -17,7 +17,7 @@ export default typescriptEslint.config(
 
         languageOptions: {
             ecmaVersion: "latest",
-            sourceType: "script",
+            sourceType: "module",
             globals: globals.browser,
             parserOptions: {
                 parser: typescriptEslint.parser,
