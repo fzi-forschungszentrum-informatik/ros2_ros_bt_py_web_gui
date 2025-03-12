@@ -317,6 +317,7 @@ function handleFileRead() {
 
     loadTreeMsg(msg!)
   } catch (e) {
+    console.warn(e)
     if (ros_store.fix_yaml_service === undefined) {
       notify({
         title: 'Service is unavailable!',

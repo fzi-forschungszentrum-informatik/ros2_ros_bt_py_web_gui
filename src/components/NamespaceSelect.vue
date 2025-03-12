@@ -44,7 +44,7 @@ const packages_store = usePackageStore()
 const edit_rosbridge_server = ref<boolean>(false)
 const new_url = ref<string>(ros_store.url)
 
-const connection_status_attrs = computed<any>(() => {
+const connection_status_attrs = computed<object>(() => {
   if (!ros_store.connected) {
     return {
       class: 'disconnected',

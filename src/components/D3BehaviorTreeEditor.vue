@@ -54,7 +54,7 @@ import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import { faBolt, faCheck, faPause, faPowerOff, faXmark, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { faBolt, faCheck, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -124,7 +124,7 @@ const data_graph_select_css_class: string = 'data-select'
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
-let tree_transition: d3.Transition<any, any, any, any>
+let tree_transition: d3.Transition<d3.BaseType, unknown, null, undefined>
 
 function resetView() {
   if (
@@ -240,7 +240,9 @@ function dragPanTimerHandler() {
 
 watchEffect(drawEverything)
 function drawEverything() {
-  if (g_vertices_ref.value === undefined) {
+  if (svg_g_ref.value === undefined || 
+    g_vertices_ref.value === undefined
+  ) {
     console.warn('DOM is broken')
     return
   }
@@ -250,8 +252,12 @@ function drawEverything() {
     return
   }
 
-  // Prepare transition config for synchronization
-  tree_transition = d3.transition().duration(100).ease(d3.easeQuad)
+  // Prepare transition config for synchronization, the typed select statement is necessary to give the transition appropriate typing
+  tree_transition = d3
+    .select<d3.BaseType, unknown>(svg_g_ref.value)
+    .transition('tree-transition')
+      .duration(100)
+      .ease(d3.easeQuad)
 
   const onlyKeyAndType = (nodeData: NodeData) =>
     ({

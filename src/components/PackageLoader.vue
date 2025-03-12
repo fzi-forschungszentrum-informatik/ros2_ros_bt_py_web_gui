@@ -57,7 +57,8 @@ function handlePackageNameChange(event: Event) {
     </div>
     <div v-if="!collapsed" class="m-2">
       <div class="d-grid gap-2 mb-2">
-        <button id="refresh" 
+        <button
+          id="refresh" 
           class="btn btn-block btn-primary mt-2" 
           @click="() => nodes_store.getNodes('')"
         >

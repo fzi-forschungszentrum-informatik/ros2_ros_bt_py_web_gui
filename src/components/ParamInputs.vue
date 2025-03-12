@@ -76,14 +76,14 @@ const param_type = computed<string>(() => {
 // Below lists the data types that are handled by <input>...
 const input_type_values = ['int', 'float', 'bool', 'str', 'unset_optionref']
 //  ...and gives the appropriate attributes.
-const input_attrs = computed<any>(() => {
+const input_attrs = computed<object | undefined>(() => {
   if (param.value === undefined ||
     !input_type_values.includes(param_type.value)
   ) {
     return undefined
   }
   let type: string,
-    value: any,
+    value: string | number | boolean | undefined,
     step: number | 'any' = 'any',
     cssclass: string[] = ['form-control'],
     checked: boolean = false,
@@ -126,7 +126,7 @@ function onChange(event: Event) {
     return
   }
   const target = event.target as HTMLInputElement
-  let new_value: any
+  let new_value: boolean | number | string
   switch (param.value.value.type) {
     case 'int':
       new_value = parseInt(target.value)

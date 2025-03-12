@@ -86,7 +86,8 @@ const show_description = ref<boolean>(false)
       " 
       class="mb-3"
     >
-      <div class="d-flex align-items-baseline cursor-pointer" 
+      <div
+        class="d-flex align-items-baseline cursor-pointer" 
         @click="() => show_description = !show_description"
       >
         <h5>Description</h5>

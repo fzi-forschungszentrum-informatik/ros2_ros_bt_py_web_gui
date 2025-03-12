@@ -138,12 +138,15 @@ const options = {
         <label class="d-block">
             {{ param.key }}
         </label>
-        <select @change="handleChange" class="form-select"
-        :value="(param.value.value as PyOperator).operator" 
-        :disabled="editor_store.selected_subtree.is_subtree" 
+        <select
+            class="form-select" 
+            :value="(param.value.value as PyOperator).operator"
+            :disabled="editor_store.selected_subtree.is_subtree" 
+            @change="handleChange" 
         >
-            <option v-for="operator_option in options[props.op_type]" 
-            :key="operator_option" :value="operator_option"
+            <option
+                v-for="operator_option in options[props.op_type]" 
+                :key="operator_option" :value="operator_option"
             >
                 {{ operator_option }}
             </option>

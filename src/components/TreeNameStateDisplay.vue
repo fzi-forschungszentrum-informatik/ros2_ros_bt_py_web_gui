@@ -56,7 +56,7 @@ const tree_state = computed<TreeState>(() => {
   }
 })
 
-const tree_state_styles = computed<any>(() => {
+const tree_state_styles = computed<object>(() => {
   let bg_color_var = ''
   //let border_color_var = '--bs-body-color'
   switch (tree_state.value) {

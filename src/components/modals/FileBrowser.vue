@@ -304,13 +304,13 @@ onMounted(() => {
     </div>
     <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
       <button
-        v-for="location in location_search_results"
-        :key="location.path"
+        v-for="loc in location_search_results"
+        :key="loc.path"
         class="btn btn-outline-contrast ms-4 mb-3 text-start"
-        @click="setChosenLocation(location)"
+        @click="setChosenLocation(loc)"
       >
         <FontAwesomeIcon icon="fa-solid fa-cubes" class="me-1" />
-        {{ location.package }}
+        {{ loc.package }}
       </button>
     </div>
     <div v-else-if="current_folder !== null">
