@@ -51,6 +51,7 @@ export default defineConfig({
           fusejs: ['fuse.js'],
           'vue-extras': [
             'vue-final-modal',
+            'vue-inline-svg',
             'velocity-animate',
             'focus-trap',
             '@kyvg/vue3-notification'
