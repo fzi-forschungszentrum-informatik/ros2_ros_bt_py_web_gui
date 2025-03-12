@@ -928,7 +928,7 @@ async function addNewNode(drop_target: DropTarget) {
     if (parent_name === forest_root_name) {
       parent_name = ''
     }
-    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+    const index = drop_target.node.parent.children!.indexOf(drop_target.node)
 
     // Care has to be taken regarding order of operations to not overload the parent node.
     // Insert at top temporarily
@@ -1536,7 +1536,7 @@ onMounted(() => {
 
       sel_rect.attr('width', width).attr('height', height)
 
-      let temp_selected_nodes: string[] = []
+      const temp_selected_nodes: string[] = []
 
       // Update which nodes are in the selection
       d3.select<SVGGElement, never>(g_vertices_ref.value)
@@ -1620,24 +1620,24 @@ onMounted(() => {
 <template>
   <svg id="editor_viewport" ref="viewport_ref" class="reactive-svg" :class="editor_store.skin">
     <g id="container" ref="svg_g_ref">
-      <g class="edges" ref="g_edges_ref" />
-      <g class="vertices" ref="g_vertices_ref" />
+      <g ref="g_edges_ref" class="edges" />
+      <g ref="g_vertices_ref" class="vertices" />
       <g
-        class="data_graph"
         ref="g_data_graph_ref"
+        class="data_graph"
         :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'"
       >
-        <g class="data_edges" ref="g_data_edges_ref" />
-        <g class="data_vertices" ref="g_data_vertices_ref" />
+        <g ref="g_data_edges_ref" class="data_edges" />
+        <g ref="g_data_vertices_ref" class="data_vertices" />
         <!--Below is used to pull elements to the foreground on hover-->
         <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none" />
         <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none" />
         <use :href="'#' + data_edge_highlight_css_id" pointer-events="none" />
       </g>
-      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()" />
+      <g ref="g_drop_targets_ref" class="drop_targets" :visibility="dropTargetGroupVisibility()" />
 
-      <path class="drawing-indicator" ref="draw_indicator_ref" />
-      <rect class="selection" ref="selection_rect_ref" />
+      <path ref="draw_indicator_ref" class="drawing-indicator" />
+      <rect ref="selection_rect_ref" class="selection" />
     </g>
     <text
       x="10"

@@ -222,8 +222,8 @@ function saveSubtree(tree: TreeMsg) {
         <button class="btn btn-primary" @click="selectSubtreeSaveLocation">Select Location</button>
         <button
           class="btn btn-primary"
-          @click="generateSubtree"
           :disabled="storage_location === '' || file_path === ''"
+          @click="generateSubtree"
         >
           Save Subtree
         </button>
@@ -259,9 +259,9 @@ function saveSubtree(tree: TreeMsg) {
       <div class="input-group mb-3">
         <span class="input-group-text">Name:</span>
         <input
+          v-model="name"
           class="form-control"
           type="text"
-          v-model="name"
           placeholder="Name"
           aria-label="SubreeName"
           aria-describedby="subtree-name"

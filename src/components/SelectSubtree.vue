@@ -118,8 +118,8 @@ const selected_name = computed<string>(() => {
     </select>
 
     <input
-      type="checkbox"
       :id="publish_subtrees_id"
+      type="checkbox"
       class="btn-check"
       autocomplete="off"
       :checked="editor_store.publish_subtrees"

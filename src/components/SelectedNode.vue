@@ -169,8 +169,8 @@ function onClickUpdate() {
       <div class="btn-group col-4">
         <button
           class="btn btn-primary"
-          @click="onClickUpdate"
           :disabled="!edit_node_store.node_is_valid || editor_store.selected_subtree.is_subtree"
+          @click="onClickUpdate"
         >
           Update Node
         </button>
@@ -178,15 +178,15 @@ function onClickUpdate() {
       <div class="btn-group col-8">
         <button
           class="btn btn-danger"
-          @click="onClickDelete"
           :disabled="editor_store.selected_subtree.is_subtree"
+          @click="onClickDelete"
         >
           Delete Node
         </button>
         <button
           class="btn btn-danger"
-          @click="onClickDeleteWithChildren"
           :disabled="editor_store.selected_subtree.is_subtree"
+          @click="onClickDeleteWithChildren"
         >
           Delete Node + Children
         </button>

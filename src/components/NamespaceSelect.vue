@@ -138,8 +138,8 @@ onMounted(updateAvailableNamespaces)
       <button
         type="button"
         class="btn btn-outline-contrast"
-        @click="editRosbridgeServer"
         title="Edit rosbridge server"
+        @click="editRosbridgeServer"
       >
         <font-awesome-icon
           aria-hidden="true"
@@ -154,10 +154,10 @@ onMounted(updateAvailableNamespaces)
           placeholder="Websocket URL"
           aria-describedby="websocketURL"
           aria-label="Websocket URL"
-          v-bind:value="new_url"
+          :value="new_url"
           @change="changeRosbridgeServer"
         />
-        <button type="button" @click="saveRosbridgeServer" class="btn btn-primary">Save</button>
+        <button type="button" class="btn btn-primary" @click="saveRosbridgeServer">Save</button>
       </template>
     </div>
 
@@ -165,13 +165,13 @@ onMounted(updateAvailableNamespaces)
       <label class="input-group-text">Namespace</label>
       <select
         class="form-select w-auto"
-        v-bind:value="ros_store.namespace"
+        :value="ros_store.namespace"
         @change="handleNamespaceChange"
       >
         <option
           v-for="namespace in ros_store.available_namespaces"
-          v-bind:key="namespace"
-          v-bind:value="namespace"
+          :key="namespace"
+          :value="namespace"
         >
           {{ namespace }}
         </option>

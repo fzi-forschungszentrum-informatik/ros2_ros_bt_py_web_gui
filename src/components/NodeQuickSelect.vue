@@ -91,8 +91,8 @@ function getIconSrc(nodeName: string): string {
 <template>
   <div class="border rounded mb-2">
     <div
-      @click="nodelist_collapsed = !nodelist_collapsed"
       class="w-100 text-center cursor-pointer m-2"
+      @click="nodelist_collapsed = !nodelist_collapsed"
     >
       Flow Control Nodes
       <font-awesome-icon

@@ -64,7 +64,7 @@ function selectFile(path: string) {
     return
   }
 
-  let file_path_obj = param.value.value.value as PyFilePath
+  const file_path_obj = param.value.value.value as PyFilePath
   file_path_obj.path = path
 
   edit_node_store.updateParamValue(param.value.value.type, param.value.key, file_path_obj)

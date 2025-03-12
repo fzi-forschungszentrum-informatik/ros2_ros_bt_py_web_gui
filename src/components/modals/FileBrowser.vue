@@ -298,7 +298,7 @@ onMounted(() => {
         class="form-control"
         :placeholder="'Search ' + props.location + ' Name'"
       />
-      <button @click="setChosenLocation(null)" class="btn btn-outline-secondary">
+      <button class="btn btn-outline-secondary" @click="setChosenLocation(null)">
         <font-awesome-icon icon="fa-solid fa-xmark" />
       </button>
     </div>
@@ -306,8 +306,8 @@ onMounted(() => {
       <button
         v-for="location in location_search_results"
         :key="location.path"
-        @click="setChosenLocation(location)"
         class="btn btn-outline-contrast ms-4 mb-3 text-start"
+        @click="setChosenLocation(location)"
       >
         <font-awesome-icon icon="fa-solid fa-cubes" class="me-1" />
         {{ location.package }}
@@ -318,16 +318,16 @@ onMounted(() => {
       <div class="input-group mb-3">
         <button
           :disabled="current_folder.parent === null"
-          @click="setCurrentFolder(current_folder.parent!)"
           class="btn btn-outline-secondary"
+          @click="setCurrentFolder(current_folder.parent!)"
         >
           <font-awesome-icon icon="fa-solid fa-angle-up" />
         </button>
         <button
           v-for="elem in current_folder.ancestors().slice(0, -1).reverse()"
           :key="elem.data.item_id"
-          @click="setCurrentFolder(elem)"
           class="btn btn-outline-secondary"
+          @click="setCurrentFolder(elem)"
         >
           {{ elem.data.name }}
         </button>
@@ -336,19 +336,19 @@ onMounted(() => {
         <button
           v-for="elem in item_search_results"
           :key="elem.data.item_id"
-          @click="setCurrentFolder(elem)"
           class="btn btn-outline-contrast ms-4 mb-3 text-start"
           :class="{ active: elem.data.item_id === current_item?.data.item_id }"
+          @click="setCurrentFolder(elem)"
         >
           <font-awesome-icon
+            v-if="elem.data.type === FileType.DIR"
             icon="fa-solid fa-folder-open"
             style="width: 20px"
-            v-if="elem.data.type === FileType.DIR"
           />
           <font-awesome-icon
+            v-if="elem.data.type === FileType.FILE"
             icon="fa-solid fa-file-code"
             style="width: 20px"
-            v-if="elem.data.type === FileType.FILE"
           />
           {{ elem.data.name }}
         </button>

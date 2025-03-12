@@ -47,8 +47,8 @@ const editor_store = useEditorStore()
     <div class="btn-group">
       <button
         class="btn btn-primary"
-        @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
         title="Toggle Data Graph"
+        @click="editor_store.enableShowDataGraph(!editor_store.show_data_graph)"
       >
         <font-awesome-icon
           :class="editor_store.show_data_graph ? 'text-white' : 'text-white-50'"
@@ -58,23 +58,23 @@ const editor_store = useEditorStore()
       <button
         v-if="props.execBarVisible"
         class="btn btn-primary btn-spaced"
-        @click="emits('hide')"
         title="Hide User Interface"
+        @click="emits('hide')"
       >
         <font-awesome-icon icon="fa-solid fa-window-maximize" />
       </button>
       <button
         v-else
         class="btn btn-primary btn-spaced"
-        @click="emits('show')"
         title="Show User Interface"
+        @click="emits('show')"
       >
         <font-awesome-icon icon="fa-solid fa-window-restore" />
       </button>
       <button
         class="btn btn-primary btn-spaced"
-        @click="() => (editor_store.is_layer_mode = !editor_store.is_layer_mode)"
         title="Change tree layout (layers/subtrees)"
+        @click="() => (editor_store.is_layer_mode = !editor_store.is_layer_mode)"
       >
         <font-awesome-icon
           :class="editor_store.is_layer_mode ? 'text-white' : 'text-white-50'"
@@ -87,8 +87,8 @@ const editor_store = useEditorStore()
       </button>
       <button
         class="btn btn-primary btn-spaced"
-        @click="editor_store.cycleEditorSkin"
         title="Change editor appearance"
+        @click="editor_store.cycleEditorSkin"
       >
         <font-awesome-icon
           :class="editor_store.skin === EditorSkin.DARK ? 'text-white' : 'text-white-50'"

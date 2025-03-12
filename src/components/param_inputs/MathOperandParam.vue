@@ -56,7 +56,7 @@ import type { PyOperand } from '@/types/python_types';
  
      const target = event.target as HTMLSelectElement
  
-     let operand_obj = param.value.value.value as PyOperand
+     const operand_obj = param.value.value.value as PyOperand
      operand_obj.operand_type = target.value
  
      edit_node_store.updateParamValue(param.value.value.type, param.value.key, operand_obj)
@@ -85,7 +85,7 @@ import type { PyOperand } from '@/types/python_types';
          </label>
          <select @change="handleChange" class="form-select"
          :value="(param.value.value as PyOperand).operand_type" 
-         :disabled="editor_store.selected_subtree.is_subtree"
+         :disabled="editor_store.selected_subtree.is_subtree" 
          >
              <option v-for="operator_option in options[props.op_type]" 
              :key="operator_option" :value="operator_option"
