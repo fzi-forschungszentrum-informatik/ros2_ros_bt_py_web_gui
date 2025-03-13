@@ -77,12 +77,12 @@ function setLoadLocation(path: string[], dir: boolean) {
     content-style="background-color: var(--bs-body-bg);"
   >
     <FileBrowser
-      @close="emit('close')"
       :file_filter="file_filter"
       :from-packages="props.fromPackages"
       :title="'Select File from ' + (props.fromPackages ? 'Package' : 'Folder')"
       :location="props.fromPackages ? 'Package' : 'Folder'"
       :search_term="search_term"
+      @close="emit('close')"
       @location="(location) => (storage_location = location)"
       @select="(path, dir) => setLoadLocation(path, dir)"
     >

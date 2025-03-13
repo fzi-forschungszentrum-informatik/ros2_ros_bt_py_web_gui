@@ -56,7 +56,7 @@ function handleChange(event: Event) {
 
     const target = event.target as HTMLSelectElement
 
-    let operator_obj = param.value.value.value as PyOperator
+    const operator_obj = param.value.value.value as PyOperator
     operator_obj.operator = target.value
 
     edit_node_store.updateParamValue(param.value.value.type, param.value.key, operator_obj)
@@ -138,12 +138,15 @@ const options = {
         <label class="d-block">
             {{ param.key }}
         </label>
-        <select @change="handleChange" class="form-select"
-        :value="(param.value.value as PyOperator).operator" 
-        :disabled="editor_store.selected_subtree.is_subtree"
+        <select
+            class="form-select" 
+            :value="(param.value.value as PyOperator).operator"
+            :disabled="editor_store.selected_subtree.is_subtree" 
+            @change="handleChange" 
         >
-            <option v-for="operator_option in options[props.op_type]" 
-            :key="operator_option" :value="operator_option"
+            <option
+                v-for="operator_option in options[props.op_type]" 
+                :key="operator_option" :value="operator_option"
             >
                 {{ operator_option }}
             </option>

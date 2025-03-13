@@ -182,17 +182,17 @@ function saveTree() {
     <FileBrowser
       location="Folder"
       title="Save Tree to Folder"
-      @close="emit('close')"
       :file_filter="file_filter"
       :search_term="input_file_name"
+      @close="emit('close')"
       @location="(location) => (storage_location = location)"
       @select="(path, dir) => setSaveLocation(path, dir)"
     >
       <div class="d-flex justify-content-between mb-3">
         <button
           class="btn btn-primary me-2"
-          @click="saveTree"
           :disabled="!file_type_regex.test(input_file_name)"
+          @click="saveTree"
         >
           Save
         </button>
@@ -201,7 +201,7 @@ function saveTree() {
           <option :value="undefined">All files</option>
         </select>
         <select v-model="handle_name_conflict" class="form-select">
-          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt" :key="opt">
+          <option v-for="opt in Object.values(NameConflictHandler)" :key="opt" :value="opt">
             {{ opt }}
           </option>
         </select>

@@ -83,9 +83,9 @@ function setLocation(path: string[], dir: boolean) {
     <FileBrowser
       location="Folder"
       title="Save Tree to Folder"
-      @close="emit('close')"
       :file_filter="file_filter"
       :search_term="input_file_name"
+      @close="emit('close')"
       @location="(location) => (storage_location = location)"
       @select="(path, dir) => setLocation(path, dir)"
     >
@@ -102,7 +102,7 @@ function setLocation(path: string[], dir: boolean) {
           <option :value="undefined">All files</option>
         </select>
         <select v-model="handle_name_conflict" class="form-select">
-          <option v-for="opt in Object.values(NameConflictHandler)" :value="opt" :key="opt">
+          <option v-for="opt in Object.values(NameConflictHandler)" :key="opt" :value="opt">
             {{ opt }}
           </option>
         </select>

@@ -43,7 +43,7 @@ export const useMessasgeStore = defineStore('messages', () => {
     isCaseSensitive: false,
     ignoreLocation: true,
     useExtendedSearch: true
-  } as IFuseOptions<any>
+  } as IFuseOptions<string>
   const messages = ref<string[]>([])
   const messages_fuse = ref<Fuse<string>>(new Fuse([], messages_fuse_options))
   const messages_available = ref<boolean>(false)
@@ -52,7 +52,8 @@ export const useMessasgeStore = defineStore('messages', () => {
   //  to allow to search specific kinds of ros types dependent on what is needed.
   const ros_type_fuse_options = structuredClone(messages_fuse_options)
   ros_type_fuse_options.keys = []
-  const ros_name_fuse_options = structuredClone(messages_fuse_options)
+  // This type conversion is necessary, because we target a different type of data
+  const ros_name_fuse_options = structuredClone(messages_fuse_options) as unknown as IFuseOptions<Channel>
   ros_name_fuse_options.keys = ['name', 'type']
 
   const ros_topic_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))

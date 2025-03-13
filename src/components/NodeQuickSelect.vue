@@ -91,11 +91,11 @@ function getIconSrc(nodeName: string): string {
 <template>
   <div class="border rounded mb-2">
     <div
-      @click="nodelist_collapsed = !nodelist_collapsed"
       class="w-100 text-center cursor-pointer m-2"
+      @click="nodelist_collapsed = !nodelist_collapsed"
     >
       Flow Control Nodes
-      <font-awesome-icon
+      <FontAwesomeIcon
         :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
         aria-hidden="true"
       />
@@ -112,7 +112,7 @@ function getIconSrc(nodeName: string): string {
         @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
       >
         <template v-if="node.name === 'NameSwitch'">
-          <font-awesome-icon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
+          <FontAwesomeIcon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
         </template>
         <template v-else>
           <img :title="node.name" class="image" :src="getIconSrc(node.name)" />

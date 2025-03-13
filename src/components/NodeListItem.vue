@@ -94,12 +94,12 @@ function onClick() {
       {{ node.node_class }}
       </div>
       <div class="text-muted mx-2 my-auto">
-        <font-awesome-icon
+        <FontAwesomeIcon
           :icon="'fa-solid ' + node_type_icon"
         />
         {{ (node.max_children > 0 ? '(' + node.max_children + ')' : '') }}
       </div>
-      <font-awesome-icon
+      <FontAwesomeIcon
         :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
         class="cursor-pointer ms-auto p-1"
@@ -125,7 +125,7 @@ function onClick() {
             <div class="fs-5">
               Description
             </div>
-            <font-awesome-icon
+            <FontAwesomeIcon
               :icon="'fa-solid ' + (show_description ? 'fa-angle-up' : 'fa-angle-down')"
               aria-hidden="true"
               class="cursor-pointer ms-auto"

@@ -118,8 +118,8 @@ const selected_name = computed<string>(() => {
     </select>
 
     <input
-      type="checkbox"
       :id="publish_subtrees_id"
+      type="checkbox"
       class="btn-check"
       autocomplete="off"
       :checked="editor_store.publish_subtrees"
@@ -127,7 +127,7 @@ const selected_name = computed<string>(() => {
     />
 
     <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
-      <font-awesome-icon
+      <FontAwesomeIcon
         :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
         icon="fa-solid fa-bullhorn"
       />

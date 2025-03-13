@@ -193,8 +193,8 @@ onMounted(() => {
       @mouseup="() => editor_store.stopDragging()"
       @mouseleave="() => editor_store.stopDragging()"
     >
-      <div class="row row-height">
-        <div class="col-3 d-flex flex-column h-100" id="nodelist_container" v-if="nodelist_visible">
+      <div class="row" :class="execution_bar_visible ? 'row-height' : 'vh-100'">
+        <div v-if="nodelist_visible" id="nodelist_container" class="col-3 d-flex flex-column h-100">
           <div class="d-flex justify-content-between m-1 mt-2">
             <button
               class="btn btn-outline-primary"
@@ -205,7 +205,7 @@ onMounted(() => {
                 }
               "
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 icon="fa-solid fa-angle-double-left"
                 aria-hidden="true"
                 class="show-button-icon"
@@ -214,14 +214,14 @@ onMounted(() => {
 
             <button
               class="btn btn-outline-primary"
-              @click="dark_mode = !dark_mode"
               title="Change window appearance"
+              @click="dark_mode = !dark_mode"
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 :class="dark_mode ? '' : 'text-secondary'"
                 icon="fa-regular fa-moon"
               />
-              <font-awesome-icon
+              <FontAwesomeIcon
                 :class="!dark_mode ? '' : 'text-secondary'"
                 icon="fa-regular fa-sun"
               />
@@ -236,10 +236,10 @@ onMounted(() => {
                 <label for="nodelist_search" class="input-group-text"> Search: </label>
                 <input
                   id="nodelist_search"
-                  type="text"
                   ref="nodelist_input_ref"
+                  type="text"
                   class="form-control"
-                  v-bind:value="node_search"
+                  :value="node_search"
                   placeholder="Node Name"
                   @input="handleNodeSearch"
                   @keydown="handleNodeSearchClear"
@@ -249,7 +249,11 @@ onMounted(() => {
           </div>
           <NodeList style="min-height: 0" />
         </div>
-        <div class="col d-flex flex-column" id="main_pane">
+        <div 
+          id="main_pane" 
+          class="d-flex flex-column"
+          :class="nodelist_visible ? 'col-9' : 'col-12'"
+        >
           <div class="row justify-content-between bg-secondary">
             <!-- Show nodelist button -->
             <button
@@ -262,7 +266,7 @@ onMounted(() => {
                 }
               "
             >
-              <font-awesome-icon
+              <FontAwesomeIcon
                 icon="fa-solid fa-angle-double-right"
                 aria-hidden="true"
                 class="show-button-icon"
@@ -333,7 +337,7 @@ onMounted(() => {
         </div>
       </div>
     </div>
-    <notifications position="bottom right" :pauseOnHover="true" />
+    <notifications position="bottom right" :pause-on-hover="true" />
     <ModalsContainer />
   </main>
 </template>

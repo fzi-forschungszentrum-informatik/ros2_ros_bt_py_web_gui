@@ -7,6 +7,7 @@
     "email": "oberacker@fzi.de",
     "url": "https://www.fzi.de/team/david-oberacker/"
   },
+  "type": "module",
   "license": "BSD-3-Clause",
   "scripts": {
     "dev": "vite",
@@ -16,7 +17,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
-    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore",
+    "lint": "eslint --fix",
     "format": "prettier --write src/"
   },
   "dependencies": {

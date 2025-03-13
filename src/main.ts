@@ -147,7 +147,7 @@ const pinia = createPinia()
 pinia.use(piniaPluginPersistedState)
 
 app.use(pinia)
-app.component('font-awesome-icon', FontAwesomeIcon)
+app.component('FontAwesomeIcon', FontAwesomeIcon)
 app.use(Notifications, { velocity })
 app.use(vfm)
 

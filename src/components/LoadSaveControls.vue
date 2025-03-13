@@ -317,6 +317,7 @@ function handleFileRead() {
 
     loadTreeMsg(msg!)
   } catch (e) {
+    console.warn(e)
     if (ros_store.fix_yaml_service === undefined) {
       notify({
         title: 'Service is unavailable!',
@@ -415,12 +416,12 @@ function saveTree() {
 <template>
   <div class="btn-group">
     <button
-      @click="() => newTree()"
       class="btn btn-primary"
       title="New tree"
       :disabled="editor_store.selected_subtree.is_subtree"
+      @click="() => newTree()"
     >
-      <font-awesome-icon icon="fa-solid fa-file" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
       <span class="ms-1 hide-button-text">New</span>
     </button>
     <div class="btn-group btn-spaced" role="group">
@@ -432,60 +433,60 @@ function saveTree() {
         aria-expanded="false"
         :disabled="editor_store.selected_subtree.is_subtree"
       >
-        <font-awesome-icon icon="fa-solid fa-folder" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
         <span class="ms-1 hide-button-text">Load</span>
       </button>
       <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
         <li>
           <button
-            @click="() => loadFromPackage()"
             class="dropdown-item btn btn-primary"
             title="Load from package"
             :disabled="editor_store.selected_subtree.is_subtree"
+            @click="() => loadFromPackage()"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
+            <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
             <span class="ms-1">Package</span>
           </button>
         </li>
         <li>
           <button
-            @click="() => loadFromFile()"
             class="dropdown-item btn btn-primary"
             title="Load from file"
             :disabled="editor_store.selected_subtree.is_subtree"
+            @click="() => loadFromFile()"
           >
-            <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
+            <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
             <span className="ms-1">File</span>
           </button>
         </li>
       </ul>
     </div>
     <button
-      @click="() => saveToFile()"
       class="btn btn-primary btn-spaced"
       title="Save to remote"
       :disabled="editor_store.selected_subtree.is_subtree"
+      @click="() => saveToFile()"
     >
-      <font-awesome-icon icon="fa-solid fa-save" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Save</span>
     </button>
     <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
     <button
-      @click="() => openFileDialog()"
       class="btn btn-primary btn-spaced"
       title="Upload"
       :disabled="editor_store.selected_subtree.is_subtree"
+      @click="() => openFileDialog()"
     >
-      <font-awesome-icon icon="fa-solid fa-file-upload" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Upload</span>
     </button>
     <button
-      @click="() => saveTree()"
       class="btn btn-primary btn-spaced"
       title="Download"
       :disabled="editor_store.selected_subtree.is_subtree"
+      @click="() => saveTree()"
     >
-      <font-awesome-icon icon="fa-solid fa-file-download" aria-hidden="true" />
+      <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Download</span>
     </button>
   </div>
