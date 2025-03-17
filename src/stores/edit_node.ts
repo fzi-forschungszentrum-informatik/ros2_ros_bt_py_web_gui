@@ -28,7 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { NodeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
+
+import { NodeStateValues } from '@/types/types'
+import type { DocumentedNode, NodeIO, NodeOption, NodeStructure, ParamData, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
@@ -42,11 +44,11 @@ export enum EditorSelectionSource {
   MULTIPLE = 'multiple'
 }
 
-function getInitialValues(data: NodeData, options?: NodeData[] | null): ParamData {
+function getInitialValues(data: NodeIO, options?: NodeOption[] | null): ParamData {
   options = options || []
   return {
     key: data.key,
-    value: getDefaultValue(prettyprint_type(data.serialized_value), options)
+    value: getDefaultValue(prettyprint_type(data.type), options)
   } as ParamData
 }
 
@@ -56,7 +58,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
 
   const is_new_node = ref<boolean>(false)
   const node_has_changed = ref<boolean>(false)
-  const selected_node = ref<NodeMsg | undefined>(undefined)
+  const selected_node = ref<NodeStructure | undefined>(undefined)
   const reference_node = ref<DocumentedNode | undefined>(undefined)
   const selected_node_names = ref<string[]>([])
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
@@ -157,8 +159,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       }
     }
 
-    const new_selected_node = editor_store.current_tree!.nodes.find(
-      (x: NodeMsg) => x.name === new_selected_node_name
+    const new_selected_node = editor_store.current_tree.structure!.nodes.find(
+      (x: NodeStructure) => x.name === new_selected_node_name
     )
 
     if (new_selected_node === undefined) {
@@ -190,11 +192,11 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_is_valid.value = true
     node_is_morphed.value = false
 
-    function getValues(x: NodeData): ParamData {
-      const type = prettyprint_type(x.serialized_type)
-      let json_value = JSON.parse(x.serialized_value)
+    function getValues(x: NodeOption): ParamData {
+      const type = prettyprint_type(x.type)
+      let json_value = JSON.parse(x.value)
       if (type.startsWith('type')) {
-        json_value = prettyprint_type(x.serialized_value)
+        json_value = prettyprint_type(x.value)
       }
       return {
         key: x.key,
@@ -205,8 +207,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       } as ParamData
     }
     new_node_options.value = new_selected_node.options.map((x) => getValues(x))
-    new_node_inputs.value = new_selected_node.inputs.map((x) => getValues(x))
-    new_node_outputs.value = new_selected_node.outputs.map((x) => getValues(x))
+    new_node_inputs.value = new_selected_node.inputs.map((x) => getInitialValues(x))
+    new_node_outputs.value = new_selected_node.outputs.map((x) => getInitialValues(x))
   }
 
   function selectMultipleNodes(new_selected_node_names: string[]) {
@@ -308,15 +310,15 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         return
       }
 
-      function findOptionRefs(ref_list: NodeData[]): [string, string][] {
+      function findOptionRefs(ref_list: NodeIO[]): [string, string][] {
         return ref_list.filter((x) => 
-            prettyprint_type(x.serialized_value).startsWith('OptionRef(')
+            prettyprint_type(x.type).startsWith('OptionRef(')
           )
           .map((x): [string, string] => [
             x.key,
-            prettyprint_type(x.serialized_value).substring(
+            prettyprint_type(x.type).substring(
               'OptionRef('.length,
-              prettyprint_type(x.serialized_value).length - 1
+              prettyprint_type(x.type).length - 1
             )
           ])
           .filter((x) => x[1] === key)
@@ -368,7 +370,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
   }
 
-  function buildNodeMsg(): NodeMsg {
+  function buildNodeMsg(): NodeStructure {
     return {
       module: new_node_module.value,
       node_class: new_node_class.value,
@@ -379,7 +381,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       inputs: [],
       outputs: [],
       version: '',
-      state: NodeState.UNINITIALIZED
     }
   }
 

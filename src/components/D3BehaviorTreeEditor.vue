@@ -37,15 +37,16 @@ import type {
   DataEdge,
   DocumentedNode,
   DropTarget,
-  NodeData,
   NodeDataLocation,
-  NodeMsg,
   ParamData,
   TrimmedNode,
   TrimmedNodeData,
-  NodeDataWiring
+  NodeStructure,
+  NodeOption,
+  NodeIO,
+  Wiring,
 } from '@/types/types'
-import { Position, IOKind, NodeState } from '@/types/types'
+import { Position, IOKind, NodeStateValues } from '@/types/types'
 import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
@@ -144,11 +145,12 @@ function resetView() {
   viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
 }
 
-function buildNodeMessage(node: DocumentedNode): NodeMsg {
-  const options = node.options.map((opt: NodeData) => {
+function buildNodeMessage(node: DocumentedNode): NodeStructure {
+  const options = node.options.map((opt: NodeOption) => {
+    console.log(opt, node.options)
     return {
       key: opt.key,
-      value: getDefaultValue(prettyprint_type(opt.serialized_value), node.options)
+      value: getDefaultValue(prettyprint_type(opt.type), node.options)
     } as ParamData
   })
 
@@ -162,7 +164,6 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
     outputs: [],
     version: '',
     max_children: 0,
-    state: NodeState.UNINITIALIZED,
   }
 }
 
@@ -238,7 +239,11 @@ function dragPanTimerHandler() {
   d3.select(viewport_ref.value!).call(zoomObject!.translateBy, pan_direction[0], pan_direction[1])
 }
 
-watchEffect(drawEverything)
+watch(
+  () => editor_store.current_tree.structure,
+  drawEverything,
+  { immediate: true }
+)
 function drawEverything() {
   if (svg_g_ref.value === undefined || 
     g_vertices_ref.value === undefined
@@ -247,7 +252,7 @@ function drawEverything() {
     return
   }
 
-  if (editor_store.current_tree === undefined) {
+  if (editor_store.current_tree.structure === undefined) {
     console.warn("Nothing to draw")
     return
   }
@@ -259,20 +264,20 @@ function drawEverything() {
       .duration(100)
       .ease(d3.easeQuad)
 
-  const onlyKeyAndType = (nodeData: NodeData) =>
+  // Strips potentially additional properties
+  const onlyKeyAndType = (nodeData: NodeIO) =>
     ({
       key: nodeData.key,
-      serialized_type: nodeData.serialized_type
+      type: nodeData.type
     }) as TrimmedNodeData
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.structure.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
       name: node.name,
-      state: node.state,
       max_children: node.max_children,
       child_names: node.child_names,
       options: node.options.map(onlyKeyAndType),
@@ -285,7 +290,6 @@ function drawEverything() {
   const forest_root: TrimmedNode = {
     node_class: '',
     module: '',
-    state: NodeState.UNASSIGNED,
     max_children: -1,
     name: forest_root_name,
     child_names: [],
@@ -353,14 +357,15 @@ function drawEverything() {
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-    .call(colorNodes)
+    
+    updateNodeState()
 
   // Since we want to return the tree, we can't use the .call() syntax here
   const tree_layout = layoutTree(node, root)
 
   drawEdges(tree_layout)
   drawDropTargets(tree_layout)
-  drawDataGraph(tree_layout, editor_store.current_tree.data_wirings)
+  drawDataGraph(tree_layout, editor_store.current_tree.structure.data_wirings)
 }
 
 function drawNewNodes(
@@ -410,22 +415,6 @@ function drawNewNodes(
   return fo
 }
 
-function getIcon(state: string) {
-  switch (state) {
-    case NodeState.RUNNING:
-      return faBolt.icon
-    case NodeState.IDLE:
-      return faPause.icon
-    case NodeState.SUCCEEDED:
-      return faCheck.icon
-    case NodeState.FAILED:
-      return faXmark.icon
-    case NodeState.SHUTDOWN:
-    default:
-      return faPowerOff.icon
-  }
-}
-
 function updateNodeBody(
   selection: d3.Selection<
     SVGForeignObjectElement,
@@ -441,22 +430,6 @@ function updateNodeBody(
 
   body.select<HTMLHeadingElement>('.' + node_class_css_class)
       .html((d) => d.data.node_class)
-
-  body.select<SVGElement>('.' + node_state_css_class)
-      .attr('viewBox', (node) => {
-        const icon = getIcon(node.data.state)
-        return "0 0 " + icon[0] + " " + icon[1]
-      })
-    .select<SVGPathElement>('path')
-      .attr('d', (node) => {
-        const icon = getIcon(node.data.state)
-        if (typeof icon[4] === "string") {
-          return icon[4]
-        } else {
-          console.warn("Potentially unhandled multivalue path", icon[4])
-          return icon[4].join('')
-        }
-      })
 
   body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body
@@ -488,34 +461,81 @@ function updateNodeBody(
   return selection
 }
 
-function colorNodes(
-  selection: d3.Selection<
-    SVGForeignObjectElement,
-    d3.HierarchyNode<TrimmedNode>,
-    SVGGElement,
-    never
-  >
-) {
-  selection
+function getIcon(state: string | undefined) {
+  switch (state) {
+    case NodeStateValues.RUNNING:
+      return faBolt.icon
+    case NodeStateValues.IDLE:
+      return faPause.icon
+    case NodeStateValues.SUCCEEDED:
+      return faCheck.icon
+    case NodeStateValues.FAILED:
+      return faXmark.icon
+    case NodeStateValues.SHUTDOWN:
+    default:
+      return faPowerOff.icon
+  }
+}
+
+watch(
+  () => editor_store.current_tree.state,
+  updateNodeState
+)
+function updateNodeState() {
+  if (g_vertices_ref.value === undefined) {
+    console.warn("DOM is broken")
+    return
+  }
+
+  const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
+
+  g_vertex
+    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+      .each((node) => {
+        if (editor_store.current_tree.state === undefined) {
+          console.warn("No state to update")
+          return
+        }
+        const state = editor_store.current_tree.state.node_states.find(
+          (state) => state.name === node.data.name
+        )
+        if (state !== undefined) {
+          node.data.state = state.state
+        }
+      })
     .select<HTMLBodyElement>('.' + node_body_css_class)
-    .transition(tree_transition)
-    .style('border-color', (d) => {
-      switch (d.data.state) {
-        case NodeState.RUNNING:
+    .style('border-color', (node) => {
+      switch (node.data.state) {
+        case NodeStateValues.RUNNING:
           return 'var(--node-color-running)'
-        case NodeState.IDLE:
+        case NodeStateValues.IDLE:
           return 'var(--node-color-idle)'
-        case NodeState.SUCCEEDED:
+        case NodeStateValues.SUCCEEDED:
           return 'var(--node-color-succeeded)'
-        case NodeState.FAILED:
+        case NodeStateValues.FAILED:
           return 'var(--node-color-failed)'
-        case NodeState.SHUTDOWN:
+        case NodeStateValues.SHUTDOWN:
           return 'var(--node-color-shutdown)'
-        case NodeState.UNINITIALIZED:
+        case NodeStateValues.UNINITIALIZED:
         default:
           return 'var(--node-color-default)'
       }
     })
+    .select<SVGElement>('.' + node_state_css_class)
+      .attr('viewBox', (node) => {
+        const icon = getIcon(node.data.state)
+        return "0 0 " + icon[0] + " " + icon[1]
+      })
+    .select<SVGPathElement>('path')
+      .attr('d', (node) => {
+        const icon = getIcon(node.data.state)
+        if (typeof icon[4] === "string") {
+          return icon[4]
+        } else {
+          console.warn("Potentially unhandled multivalue path", icon[4])
+          return icon[4].join('')
+        }
+      })
 }
 
 function layoutTree(
@@ -1001,7 +1021,7 @@ function toggleNewNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {
+function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wiring[]) {
   if (g_data_graph_ref.value === undefined || g_data_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
@@ -1020,7 +1040,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
         index: index,
         kind: IOKind.INPUT,
         key: input.key,
-        type: input.serialized_type,
+        type: input.type,
         x: node.x - node.data.size.width * 0.5 - io_gripper_size,
         y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
@@ -1031,7 +1051,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
         index: index,
         kind: IOKind.OUTPUT,
         key: output.key,
-        type: output.serialized_type,
+        type: output.type,
         x: node.x + node.data.size.width * 0.5,
         y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
@@ -1154,7 +1174,7 @@ function drawNewDataVert(
 function drawDataEdges(
   data_points: DataEdgeTerminal[],
   g_data_vertices: d3.Selection<SVGGElement, DataEdgeTerminal, SVGGElement, unknown>,
-  data_wirings: NodeDataWiring[]
+  data_wirings: Wiring[]
 ) {
   if (
     g_data_graph_ref.value === undefined ||
@@ -1176,7 +1196,7 @@ function drawDataEdges(
     )
   }
 
-  data_wirings.forEach((wiring: NodeDataWiring) => {
+  data_wirings.forEach((wiring: Wiring) => {
     // Match Terminals with wiring data
     const source = data_points.find((term: DataEdgeTerminal) => matchEndpoint(wiring.source, term))
     const target = data_points.find((term: DataEdgeTerminal) => matchEndpoint(wiring.target, term))
@@ -1349,7 +1369,7 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
             data_kind: target.kind,
             data_key: target.key
           }
-        } as NodeDataWiring
+        } as Wiring
       ],
       ignore_failure: false //TODO what does this do?
     } as WireNodeDataRequest,

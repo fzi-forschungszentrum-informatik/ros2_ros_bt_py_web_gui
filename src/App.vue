@@ -35,7 +35,7 @@ import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
 import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { MessageTypes, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
+import type { MessageTypes, NodeStructure, Packages, SubtreeInfo, TreeState, TreeStructure } from './types/types'
 import { useEditorStore } from './stores/editor'
 import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
@@ -92,12 +92,17 @@ function updateMessagesSubscription() {
   ros_store.messages_sub.subscribe(onNewMessagesMsg)
 }
 
-function onNewTreeMsg(msg: TreeMsg) {
-  editor_store.tree = msg
+function onNewTreeStructure(msg: TreeStructure) {
+  editor_store.tree.structure = msg
+}
+
+function onNewTreeState(msg: TreeState) {
+  editor_store.tree.state = msg
 }
 
 function updateTreeSubscription() {
-  ros_store.tree_sub.subscribe(onNewTreeMsg)
+  ros_store.tree_structure_sub.subscribe(onNewTreeStructure)
+  ros_store.tree_state_sub.subscribe(onNewTreeState)
 }
 
 function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
@@ -126,12 +131,12 @@ function handleNodeSearchClear(event: KeyboardEvent) {
 }
 
 function findPossibleParents() {
-  if (editor_store.tree) {
-    return editor_store.tree.nodes
+  if (editor_store.tree.structure) {
+    return editor_store.tree.structure.nodes
       .filter(
-        (node: NodeMsg) => node.max_children < 0 || node.child_names.length < node.max_children
+        (node: NodeStructure) => node.max_children < 0 || node.child_names.length < node.max_children
       )
-      .sort(function (a: NodeMsg, b: NodeMsg) {
+      .sort(function (a: NodeStructure, b: NodeStructure) {
         if (a.name < b.name) {
           return -1
         } else if (a.name > b.name) {

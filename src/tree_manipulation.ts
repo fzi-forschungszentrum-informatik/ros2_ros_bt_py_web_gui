@@ -33,11 +33,11 @@ import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from "./types/serv
 import type { MoveNodeRequest, MoveNodeResponse } from "./types/services/MoveNode"
 import type { RemoveNodeRequest, RemoveNodeResponse } from "./types/services/RemoveNode"
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from "./types/services/ReplaceNode"
-import type { NodeMsg } from "./types/types"
+import type { NodeStructure } from "./types/types"
 import { notify } from '@kyvg/vue3-notification'
 
 export function addNode(
-    msg: NodeMsg, 
+    msg: NodeStructure, 
     parent_name: string, 
     index: number,
     allow_rename: boolean = true,

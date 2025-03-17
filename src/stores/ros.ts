@@ -28,9 +28,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+import { defineStore, type StoreDefinition } from 'pinia'
 import {Service, Topic, Ros} from 'roslib'
-import type { Packages, MessageTypes, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
+import type { Packages, MessageTypes, SubtreeInfo, Channels, TreeStructure, TreeState } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -149,11 +149,21 @@ export const useROSStore = defineStore(
       })
     )
 
-    const tree_sub = ref<Topic<TreeMsg>>(
+    const tree_structure_sub = ref<Topic<TreeStructure>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructure',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+
+    const tree_state_sub = ref<Topic<TreeState>>(
+      new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_state',
+        messageType: 'ros_bt_py_interfaces/msg/TreeState',
         latch: true,
         reconnect_on_close: true
       })
@@ -367,12 +377,22 @@ export const useROSStore = defineStore(
     })
 
     function updateROSServices() {
-      tree_sub.value.unsubscribe()
-      tree_sub.value.removeAllListeners()
-      tree_sub.value = new Topic({
+      tree_structure_sub.value.unsubscribe()
+      tree_structure_sub.value.removeAllListeners()
+      tree_structure_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructure',
+        latch: true,
+        reconnect_on_close: true
+      })
+
+      tree_state_sub.value.unsubscribe()
+      tree_state_sub.value.removeAllListeners()
+      tree_state_sub.value = new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_state',
+        messageType: 'ros_bt_py_interfaces/msg/TreeState',
         latch: true,
         reconnect_on_close: true
       })
@@ -624,7 +644,8 @@ export const useROSStore = defineStore(
       save_tree_service,
       change_tree_name_service,
       load_tree_from_path_service,
-      tree_sub,
+      tree_structure_sub,
+      tree_state_sub,
       subtree_info_sub,
       packages_sub,
       messages_sub,

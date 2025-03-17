@@ -30,13 +30,59 @@
 
 import type { FlextreeNode } from 'd3-flextree'
 
-export type NodeData = {
+export type NodeIO = {
   key: string
-  serialized_value: string
-  serialized_type: string
+  type: string
 }
 
-export const enum NodeState {
+export type NodeOption = NodeIO & {
+  value: string
+}
+
+export type NodeStructure = {
+  module: string
+  node_class: string
+  version: string
+  max_children: number
+  name: string
+  child_names: string[]
+  options: NodeOption[]
+  inputs: NodeIO[]
+  outputs: NodeIO[]
+}
+
+export type DocumentedNode = NodeStructure & {
+  doc: string
+  tags: string[]
+  node_type?: string
+}
+
+export type NodeDataLocation = {
+  node_name: string
+  data_kind: string
+  data_key: string
+}
+
+export type Wiring = {
+  source: NodeDataLocation
+  target: NodeDataLocation
+}
+
+export type TreeStructure = {
+  name: string
+  path: string
+  root_name: string
+  nodes: NodeStructure[]
+  data_wirings: Wiring[]
+  trick_frequency_hz: number
+  public_node_data: NodeDataLocation[]
+}
+
+export type SubtreeInfo = {
+  subtree_states: TreeStructure[]
+}
+
+export const enum NodeStateValues {
   RUNNING = 'RUNNING',
   IDLE = 'IDLE',
   SUCCEEDED = 'SUCCEEDED',
@@ -50,32 +96,12 @@ export const enum NodeState {
   PAUSED = 'PAUSED',
 }
 
-export type NodeMsg = {
-  module: string
-  node_class: string
-  version: string
-  max_children: number
+export type NodeState = {
   name: string
-  state: NodeState
-  child_names: string[]
-  options: NodeData[]
-  inputs: NodeData[]
-  outputs: NodeData[]
-  node_type?: string
+  state: NodeStateValues
 }
 
-export type NodeDataLocation = {
-  node_name: string
-  data_kind: string
-  data_key: string
-}
-
-export type NodeDataWiring = {
-  source: NodeDataLocation
-  target: NodeDataLocation
-}
-
-export const enum TreeState {
+export const enum TreeStateValues {
   IDLE = 'IDLE',
   EDITABLE = 'EDITABLE',
   TICKING = 'TICKING',
@@ -84,20 +110,87 @@ export const enum TreeState {
   ERROR = 'ERROR',
 }
 
-export type TreeMsg = {
-  name: string
-  path: string
-  root_name: string
-  nodes: NodeMsg[]
-  data_wirings: NodeDataWiring[]
-  trick_frequency_hz: number
-  state: TreeState
-  public_node_data: NodeDataLocation[]
+export type TreeState = {
+  state: TreeStateValues
+  node_states: NodeState[]
 }
 
-export type SubtreeInfo = {
-  subtree_states: TreeMsg[]
+export type WiringData = {
+  wiring: Wiring
+  data: string
+  type: string
 }
+
+export type TreeData = {
+  wiring_data: WiringData[]
+}
+
+export type Tree = {
+  structure?: TreeStructure
+  state?: TreeState
+  data?: TreeData
+}
+
+
+
+export type DataEdgePoint = {
+  x: number
+  y: number
+}
+
+export type DataEdgeTerminal = DataEdgePoint & {
+  node: FlextreeNode<TrimmedNode>
+  index: number
+  kind: IOKind
+  key: string
+  type: string
+}
+
+export const enum IOKind {
+  INPUT = 'inputs',
+  OUTPUT = 'outputs',
+  OTHER = 'other'
+}
+
+export type DataEdge = {
+  source: DataEdgeTerminal
+  target: DataEdgeTerminal
+  wiring: Wiring
+}
+
+export type DropTarget = {
+  node: FlextreeNode<TrimmedNode>
+  position: Position
+}
+
+export const enum Position {
+  TOP = 'top',
+  BOTTOM = 'bottom',
+  LEFT = 'left',
+  RIGHT = 'right',
+  CENTER = 'center'
+}
+
+export type TrimmedNodeData = {
+  key: string
+  type: string
+}
+
+export type TrimmedNode = {
+  node_class: string
+  module: string
+  max_children: number
+  name: string
+  child_names: string[]
+  inputs: TrimmedNodeData[]
+  outputs: TrimmedNodeData[]
+  options: TrimmedNodeData[]
+  size: { width: number; height: number }
+
+  state?: NodeStateValues
+}
+
+
 
 export type Package = {
   package: string
@@ -124,11 +217,6 @@ export type Channels = {
   topics: Channel[]
   services: Channel[]
   actions: Channel[]
-}
-
-export type DocumentedNode = NodeMsg & {
-  doc: string
-  tags: string[]
 }
 
 export type Error = {
@@ -182,58 +270,4 @@ export type ParamData = {
   value: ParamType
 }
 
-export type DataEdgePoint = {
-  x: number
-  y: number
-}
 
-export type DataEdgeTerminal = DataEdgePoint & {
-  node: FlextreeNode<TrimmedNode>
-  index: number
-  kind: IOKind
-  key: string
-  type: string
-}
-
-export const enum IOKind {
-  INPUT = 'inputs',
-  OUTPUT = 'outputs',
-  OTHER = 'other'
-}
-
-export type DataEdge = {
-  source: DataEdgeTerminal
-  target: DataEdgeTerminal
-  wiring: NodeDataWiring
-}
-
-export type DropTarget = {
-  node: FlextreeNode<TrimmedNode>
-  position: Position
-}
-
-export const enum Position {
-  TOP = 'top',
-  BOTTOM = 'bottom',
-  LEFT = 'left',
-  RIGHT = 'right',
-  CENTER = 'center'
-}
-
-export type TrimmedNodeData = {
-  key: string
-  serialized_type: string
-}
-
-export type TrimmedNode = {
-  node_class: string
-  module: string
-  state: NodeState
-  max_children: number
-  name: string
-  child_names: string[]
-  inputs: TrimmedNodeData[]
-  outputs: TrimmedNodeData[]
-  options: TrimmedNodeData[]
-  size: { width: number; height: number }
-}

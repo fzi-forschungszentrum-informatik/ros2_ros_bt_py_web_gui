@@ -31,11 +31,12 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
 import type {
-  NodeDataWiring,
+  Wiring,
   DocumentedNode,
-  TreeMsg,
+  TreeStructure,
   TrimmedNode,
-  DataEdgeTerminal
+  DataEdgeTerminal,
+  Tree
 } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -47,13 +48,17 @@ export enum EditorSkin {
 export type SelectedSubtree = {
   name: string
   is_subtree: boolean
-  tree: TreeMsg | undefined
+  tree: TreeStructure | undefined
 }
 
 export const useEditorStore = defineStore('editor', () => {
-  const tree = ref<TreeMsg | undefined>(undefined)
+  const tree = ref<Tree>({
+    structure: undefined,
+    state: undefined,
+    data: undefined
+  })
   //const debug_info = ref<DebugInfo | undefined>(undefined)
-  const subtree_states = ref<TreeMsg[]>([])
+  const subtree_states = ref<TreeStructure[]>([])
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -84,18 +89,18 @@ export const useEditorStore = defineStore('editor', () => {
     tree: undefined
   })
 
-  const current_tree = computed<TreeMsg | undefined>(() => {
-    if (selected_subtree.value.is_subtree) {
+  const current_tree = computed<Tree>(() => {
+    /*if (selected_subtree.value.is_subtree) {
       return selected_subtree.value.tree
-    }
+    }*/
     return tree.value
   })
 
   const subtree_names = computed<string[]>(() =>
-    subtree_states.value.map((tree: TreeMsg) => tree.name)
+    subtree_states.value.map((tree) => tree.name)
   )
 
-  const selected_edge = ref<NodeDataWiring | undefined>(undefined)
+  const selected_edge = ref<Wiring | undefined>(undefined)
 
   const is_layer_mode = ref<boolean>(false)
 
@@ -163,7 +168,7 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   function selectSubtree(name: string, is_subtree: boolean) {
-    let tree_msg = undefined
+    let tree: TreeStructure | undefined
     if (is_subtree) {
       if (subtree_states.value.length === 0) {
         notify({
@@ -172,17 +177,21 @@ export const useEditorStore = defineStore('editor', () => {
         })
         return
       }
-      tree_msg = subtree_states.value.find((x: TreeMsg) => x.name === name)
+      tree = subtree_states.value.find((x) => x.name === name)
+    }
+
+    if (tree === undefined) {
+      return
     }
 
     selected_subtree.value = {
       name: name,
       is_subtree: is_subtree,
-      tree: tree_msg
+      tree: tree
     }
   }
 
-  function selectEdge(edge: NodeDataWiring) {
+  function selectEdge(edge: Wiring) {
     selected_edge.value = edge
   }
 

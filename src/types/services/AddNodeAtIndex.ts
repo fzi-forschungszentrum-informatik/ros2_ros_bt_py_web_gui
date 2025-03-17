@@ -27,11 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { NodeMsg } from '../types'
+import type { NodeStructure } from '../types'
 
 export type AddNodeAtIndexRequest = {
   parent_name: string
-  node: NodeMsg
+  node: NodeStructure
   allow_rename: boolean
   new_child_index: number
 }

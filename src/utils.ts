@@ -34,12 +34,13 @@ import {
   type TypeWrapper 
 } from './types/python_types'
 import type { 
-  NodeData, 
-  TreeMsg, 
   DataEdgeTerminal, 
   ParamData, 
   PyObject, 
-  ParamType 
+  ParamType, 
+  NodeOption,
+  TreeStructure,
+  TreeState
 } from './types/types'
 import { IOKind } from './types/types'
 
@@ -150,7 +151,7 @@ export function getTypeAndInfo(typeStr: string): [string, string] {
 
 export function getDefaultValue(
   typeStr: string,
-  options: NodeData[] | null = null
+  options: NodeOption[] | null = null
 ): ParamType {
   const typeName = getTypeAndInfo(typeStr)[0]
   if (typeName === 'type') {
@@ -203,7 +204,7 @@ export function getDefaultValue(
       // This double call is necessary to dereference first the type of the optionref target and then its default value
       return getDefaultValue(
         getDefaultValue(
-          prettyprint_type(optionType.serialized_value), 
+          prettyprint_type(optionType.type), 
           options
         ).value as string,
         options
@@ -229,27 +230,27 @@ export function getDefaultValue(
   }
 }
 
-export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
+export function serializeNodeOptions(node_options: ParamData[]): NodeOption[] {
   return node_options.map((x) => {
-    const option: NodeData = {
+    const option: NodeOption = {
       key: x.key,
-      serialized_value: '',
-      serialized_type: '' // This is left blank intentionally
+      value: '',
+      type: '' // This is left blank intentionally
     }
     if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }
-      option.serialized_value = JSON.stringify({
+      option.value = JSON.stringify({
         'py/type': x.value.value
       })
     } else if (x.value.type.startsWith('__')) {
       //TODO This should be changed to not generate "bad" defaults
       const val = x.value.value as PyObject
       val['py/object'] = x.value.type.substring('__'.length)
-      option.serialized_value = JSON.stringify(x.value.value)
+      option.value = JSON.stringify(x.value.value)
     } else {
-      option.serialized_value = JSON.stringify(x.value.value)
+      option.value = JSON.stringify(x.value.value)
     }
     return option
   })
@@ -261,7 +262,7 @@ export function getDist(a: number[], b: number[]) {
   return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
 }
 
-export function treeIsEditable(tree_msg: TreeMsg) {
+export function treeIsEditable(tree_msg: TreeState) {
   return tree_msg.state === 'EDITABLE'
 }
 

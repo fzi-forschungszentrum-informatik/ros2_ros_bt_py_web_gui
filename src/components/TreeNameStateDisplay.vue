@@ -31,7 +31,7 @@
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
-import { TreeState } from '@/types/types'
+import { TreeStateValues } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import { computed, ref, watchEffect } from 'vue'
 
@@ -39,8 +39,8 @@ const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const tree_name = computed<string>(() => {
-  if (editor_store.current_tree !== undefined) {
-    return editor_store.current_tree.name
+  if (editor_store.current_tree.structure !== undefined) {
+    return editor_store.current_tree.structure.name
   } else {
     return ''
   }
@@ -48,11 +48,11 @@ const tree_name = computed<string>(() => {
 
 const new_tree_name = ref<string>(tree_name.value)
 
-const tree_state = computed<TreeState>(() => {
-  if (editor_store.current_tree !== undefined) {
-    return editor_store.current_tree.state
+const tree_state = computed<TreeStateValues>(() => {
+  if (editor_store.current_tree.state !== undefined) {
+    return editor_store.current_tree.state.state
   } else {
-    return TreeState.EDITABLE
+    return TreeStateValues.EDITABLE
   }
 })
 
@@ -60,22 +60,22 @@ const tree_state_styles = computed<object>(() => {
   let bg_color_var = ''
   //let border_color_var = '--bs-body-color'
   switch (tree_state.value) {
-    case TreeState.ERROR:
+    case TreeStateValues.ERROR:
       bg_color_var = '--bg-color-error'
       break
-    case TreeState.IDLE:
+    case TreeStateValues.IDLE:
       bg_color_var = '--bg-color-idle'
       break
-    case TreeState.STOP_REQUESTED:
+    case TreeStateValues.STOP_REQUESTED:
       bg_color_var = '--bg-color-stop-requested'
       break
-    case TreeState.TICKING:
+    case TreeStateValues.TICKING:
       bg_color_var = '--bg-color-ticking'
       break
-    case TreeState.WAITING_FOR_TICK:
+    case TreeStateValues.WAITING_FOR_TICK:
       bg_color_var = '--bg-color-waiting-for-tick'
       break
-    case TreeState.EDITABLE:
+    case TreeStateValues.EDITABLE:
     default:
       bg_color_var = '--bg-color-default'
       break
@@ -89,22 +89,22 @@ const tree_state_styles = computed<object>(() => {
 const tree_state_icon = computed<string>(() => {
   let icon: string
   switch (tree_state.value) {
-    case TreeState.ERROR:
+    case TreeStateValues.ERROR:
       icon = 'fa-exclamation'
       break
-    case TreeState.IDLE:
+    case TreeStateValues.IDLE:
       icon = 'fa-pause'
       break
-    case TreeState.STOP_REQUESTED:
+    case TreeStateValues.STOP_REQUESTED:
       icon = 'fa-pause'
       break
-    case TreeState.TICKING:
+    case TreeStateValues.TICKING:
       icon = 'fa-bolt'
       break
-    case TreeState.WAITING_FOR_TICK:
+    case TreeStateValues.WAITING_FOR_TICK:
       icon = 'fa-hourglass-half'
       break
-    case TreeState.EDITABLE:
+    case TreeStateValues.EDITABLE:
       icon = 'fa-pen'
       break
     default:
@@ -116,7 +116,7 @@ const tree_state_icon = computed<string>(() => {
 
 watchEffect(errorPopUp)
 function errorPopUp(): void {
-  if (tree_state.value === TreeState.ERROR) {
+  if (tree_state.value === TreeStateValues.ERROR) {
     window.alert(
       "There has been an error while running the tree"
     )

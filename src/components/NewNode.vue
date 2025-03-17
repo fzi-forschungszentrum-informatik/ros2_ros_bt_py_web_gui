@@ -28,14 +28,14 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type { NodeMsg } from '@/types/types'
+import type { NodeStructure } from '@/types/types'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { addNode } from '@/tree_manipulation'
 
 const props = defineProps<{
-  parents: NodeMsg[]
+  parents: NodeStructure[]
 }>()
 
 const edit_node_store = useEditNodeStore()

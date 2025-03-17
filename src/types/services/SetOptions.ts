@@ -27,13 +27,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { NodeData } from '../types'
+import type { NodeOption } from '../types'
 
 export type SetOptionsRequest = {
   node_name: string
   rename_node: boolean
   new_name: string
-  options: NodeData[]
+  options: NodeOption[]
 }
 
 export type SetOptionsResponse = {
