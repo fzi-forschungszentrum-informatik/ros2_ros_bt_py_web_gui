@@ -48,7 +48,7 @@ function getInitialValues(data: NodeIO, options?: NodeOption[] | null): ParamDat
   options = options || []
   return {
     key: data.key,
-    value: getDefaultValue(prettyprint_type(data.type), options)
+    value: getDefaultValue(prettyprint_type(data.serialized_type), options)
   } as ParamData
 }
 
@@ -193,10 +193,10 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_is_morphed.value = false
 
     function getValues(x: NodeOption): ParamData {
-      const type = prettyprint_type(x.type)
-      let json_value = JSON.parse(x.value)
+      const type = prettyprint_type(x.serialized_type)
+      let json_value = JSON.parse(x.serialized_value)
       if (type.startsWith('type')) {
-        json_value = prettyprint_type(x.value)
+        json_value = prettyprint_type(x.serialized_value)
       }
       return {
         key: x.key,
@@ -312,13 +312,13 @@ export const useEditNodeStore = defineStore('edit_node', () => {
 
       function findOptionRefs(ref_list: NodeIO[]): [string, string][] {
         return ref_list.filter((x) => 
-            prettyprint_type(x.type).startsWith('OptionRef(')
+            prettyprint_type(x.serialized_type).startsWith('OptionRef(')
           )
           .map((x): [string, string] => [
             x.key,
-            prettyprint_type(x.type).substring(
+            prettyprint_type(x.serialized_type).substring(
               'OptionRef('.length,
-              prettyprint_type(x.type).length - 1
+              prettyprint_type(x.serialized_type).length - 1
             )
           ])
           .filter((x) => x[1] === key)

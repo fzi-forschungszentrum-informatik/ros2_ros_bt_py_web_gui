@@ -58,7 +58,7 @@ const show_details = ref<boolean>(true)
           {{ node_data.key }}
         </div>
         <div class="text-truncate text-muted ms-2 mb-2">
-          {{ prettyprint_type(node_data.type) }}
+          {{ prettyprint_type(node_data.serialized_type) }}
         </div>
       </template>
     </template>

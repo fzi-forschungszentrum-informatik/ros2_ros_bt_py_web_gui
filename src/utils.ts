@@ -204,7 +204,7 @@ export function getDefaultValue(
       // This double call is necessary to dereference first the type of the optionref target and then its default value
       return getDefaultValue(
         getDefaultValue(
-          prettyprint_type(optionType.type), 
+          prettyprint_type(optionType.serialized_type), 
           options
         ).value as string,
         options
@@ -234,23 +234,23 @@ export function serializeNodeOptions(node_options: ParamData[]): NodeOption[] {
   return node_options.map((x) => {
     const option: NodeOption = {
       key: x.key,
-      value: '',
-      type: '' // This is left blank intentionally
+      serialized_value: '',
+      serialized_type: '' // This is left blank intentionally
     }
     if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
         x.value.value = 'builtins.' + x.value.value;
       }
-      option.value = JSON.stringify({
+      option.serialized_value = JSON.stringify({
         'py/type': x.value.value
       })
     } else if (x.value.type.startsWith('__')) {
       //TODO This should be changed to not generate "bad" defaults
       const val = x.value.value as PyObject
       val['py/object'] = x.value.type.substring('__'.length)
-      option.value = JSON.stringify(x.value.value)
+      option.serialized_value = JSON.stringify(x.value.value)
     } else {
-      option.value = JSON.stringify(x.value.value)
+      option.serialized_value = JSON.stringify(x.value.value)
     }
     return option
   })

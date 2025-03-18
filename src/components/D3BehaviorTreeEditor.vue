@@ -150,7 +150,7 @@ function buildNodeMessage(node: DocumentedNode): NodeStructure {
     console.log(opt, node.options)
     return {
       key: opt.key,
-      value: getDefaultValue(prettyprint_type(opt.type), node.options)
+      value: getDefaultValue(prettyprint_type(opt.serialized_type), node.options)
     } as ParamData
   })
 
@@ -268,7 +268,7 @@ function drawEverything() {
   const onlyKeyAndType = (nodeData: NodeIO) =>
     ({
       key: nodeData.key,
-      type: nodeData.type
+      serialized_type: nodeData.serialized_type
     }) as TrimmedNodeData
 
   // Trim the serialized data values from the node data - we won't
@@ -1040,7 +1040,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
         index: index,
         kind: IOKind.INPUT,
         key: input.key,
-        type: input.type,
+        type: input.serialized_type,
         x: node.x - node.data.size.width * 0.5 - io_gripper_size,
         y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
@@ -1051,7 +1051,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
         index: index,
         kind: IOKind.OUTPUT,
         key: output.key,
-        type: output.type,
+        type: output.serialized_type,
         x: node.x + node.data.size.width * 0.5,
         y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })

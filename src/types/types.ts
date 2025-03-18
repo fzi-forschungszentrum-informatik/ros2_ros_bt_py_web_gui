@@ -32,11 +32,11 @@ import type { FlextreeNode } from 'd3-flextree'
 
 export type NodeIO = {
   key: string
-  type: string
+  serialized_type: string
 }
 
 export type NodeOption = NodeIO & {
-  value: string
+  serialized_value: string
 }
 
 export type NodeStructure = {
@@ -117,8 +117,8 @@ export type TreeState = {
 
 export type WiringData = {
   wiring: Wiring
-  data: string
-  type: string
+  serialized_data: string
+  serialized_type: string
 }
 
 export type TreeData = {
@@ -173,7 +173,7 @@ export const enum Position {
 
 export type TrimmedNodeData = {
   key: string
-  type: string
+  serialized_type: string
 }
 
 export type TrimmedNode = {
