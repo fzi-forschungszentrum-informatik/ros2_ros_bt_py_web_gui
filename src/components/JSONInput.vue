@@ -32,7 +32,7 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import { RosTopicType_Name, type RosType } from '@/types/python_types'
 import type { GetMessageFieldsRequest, GetMessageFieldsResponse } from '@/types/services/GetMessageFields'
-import type { ParamData } from '@/types/types'
+import type { OptionData } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
 
@@ -47,7 +47,7 @@ const props = defineProps<{
   data_key: string
 }>()
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -68,7 +68,7 @@ const is_topic_ref = computed<boolean>(() => {
   return false
 })
 
-const topic_ref_param = computed<ParamData | undefined>(() => {
+const topic_ref_param = computed<OptionData | undefined>(() => {
   if (!is_topic_ref.value) {
     return undefined
   }

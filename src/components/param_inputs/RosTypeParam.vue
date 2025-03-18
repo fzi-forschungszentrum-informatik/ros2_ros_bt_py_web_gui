@@ -33,7 +33,7 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
 import type { RosType } from '@/types/python_types'
-import type { ParamData } from '@/types/types'
+import type { OptionData } from '@/types/types'
 import { getTypeAndInfo } from '@/utils'
 import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
@@ -50,7 +50,7 @@ const props = defineProps<{
 
 const search_results = ref<string[]>([])
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 

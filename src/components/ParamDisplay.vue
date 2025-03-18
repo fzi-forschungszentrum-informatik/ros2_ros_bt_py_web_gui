@@ -29,7 +29,8 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { ParamData } from '@/types/types'
+import type { IOData, OptionData } from '@/types/types'
+import { unset_ref_str } from '@/utils';
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -39,7 +40,7 @@ const props = defineProps<{
 
 const edit_node_store = useEditNodeStore()
 
-const param = computed<ParamData | undefined>(() => {
+const param = computed<IOData | undefined>(() => {
   switch (props.category) {
     case 'inputs':
       return edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
@@ -53,44 +54,9 @@ const param = computed<ParamData | undefined>(() => {
 
 <template>
   <div v-if="param !== undefined" class="list-group-item">
-    <div
-      v-if="
-        param.value.type === 'int' || param.value.type === 'float' || param.value.type === 'string'
-      "
-    >
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <span>{{ param.value.value as string }}</span>
-    </div>
-    <div v-else-if="param.value.type === 'type'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ param.value.value as string }}</pre>
-    </div>
-    <div v-else-if="param.value.type === 'boolean'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ param.value.value ? 'True' : 'False' }}</pre>
-    </div>
-    <div v-else-if="param.value.type === 'unset_optionref'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre class="text-muted">{{ param.value.value as string }}</pre>
-    </div>
-    <div v-else>
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ JSON.stringify(param.value.value, null, 2) }}</pre>
+    <div class="h5">
+      {{ param.key + ' ' }}
+      <span className="text-muted">(type: {{ param.type }})</span>
     </div>
   </div>
   <div v-else>Error loading param data</div>

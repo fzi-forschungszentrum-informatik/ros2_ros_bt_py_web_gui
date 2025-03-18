@@ -31,7 +31,7 @@
 import { useEditNodeStore } from '@/stores/edit_node';
 import { useEditorStore } from '@/stores/editor';
 import type { PyOperator } from '@/types/python_types';
-import type { ParamData } from '@/types/types';
+import type { OptionData } from '@/types/types';
 import { computed } from 'vue';
 
 
@@ -44,7 +44,7 @@ const props = defineProps<{
     op_type: 'unary' | 'binary'
 }>()
 
-const param = computed<ParamData | undefined>(() => 
+const param = computed<OptionData | undefined>(() => 
     edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -59,7 +59,7 @@ function handleChange(event: Event) {
     const operator_obj = param.value.value.value as PyOperator
     operator_obj.operator = target.value
 
-    edit_node_store.updateParamValue(param.value.value.type, param.value.key, operator_obj)
+    edit_node_store.updateParamValue(props.category, param.value.key, operator_obj)
 }
 
 // Lookup for all possible values for operators and operands

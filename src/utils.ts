@@ -35,7 +35,7 @@ import {
 } from './types/python_types'
 import type { 
   DataEdgeTerminal, 
-  ParamData, 
+  OptionData, 
   PyObject, 
   ParamType, 
   NodeOption,
@@ -149,6 +149,33 @@ export function getTypeAndInfo(typeStr: string): [string, string] {
   return [match[1], match[2]]
 }
 
+export const unset_ref_str = 'unset_optionref'
+
+export function parseOptionRef(
+  typeStr: string,
+  options: NodeOption[] | null = null
+): string {
+  if (typeStr.startsWith('OptionRef(')) {
+    const optionTypeName = typeStr.substring('OptionRef('.length, typeStr.length - 1)
+    if (options === null) {
+      return unset_ref_str
+    }
+    const optionType = options.find((x) => {
+      return x.key === optionTypeName
+    })
+    if (optionType) {
+      if (optionType.serialized_value === '') {
+        return getDefaultValue(prettyprint_type(optionType.serialized_type)).value as string
+      }
+      return prettyprint_type(optionType.serialized_value)
+    } else {
+      return unset_ref_str
+    }
+  } else {
+    return typeStr
+  }
+}
+
 export function getDefaultValue(
   typeStr: string,
   options: NodeOption[] | null = null
@@ -190,31 +217,15 @@ export function getDefaultValue(
       value: {}
     }
   } else if (typeName.startsWith('OptionRef(')) {
-    const optionTypeName = typeName.substring('OptionRef('.length, typeName.length - 1)
-    if (options === null) {
+    const refStr = parseOptionRef(typeName, options)
+    if (refStr === unset_ref_str) {
+      const optionTypeName = typeName.substring('OptionRef('.length, typeName.length - 1)
       return {
-        type: 'unset_optionref',
+        type: unset_ref_str,
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
-    const optionType = options.find((x) => {
-      return x.key === optionTypeName
-    })
-    if (optionType) {
-      // This double call is necessary to dereference first the type of the optionref target and then its default value
-      return getDefaultValue(
-        getDefaultValue(
-          prettyprint_type(optionType.serialized_type), 
-          options
-        ).value as string,
-        options
-      )
-    } else {
-      return {
-        type: 'unset_optionref',
-        value: 'Ref to "' + optionTypeName + '"'
-      }
-    }
+    return getDefaultValue(refStr, options)
   // This checks all types defined in `python_types`
   // which provide default values
   } else if (isPythonTypeWithDefault(typeName)) {
@@ -230,7 +241,7 @@ export function getDefaultValue(
   }
 }
 
-export function serializeNodeOptions(node_options: ParamData[]): NodeOption[] {
+export function serializeNodeOptions(node_options: OptionData[]): NodeOption[] {
   return node_options.map((x) => {
     const option: NodeOption = {
       key: x.key,

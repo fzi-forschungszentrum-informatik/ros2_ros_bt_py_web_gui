@@ -38,7 +38,7 @@ import type {
   DocumentedNode,
   DropTarget,
   NodeDataLocation,
-  ParamData,
+  OptionData,
   TrimmedNode,
   TrimmedNodeData,
   NodeStructure,
@@ -151,7 +151,7 @@ function buildNodeMessage(node: DocumentedNode): NodeStructure {
     return {
       key: opt.key,
       value: getDefaultValue(prettyprint_type(opt.serialized_type), node.options)
-    } as ParamData
+    } as OptionData
   })
 
   return {

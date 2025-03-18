@@ -29,7 +29,7 @@
 -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { ParamData } from '@/types/types'
+import type { OptionData } from '@/types/types'
 import { computed, ref } from 'vue'
 import SelectFileModal from '../modals/SelectFileModal.vue'
 import type { PyFilePath } from '@/types/python_types'
@@ -41,7 +41,7 @@ const props = defineProps<{
   data_key: string
 }>()
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -67,7 +67,7 @@ function selectFile(path: string) {
   const file_path_obj = param.value.value.value as PyFilePath
   file_path_obj.path = path
 
-  edit_node_store.updateParamValue(param.value.value.type, param.value.key, file_path_obj)
+  edit_node_store.updateParamValue(props.category, param.value.key, file_path_obj)
 
   show_selection_modal.value = false
 }

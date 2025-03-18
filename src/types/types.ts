@@ -265,9 +265,12 @@ export type ParamType = {
   value: ValueTypes
 }
 
-export type ParamData = {
+export type OptionData = {
   key: string
   value: ParamType
 }
 
-
+export type IOData = {
+  key: string
+  type: string
+}
