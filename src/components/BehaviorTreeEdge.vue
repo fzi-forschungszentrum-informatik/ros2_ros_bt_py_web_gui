@@ -83,18 +83,20 @@ function selectTargetNode() {
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
-          <span class="text-primary">{{ editor_store.selected_edge!.source.node_name }}</span
-          ><br />
-          {{ editor_store.selected_edge!.source.data_kind }}<br />
+          <span class="text-primary">
+            {{ editor_store.selected_edge!.source.node_name }}
+          </span>
+          <br />
           {{ editor_store.selected_edge!.source.data_key }}
         </button>
       </div>
       <hr class="flex-fill connector" />
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
-          <span class="text-primary">{{ editor_store.selected_edge!.target.node_name }}</span
-          ><br />
-          {{ editor_store.selected_edge!.target.data_kind }}<br />
+          <span class="text-primary">
+            {{ editor_store.selected_edge!.target.node_name }}
+          </span>
+          <br />
           {{ editor_store.selected_edge!.target.data_key }}
         </button>
       </div>

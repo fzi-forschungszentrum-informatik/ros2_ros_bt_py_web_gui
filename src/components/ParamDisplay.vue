@@ -29,8 +29,8 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { IOData, OptionData } from '@/types/types'
-import { unset_ref_str } from '@/utils';
+import { useEditorStore } from '@/stores/editor';
+import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -38,6 +38,7 @@ const props = defineProps<{
   data_key: string
 }>()
 
+const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 const param = computed<IOData | undefined>(() => {
@@ -50,6 +51,39 @@ const param = computed<IOData | undefined>(() => {
       return undefined
   }
 })
+
+const connected_edges = computed<Wiring[]>(() => {
+  if (editor_store.current_tree.structure === undefined) {
+    return []
+  }
+  return editor_store.current_tree.structure.data_wirings.filter((wiring) => 
+    matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
+  )
+})
+
+function matchEndpoint(endpoint: NodeDataLocation): boolean {
+  if (edit_node_store.selected_node === undefined) {
+    return false
+  }
+  return endpoint.data_key === props.data_key &&
+    endpoint.data_kind === props.category &&
+    endpoint.node_name === edit_node_store.selected_node.name
+}
+
+function printOtherEndpoint(wiring: Wiring): string {
+  let endpoint: NodeDataLocation | null = null
+  if (matchEndpoint(wiring.source)) {
+    endpoint = wiring.target
+  }
+  if (matchEndpoint(wiring.target)) {
+    endpoint = wiring.source
+  }
+  if (endpoint === null) {
+    return ''
+  }
+  return endpoint.node_name + '.' + endpoint.data_key
+}
+
 </script>
 
 <template>
@@ -57,6 +91,15 @@ const param = computed<IOData | undefined>(() => {
     <div class="h5">
       {{ param.key + ' ' }}
       <span className="text-muted">(type: {{ param.type }})</span>
+    </div>
+    <div v-if="connected_edges" class="d-flex flex-wrap m-1">
+      <button 
+        v-for="edge in connected_edges"
+        class="btn btn-outline-primary m-1"
+        @click="editor_store.selectEdge(edge)"
+      >
+        {{ printOtherEndpoint(edge) }}
+      </button>
     </div>
   </div>
   <div v-else>Error loading param data</div>
