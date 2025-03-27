@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore, type StoreDefinition } from 'pinia'
 import {Service, Topic, Ros} from 'roslib'
-import type { Packages, MessageTypes, SubtreeInfo, Channels, TreeStructure, TreeState } from '@/types/types'
+import type { Packages, MessageTypes, SubtreeInfo, Channels, TreeStructure, TreeState, TreeData } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -164,6 +164,16 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'tree_state',
         messageType: 'ros_bt_py_interfaces/msg/TreeState',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+
+    const tree_data_sub = ref<Topic<TreeData>>(
+      new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data',
+        messageType: 'ros_bt_py_interfaces/msg/TreeData',
         latch: true,
         reconnect_on_close: true
       })
@@ -393,6 +403,16 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'tree_state',
         messageType: 'ros_bt_py_interfaces/msg/TreeState',
+        latch: true,
+        reconnect_on_close: true
+      })
+
+      tree_data_sub.value.unsubscribe()
+      tree_data_sub.value.removeAllListeners()
+      tree_data_sub.value = new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data',
+        messageType: 'ros_bt_py_interfaces/msg/TreeData',
         latch: true,
         reconnect_on_close: true
       })
@@ -646,6 +666,7 @@ export const useROSStore = defineStore(
       load_tree_from_path_service,
       tree_structure_sub,
       tree_state_sub,
+      tree_data_sub,
       subtree_info_sub,
       packages_sub,
       messages_sub,

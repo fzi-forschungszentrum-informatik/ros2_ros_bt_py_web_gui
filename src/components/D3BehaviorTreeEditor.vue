@@ -147,7 +147,6 @@ function resetView() {
 
 function buildNodeMessage(node: DocumentedNode): NodeStructure {
   const options = node.options.map((opt: NodeOption) => {
-    console.log(opt, node.options)
     return {
       key: opt.key,
       value: getDefaultValue(prettyprint_type(opt.serialized_type), node.options)

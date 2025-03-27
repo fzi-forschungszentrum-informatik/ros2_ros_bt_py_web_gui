@@ -119,6 +119,7 @@ export type WiringData = {
   wiring: Wiring
   serialized_data: string
   serialized_type: string
+  serialized_expected_type: string
 }
 
 export type TreeData = {
