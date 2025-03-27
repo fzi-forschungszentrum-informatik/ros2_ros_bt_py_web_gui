@@ -1063,6 +1063,34 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
     .data(data_points, (d) => d.node.id! + '###' + d.kind + '###' + d.index)
     .join(drawNewDataVert)
 
+  if (!editor_store.selected_subtree.is_subtree) {
+    //NOTE These are added here, because they see an outdated datum otherwise
+    // d3 claims that listeners are passed a "current" datum, 
+    // but that appears to be wrong.
+    g_data_vertices
+      .select('.' + data_vert_grip_css_class)
+        .on('mousedown.drawedge', (ev, term: DataEdgeTerminal) => {
+          editor_store.startDrawingDataEdge(term)
+        })
+        .on('mouseup.drawedge', (ev, term: DataEdgeTerminal) => {
+          if (editor_store.data_edge_endpoint === undefined) {
+            console.warn('Unintended data edge draw')
+            return
+          }
+
+          if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
+            console.warn('Invalid edge')
+            return
+          }
+
+          if (term.kind === IOKind.INPUT) {
+            addNewDataEdge(editor_store.data_edge_endpoint, term)
+          } else {
+            addNewDataEdge(term, editor_store.data_edge_endpoint)
+          }
+        })
+  }
+
   // Since types of DataVerts can change, type values are added out here
   g_data_vertices
     .select('.' + data_vert_label_css_class)
@@ -1108,35 +1136,11 @@ function drawNewDataVert(
       }
     })
 
-  const rects = groups
+  groups
     .append('rect')
     .classed(data_vert_grip_css_class, true)
     .attr('width', io_gripper_size)
     .attr('height', io_gripper_size)
-
-  if (!editor_store.selected_subtree.is_subtree) {
-    rects
-      .on('mousedown.drawedge', (ev, term: DataEdgeTerminal) => {
-        editor_store.startDrawingDataEdge(term)
-      })
-      .on('mouseup.drawedge', (ev, term: DataEdgeTerminal) => {
-        if (editor_store.data_edge_endpoint === undefined) {
-          console.warn('Unintended data edge draw')
-          return
-        }
-
-        if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
-          console.warn('Invalid edge')
-          return
-        }
-
-        if (term.kind === IOKind.INPUT) {
-          addNewDataEdge(editor_store.data_edge_endpoint, term)
-        } else {
-          addNewDataEdge(term, editor_store.data_edge_endpoint)
-        }
-      })
-  }
 
   const labels = groups
     .append('text')
@@ -1239,45 +1243,45 @@ function drawDataEdges(
         d.target.index
     )
     .join('path')
-    .classed(data_edge_css_class, true)
-    .on('click.select', (event, edge: DataEdge) => {
-      editor_store.selectEdge(edge.wiring)
-      event.stopPropagation()
-    })
-    .on('mouseover.highlight', function (ev, edge: DataEdge) {
-      if (editor_store.is_dragging) {
-        return // No highlights while dragging
-      }
-      g_data_vertices
-        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-        .dispatch('mouseover')
-        .attr('id', (term: DataEdgeTerminal) =>
-          term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
-        )
-        //Hide target label
-        .select('.' + data_vert_label_css_class)
-        .attr('visibility', (term: DataEdgeTerminal) => {
-          if (term.kind === IOKind.INPUT) {
-            return 'hidden'
-          }
-          return 'visible'
-        })
+      .classed(data_edge_css_class, true)
+      .on('click.select', (event, edge: DataEdge) => {
+        editor_store.selectEdge(edge.wiring)
+        event.stopPropagation()
+      })
+      .on('mouseover.highlight', function (ev, edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
+        g_data_vertices
+          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+          .dispatch('mouseover')
+          .attr('id', (term: DataEdgeTerminal) =>
+            term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
+          )
+          //Hide target label
+          .select('.' + data_vert_label_css_class)
+          .attr('visibility', (term: DataEdgeTerminal) => {
+            if (term.kind === IOKind.INPUT) {
+              return 'hidden'
+            }
+            return 'visible'
+          })
 
-      d3.select(this)
-        .classed(data_graph_hover_css_class, true)
-        .attr('id', data_edge_highlight_css_id)
-    })
-    .on('mouseout.highlight', function (ev, edge: DataEdge) {
-      if (editor_store.is_dragging) {
-        return // No highlights while dragging
-      }
-      g_data_vertices
-        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-        .dispatch('mouseout')
-      d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
-    })
+        d3.select(this)
+          .classed(data_graph_hover_css_class, true)
+          .attr('id', data_edge_highlight_css_id)
+      })
+      .on('mouseout.highlight', function (ev, edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
+        g_data_vertices
+          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+          .dispatch('mouseout')
+        d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
+      })
     .transition(tree_transition)
-    .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
+      .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
 }
 
 function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
