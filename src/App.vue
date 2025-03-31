@@ -100,9 +100,14 @@ function onNewTreeState(msg: TreeState) {
   editor_store.tree.state = msg
 }
 
+function onNewTreeData(msg: TreeData) {
+  editor_store.tree.data = msg
+}
+
 function updateTreeSubscription() {
   ros_store.tree_structure_sub.subscribe(onNewTreeStructure)
   ros_store.tree_state_sub.subscribe(onNewTreeState)
+  ros_store.tree_data_sub.subscribe(onNewTreeData)
 }
 
 function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
