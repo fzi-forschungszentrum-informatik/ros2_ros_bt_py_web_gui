@@ -36,7 +36,9 @@ import type {
   TreeStructure,
   TrimmedNode,
   DataEdgeTerminal,
-  Tree
+  Tree,
+  TreeState,
+  TreeData
 } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 
@@ -45,20 +47,12 @@ export enum EditorSkin {
   LIGHT = 'lightmode'
 }
 
-export type SelectedSubtree = {
-  name: string
-  is_subtree: boolean
-  tree: TreeStructure | undefined
-}
-
 export const useEditorStore = defineStore('editor', () => {
-  const tree = ref<Tree>({
-    structure: undefined,
-    state: undefined,
-    data: undefined
-  })
-  //const debug_info = ref<DebugInfo | undefined>(undefined)
-  const subtree_states = ref<TreeStructure[]>([])
+
+  const tree_structure_list = ref<TreeStructure[]>([])
+  const tree_state_list = ref<TreeState[]>([])
+  const tree_data_list = ref<TreeData[]>([])
+
   const publish_subtrees = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -83,22 +77,29 @@ export const useEditorStore = defineStore('editor', () => {
 
   const skin = ref<EditorSkin>(EditorSkin.DARK)
 
-  const selected_subtree = ref<SelectedSubtree>({
-    name: '',
-    is_subtree: false,
-    tree: undefined
-  })
+  const selected_tree = ref<string>('')
+
+  const has_selected_subtree = computed<boolean>(
+    () => selected_tree.value !== ""
+  )
 
   const current_tree = computed<Tree>(() => {
-    /*if (selected_subtree.value.is_subtree) {
-      return selected_subtree.value.tree
-    }*/
-    return tree.value
+    return {
+      structure: tree_structure_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      ),
+      state: tree_state_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      ),
+      data: tree_data_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      )
+    }
   })
 
-  const subtree_names = computed<string[]>(() =>
+  /*const subtree_names = computed<string[]>(() =>
     subtree_states.value.map((tree) => tree.name)
-  )
+  )*/
 
   const selected_edge = ref<Wiring | undefined>(undefined)
 
@@ -167,7 +168,7 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  function selectSubtree(name: string, is_subtree: boolean) {
+  /*function selectSubtree(name: string, is_subtree: boolean) {
     let tree: TreeStructure | undefined
     if (is_subtree) {
       if (subtree_states.value.length === 0) {
@@ -189,7 +190,7 @@ export const useEditorStore = defineStore('editor', () => {
       is_subtree: is_subtree,
       tree: tree
     }
-  }
+  }*/
 
   function selectEdge(edge: Wiring) {
     selected_edge.value = edge
@@ -200,11 +201,14 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   return {
-    tree,
+    selected_tree,
+    has_selected_subtree,
     current_tree,
     publish_subtrees,
     debug,
-    subtree_states,
+    tree_structure_list,
+    tree_state_list,
+    tree_data_list,
     running_commands,
     dragging_new_node,
     dragging_existing_node,
@@ -224,9 +228,6 @@ export const useEditorStore = defineStore('editor', () => {
     enableShowDataGraph,
     skin,
     cycleEditorSkin,
-    selected_subtree,
-    selectSubtree,
-    subtree_names,
     selected_edge,
     selectEdge,
     unselectEdge

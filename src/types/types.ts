@@ -69,6 +69,7 @@ export type Wiring = {
 }
 
 export type TreeStructure = {
+  tree_id: string
   name: string
   path: string
   root_name: string
@@ -78,8 +79,8 @@ export type TreeStructure = {
   public_node_data: NodeDataLocation[]
 }
 
-export type SubtreeInfo = {
-  subtree_states: TreeStructure[]
+export type TreeStructureList = {
+  tree_structures: TreeStructure[]
 }
 
 export const enum NodeStateValues {
@@ -111,8 +112,13 @@ export const enum TreeStateValues {
 }
 
 export type TreeState = {
+  tree_id: string
   state: TreeStateValues
   node_states: NodeState[]
+}
+
+export type TreeStateList = {
+  tree_states: TreeState[]
 }
 
 export type WiringData = {
@@ -123,7 +129,12 @@ export type WiringData = {
 }
 
 export type TreeData = {
+  tree_id: string
   wiring_data: WiringData[]
+}
+
+export type TreeDataList = {
+  tree_data: TreeData[]
 }
 
 export type Tree = {

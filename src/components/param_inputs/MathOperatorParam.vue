@@ -141,7 +141,7 @@ const options = {
         <select
             class="form-select" 
             :value="(param.value.value as PyOperator).operator"
-            :disabled="editor_store.selected_subtree.is_subtree" 
+            :disabled="editor_store.has_selected_subtree" 
             @change="handleChange" 
         >
             <option

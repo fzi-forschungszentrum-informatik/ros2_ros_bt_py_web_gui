@@ -36,6 +36,7 @@ import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTre
 import { useEditorStore } from '@/stores/editor'
 import { notify } from '@kyvg/vue3-notification'
 import { NameConflictHandler, parseConflictHandler } from '@/utils'
+import type { TreeStructure } from '@/types/types'
 
 const emit = defineEmits<{
   (e: 'close'): void
@@ -53,6 +54,12 @@ const storage_location = ref<string>('')
 const selected_path = ref<string[]>([])
 const is_directory = ref<boolean>(true)
 const input_file_name = ref<string>('')
+
+const main_tree = computed<TreeStructure | undefined>(
+  () => editor_store.tree_structure_list.find(
+    (tree) => tree.tree_id === ""
+  )
+)
 
 const file_path = computed<string>(() => {
   if (is_directory.value) {
@@ -81,7 +88,7 @@ function saveTree() {
     return
   }
 
-  if (editor_store.tree.structure === undefined) {
+  if (main_tree.value === undefined) {
     console.error('No tree to save')
     return
   }
@@ -91,7 +98,7 @@ function saveTree() {
   const save_tree_request: SaveTreeRequest = {
     storage_path: storage_location.value,
     filepath: file_path.value,
-    tree: editor_store.tree.structure,
+    tree: main_tree.value,
     allow_overwrite: allow_overwrite,
     allow_rename: allow_rename
   }

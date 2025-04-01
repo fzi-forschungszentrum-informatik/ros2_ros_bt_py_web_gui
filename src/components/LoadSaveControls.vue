@@ -374,7 +374,9 @@ function saveTree() {
           title: 'Tree shutdown successful!',
           type: 'success'
         })
-        const tree = editor_store.tree.structure
+        const tree = editor_store.tree_structure_list.find(
+          (tree) => tree.tree_id === ""
+        )
         if (tree === undefined) {
           notify({
             title: 'Tree is undefined, cannot save!',
@@ -410,7 +412,7 @@ function saveTree() {
     <button
       class="btn btn-primary"
       title="New tree"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => newTree()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
@@ -423,7 +425,7 @@ function saveTree() {
         class="btn btn-primary dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="false"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
       >
         <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
         <span class="ms-1 hide-button-text">Load</span>
@@ -433,7 +435,7 @@ function saveTree() {
           <button
             class="dropdown-item btn btn-primary"
             title="Load from package"
-            :disabled="editor_store.selected_subtree.is_subtree"
+            :disabled="editor_store.has_selected_subtree"
             @click="() => loadFromPackage()"
           >
             <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
@@ -444,7 +446,7 @@ function saveTree() {
           <button
             class="dropdown-item btn btn-primary"
             title="Load from file"
-            :disabled="editor_store.selected_subtree.is_subtree"
+            :disabled="editor_store.has_selected_subtree"
             @click="() => loadFromFile()"
           >
             <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
@@ -456,7 +458,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Save to remote"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => saveToFile()"
     >
       <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
@@ -466,7 +468,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Upload"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => openFileDialog()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
@@ -475,7 +477,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Download"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => saveTree()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />

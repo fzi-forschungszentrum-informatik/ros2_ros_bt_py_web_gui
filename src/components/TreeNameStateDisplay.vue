@@ -164,13 +164,13 @@ function renameTree(): void {
           id="treeNameForm"
           class="form-control"
           type="text"
-          :disabled="editor_store.selected_subtree.is_subtree"
+          :disabled="editor_store.has_selected_subtree"
           :value="tree_name"
           @input="(event: Event) => (new_tree_name = (event.target as HTMLInputElement).value)"
         />
         <button
           class="btn btn-primary"
-          :disabled="editor_store.selected_subtree.is_subtree"
+          :disabled="editor_store.has_selected_subtree"
           @click="renameTree"
         >
           Save

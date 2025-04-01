@@ -137,7 +137,7 @@ function releaseDropdown() {
         type="text"
         class="form-control mt-2"
         :value="(param.value.value as RosType).type_str"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
         @input="onInput"
         @focus="focusInput"
         @blur="unfocusInput"

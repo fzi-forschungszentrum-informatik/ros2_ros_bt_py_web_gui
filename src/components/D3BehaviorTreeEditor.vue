@@ -386,7 +386,7 @@ function drawNewNodes(
     })
 
   // No tree modifying if displaying a subtree
-  if (!editor_store.selected_subtree.is_subtree) {
+  if (!editor_store.has_selected_subtree) {
     fo.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
       event.stopPropagation()
@@ -639,7 +639,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   const drop_targets: DropTarget[] = []
 
   // Only draw drop targets if not displaying a subtree
-  if (!editor_store.selected_subtree.is_subtree) {
+  if (!editor_store.has_selected_subtree) {
     // Construct the list of drop targets that should exist
     tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
       if (node.data.name === forest_root_name) {
@@ -1063,7 +1063,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
     .data(data_points, (d) => d.node.id! + '###' + d.kind + '###' + d.index)
     .join(drawNewDataVert)
 
-  if (!editor_store.selected_subtree.is_subtree) {
+  if (!editor_store.has_selected_subtree) {
     //NOTE These are added here, because they see an outdated datum otherwise
     // d3 claims that listeners are passed a "current" datum, 
     // but that appears to be wrong.

@@ -133,7 +133,7 @@ function releaseDropdown() {
         type="text"
         class="form-control mt-2"
         :value="display_value"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
         @input="onChange"
         @focus="focusInput"
         @blur="unfocusInput"

@@ -39,6 +39,14 @@ const ros_store = useROSStore()
 
 const publish_subtrees_id: string = 'publish_subtrees'
 
+const subtree_list = computed<[string, string][]>(() =>
+  editor_store.tree_structure_list.filter(
+    (tree) => tree.tree_id !== ''
+  ).map(
+    (tree) => [tree.tree_id, tree.name] as [string, string]
+  ).sort((a, b) => a[0].localeCompare(b[0]))
+)
+
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
 
@@ -82,21 +90,9 @@ function handlePubSubtreesChange(event: Event) {
 
 function onChange(event: Event) {
   const target = event.target as HTMLSelectElement
-  const value = parseInt(target.value)
-  if (value < 0) {
-    editor_store.selectSubtree('', false)
-  } else {
-    editor_store.selectSubtree(editor_store.subtree_names[value], true)
-  }
+  editor_store.selected_tree = target.value
 }
 
-const selected_name = computed<string>(() => {
-  if (editor_store.selected_subtree.is_subtree) {
-    return editor_store.selected_subtree.name
-  } else {
-    return 'main'
-  }
-})
 </script>
 
 <template>
@@ -106,13 +102,13 @@ const selected_name = computed<string>(() => {
     <select
       id="formTree"
       class="form-select"
-      :value="editor_store.subtree_names.indexOf(selected_name)"
+      :value="editor_store.selected_tree"
       @change="onChange"
     >
-      <option value="-1">Main Tree</option>
+      <option value="">Main Tree</option>
       <optgroup label="Subtrees">
-        <option v-for="(name, index) in editor_store.subtree_names" :key="name" :value="index">
-          {{ name }}
+        <option v-for="tree in subtree_list" :key="tree[0]" :value="tree[0]">
+          {{ tree[1] }}
         </option>
       </optgroup>
     </select>

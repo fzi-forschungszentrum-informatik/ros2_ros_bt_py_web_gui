@@ -87,7 +87,7 @@ const input_attrs = computed<object | undefined>(() => {
     step: number | 'any' = 'any',
     cssclass: string[] = ['form-control'],
     checked: boolean = false,
-    disabled: boolean = editor_store.selected_subtree.is_subtree
+    disabled: boolean = editor_store.has_selected_subtree
   switch (param_type.value) {
     case 'int':
       step = 1.0

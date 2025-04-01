@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore, type StoreDefinition } from 'pinia'
 import {Service, Topic, Ros} from 'roslib'
-import type { Packages, MessageTypes, SubtreeInfo, Channels, TreeStructure, TreeState, TreeData } from '@/types/types'
+import type { Packages, MessageTypes, Channels, TreeStructureList, TreeStateList, TreeDataList } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -149,41 +149,31 @@ export const useROSStore = defineStore(
       })
     )
 
-    const tree_structure_sub = ref<Topic<TreeStructure>>(
+    const tree_structure_sub = ref<Topic<TreeStructureList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_structure',
-        messageType: 'ros_bt_py_interfaces/msg/TreeStructure',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
     )
 
-    const tree_state_sub = ref<Topic<TreeState>>(
+    const tree_state_sub = ref<Topic<TreeStateList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_state',
-        messageType: 'ros_bt_py_interfaces/msg/TreeState',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
         latch: true,
         reconnect_on_close: true
       })
     )
 
-    const tree_data_sub = ref<Topic<TreeData>>(
+    const tree_data_sub = ref<Topic<TreeDataList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_data',
-        messageType: 'ros_bt_py_interfaces/msg/TreeData',
-        latch: true,
-        reconnect_on_close: true
-      })
-    )
-
-    const subtree_info_sub = ref<Topic<SubtreeInfo>>(
-      new Topic({
-        ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
         latch: true,
         reconnect_on_close: true
       })
@@ -391,8 +381,8 @@ export const useROSStore = defineStore(
       tree_structure_sub.value.removeAllListeners()
       tree_structure_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_structure',
-        messageType: 'ros_bt_py_interfaces/msg/TreeStructure',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
@@ -401,8 +391,8 @@ export const useROSStore = defineStore(
       tree_state_sub.value.removeAllListeners()
       tree_state_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_state',
-        messageType: 'ros_bt_py_interfaces/msg/TreeState',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
         latch: true,
         reconnect_on_close: true
       })
@@ -411,18 +401,8 @@ export const useROSStore = defineStore(
       tree_data_sub.value.removeAllListeners()
       tree_data_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree_data',
-        messageType: 'ros_bt_py_interfaces/msg/TreeData',
-        latch: true,
-        reconnect_on_close: true
-      })
-
-      subtree_info_sub.value.unsubscribe()
-      subtree_info_sub.value.removeAllListeners()
-      subtree_info_sub.value = new Topic({
-        ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
         latch: true,
         reconnect_on_close: true
       })
@@ -667,7 +647,6 @@ export const useROSStore = defineStore(
       tree_structure_sub,
       tree_state_sub,
       tree_data_sub,
-      subtree_info_sub,
       packages_sub,
       messages_sub,
       channels_sub,
