@@ -28,50 +28,83 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { useROSStore } from '@/stores/ros';
-import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
-import { notify } from '@kyvg/vue3-notification';
+import { useROSStore } from '../stores/ros'
+import { useMessasgeStore } from '@/stores/message'
+import { usePackageStore } from '@/stores/package'
+import { computed } from 'vue'
 
 const ros_store = useROSStore()
+const messages_store = useMessasgeStore()
+const packages_store = usePackageStore()
 
-function setPublishData(event: Event) {
-    const target = event.target as HTMLInputElement
 
-    ros_store.set_publish_data_service.callService({
-        data: target.checked
-    } as SetBoolRequest,
-    (response: SetBoolResponse) => {
-        if (response.success) {
-            notify({
-                title: (target.checked ? 'Enable' : 'Disable') + ' data publishing',
-                type: 'success'
-            })
-        } else {
-            notify({
-                title: 'Failed to toggle data publishing',
-                text: response.message,
-                type: 'warn'
-            })
-        }
-    },
-    (error: string) => {
-      notify({
-        title: 'Failed to call setPublishData service',
-        text: error,
-        type: 'error'
-      })
-    })
-}
+const connection_status_attrs = computed<object>(() => {
+  if (!ros_store.connected) {
+    return {
+      class: 'disconnected',
+      title: 'Disconnected'
+    }
+  }
+  if (!messages_store.messages_available) {
+    return {
+      class: 'messages-missing',
+      title:
+        'Connected, message info not (yet) available. ' + 'ROS-type autocompletion will not work.'
+    }
+  }
+  if (!packages_store.packages_available) {
+    return {
+      class: 'packages-missing',
+      title: 'Connected, package list not (yet) available. ' + 'File browser will not work.'
+    }
+  }
+  return {
+    class: 'connected',
+    title: 'Connected'
+  }
+})
+
 
 </script>
 
 <template>
-    <div class="h4 mb-3">Tree Data Settings</div>
+    <div class="d-flex align-items-center">
+        <FontAwesomeIcon
+            icon="fa-solid fa-wifi"
+            aria-hidden="true"
+            class="mx-2 fs-4"
+            v-bind="connection_status_attrs"
+        />
 
-    <div class="form-check form-switch my-3 fs-5">
-        <input type="checkbox" class="form-check-input" @click="setPublishData">
-        <label class="form-check-label ms-2">
-            Transmit data flow information
-        </label>
+        <button 
+            class="btn btn-outline-contrast" 
+            type="button" 
+            data-bs-toggle="offcanvas" 
+            data-bs-target="#settings"
+        >
+            <FontAwesomeIcon icon="fa-solid fa-cog" />
+        </button>
     </div>
 </template>
+
+<style scoped lang="scss">
+.connected {
+  padding: 0.25rem;
+  color: #0caa19;
+}
+
+.disconnected {
+  padding: 0.25rem;
+  color: #ff0000;
+}
+
+.packages-missing {
+  padding: 0.25rem;
+  color: #ff7300;
+}
+
+.messages-missing {
+  padding: 0.25rem;
+  color: #ffd000;
+}
+</style>

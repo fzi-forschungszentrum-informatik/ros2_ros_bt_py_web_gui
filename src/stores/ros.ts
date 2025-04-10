@@ -149,6 +149,14 @@ export const useROSStore = defineStore(
       })
     )
 
+    const set_publish_data_service = ref<Service<SetBoolRequest, SetBoolResponse>>(
+      new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+    )
+
     const tree_structure_sub = ref<Topic<TreeStructureList>>(
       new Topic({
         ros: ros.value,
@@ -443,6 +451,12 @@ export const useROSStore = defineStore(
         serviceType: 'std_srvs/srv/SetBool'
       })
 
+      set_publish_data_service.value = new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+
       services_for_type_service.value = new Service({
         ros: ros.value,
         name: '/rosapi/services_for_type',
@@ -638,6 +652,7 @@ export const useROSStore = defineStore(
       add_node_at_index_service,
       generate_subtree_service,
       set_publish_subtrees_service,
+      set_publish_data_service,
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,

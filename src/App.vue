@@ -52,6 +52,7 @@ import NamespaceSelect from './components/NamespaceSelect.vue'
 import TickControls from './components/TickControls.vue'
 import NodeQuickSelect from './components/NodeQuickSelect.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
+import ConnectionStatus from './components/ConnectionStatus.vue'
 
 
 const ros_store = useROSStore()
@@ -185,28 +186,22 @@ onMounted(() => {
     </div>
     <div class="offcanvas-body">
       <SettingsPanel />
+      
+      <NamespaceSelect />
     </div>
   </div>
 
   <header
     v-if="execution_bar_visible"
-    class="d-flex align-items-center w-100 p-2 top-bar"
+    class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-    <button 
-      class="btn btn-outline-primary me-2" 
-      type="button" 
-      data-bs-toggle="offcanvas" 
-      data-bs-target="#settings"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-cog" />
-    </button>
-    <div class="flex-grow-1 d-flex justify-content-between align-items-center">
-      <NamespaceSelect />
+    
+      <ConnectionStatus />
 
       <TickControls />
 
       <LoadSaveControls />
-    </div>
+
   </header>
 
   <main>
