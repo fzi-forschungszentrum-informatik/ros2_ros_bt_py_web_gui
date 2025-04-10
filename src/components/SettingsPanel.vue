@@ -28,10 +28,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
+import { useEditorStore } from '@/stores/editor';
 import { useROSStore } from '@/stores/ros';
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
 import { notify } from '@kyvg/vue3-notification';
 
+const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 function setPublishData(event: Event) {
@@ -46,6 +48,7 @@ function setPublishData(event: Event) {
                 title: (target.checked ? 'Enable' : 'Disable') + ' data publishing',
                 type: 'success'
             })
+            editor_store.publish_data = target.checked
         } else {
             notify({
                 title: 'Failed to toggle data publishing',
@@ -69,7 +72,9 @@ function setPublishData(event: Event) {
     <div class="h4 mb-3">Tree Data Settings</div>
 
     <div class="form-check form-switch my-3 fs-5">
-        <input type="checkbox" class="form-check-input" @click="setPublishData">
+        <input type="checkbox" class="form-check-input" 
+            :checked="editor_store.publish_data" @click="setPublishData"
+        >
         <label class="form-check-label ms-2">
             Transmit data flow information
         </label>

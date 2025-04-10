@@ -54,6 +54,7 @@ export const useEditorStore = defineStore('editor', () => {
   const tree_data_list = ref<TreeData[]>([])
 
   const publish_subtrees = ref<boolean>(false)
+  const publish_data = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
 
@@ -205,6 +206,7 @@ export const useEditorStore = defineStore('editor', () => {
     has_selected_subtree,
     current_tree,
     publish_subtrees,
+    publish_data,
     debug,
     tree_structure_list,
     tree_state_list,
@@ -231,5 +233,11 @@ export const useEditorStore = defineStore('editor', () => {
     selected_edge,
     selectEdge,
     unselectEdge
+  }
+},
+{
+  persist: {
+    pick: ['publish_data', 'publish_subtrees'],
+    storage: sessionStorage,
   }
 })
