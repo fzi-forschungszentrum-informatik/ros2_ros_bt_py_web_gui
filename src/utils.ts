@@ -39,7 +39,6 @@ import type {
   PyObject, 
   ParamType, 
   NodeOption,
-  TreeStructure,
   TreeState
 } from './types/types'
 import { IOKind } from './types/types'

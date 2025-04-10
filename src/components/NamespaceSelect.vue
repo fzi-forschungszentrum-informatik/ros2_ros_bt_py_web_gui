@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -76,10 +76,6 @@ function updateAvailableNamespaces() {
       }
     }
   )
-}
-
-function editRosbridgeServer() {
-  edit_rosbridge_server.value = !edit_rosbridge_server.value
 }
 
 function changeRosbridgeServer(event: Event) {

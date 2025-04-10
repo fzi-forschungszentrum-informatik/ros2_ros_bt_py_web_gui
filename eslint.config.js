@@ -30,7 +30,7 @@ export default typescriptEslint.config(
 
         rules: {
             "no-fallthrough": "warn",
-            "no-inner-declarations": "warn",
+            "vue/require-v-for-key": "warn",
         },
     },
     eslintConfigPrettier

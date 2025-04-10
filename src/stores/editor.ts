@@ -40,7 +40,6 @@ import type {
   TreeState,
   TreeData
 } from '@/types/types'
-import { notify } from '@kyvg/vue3-notification'
 
 export enum EditorSkin {
   DARK = 'darkmode',

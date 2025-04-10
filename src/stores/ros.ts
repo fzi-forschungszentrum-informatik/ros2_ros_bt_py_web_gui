@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import { ref, computed } from 'vue'
-import { defineStore, type StoreDefinition } from 'pinia'
+import { defineStore } from 'pinia'
 import {Service, Topic, Ros} from 'roslib'
 import type { Packages, MessageTypes, Channels, TreeStructureList, TreeStateList, TreeDataList } from '@/types/types'
 import type {

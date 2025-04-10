@@ -28,8 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import { NodeStateValues } from '@/types/types'
 import type { DocumentedNode, IOData, NodeIO, NodeOption, NodeStructure, OptionData, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'

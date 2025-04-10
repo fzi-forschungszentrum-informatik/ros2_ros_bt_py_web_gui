@@ -72,7 +72,8 @@ function setPublishData(event: Event) {
     <div class="h4 mb-3">Tree Data Settings</div>
 
     <div class="form-check form-switch my-3 fs-5">
-        <input type="checkbox" class="form-check-input" 
+        <input
+            type="checkbox" class="form-check-input" 
             :checked="editor_store.publish_data" @click="setPublishData"
         >
         <label class="form-check-label ms-2">
