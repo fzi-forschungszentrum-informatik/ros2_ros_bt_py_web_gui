@@ -112,6 +112,7 @@ function saveTree() {
           text: response.file_path,
           type: 'success'
         })
+        editor_store.setQuickSaveLocation(response.file_path)
         emit('close')
       } else {
         if (
@@ -150,6 +151,7 @@ function saveTree() {
                 text: response.file_path,
                 type: 'success'
               })
+              editor_store.setQuickSaveLocation(response.file_path)
               emit('close')
             } else {
               notify({

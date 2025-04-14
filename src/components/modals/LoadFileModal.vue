@@ -37,6 +37,7 @@ import type {
   LoadTreeFromPathResponse
 } from '@/types/services/LoadTreeFromPath'
 import { notify } from '@kyvg/vue3-notification'
+import { useEditorStore } from '@/stores/editor'
 
 const props = defineProps<{
   fromPackages: boolean
@@ -46,6 +47,7 @@ const emit = defineEmits<{
   (e: 'close'): void
 }>()
 
+const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const treatable_errors: string[] = []
@@ -91,6 +93,7 @@ function loadTree() {
           text: file_path.value,
           type: 'success'
         })
+        editor_store.resetQuickSaveLocation()
         emit('close')
       } else {
         notify({
@@ -128,6 +131,7 @@ function loadTree() {
                 text: file_path.value,
                 type: 'success'
               })
+              editor_store.resetQuickSaveLocation()
               emit('close')
             } else {
               notify({
