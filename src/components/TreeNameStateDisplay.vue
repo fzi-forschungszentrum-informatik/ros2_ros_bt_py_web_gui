@@ -49,8 +49,11 @@ const tree_name = computed<string>(() => {
 const new_tree_name = ref<string>(tree_name.value)
 
 const tree_state = computed<TreeStateValues>(() => {
-  if (editor_store.current_tree.state !== undefined) {
-    return editor_store.current_tree.state.state
+  const main_tree_state = editor_store.tree_state_list.find(
+    (tree) => tree.tree_id === ""
+  )
+  if (main_tree_state !== undefined) {
+    return main_tree_state.state
   } else {
     return TreeStateValues.EDITABLE
   }
