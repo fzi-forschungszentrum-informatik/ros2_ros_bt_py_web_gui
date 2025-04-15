@@ -84,6 +84,7 @@ import type {
 } from '@/types/services/LoadTreeFromPath'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { useNodesStore } from './nodes'
+import { useEditorStore } from './editor'
 
 export const useROSStore = defineStore(
   'ros',
@@ -91,6 +92,7 @@ export const useROSStore = defineStore(
     const messages_store = useMessasgeStore()
     const packages_store = usePackageStore()
     const nodes_store = useNodesStore()
+    const editor_store = useEditorStore()
     const ros = ref<Ros>(new Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
@@ -610,6 +612,9 @@ export const useROSStore = defineStore(
     function hasDisconnected() {
       messages_store.areMessagesAvailable(false)
       packages_store.arePackagesAvailable(false)
+      
+      editor_store.enableSubtreePublishing(false)
+      editor_store.publish_data = false
 
       notify({
         title: 'ROS connection closed!',
