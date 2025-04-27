@@ -99,7 +99,9 @@ const io_edge_curve_factor: number = 0.0001
 const forest_root_name: string = '__forest_root'
 const node_padding: number = 10
 const node_spacing: number = 80
-const node_width: number = 300
+const name_line_length: number = 20
+const name_first_line_indent: number = 3
+const class_line_length: number = 25
 const icon_width: number = 30
 const node_name_height: number = 40
 const node_class_height: number = 30
@@ -438,7 +440,8 @@ function getIcon(state: string) {
 }
 
 function layoutText(
-  element: SVGGElement
+  element: SVGGElement,
+  data: d3.HierarchyNode<TrimmedNode>,
 ): number {
 
   // Track width of longest line and return that for box sizing
@@ -449,8 +452,8 @@ function layoutText(
   const name_elem = group_elem.select<SVGTextElement>('.' + node_name_css_class)
   const class_elem = group_elem.select<SVGTextElement>('.' + node_class_css_class)
 
-  const node_name = group_elem.datum().data.name
-  const node_class = group_elem.datum().data.node_class
+  const node_name = data.data.name
+  const node_class = data.data.node_class
 
   name_elem.selectAll<SVGTSpanElement, never>('tspan')
     .remove()
@@ -479,23 +482,22 @@ function layoutText(
       tspan.attr('dy', node_name_height)
     }
 
-    // Shorten current line until it is below max-width or consists of a single word
-    let new_idx: number = wrap_indices[0]
-    for (const idx of wrap_indices) {
-      if (idx <= current_index) {
-        break
-      }
-      tspan.text(node_name.slice(current_index, idx))
-      new_idx = idx
-      let width = node_width
+    // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
+    let next_idx: number = wrap_indices.findIndex((val) => {
       if (current_index === 0) {
-        // Reduce width of first line to make space for icon
-        width -= icon_width + node_padding
-      } 
-      if (tspan.node()!.getComputedTextLength() < width) {
-        break
+        return val < name_line_length - name_first_line_indent
+      } else {
+        return val < current_index + name_line_length
       }
+    })
+
+    // If the next word is longer than the max line length, print it anyway
+    if (wrap_indices[next_idx] === current_index) {
+      next_idx -= 1
     }
+    
+    const next_index = wrap_indices[next_idx]
+    tspan.text(node_name.slice(current_index, next_index))
 
     // Update variables for next line
     if (current_index === 0) {
@@ -503,7 +505,7 @@ function layoutText(
     } else {
       max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
     }
-    current_index = new_idx
+    current_index = next_index
     title_lines += 1
   }
 
@@ -528,22 +530,22 @@ function layoutText(
       tspan.attr('dy', node_class_height)
     }
 
-    // Shorten current line until it is below max-width or consists of a single word
-    let new_idx: number = wrap_indices[0]
-    for (const idx of wrap_indices) {
-      if (idx <= current_index) {
-        break // Nothing left to cut
-      }
-      tspan.text(node_class.slice(current_index, idx))
-      new_idx = idx
-      if (tspan.node()!.getComputedTextLength() < node_width) {
-        break // Line is short enough
-      }
+    // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
+    let next_idx: number = wrap_indices.findIndex(
+      (val) => val < current_index + class_line_length
+    )
+
+    // If the next word is longer than the max line length, print it anyway
+    if (wrap_indices[next_idx] === current_index) {
+      next_idx -= 1
     }
+
+    const next_index = wrap_indices[next_idx]
+    tspan.text(node_class.slice(current_index, next_index))
 
     // Update variables for next line
     max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
-    current_index = new_idx
+    current_index = next_index
   }
 
   return max_width
@@ -560,7 +562,7 @@ function updateNodeBody(
 
   selection
       .each(function (node) 
-        { node.data.size.width = layoutText(this) }
+        { node.data.size.width = layoutText(this, node) }
       )
 
   // Reset width and height of background rect
@@ -580,10 +582,10 @@ function updateNodeBody(
       io_gripper_spacing * (max_num_grippers + 1)
     const rect = this.getBBox()
     d.data.offset.x = rect.x - node_padding
-    d.data.offset.y = rect.y
+    d.data.offset.y = rect.y - 0.5 * node_padding
     // Width has already been set by text layout function
     d.data.size.width += 2 * node_padding
-    d.data.size.height = Math.max(rect.height + node_padding, min_height)
+    d.data.size.height = Math.max(rect.height +  1.5 * node_padding, min_height)
   })
 
   selection
@@ -1039,7 +1041,7 @@ async function addNewNode(drop_target: DropTarget) {
   }
 
   if (drop_target.position === Position.BOTTOM) {
-    let parent_name = drop_target.node.data.name
+    const parent_name = drop_target.node.data.name
     await addNode(msg, parent_name, 0)
     return
   }
