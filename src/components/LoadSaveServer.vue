@@ -42,6 +42,7 @@ import {
 } from '@/types/services/ControlTreeExecution'
 import { computed, onMounted, ref } from 'vue'
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
+import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -195,7 +196,38 @@ function quickSave() {
   if (quick_save_disable.value) {
     return
   }
-  window.alert("Location: " + quick_save_location.value[0] + "\nPath: " + quick_save_location.value[1])
+  if (!window.confirm(`Do you want to overwrite ${quick_save_location.value[0]}/${quick_save_location.value[1]}?`)) {
+    return
+  }
+  ros_store.save_tree_service.callService({
+    storage_path: quick_save_location.value[0],
+    filepath: quick_save_location.value[1],
+    tree: editor_store.tree,
+    allow_overwrite: true,
+    allow_rename: false,
+  } as SaveTreeRequest,
+  (response: SaveTreeResponse) => {
+    if (response.success) {
+      notify({
+        title: "Successfully saved tree to",
+        text: response.file_path,
+        type: 'success'
+      })
+    } else {
+      notify({
+        title: "Quick save failed",
+        text: response.error_message,
+        type: 'warn'
+      })
+    }
+  },
+  (error: string) => {
+    notify({
+      title: "Failed to call SaveTree service",
+      text: error,
+      type: 'error'
+    })
+  })
 }
 
 function getStorageFolders() {
@@ -273,7 +305,8 @@ onMounted(() => {
     :disabled="editor_store.selected_subtree.is_subtree || quick_save_disable"
     @click="quickSave"
   >
-    QS
+    <!--<FontAwesomeIcon icon="fa-regular fa-save" />-->
+    <FontAwesomeIcon icon="fa-solid fa-bookmark" />
     <span class="ms-1 hide-button-text">Quick Save</span>
   </button>
   <button

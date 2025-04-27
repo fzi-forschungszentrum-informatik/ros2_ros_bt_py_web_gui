@@ -90,10 +90,11 @@ import {
   faPause,
   faLeaf,
   faLink,
-  faNetworkWired
+  faNetworkWired,
+  faBookmark
 } from '@fortawesome/free-solid-svg-icons'
 
-import { faSun as faSunAlt, faMoon as faMoonAlt } from '@fortawesome/free-regular-svg-icons'
+import { faSun as faSunAlt, faMoon as faMoonAlt, faSave as faSaveAlt } from '@fortawesome/free-regular-svg-icons'
 
 library.add(
   faSync,
@@ -137,7 +138,9 @@ library.add(
   faPause,
   faLeaf,
   faNetworkWired,
-  faLink
+  faLink,
+  faSaveAlt,
+  faBookmark
 )
 
 const app = createApp(App)
