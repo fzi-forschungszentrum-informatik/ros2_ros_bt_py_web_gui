@@ -1207,6 +1207,7 @@ function drawNewDataVert(
         // Highlight compatible vertices when dragging
         const compat = d3.select(this).classed(data_graph_comaptible_css_class)
         d3.select(this).classed(data_graph_hover_css_class, compat)
+        d3.select(draw_indicator_ref.value!).classed(data_graph_hover_css_class, compat)
       } else {
         d3.select(this)
           .classed(data_graph_hover_css_class, true)
@@ -1218,6 +1219,7 @@ function drawNewDataVert(
     .on('mouseout.highlight', function () {
       if (editor_store.is_dragging) {
         d3.select(this).classed(data_graph_hover_css_class, false)
+        d3.select(draw_indicator_ref.value!).classed(data_graph_hover_css_class, false)
       } else {
         d3.select(this)
           .classed(data_graph_hover_css_class, false)
