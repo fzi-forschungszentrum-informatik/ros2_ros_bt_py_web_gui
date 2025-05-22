@@ -54,7 +54,7 @@ import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import { faBolt, faCheck, faPause, faPowerOff, faXmark, type IconDefinition } from '@fortawesome/free-solid-svg-icons'
+import { faBolt, faCheck, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -124,7 +124,7 @@ const data_graph_select_css_class: string = 'data-select'
 
 // This is the base transition for tree updates
 // Use <selection>.transition(tree_transition)
-let tree_transition: d3.Transition<any, any, any, any>
+let tree_transition: d3.Transition<d3.BaseType, unknown, null, undefined>
 
 function resetView() {
   if (
@@ -240,7 +240,9 @@ function dragPanTimerHandler() {
 
 watchEffect(drawEverything)
 function drawEverything() {
-  if (g_vertices_ref.value === undefined) {
+  if (svg_g_ref.value === undefined || 
+    g_vertices_ref.value === undefined
+  ) {
     console.warn('DOM is broken')
     return
   }
@@ -250,8 +252,12 @@ function drawEverything() {
     return
   }
 
-  // Prepare transition config for synchronization
-  tree_transition = d3.transition().duration(100).ease(d3.easeQuad)
+  // Prepare transition config for synchronization, the typed select statement is necessary to give the transition appropriate typing
+  tree_transition = d3
+    .select<d3.BaseType, unknown>(svg_g_ref.value)
+    .transition('tree-transition')
+      .duration(100)
+      .ease(d3.easeQuad)
 
   const onlyKeyAndType = (nodeData: NodeData) =>
     ({
@@ -928,7 +934,7 @@ async function addNewNode(drop_target: DropTarget) {
     if (parent_name === forest_root_name) {
       parent_name = ''
     }
-    let index = drop_target.node.parent.children!.indexOf(drop_target.node)
+    const index = drop_target.node.parent.children!.indexOf(drop_target.node)
 
     // Care has to be taken regarding order of operations to not overload the parent node.
     // Insert at top temporarily
@@ -1536,7 +1542,7 @@ onMounted(() => {
 
       sel_rect.attr('width', width).attr('height', height)
 
-      let temp_selected_nodes: string[] = []
+      const temp_selected_nodes: string[] = []
 
       // Update which nodes are in the selection
       d3.select<SVGGElement, never>(g_vertices_ref.value)
@@ -1620,24 +1626,24 @@ onMounted(() => {
 <template>
   <svg id="editor_viewport" ref="viewport_ref" class="reactive-svg" :class="editor_store.skin">
     <g id="container" ref="svg_g_ref">
-      <g class="edges" ref="g_edges_ref" />
-      <g class="vertices" ref="g_vertices_ref" />
+      <g ref="g_edges_ref" class="edges" />
+      <g ref="g_vertices_ref" class="vertices" />
       <g
-        class="data_graph"
         ref="g_data_graph_ref"
+        class="data_graph"
         :visibility="editor_store.show_data_graph ? 'visible' : 'hidden'"
       >
-        <g class="data_edges" ref="g_data_edges_ref" />
-        <g class="data_vertices" ref="g_data_vertices_ref" />
+        <g ref="g_data_edges_ref" class="data_edges" />
+        <g ref="g_data_vertices_ref" class="data_vertices" />
         <!--Below is used to pull elements to the foreground on hover-->
         <use :href="'#' + data_vert1_highlight_css_id" pointer-events="none" />
         <use :href="'#' + data_vert2_highlight_css_id" pointer-events="none" />
         <use :href="'#' + data_edge_highlight_css_id" pointer-events="none" />
       </g>
-      <g class="drop_targets" ref="g_drop_targets_ref" :visibility="dropTargetGroupVisibility()" />
+      <g ref="g_drop_targets_ref" class="drop_targets" :visibility="dropTargetGroupVisibility()" />
 
-      <path class="drawing-indicator" ref="draw_indicator_ref" />
-      <rect class="selection" ref="selection_rect_ref" />
+      <path ref="draw_indicator_ref" class="drawing-indicator" />
+      <rect ref="selection_rect_ref" class="selection" />
     </g>
     <text
       x="10"

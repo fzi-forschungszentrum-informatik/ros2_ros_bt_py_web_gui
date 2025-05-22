@@ -45,7 +45,7 @@ const show_details = ref<boolean>(true)
   <div class="list-group-item">
     <div class="d-flex w-100">
       <div class="fs-5">{{ title }}</div>
-      <font-awesome-icon
+      <FontAwesomeIcon
         :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
         class="cursor-pointer ms-auto"

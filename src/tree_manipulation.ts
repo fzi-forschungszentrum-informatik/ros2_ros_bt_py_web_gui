@@ -34,7 +34,7 @@ import type { MoveNodeRequest, MoveNodeResponse } from "./types/services/MoveNod
 import type { RemoveNodeRequest, RemoveNodeResponse } from "./types/services/RemoveNode"
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from "./types/services/ReplaceNode"
 import type { NodeMsg } from "./types/types"
-import { notify, type NotificationsOptions } from '@kyvg/vue3-notification'
+import { notify } from '@kyvg/vue3-notification'
 
 export function addNode(
     msg: NodeMsg, 
@@ -46,11 +46,11 @@ export function addNode(
     const ros_store = useROSStore()
 
     // Supress notifications for all callbacks
-    let local_notify: (args: any) => void
+    let local_notify: (args: object) => void
     if (send_notify) {
         local_notify = notify
     } else {
-        local_notify = (args: any) => console.log(args)
+        local_notify = (args: object) => console.log(args)
     }
 
     return new Promise<string>((resolve, reject) => {
@@ -99,11 +99,11 @@ export function moveNode(
     const ros_store = useROSStore()
 
     // Supress notifications for all callbacks
-    let local_notify: (args: any) => void
+    let local_notify: (args: object) => void
     if (send_notify) {
         local_notify = notify
     } else {
-        local_notify = (args: any) => console.log(args)
+        local_notify = (args: object) => console.log(args)
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -150,11 +150,11 @@ export function removeNode(
     const ros_store = useROSStore()
 
     // Supress notifications for all callbacks
-    let local_notify: (args: any) => void
+    let local_notify: (args: object) => void
     if (send_notify) {
         local_notify = notify
     } else {
-        local_notify = (args: any) => console.log(args)
+        local_notify = (args: object) => console.log(args)
     }
 
     return new Promise<void>((resolve, reject) => {
@@ -200,11 +200,11 @@ export function replaceNode(
     const ros_store = useROSStore()
 
     // Supress notifications for all callbacks
-    let local_notify: (args: any) => void
+    let local_notify: (args: object) => void
     if (send_notify) {
         local_notify = notify
     } else {
-        local_notify = (args: any) => console.log(args)
+        local_notify = (args: object) => console.log(args)
     }
 
     return new Promise<void>((resolve, reject) => {

@@ -27,43 +27,43 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
- <script setup lang="ts">
- import { useEditNodeStore } from '@/stores/edit_node';
- import { useEditorStore } from '@/stores/editor';
+<script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node';
+import { useEditorStore } from '@/stores/editor';
 import type { PyOperand } from '@/types/python_types';
- import type { ParamData } from '@/types/types';
- import { computed } from 'vue';
- 
- 
- const editor_store = useEditorStore()
- const edit_node_store = useEditNodeStore()
- 
- const props = defineProps<{
-     category: 'options',
-     data_key: string,
-     op_type: 'unary' | 'binary'
- }>()
- 
- const param = computed<ParamData | undefined>(() => 
-     edit_node_store.new_node_options.find((x) => x.key === props.data_key)
- )
- 
- function handleChange(event: Event) {
-     if (param.value === undefined) {
-         console.error("Undefined parameter")
-         return
-     }
- 
-     const target = event.target as HTMLSelectElement
- 
-     let operand_obj = param.value.value.value as PyOperand
-     operand_obj.operand_type = target.value
- 
-     edit_node_store.updateParamValue(param.value.value.type, param.value.key, operand_obj)
- }
- 
- // Lookup for all possible values for operators and operands
- const options = {
+import type { ParamData } from '@/types/types';
+import { computed } from 'vue';
+
+
+const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
+
+const props = defineProps<{
+    category: 'options',
+    data_key: string,
+    op_type: 'unary' | 'binary'
+}>()
+
+const param = computed<ParamData | undefined>(() => 
+    edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+)
+
+function handleChange(event: Event) {
+    if (param.value === undefined) {
+        console.error("Undefined parameter")
+        return
+    }
+
+    const target = event.target as HTMLSelectElement
+
+    const operand_obj = param.value.value.value as PyOperand
+    operand_obj.operand_type = target.value
+
+    edit_node_store.updateParamValue(param.value.value.type, param.value.key, operand_obj)
+}
+
+// Lookup for all possible values for operators and operands
+const options = {
     unary: [
             'int',
             'float'
@@ -73,28 +73,29 @@ import type { PyOperand } from '@/types/python_types';
             'float',
             'bool'
     ]
- }
+}
+</script>
  
- 
- </script>
- 
- <template>
-     <div v-if="param !== undefined" class="form-group">
-         <label class="d-block">
-             {{ param.key }}
-         </label>
-         <select @change="handleChange" class="form-select"
-         :value="(param.value.value as PyOperand).operand_type" 
-         :disabled="editor_store.selected_subtree.is_subtree"
-         >
-             <option v-for="operator_option in options[props.op_type]" 
-             :key="operator_option" :value="operator_option"
-             >
-                 {{ operator_option }}
-             </option>
-         </select>
-     </div>
-     <div v-else>
-         Error loading param data
-     </div>
- </template>
+<template>
+    <div v-if="param !== undefined" class="form-group">
+        <label class="d-block">
+            {{ param.key }}
+        </label>
+        <select
+            class="form-select" 
+            :value="(param.value.value as PyOperand).operand_type"
+            :disabled="editor_store.selected_subtree.is_subtree" 
+            @change="handleChange" 
+        >
+            <option
+                v-for="operator_option in options[props.op_type]" 
+                :key="operator_option" :value="operator_option"
+            >
+                {{ operator_option }}
+            </option>
+        </select>
+    </div>
+    <div v-else>
+        Error loading param data
+    </div>
+</template>

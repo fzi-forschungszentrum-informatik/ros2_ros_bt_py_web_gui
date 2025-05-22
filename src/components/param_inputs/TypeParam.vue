@@ -45,7 +45,7 @@ const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 const messages_store = useMessasgeStore()
 
-let search_results = ref<string[]>([])
+const search_results = ref<string[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
@@ -75,8 +75,8 @@ const display_value = computed<string>(() => {
 
 // These track two conditions for displaying the result dropdown.
 //   One is for focusing the input, the other for navigating the result menu
-let hide_results = ref<boolean>(true)
-let keep_results = ref<boolean>(false)
+const hide_results = ref<boolean>(true)
+const keep_results = ref<boolean>(false)
 
 function onChange(event: Event) {
   if (param.value === undefined) {

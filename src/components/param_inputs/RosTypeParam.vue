@@ -48,7 +48,7 @@ const props = defineProps<{
   type: 'topic' | 'service' | 'action'
 }>()
 
-let search_results = ref<string[]>([])
+const search_results = ref<string[]>([])
 
 const param = computed<ParamData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
@@ -75,8 +75,8 @@ const search_fuse = computed<Fuse<string> | undefined>(() => {
 
 // These track two conditions for displaying the result dropdown.
 //   One is for focusing the input, the other for navigating the result menu
-let hide_results = ref<boolean>(true)
-let keep_results = ref<boolean>(false)
+const hide_results = ref<boolean>(true)
+const keep_results = ref<boolean>(false)
 
 function onInput(event: Event) {
   if (param.value === undefined ||
@@ -87,7 +87,7 @@ function onInput(event: Event) {
   }
 
   const target = event.target as HTMLInputElement
-  let new_type_name = target.value || ''
+  const new_type_name = target.value || ''
   const results = search_fuse.value.search(new_type_name)
   search_results.value = results.map((x) => x.item)
 
@@ -100,7 +100,7 @@ function setValue(new_value: string) {
     return
   }
 
-  let type_obj = param.value.value.value as RosType
+  const type_obj = param.value.value.value as RosType
   type_obj.type_str = new_value
 
   edit_node_store.updateParamValue(props.category, props.data_key, type_obj)

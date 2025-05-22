@@ -88,6 +88,7 @@ function handleChange() {
     is_valid.value = true
     edit_node_store.updateParamValue(props.category, props.data_key, new_value)
   } catch (e) {
+    console.debug(e)
     is_valid.value = false
   }
 }
@@ -180,7 +181,8 @@ onUnmounted(() => {
     <label>
       {{ param?.key }}
     </label>
-    <button v-if="topic_ref_param"
+    <button
+      v-if="topic_ref_param"
       class="btn btn-primary btn-sm"
       @click="fetchRosMessageDefault"
     >

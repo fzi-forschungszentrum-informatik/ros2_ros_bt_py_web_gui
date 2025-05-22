@@ -283,7 +283,7 @@ onMounted(() => {
 
 <template>
   <button class="btn float-end" @click="emit('close')">
-    <font-awesome-icon class="fa-3x" style="opacity: 0.1" icon="fa-solid fa-xmark" />
+    <FontAwesomeIcon class="fa-3x" style="opacity: 0.1" icon="fa-solid fa-xmark" />
   </button>
 
   <h1 class="fs-1 mb-3 mt-4 mx-4">{{ props.title }}</h1>
@@ -298,19 +298,19 @@ onMounted(() => {
         class="form-control"
         :placeholder="'Search ' + props.location + ' Name'"
       />
-      <button @click="setChosenLocation(null)" class="btn btn-outline-secondary">
-        <font-awesome-icon icon="fa-solid fa-xmark" />
+      <button class="btn btn-outline-secondary" @click="setChosenLocation(null)">
+        <FontAwesomeIcon icon="fa-solid fa-xmark" />
       </button>
     </div>
     <div v-if="chosen_location === null" class="d-grid overflow-auto" style="max-height: 70vh">
       <button
-        v-for="location in location_search_results"
-        :key="location.path"
-        @click="setChosenLocation(location)"
+        v-for="loc in location_search_results"
+        :key="loc.path"
         class="btn btn-outline-contrast ms-4 mb-3 text-start"
+        @click="setChosenLocation(loc)"
       >
-        <font-awesome-icon icon="fa-solid fa-cubes" class="me-1" />
-        {{ location.package }}
+        <FontAwesomeIcon icon="fa-solid fa-cubes" class="me-1" />
+        {{ loc.package }}
       </button>
     </div>
     <div v-else-if="current_folder !== null">
@@ -318,16 +318,16 @@ onMounted(() => {
       <div class="input-group mb-3">
         <button
           :disabled="current_folder.parent === null"
-          @click="setCurrentFolder(current_folder.parent!)"
           class="btn btn-outline-secondary"
+          @click="setCurrentFolder(current_folder.parent!)"
         >
-          <font-awesome-icon icon="fa-solid fa-angle-up" />
+          <FontAwesomeIcon icon="fa-solid fa-angle-up" />
         </button>
         <button
           v-for="elem in current_folder.ancestors().slice(0, -1).reverse()"
           :key="elem.data.item_id"
-          @click="setCurrentFolder(elem)"
           class="btn btn-outline-secondary"
+          @click="setCurrentFolder(elem)"
         >
           {{ elem.data.name }}
         </button>
@@ -336,19 +336,19 @@ onMounted(() => {
         <button
           v-for="elem in item_search_results"
           :key="elem.data.item_id"
-          @click="setCurrentFolder(elem)"
           class="btn btn-outline-contrast ms-4 mb-3 text-start"
           :class="{ active: elem.data.item_id === current_item?.data.item_id }"
+          @click="setCurrentFolder(elem)"
         >
-          <font-awesome-icon
+          <FontAwesomeIcon
+            v-if="elem.data.type === FileType.DIR"
             icon="fa-solid fa-folder-open"
             style="width: 20px"
-            v-if="elem.data.type === FileType.DIR"
           />
-          <font-awesome-icon
+          <FontAwesomeIcon
+            v-if="elem.data.type === FileType.FILE"
             icon="fa-solid fa-file-code"
             style="width: 20px"
-            v-if="elem.data.type === FileType.FILE"
           />
           {{ elem.data.name }}
         </button>

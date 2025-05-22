@@ -64,7 +64,7 @@ function selectFile(path: string) {
     return
   }
 
-  let file_path_obj = param.value.value.value as PyFilePath
+  const file_path_obj = param.value.value.value as PyFilePath
   file_path_obj.path = path
 
   edit_node_store.updateParamValue(param.value.value.type, param.value.key, file_path_obj)
@@ -92,11 +92,11 @@ function selectFile(path: string) {
         disabled
       />
       <button class="btn btn-primary" @click="showPackageModal">
-        <font-awesome-icon icon="fa-solid fa-folder-tree" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
         <span class="ms-1">Package</span>
       </button>
       <button class="btn btn-primary" @click="showFileModal">
-        <font-awesome-icon icon="fa-solid fa-folder-open" aria-hidden="true" />
+        <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
         <span className="ms-1">File</span>
       </button>
     </div>

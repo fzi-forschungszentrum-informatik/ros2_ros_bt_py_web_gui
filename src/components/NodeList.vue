@@ -70,11 +70,11 @@ const nodes = computed<DocumentedNode[]>(() => {
 <template>
   <div class="border rounded m-1 pb-2 d-flex flex-column">
     <div
-      @click="nodelist_collapsed = !nodelist_collapsed"
       class="text-center cursor-pointer m-2"
+      @click="nodelist_collapsed = !nodelist_collapsed"
     >
       Node List
-      <font-awesome-icon
+      <FontAwesomeIcon
         :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"
         aria-hidden="true"
       />

@@ -75,9 +75,9 @@ async function addToTree() {
     <label class="pt-2 pb-2">
       Parent
       <select
+        v-model="selected_parent"
         class="custom-select d-block"
         :disabled="parents.length === 0"
-        v-model="selected_parent"
       >
         <option v-for="parent in parents" :key="parent.name" :value="parent.name">
           {{ parent.name }}
