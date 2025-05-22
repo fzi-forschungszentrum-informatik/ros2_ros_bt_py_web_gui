@@ -30,13 +30,15 @@
 import type { DocumentedNode } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { shallowRef } from 'vue'
 import { useROSStore } from './ros'
-import type { GetAvailableNodesRequest, GetAvailableNodesResponse } from '@/types/services/GetAvailableNodes'
+import type {
+  GetAvailableNodesRequest,
+  GetAvailableNodesResponse
+} from '@/types/services/GetAvailableNodes'
 import { notify } from '@kyvg/vue3-notification'
 
 export const useNodesStore = defineStore('nodes', () => {
-
   const ros_store = useROSStore()
 
   const nodes_fuse_options = {
@@ -50,10 +52,10 @@ export const useNodesStore = defineStore('nodes', () => {
     ignoreLocation: true,
     useExtendedSearch: true
   }
-  const nodes = ref<DocumentedNode[]>([])
-  const nodes_fuse = ref<Fuse<DocumentedNode>>(new Fuse([], nodes_fuse_options))
+  const nodes = shallowRef<DocumentedNode[]>([])
+  const nodes_fuse = shallowRef<Fuse<DocumentedNode>>(new Fuse([], nodes_fuse_options))
 
-  const filtered_nodes = ref<DocumentedNode[]>([])
+  const filtered_nodes = shallowRef<DocumentedNode[]>([])
 
   function updateAvailableNode(new_nodes: DocumentedNode[]) {
     nodes.value = new_nodes
@@ -119,6 +121,6 @@ export const useNodesStore = defineStore('nodes', () => {
     updateAvailableNode,
     filterNodes,
     clearFilteredNodes,
-    getNodes,
+    getNodes
   }
 })
