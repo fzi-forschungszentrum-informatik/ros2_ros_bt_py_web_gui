@@ -29,7 +29,8 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { ParamData } from '@/types/types'
+import { useEditorStore } from '@/stores/editor';
+import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -37,9 +38,10 @@ const props = defineProps<{
   data_key: string
 }>()
 
+const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-const param = computed<ParamData | undefined>(() => {
+const param = computed<IOData | undefined>(() => {
   switch (props.category) {
     case 'inputs':
       return edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
@@ -49,48 +51,55 @@ const param = computed<ParamData | undefined>(() => {
       return undefined
   }
 })
+
+const connected_edges = computed<Wiring[]>(() => {
+  if (editor_store.current_tree.structure === undefined) {
+    return []
+  }
+  return editor_store.current_tree.structure.data_wirings.filter((wiring) => 
+    matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
+  )
+})
+
+function matchEndpoint(endpoint: NodeDataLocation): boolean {
+  if (edit_node_store.selected_node === undefined) {
+    return false
+  }
+  return endpoint.data_key === props.data_key &&
+    endpoint.data_kind === props.category &&
+    endpoint.node_name === edit_node_store.selected_node.name
+}
+
+function printOtherEndpoint(wiring: Wiring): string {
+  let endpoint: NodeDataLocation | null = null
+  if (matchEndpoint(wiring.source)) {
+    endpoint = wiring.target
+  }
+  if (matchEndpoint(wiring.target)) {
+    endpoint = wiring.source
+  }
+  if (endpoint === null) {
+    return ''
+  }
+  return endpoint.node_name + '.' + endpoint.data_key
+}
+
 </script>
 
 <template>
   <div v-if="param !== undefined" class="list-group-item">
-    <div
-      v-if="
-        param.value.type === 'int' || param.value.type === 'float' || param.value.type === 'string'
-      "
-    >
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <span>{{ param.value.value as string }}</span>
+    <div class="h5">
+      {{ param.key + ' ' }}
+      <span className="text-muted">(type: {{ param.type }})</span>
     </div>
-    <div v-else-if="param.value.type === 'type'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ param.value.value as string }}</pre>
-    </div>
-    <div v-else-if="param.value.type === 'boolean'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ param.value.value ? 'True' : 'False' }}</pre>
-    </div>
-    <div v-else-if="param.value.type === 'unset_optionref'">
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre class="text-muted">{{ param.value.value as string }}</pre>
-    </div>
-    <div v-else>
-      <h5>
-        {{ param.key + ' ' }}
-        <span className="text-muted">(type: {{ param.value.type }})</span>
-      </h5>
-      <pre>{{ JSON.stringify(param.value.value, null, 2) }}</pre>
+    <div v-if="connected_edges" class="d-flex flex-wrap m-1">
+      <button 
+        v-for="edge in connected_edges"
+        class="btn btn-outline-primary m-1"
+        @click="editor_store.selectEdge(edge)"
+      >
+        {{ printOtherEndpoint(edge) }}
+      </button>
     </div>
   </div>
   <div v-else>Error loading param data</div>

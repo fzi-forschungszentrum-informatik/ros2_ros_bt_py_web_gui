@@ -33,10 +33,33 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import { notify } from '@kyvg/vue3-notification'
+import { computed } from 'vue'
+import type { WiringData } from '@/types/types'
+import { prettyprint_type } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
+
+const edge_data = computed<WiringData | undefined>(() => {
+  if (editor_store.selected_edge === undefined ||
+    editor_store.current_tree.data === undefined
+  ) {
+    return undefined
+  }
+  const edge = editor_store.selected_edge
+  return editor_store.current_tree.data.wiring_data.find(
+    (item) => {
+      const wiring = item.wiring
+      return wiring.source.node_name === edge.source.node_name &&
+        wiring.source.data_kind === edge.source.data_kind &&
+        wiring.source.data_key === edge.source.data_key &&
+        wiring.target.node_name === edge.target.node_name &&
+        wiring.target.data_kind === edge.target.data_kind &&
+        wiring.target.data_key === edge.target.data_key
+    }
+  )
+})
 
 function onClickDelete() {
   const edge = editor_store.selected_edge!
@@ -83,21 +106,30 @@ function selectTargetNode() {
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
-          <span class="text-primary">{{ editor_store.selected_edge!.source.node_name }}</span
-          ><br />
-          {{ editor_store.selected_edge!.source.data_kind }}<br />
+          <span class="text-primary">
+            {{ editor_store.selected_edge!.source.node_name }}
+          </span>
+          <br />
           {{ editor_store.selected_edge!.source.data_key }}
         </button>
       </div>
       <hr class="flex-fill connector" />
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
-          <span class="text-primary">{{ editor_store.selected_edge!.target.node_name }}</span
-          ><br />
-          {{ editor_store.selected_edge!.target.data_kind }}<br />
+          <span class="text-primary">
+            {{ editor_store.selected_edge!.target.node_name }}
+          </span>
+          <br />
           {{ editor_store.selected_edge!.target.data_key }}
         </button>
       </div>
+    </div>
+    <div v-if="edge_data !== undefined" class="mx-auto text-center">
+      Value: {{ edge_data.serialized_data }}
+      <br /> 
+      of type: {{ prettyprint_type(edge_data.serialized_type) }}
+      <br />
+      expected type: {{ prettyprint_type(edge_data.serialized_expected_type) }}
     </div>
   </div>
 </template>

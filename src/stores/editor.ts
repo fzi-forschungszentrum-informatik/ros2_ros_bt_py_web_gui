@@ -31,30 +31,29 @@ import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
 import type {
-  NodeDataWiring,
+  Wiring,
   DocumentedNode,
-  TreeMsg,
+  TreeStructure,
   TrimmedNode,
-  DataEdgeTerminal
+  DataEdgeTerminal,
+  Tree,
+  TreeState,
+  TreeData
 } from '@/types/types'
-import { notify } from '@kyvg/vue3-notification'
 
 export enum EditorSkin {
   DARK = 'darkmode',
   LIGHT = 'lightmode'
 }
 
-export type SelectedSubtree = {
-  name: string
-  is_subtree: boolean
-  tree: TreeMsg | undefined
-}
-
 export const useEditorStore = defineStore('editor', () => {
-  const tree = ref<TreeMsg | undefined>(undefined)
-  //const debug_info = ref<DebugInfo | undefined>(undefined)
-  const subtree_states = ref<TreeMsg[]>([])
+
+  const tree_structure_list = ref<TreeStructure[]>([])
+  const tree_state_list = ref<TreeState[]>([])
+  const tree_data_list = ref<TreeData[]>([])
+
   const publish_subtrees = ref<boolean>(false)
+  const publish_data = ref<boolean>(false)
   const debug = ref<boolean>(false)
   const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
 
@@ -78,24 +77,31 @@ export const useEditorStore = defineStore('editor', () => {
 
   const skin = ref<EditorSkin>(EditorSkin.DARK)
 
-  const selected_subtree = ref<SelectedSubtree>({
-    name: '',
-    is_subtree: false,
-    tree: undefined
-  })
+  const selected_tree = ref<string>('')
 
-  const current_tree = computed<TreeMsg | undefined>(() => {
-    if (selected_subtree.value.is_subtree) {
-      return selected_subtree.value.tree
-    }
-    return tree.value
-  })
-
-  const subtree_names = computed<string[]>(() =>
-    subtree_states.value.map((tree: TreeMsg) => tree.name)
+  const has_selected_subtree = computed<boolean>(
+    () => selected_tree.value !== ""
   )
 
-  const selected_edge = ref<NodeDataWiring | undefined>(undefined)
+  const current_tree = computed<Tree>(() => {
+    return {
+      structure: tree_structure_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      ),
+      state: tree_state_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      ),
+      data: tree_data_list.value.find(
+        (tree) => tree.tree_id === selected_tree.value
+      )
+    }
+  })
+
+  /*const subtree_names = computed<string[]>(() =>
+    subtree_states.value.map((tree) => tree.name)
+  )*/
+
+  const selected_edge = ref<Wiring | undefined>(undefined)
 
   const is_layer_mode = ref<boolean>(false)
 
@@ -162,8 +168,8 @@ export const useEditorStore = defineStore('editor', () => {
     }
   }
 
-  function selectSubtree(name: string, is_subtree: boolean) {
-    let tree_msg = undefined
+  /*function selectSubtree(name: string, is_subtree: boolean) {
+    let tree: TreeStructure | undefined
     if (is_subtree) {
       if (subtree_states.value.length === 0) {
         notify({
@@ -172,17 +178,21 @@ export const useEditorStore = defineStore('editor', () => {
         })
         return
       }
-      tree_msg = subtree_states.value.find((x: TreeMsg) => x.name === name)
+      tree = subtree_states.value.find((x) => x.name === name)
+    }
+
+    if (tree === undefined) {
+      return
     }
 
     selected_subtree.value = {
       name: name,
       is_subtree: is_subtree,
-      tree: tree_msg
+      tree: tree
     }
-  }
+  }*/
 
-  function selectEdge(edge: NodeDataWiring) {
+  function selectEdge(edge: Wiring) {
     selected_edge.value = edge
   }
 
@@ -191,11 +201,15 @@ export const useEditorStore = defineStore('editor', () => {
   }
 
   return {
-    tree,
+    selected_tree,
+    has_selected_subtree,
     current_tree,
     publish_subtrees,
+    publish_data,
     debug,
-    subtree_states,
+    tree_structure_list,
+    tree_state_list,
+    tree_data_list,
     running_commands,
     dragging_new_node,
     dragging_existing_node,
@@ -215,11 +229,14 @@ export const useEditorStore = defineStore('editor', () => {
     enableShowDataGraph,
     skin,
     cycleEditorSkin,
-    selected_subtree,
-    selectSubtree,
-    subtree_names,
     selected_edge,
     selectEdge,
     unselectEdge
+  }
+},
+{
+  persist: {
+    pick: ['publish_data', 'publish_subtrees'],
+    storage: sessionStorage,
   }
 })

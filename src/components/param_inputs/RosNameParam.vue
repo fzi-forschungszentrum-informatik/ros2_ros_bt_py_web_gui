@@ -39,7 +39,7 @@ import {
   type RosName,
   type RosType
 } from '@/types/python_types'
-import type { Channel, ParamData } from '@/types/types'
+import type { Channel, OptionData } from '@/types/types'
 import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
 
@@ -55,12 +55,12 @@ const props = defineProps<{
 
 const search_results = ref<Channel[]>([])
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
 // Find a type parameter to reference when searching and set when selecting
-const type_param = computed<ParamData | undefined>(() => {
+const type_param = computed<OptionData | undefined>(() => {
   let type_param_name: string
   switch (props.type) {
     case 'topic':
@@ -170,7 +170,7 @@ function releaseDropdown() {
         type="text"
         class="form-control mt-2"
         :value="(param.value.value as RosName).name"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
         @input="onInput"
         @focus="focusInput"
         @blur="unfocusInput"

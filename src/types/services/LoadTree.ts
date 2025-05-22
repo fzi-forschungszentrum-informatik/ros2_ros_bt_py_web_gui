@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { TreeMsg } from '../types'
+import type { TreeStructure } from '../types'
 
 export type LoadTreeRequest = {
-  tree: TreeMsg
+  tree: TreeStructure
   permissive: boolean
 }
 

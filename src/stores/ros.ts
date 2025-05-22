@@ -30,7 +30,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import {Service, Topic, Ros} from 'roslib'
-import type { Packages, MessageTypes, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
+import type { Packages, MessageTypes, Channels, TreeStructureList, TreeStateList, TreeDataList } from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -84,6 +84,7 @@ import type {
 } from '@/types/services/LoadTreeFromPath'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { useNodesStore } from './nodes'
+import { useEditorStore } from './editor'
 
 export const useROSStore = defineStore(
   'ros',
@@ -91,6 +92,7 @@ export const useROSStore = defineStore(
     const messages_store = useMessasgeStore()
     const packages_store = usePackageStore()
     const nodes_store = useNodesStore()
+    const editor_store = useEditorStore()
     const ros = ref<Ros>(new Ros({}))
     const connected = computed<boolean>(() => ros.value.isConnected)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
@@ -149,21 +151,39 @@ export const useROSStore = defineStore(
       })
     )
 
-    const tree_sub = ref<Topic<TreeMsg>>(
+    const set_publish_data_service = ref<Service<SetBoolRequest, SetBoolResponse>>(
+      new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+    )
+
+    const tree_structure_sub = ref<Topic<TreeStructureList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
     )
 
-    const subtree_info_sub = ref<Topic<SubtreeInfo>>(
+    const tree_state_sub = ref<Topic<TreeStateList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+
+    const tree_data_sub = ref<Topic<TreeDataList>>(
+      new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
         latch: true,
         reconnect_on_close: true
       })
@@ -367,22 +387,32 @@ export const useROSStore = defineStore(
     })
 
     function updateROSServices() {
-      tree_sub.value.unsubscribe()
-      tree_sub.value.removeAllListeners()
-      tree_sub.value = new Topic({
+      tree_structure_sub.value.unsubscribe()
+      tree_structure_sub.value.removeAllListeners()
+      tree_structure_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
 
-      subtree_info_sub.value.unsubscribe()
-      subtree_info_sub.value.removeAllListeners()
-      subtree_info_sub.value = new Topic({
+      tree_state_sub.value.unsubscribe()
+      tree_state_sub.value.removeAllListeners()
+      tree_state_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
+        latch: true,
+        reconnect_on_close: true
+      })
+
+      tree_data_sub.value.unsubscribe()
+      tree_data_sub.value.removeAllListeners()
+      tree_data_sub.value = new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
         latch: true,
         reconnect_on_close: true
       })
@@ -420,6 +450,12 @@ export const useROSStore = defineStore(
       set_publish_subtrees_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+
+      set_publish_data_service.value = new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
         serviceType: 'std_srvs/srv/SetBool'
       })
 
@@ -576,6 +612,9 @@ export const useROSStore = defineStore(
     function hasDisconnected() {
       messages_store.areMessagesAvailable(false)
       packages_store.arePackagesAvailable(false)
+      
+      editor_store.enableSubtreePublishing(false)
+      editor_store.publish_data = false
 
       notify({
         title: 'ROS connection closed!',
@@ -618,14 +657,16 @@ export const useROSStore = defineStore(
       add_node_at_index_service,
       generate_subtree_service,
       set_publish_subtrees_service,
+      set_publish_data_service,
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,
       save_tree_service,
       change_tree_name_service,
       load_tree_from_path_service,
-      tree_sub,
-      subtree_info_sub,
+      tree_structure_sub,
+      tree_state_sub,
+      tree_data_sub,
       packages_sub,
       messages_sub,
       channels_sub,

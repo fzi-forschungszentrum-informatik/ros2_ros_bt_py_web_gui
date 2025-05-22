@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2025 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -26,64 +26,58 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
 <script setup lang="ts">
-import type { NodeStructure } from '@/types/types'
-import EditableNode from './EditableNode.vue'
-import { ref } from 'vue'
-import { useEditNodeStore } from '@/stores/edit_node'
-import { addNode } from '@/tree_manipulation'
+import { useEditorStore } from '@/stores/editor';
+import { useROSStore } from '@/stores/ros';
+import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
+import { notify } from '@kyvg/vue3-notification';
 
-const props = defineProps<{
-  parents: NodeStructure[]
-}>()
+const editor_store = useEditorStore()
+const ros_store = useROSStore()
 
-const edit_node_store = useEditNodeStore()
+function setPublishData(event: Event) {
+    const target = event.target as HTMLInputElement
 
-const selected_parent = ref<string>(
-  props.parents.length > 0 ? props.parents[0].name : ''
-)
-
-async function addToTree() {
-
-  if (edit_node_store.reference_node === undefined) {
-    console.error("Undefined node reference, can't add node to tree")
-    return
-  }
-
-  const new_node_name = await addNode(
-    edit_node_store.buildNodeMsg(), 
-    selected_parent.value, 
-    -1
-  )
-
-  edit_node_store.clearNodeHasChanged()
-  edit_node_store.editorSelectionChange(new_node_name)
-
+    ros_store.set_publish_data_service.callService({
+        data: target.checked
+    } as SetBoolRequest,
+    (response: SetBoolResponse) => {
+        if (response.success) {
+            notify({
+                title: (target.checked ? 'Enable' : 'Disable') + ' data publishing',
+                type: 'success'
+            })
+            editor_store.publish_data = target.checked
+        } else {
+            notify({
+                title: 'Failed to toggle data publishing',
+                text: response.message,
+                type: 'warn'
+            })
+        }
+    },
+    (error: string) => {
+      notify({
+        title: 'Failed to call setPublishData service',
+        text: error,
+        type: 'error'
+      })
+    })
 }
+
 </script>
 
 <template>
-  <div class="d-flex flex-column">
-    <button
-      class="btn btn-block btn-primary"
-      :disabled="!edit_node_store.node_is_valid"
-      @click="addToTree"
-    >
-      Add to Tree
-    </button>
-    <label class="pt-2 pb-2">
-      Parent
-      <select
-        v-model="selected_parent"
-        class="custom-select d-block"
-        :disabled="parents.length === 0"
-      >
-        <option v-for="parent in parents" :key="parent.name" :value="parent.name">
-          {{ parent.name }}
-        </option>
-      </select>
-    </label>
-    <EditableNode />
-  </div>
+    <div class="h4 mb-3">Tree Data Settings</div>
+
+    <div class="form-check form-switch my-3 fs-5">
+        <input
+            type="checkbox" class="form-check-input" 
+            :checked="editor_store.publish_data" @click="setPublishData"
+        >
+        <label class="form-check-label ms-2">
+            Transmit data flow information
+        </label>
+    </div>
 </template>

@@ -37,15 +37,16 @@ import type {
   DataEdge,
   DocumentedNode,
   DropTarget,
-  NodeData,
   NodeDataLocation,
-  NodeMsg,
-  ParamData,
+  OptionData,
   TrimmedNode,
   TrimmedNodeData,
-  NodeDataWiring
+  NodeStructure,
+  NodeOption,
+  NodeIO,
+  Wiring,
 } from '@/types/types'
-import { Position, IOKind, NodeState } from '@/types/types'
+import { Position, IOKind, NodeStateValues } from '@/types/types'
 import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import * as d3 from 'd3'
@@ -144,12 +145,12 @@ function resetView() {
   viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
 }
 
-function buildNodeMessage(node: DocumentedNode): NodeMsg {
-  const options = node.options.map((opt: NodeData) => {
+function buildNodeMessage(node: DocumentedNode): NodeStructure {
+  const options = node.options.map((opt: NodeOption) => {
     return {
       key: opt.key,
-      value: getDefaultValue(prettyprint_type(opt.serialized_value), node.options)
-    } as ParamData
+      value: getDefaultValue(prettyprint_type(opt.serialized_type), node.options)
+    } as OptionData
   })
 
   return {
@@ -162,11 +163,10 @@ function buildNodeMessage(node: DocumentedNode): NodeMsg {
     outputs: [],
     version: '',
     max_children: 0,
-    state: NodeState.UNINITIALIZED,
   }
 }
 
-function canvasMouseMovePanHandler() {
+function canvasMouseMovePanHandler(event: Event) {
   // Don't do anything unless we're currently dragging something
   if (viewport_ref.value === undefined) {
     return
@@ -184,7 +184,7 @@ function canvasMouseMovePanHandler() {
   const width = viewport_ref.value.getBoundingClientRect().width
   const height = viewport_ref.value.getBoundingClientRect().height
 
-  const mouseCoords = d3.mouse(viewport_ref.value)
+  const mouseCoords = d3.pointer(event, viewport_ref.value)
 
   let panNeeded = false
   pan_direction = [0.0, 0.0]
@@ -238,7 +238,11 @@ function dragPanTimerHandler() {
   d3.select(viewport_ref.value!).call(zoomObject!.translateBy, pan_direction[0], pan_direction[1])
 }
 
-watchEffect(drawEverything)
+watch(
+  () => editor_store.current_tree.structure,
+  drawEverything,
+  { immediate: true }
+)
 function drawEverything() {
   if (svg_g_ref.value === undefined || 
     g_vertices_ref.value === undefined
@@ -247,7 +251,7 @@ function drawEverything() {
     return
   }
 
-  if (editor_store.current_tree === undefined) {
+  if (editor_store.current_tree.structure === undefined) {
     console.warn("Nothing to draw")
     return
   }
@@ -259,7 +263,8 @@ function drawEverything() {
       .duration(100)
       .ease(d3.easeQuad)
 
-  const onlyKeyAndType = (nodeData: NodeData) =>
+  // Strips potentially additional properties
+  const onlyKeyAndType = (nodeData: NodeIO) =>
     ({
       key: nodeData.key,
       serialized_type: nodeData.serialized_type
@@ -267,12 +272,11 @@ function drawEverything() {
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.nodes.map((node) => {
+  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.structure.nodes.map((node) => {
     return {
       node_class: node.node_class,
       module: node.module,
       name: node.name,
-      state: node.state,
       max_children: node.max_children,
       child_names: node.child_names,
       options: node.options.map(onlyKeyAndType),
@@ -285,7 +289,6 @@ function drawEverything() {
   const forest_root: TrimmedNode = {
     node_class: '',
     module: '',
-    state: NodeState.UNASSIGNED,
     max_children: -1,
     name: forest_root_name,
     child_names: [],
@@ -353,14 +356,15 @@ function drawEverything() {
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-    .call(colorNodes)
+    
+    updateNodeState()
 
   // Since we want to return the tree, we can't use the .call() syntax here
   const tree_layout = layoutTree(node, root)
 
   drawEdges(tree_layout)
   drawDropTargets(tree_layout)
-  drawDataGraph(tree_layout, editor_store.current_tree.data_wirings)
+  drawDataGraph(tree_layout, editor_store.current_tree.structure.data_wirings)
 }
 
 function drawNewNodes(
@@ -372,20 +376,20 @@ function drawNewNodes(
     // The two css-classes below are currently unused
     .classed('node--internal', (d) => d.children !== undefined && d.children.length > 0)
     .classed('node--leaf', (d) => d.children === undefined || d.children.length == 0)
-    .on('click.select', (node: d3.HierarchyNode<TrimmedNode>) => {
-      if (d3.event.shiftKey) {
+    .on('click.select', (event, node: d3.HierarchyNode<TrimmedNode>) => {
+      if (event.shiftKey) {
         edit_node_store.selectMultipleNodes([node.data.name])
       } else {
         edit_node_store.editorSelectionChange(node.data.name)
       }
-      d3.event.stopPropagation()
+      event.stopPropagation()
     })
 
   // No tree modifying if displaying a subtree
-  if (!editor_store.selected_subtree.is_subtree) {
-    fo.on('mousedown.dragdrop', (node: d3.HierarchyNode<TrimmedNode>) => {
+  if (!editor_store.has_selected_subtree) {
+    fo.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
-      d3.event.stopPropagation()
+      event.stopPropagation()
     })
   }
 
@@ -410,22 +414,6 @@ function drawNewNodes(
   return fo
 }
 
-function getIcon(state: string) {
-  switch (state) {
-    case NodeState.RUNNING:
-      return faBolt.icon
-    case NodeState.IDLE:
-      return faPause.icon
-    case NodeState.SUCCEEDED:
-      return faCheck.icon
-    case NodeState.FAILED:
-      return faXmark.icon
-    case NodeState.SHUTDOWN:
-    default:
-      return faPowerOff.icon
-  }
-}
-
 function updateNodeBody(
   selection: d3.Selection<
     SVGForeignObjectElement,
@@ -441,22 +429,6 @@ function updateNodeBody(
 
   body.select<HTMLHeadingElement>('.' + node_class_css_class)
       .html((d) => d.data.node_class)
-
-  body.select<SVGElement>('.' + node_state_css_class)
-      .attr('viewBox', (node) => {
-        const icon = getIcon(node.data.state)
-        return "0 0 " + icon[0] + " " + icon[1]
-      })
-    .select<SVGPathElement>('path')
-      .attr('d', (node) => {
-        const icon = getIcon(node.data.state)
-        if (typeof icon[4] === "string") {
-          return icon[4]
-        } else {
-          console.warn("Potentially unhandled multivalue path", icon[4])
-          return icon[4].join('')
-        }
-      })
 
   body.style('min-height', (d) => {
       // We need to ensure a minimum height, in case the node body
@@ -488,34 +460,81 @@ function updateNodeBody(
   return selection
 }
 
-function colorNodes(
-  selection: d3.Selection<
-    SVGForeignObjectElement,
-    d3.HierarchyNode<TrimmedNode>,
-    SVGGElement,
-    never
-  >
-) {
-  selection
+function getIcon(state: string | undefined) {
+  switch (state) {
+    case NodeStateValues.RUNNING:
+      return faBolt.icon
+    case NodeStateValues.IDLE:
+      return faPause.icon
+    case NodeStateValues.SUCCEEDED:
+      return faCheck.icon
+    case NodeStateValues.FAILED:
+      return faXmark.icon
+    case NodeStateValues.SHUTDOWN:
+    default:
+      return faPowerOff.icon
+  }
+}
+
+watch(
+  () => editor_store.current_tree.state,
+  updateNodeState
+)
+function updateNodeState() {
+  if (g_vertices_ref.value === undefined) {
+    console.warn("DOM is broken")
+    return
+  }
+
+  const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
+
+  g_vertex
+    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+      .each((node) => {
+        if (editor_store.current_tree.state === undefined) {
+          console.warn("No state to update")
+          return
+        }
+        const state = editor_store.current_tree.state.node_states.find(
+          (state) => state.name === node.data.name
+        )
+        if (state !== undefined) {
+          node.data.state = state.state
+        }
+      })
     .select<HTMLBodyElement>('.' + node_body_css_class)
-    .transition(tree_transition)
-    .style('border-color', (d) => {
-      switch (d.data.state) {
-        case NodeState.RUNNING:
+    .style('border-color', (node) => {
+      switch (node.data.state) {
+        case NodeStateValues.RUNNING:
           return 'var(--node-color-running)'
-        case NodeState.IDLE:
+        case NodeStateValues.IDLE:
           return 'var(--node-color-idle)'
-        case NodeState.SUCCEEDED:
+        case NodeStateValues.SUCCEEDED:
           return 'var(--node-color-succeeded)'
-        case NodeState.FAILED:
+        case NodeStateValues.FAILED:
           return 'var(--node-color-failed)'
-        case NodeState.SHUTDOWN:
+        case NodeStateValues.SHUTDOWN:
           return 'var(--node-color-shutdown)'
-        case NodeState.UNINITIALIZED:
+        case NodeStateValues.UNINITIALIZED:
         default:
           return 'var(--node-color-default)'
       }
     })
+    .select<SVGElement>('.' + node_state_css_class)
+      .attr('viewBox', (node) => {
+        const icon = getIcon(node.data.state)
+        return "0 0 " + icon[0] + " " + icon[1]
+      })
+    .select<SVGPathElement>('path')
+      .attr('d', (node) => {
+        const icon = getIcon(node.data.state)
+        if (typeof icon[4] === "string") {
+          return icon[4]
+        } else {
+          console.warn("Potentially unhandled multivalue path", icon[4])
+          return icon[4].join('')
+        }
+      })
 }
 
 function layoutTree(
@@ -620,7 +639,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   const drop_targets: DropTarget[] = []
 
   // Only draw drop targets if not displaying a subtree
-  if (!editor_store.selected_subtree.is_subtree) {
+  if (!editor_store.has_selected_subtree) {
     // Construct the list of drop targets that should exist
     tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
       if (node.data.name === forest_root_name) {
@@ -715,7 +734,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
     .on('mouseout.highlight', function () {
       d3.select(this).attr('opacity', 0.2)
     })
-    .on('mouseup.dragdrop', (d) => {
+    .on('mouseup.dragdrop', (ev, d) => {
       if (editor_store.dragging_new_node) {
         addNewNode(d)
       } else if (editor_store.dragging_existing_node) {
@@ -1001,7 +1020,7 @@ function toggleNewNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: NodeDataWiring[]) {
+function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wiring[]) {
   if (g_data_graph_ref.value === undefined || g_data_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
@@ -1044,40 +1063,39 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Nod
     .data(data_points, (d) => d.node.id! + '###' + d.kind + '###' + d.index)
     .join(drawNewDataVert)
 
+  if (!editor_store.has_selected_subtree) {
+    //NOTE These are added here, because they see an outdated datum otherwise
+    // d3 claims that listeners are passed a "current" datum, 
+    // but that appears to be wrong.
+    g_data_vertices
+      .select('.' + data_vert_grip_css_class)
+        .on('mousedown.drawedge', (ev, term: DataEdgeTerminal) => {
+          editor_store.startDrawingDataEdge(term)
+        })
+        .on('mouseup.drawedge', (ev, term: DataEdgeTerminal) => {
+          if (editor_store.data_edge_endpoint === undefined) {
+            console.warn('Unintended data edge draw')
+            return
+          }
+
+          if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
+            console.warn('Invalid edge')
+            return
+          }
+
+          if (term.kind === IOKind.INPUT) {
+            addNewDataEdge(editor_store.data_edge_endpoint, term)
+          } else {
+            addNewDataEdge(term, editor_store.data_edge_endpoint)
+          }
+        })
+  }
+
   // Since types of DataVerts can change, type values are added out here
   g_data_vertices
     .select('.' + data_vert_label_css_class)
     .select('.' + data_vert_label_type_css_class)
-    .text((d) => '(type: ' + prettyprint_type(d.type) + ')')
-
-  // No data wiring when displaying a subtree
-  if (!editor_store.selected_subtree.is_subtree) {
-    g_data_vertices
-      .select('.' + data_vert_grip_css_class)
-      //FIXME These handlers are out here because they see an outdated datum (term)
-      // if registered in drawNewDataVert
-      // Updating d3 should resolve this issue (as per the documentation)
-      .on('mousedown.drawedge', (term: DataEdgeTerminal) => {
-        editor_store.startDrawingDataEdge(term)
-      })
-      .on('mouseup.drawedge', (term: DataEdgeTerminal) => {
-        if (editor_store.data_edge_endpoint === undefined) {
-          console.warn('Unintended data edge draw')
-          return
-        }
-
-        if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
-          console.warn('Invalid edge')
-          return
-        }
-
-        if (term.kind === IOKind.INPUT) {
-          addNewDataEdge(editor_store.data_edge_endpoint, term)
-        } else {
-          addNewDataEdge(term, editor_store.data_edge_endpoint)
-        }
-      })
-  }
+    .text((d) => '(type: ' + prettyprint_type(d.type) + ')')     
 
   g_data_vertices
     .transition(tree_transition)
@@ -1159,7 +1177,7 @@ function drawNewDataVert(
 function drawDataEdges(
   data_points: DataEdgeTerminal[],
   g_data_vertices: d3.Selection<SVGGElement, DataEdgeTerminal, SVGGElement, unknown>,
-  data_wirings: NodeDataWiring[]
+  data_wirings: Wiring[]
 ) {
   if (
     g_data_graph_ref.value === undefined ||
@@ -1181,7 +1199,7 @@ function drawDataEdges(
     )
   }
 
-  data_wirings.forEach((wiring: NodeDataWiring) => {
+  data_wirings.forEach((wiring: Wiring) => {
     // Match Terminals with wiring data
     const source = data_points.find((term: DataEdgeTerminal) => matchEndpoint(wiring.source, term))
     const target = data_points.find((term: DataEdgeTerminal) => matchEndpoint(wiring.target, term))
@@ -1225,50 +1243,45 @@ function drawDataEdges(
         d.target.index
     )
     .join('path')
-    .classed(data_edge_css_class, true)
-    .on('click.select', (edge: DataEdge) => {
-      editor_store.selectEdge(edge.wiring)
-      d3.event.stopPropagation()
-    })
-    .on('mouseover.highlight', function (edge: DataEdge) {
-      if (editor_store.is_dragging) {
-        return // No highlights while dragging
-      }
-      g_data_vertices
-        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-        .dispatch('mouseover')
-        .attr('id', (term: DataEdgeTerminal) =>
-          term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
-        )
-        //Hide target label
-        .select('.' + data_vert_label_css_class)
-        .attr('visibility', (term: DataEdgeTerminal) => {
-          if (term.kind === IOKind.INPUT) {
-            return 'hidden'
-          }
-          return 'visible'
-        })
+      .classed(data_edge_css_class, true)
+      .on('click.select', (event, edge: DataEdge) => {
+        editor_store.selectEdge(edge.wiring)
+        event.stopPropagation()
+      })
+      .on('mouseover.highlight', function (ev, edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
+        g_data_vertices
+          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+          .dispatch('mouseover')
+          .attr('id', (term: DataEdgeTerminal) =>
+            term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
+          )
+          //Hide target label
+          .select('.' + data_vert_label_css_class)
+          .attr('visibility', (term: DataEdgeTerminal) => {
+            if (term.kind === IOKind.INPUT) {
+              return 'hidden'
+            }
+            return 'visible'
+          })
 
-      d3.select(this)
-        .classed(data_graph_hover_css_class, true)
-        .attr('id', data_edge_highlight_css_id)
-    })
-    .on('mouseout.highlight', function (edge: DataEdge) {
-      if (editor_store.is_dragging) {
-        return // No highlights while dragging
-      }
-      g_data_vertices
-        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-        .dispatch('mouseout')
-      d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
-    })
+        d3.select(this)
+          .classed(data_graph_hover_css_class, true)
+          .attr('id', data_edge_highlight_css_id)
+      })
+      .on('mouseout.highlight', function (ev, edge: DataEdge) {
+        if (editor_store.is_dragging) {
+          return // No highlights while dragging
+        }
+        g_data_vertices
+          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+          .dispatch('mouseout')
+        d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
+      })
     .transition(tree_transition)
-    .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
-  /*.attr("d", 
-        d3.linkHorizontal<SVGPathElement, DataEdge, DataEdgeTerminal>()
-          .x((p) => p.x + io_gripper_size/2)
-          .y((p) => p.y + io_gripper_size/2)
-      )*/
+      .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
 }
 
 function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
@@ -1359,7 +1372,7 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
             data_kind: target.kind,
             data_key: target.key
           }
-        } as NodeDataWiring
+        } as Wiring
       ],
       ignore_failure: false //TODO what does this do?
     } as WireNodeDataRequest,
@@ -1472,14 +1485,14 @@ onMounted(() => {
   const container = d3.select<SVGGElement, never>(svg_g_ref.value)
 
   viewport.call(
-    zoomObject.on('zoom', function () {
-      container.attr('transform', d3.event.transform)
+    zoomObject.on('zoom', (event) => {
+      container.attr('transform', event.transform)
     })
   )
 
-  zoomObject.filter(function () {
+  zoomObject.filter((event) => {
     // Do not trigger panning if we're grabbing a node (initiate dragging).
-    return !d3.event.shiftKey && (!editor_store.is_dragging || d3.event.type === 'wheel')
+    return !event.shiftKey && (!editor_store.is_dragging || event.type === 'wheel')
   })
 
   // Call resetView to center tree container
@@ -1487,8 +1500,8 @@ onMounted(() => {
 
   viewport.on('mousemove.pan_if_drag', canvasMouseMovePanHandler)
 
-  viewport.on('click.unselect', () => {
-    if (!d3.event.shiftKey) {
+  viewport.on('click.unselect', (event) => {
+    if (!event.shiftKey) {
       edit_node_store.clearSelection()
       editor_store.unselectEdge()
     }
@@ -1498,16 +1511,16 @@ onMounted(() => {
   mouse_moved = false
 
   // start the selection
-  viewport.on('mousedown.drawselect', () => {
+  viewport.on('mousedown.drawselect', (event) => {
     if (svg_g_ref.value === undefined) {
       console.warn('DOM is broken')
       return
     }
 
-    if (d3.event.shiftKey) {
+    if (event.shiftKey) {
       selection = true // indicates a shift-mousedown enabled selection rectangle
 
-      const [x, y] = d3.mouse(svg_g_ref.value)
+      const [x, y] = d3.pointer(event, svg_g_ref.value)
 
       start_x = x
       start_y = y
@@ -1515,7 +1528,7 @@ onMounted(() => {
   })
 
   // show the selection rectangle on mousemove
-  viewport.on('mousemove.drawselect', () => {
+  viewport.on('mousemove.drawselect', (event) => {
     if (
       svg_g_ref.value === undefined ||
       g_vertices_ref.value === undefined ||
@@ -1525,12 +1538,12 @@ onMounted(() => {
       return
     }
 
-    if (d3.event.shiftKey && selection) {
+    if (event.shiftKey && selection) {
       mouse_moved = true
 
       const sel_rect = d3.select<SVGRectElement, never>(selection_rect_ref.value)
 
-      const [x, y] = d3.mouse(svg_g_ref.value)
+      const [x, y] = d3.pointer(event, svg_g_ref.value)
 
       const new_x = Math.min(x, start_x)
       const new_y = Math.min(y, start_y)
@@ -1586,7 +1599,7 @@ onMounted(() => {
   })
 
   // draw proto edges on data-drag
-  viewport.on('mousemove.drawedge', () => {
+  viewport.on('mousemove.drawedge', (event) => {
     if (svg_g_ref.value === undefined || draw_indicator_ref.value === undefined) {
       console.warn('DOM is broken')
       return
@@ -1596,7 +1609,7 @@ onMounted(() => {
       return // Nothing to draw
     }
 
-    const [x, y] = d3.mouse(svg_g_ref.value)
+    const [x, y] = d3.pointer(event, svg_g_ref.value)
     // Construct a fake DataEdgePoint to reuse drawing code
     const mouse_point: DataEdgePoint = {
       x: x - io_gripper_size / 2,

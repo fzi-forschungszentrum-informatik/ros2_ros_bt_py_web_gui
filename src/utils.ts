@@ -34,12 +34,12 @@ import {
   type TypeWrapper 
 } from './types/python_types'
 import type { 
-  NodeData, 
-  TreeMsg, 
   DataEdgeTerminal, 
-  ParamData, 
+  OptionData, 
   PyObject, 
-  ParamType 
+  ParamType, 
+  NodeOption,
+  TreeState
 } from './types/types'
 import { IOKind } from './types/types'
 
@@ -148,9 +148,36 @@ export function getTypeAndInfo(typeStr: string): [string, string] {
   return [match[1], match[2]]
 }
 
+export const unset_ref_str = 'unset_optionref'
+
+export function parseOptionRef(
+  typeStr: string,
+  options: NodeOption[] | null = null
+): string {
+  if (typeStr.startsWith('OptionRef(')) {
+    const optionTypeName = typeStr.substring('OptionRef('.length, typeStr.length - 1)
+    if (options === null) {
+      return unset_ref_str
+    }
+    const optionType = options.find((x) => {
+      return x.key === optionTypeName
+    })
+    if (optionType) {
+      if (optionType.serialized_value === '') {
+        return getDefaultValue(prettyprint_type(optionType.serialized_type)).value as string
+      }
+      return prettyprint_type(optionType.serialized_value)
+    } else {
+      return unset_ref_str
+    }
+  } else {
+    return typeStr
+  }
+}
+
 export function getDefaultValue(
   typeStr: string,
-  options: NodeData[] | null = null
+  options: NodeOption[] | null = null
 ): ParamType {
   const typeName = getTypeAndInfo(typeStr)[0]
   if (typeName === 'type') {
@@ -189,31 +216,15 @@ export function getDefaultValue(
       value: {}
     }
   } else if (typeName.startsWith('OptionRef(')) {
-    const optionTypeName = typeName.substring('OptionRef('.length, typeName.length - 1)
-    if (options === null) {
+    const refStr = parseOptionRef(typeName, options)
+    if (refStr === unset_ref_str) {
+      const optionTypeName = typeName.substring('OptionRef('.length, typeName.length - 1)
       return {
-        type: 'unset_optionref',
+        type: unset_ref_str,
         value: 'Ref to "' + optionTypeName + '"'
       }
     }
-    const optionType = options.find((x) => {
-      return x.key === optionTypeName
-    })
-    if (optionType) {
-      // This double call is necessary to dereference first the type of the optionref target and then its default value
-      return getDefaultValue(
-        getDefaultValue(
-          prettyprint_type(optionType.serialized_value), 
-          options
-        ).value as string,
-        options
-      )
-    } else {
-      return {
-        type: 'unset_optionref',
-        value: 'Ref to "' + optionTypeName + '"'
-      }
-    }
+    return getDefaultValue(refStr, options)
   // This checks all types defined in `python_types`
   // which provide default values
   } else if (isPythonTypeWithDefault(typeName)) {
@@ -229,9 +240,9 @@ export function getDefaultValue(
   }
 }
 
-export function serializeNodeOptions(node_options: ParamData[]): NodeData[] {
+export function serializeNodeOptions(node_options: OptionData[]): NodeOption[] {
   return node_options.map((x) => {
-    const option: NodeData = {
+    const option: NodeOption = {
       key: x.key,
       serialized_value: '',
       serialized_type: '' // This is left blank intentionally
@@ -261,7 +272,7 @@ export function getDist(a: number[], b: number[]) {
   return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2))
 }
 
-export function treeIsEditable(tree_msg: TreeMsg) {
+export function treeIsEditable(tree_msg: TreeState) {
   return tree_msg.state === 'EDITABLE'
 }
 

@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type { ParamData } from '@/types/types'
+import type { OptionData } from '@/types/types'
 import TypeParam from './param_inputs/TypeParam.vue'
 import JSONInput from './JSONInput.vue'
 import MathOperatorParam from './param_inputs/MathOperatorParam.vue'
@@ -52,7 +52,7 @@ import {
 } from '@/types/python_types'
 import RosTypeParam from './param_inputs/RosTypeParam.vue'
 import RosNameParam from './param_inputs/RosNameParam.vue'
-import { getTypeAndInfo } from '@/utils'
+import { getTypeAndInfo, unset_ref_str } from '@/utils'
 
 const props = defineProps<{
   category: 'options'
@@ -62,7 +62,7 @@ const props = defineProps<{
 const edit_node_store = useEditNodeStore()
 const editor_store = useEditorStore()
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -74,7 +74,7 @@ const param_type = computed<string>(() => {
 })
 
 // Below lists the data types that are handled by <input>...
-const input_type_values = ['int', 'float', 'bool', 'str', 'unset_optionref']
+const input_type_values = ['int', 'float', 'bool', 'str', unset_ref_str]
 //  ...and gives the appropriate attributes.
 const input_attrs = computed<object | undefined>(() => {
   if (param.value === undefined ||
@@ -87,7 +87,7 @@ const input_attrs = computed<object | undefined>(() => {
     step: number | 'any' = 'any',
     cssclass: string[] = ['form-control'],
     checked: boolean = false,
-    disabled: boolean = editor_store.selected_subtree.is_subtree
+    disabled: boolean = editor_store.has_selected_subtree
   switch (param_type.value) {
     case 'int':
       step = 1.0
@@ -100,7 +100,7 @@ const input_attrs = computed<object | undefined>(() => {
       checked = param.value.value.value as boolean
       cssclass = ['form-check-input', 'd-block']
       break
-    case 'unset_optionref':
+    case unset_ref_str:
       disabled = true
     case 'str':
       type = 'text'

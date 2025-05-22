@@ -27,14 +27,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { TreeMsg } from '../types'
+import type { TreeStructure } from '../types'
 
 export type GenerateSubtreeRequest = {
   nodes: string[]
 }
 
 export type GenerateSubtreeResponse = {
-  tree: TreeMsg
+  tree: TreeStructure
   success: boolean
   error_message: string
 }

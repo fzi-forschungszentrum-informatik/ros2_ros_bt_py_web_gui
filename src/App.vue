@@ -35,7 +35,7 @@ import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
 import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { MessageTypes, NodeMsg, Packages, SubtreeInfo, TreeMsg } from './types/types'
+import type { MessageTypes, NodeStructure, Packages, TreeDataList, TreeStateList, TreeStructureList } from './types/types'
 import { useEditorStore } from './stores/editor'
 import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
@@ -51,6 +51,9 @@ import LoadSaveControls from './components/LoadSaveControls.vue'
 import NamespaceSelect from './components/NamespaceSelect.vue'
 import TickControls from './components/TickControls.vue'
 import NodeQuickSelect from './components/NodeQuickSelect.vue'
+import SettingsPanel from './components/SettingsPanel.vue'
+import ConnectionStatus from './components/ConnectionStatus.vue'
+
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
@@ -92,20 +95,22 @@ function updateMessagesSubscription() {
   ros_store.messages_sub.subscribe(onNewMessagesMsg)
 }
 
-function onNewTreeMsg(msg: TreeMsg) {
-  editor_store.tree = msg
+function onNewTreeStructure(msg: TreeStructureList) {
+  editor_store.tree_structure_list = msg.tree_structures
+}
+
+function onNewTreeState(msg: TreeStateList) {
+  editor_store.tree_state_list = msg.tree_states
+}
+
+function onNewTreeData(msg: TreeDataList) {
+  editor_store.tree_data_list = msg.tree_data
 }
 
 function updateTreeSubscription() {
-  ros_store.tree_sub.subscribe(onNewTreeMsg)
-}
-
-function onNewSubtreeInfoMsg(msg: SubtreeInfo) {
-  editor_store.subtree_states = msg.subtree_states
-}
-
-function updateSubtreeInfoSubscription() {
-  ros_store.subtree_info_sub.subscribe(onNewSubtreeInfoMsg)
+  ros_store.tree_structure_sub.subscribe(onNewTreeStructure)
+  ros_store.tree_state_sub.subscribe(onNewTreeState)
+  ros_store.tree_data_sub.subscribe(onNewTreeData)
 }
 
 function updateChannelssubscription() {
@@ -126,12 +131,12 @@ function handleNodeSearchClear(event: KeyboardEvent) {
 }
 
 function findPossibleParents() {
-  if (editor_store.tree) {
-    return editor_store.tree.nodes
+  if (editor_store.current_tree.structure) {
+    return editor_store.current_tree.structure.nodes
       .filter(
-        (node: NodeMsg) => node.max_children < 0 || node.child_names.length < node.max_children
+        (node: NodeStructure) => node.max_children < 0 || node.child_names.length < node.max_children
       )
-      .sort(function (a: NodeMsg, b: NodeMsg) {
+      .sort(function (a: NodeStructure, b: NodeStructure) {
         if (a.name < b.name) {
           return -1
         } else if (a.name > b.name) {
@@ -157,7 +162,6 @@ ros_store.$onAction(({ name, after }) => {
 
   after(() => {
     updateTreeSubscription()
-    updateSubtreeInfoSubscription()
     updateMessagesSubscription()
     updateChannelssubscription()
     updatePackagesSubscription()
@@ -167,7 +171,6 @@ ros_store.$onAction(({ name, after }) => {
 onMounted(() => {
   ros_store.connect()
   updateTreeSubscription()
-  updateSubtreeInfoSubscription()
   updateMessagesSubscription()
   updateChannelssubscription()
   updatePackagesSubscription()
@@ -175,15 +178,30 @@ onMounted(() => {
 </script>
 
 <template>
+
+  <div id="settings" class="offcanvas offcanvas-start" tabindex="-1">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Settings</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <SettingsPanel />
+      
+      <NamespaceSelect />
+    </div>
+  </div>
+
   <header
     v-if="execution_bar_visible"
-    class="d-flex justify-content-between align-items-center p-2 top-bar"
+    class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-    <NamespaceSelect></NamespaceSelect>
+    
+      <ConnectionStatus />
 
-    <TickControls></TickControls>
+      <TickControls />
 
-    <LoadSaveControls></LoadSaveControls>
+      <LoadSaveControls />
+
   </header>
 
   <main>
@@ -302,7 +320,7 @@ onMounted(() => {
           </div>
 
           <div class="row edit_canvas flex-grow-1 pb-2">
-            <D3BehaviorTreeEditor></D3BehaviorTreeEditor>
+            <D3BehaviorTreeEditor />
           </div>
           <div class="row">
             <div class="col-6">
@@ -330,7 +348,7 @@ onMounted(() => {
             </div>
             <div class="col-6">
               <!-- BT Edge selection-->
-              <BehaviorTreeEdge v-if="editor_store.selected_edge !== undefined"></BehaviorTreeEdge>
+              <BehaviorTreeEdge v-if="editor_store.selected_edge !== undefined" />
               <div v-else class="d-flex flex-column">No Edge Selected</div>
             </div>
           </div>

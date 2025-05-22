@@ -28,12 +28,12 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import { NodeState, type DocumentedNode, type NodeData, type NodeMsg, type ParamData, type ValueTypes } from '@/types/types'
+import type { DocumentedNode, IOData, NodeIO, NodeOption, NodeStructure, OptionData, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, prettyprint_type, serializeNodeOptions } from '@/utils'
+import { getDefaultValue, parseOptionRef, prettyprint_type, serializeNodeOptions } from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -42,12 +42,11 @@ export enum EditorSelectionSource {
   MULTIPLE = 'multiple'
 }
 
-function getInitialValues(data: NodeData, options?: NodeData[] | null): ParamData {
-  options = options || []
+function parseNodeIO(data: NodeIO, options?: NodeOption[] | null): IOData {
   return {
     key: data.key,
-    value: getDefaultValue(prettyprint_type(data.serialized_value), options)
-  } as ParamData
+    type: parseOptionRef(prettyprint_type(data.serialized_type), options)
+  } as IOData
 }
 
 export const useEditNodeStore = defineStore('edit_node', () => {
@@ -56,7 +55,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
 
   const is_new_node = ref<boolean>(false)
   const node_has_changed = ref<boolean>(false)
-  const selected_node = ref<NodeMsg | undefined>(undefined)
+  const selected_node = ref<NodeStructure | undefined>(undefined)
   const reference_node = ref<DocumentedNode | undefined>(undefined)
   const selected_node_names = ref<string[]>([])
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
@@ -64,9 +63,9 @@ export const useEditNodeStore = defineStore('edit_node', () => {
   const new_node_name = ref<string>('')
   const new_node_class = ref<string>('')
   const new_node_module = ref<string>('')
-  const new_node_options = ref<ParamData[]>([])
-  const new_node_inputs = ref<ParamData[]>([])
-  const new_node_outputs = ref<ParamData[]>([])
+  const new_node_options = ref<OptionData[]>([])
+  const new_node_inputs = ref<IOData[]>([])
+  const new_node_outputs = ref<IOData[]>([])
   const node_is_valid = ref<boolean>(false)
   const node_is_morphed = ref<boolean>(false)
 
@@ -135,14 +134,20 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_is_valid.value = true
     node_is_morphed.value = false
 
-    new_node_options.value = new_selected_node.options.map((x) =>
-      getInitialValues(x, new_selected_node.options)
+    new_node_options.value = new_selected_node.options.map((data) => {
+      return {
+        key: data.key,
+        value: getDefaultValue(
+          prettyprint_type(data.serialized_type), 
+          new_selected_node.options
+        )
+      } as OptionData
+    })
+    new_node_inputs.value = new_selected_node.inputs.map((data) => 
+      parseNodeIO(data, new_selected_node.options)
     )
-    new_node_inputs.value = new_selected_node.inputs.map((x) =>
-      getInitialValues(x, new_selected_node.options)
-    )
-    new_node_outputs.value = new_selected_node.outputs.map((x) =>
-      getInitialValues(x, new_selected_node.options)
+    new_node_outputs.value = new_selected_node.outputs.map((data) =>
+      parseNodeIO(data, new_selected_node.options)
     )
   }
 
@@ -157,8 +162,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       }
     }
 
-    const new_selected_node = editor_store.current_tree!.nodes.find(
-      (x: NodeMsg) => x.name === new_selected_node_name
+    const new_selected_node = editor_store.current_tree.structure!.nodes.find(
+      (x: NodeStructure) => x.name === new_selected_node_name
     )
 
     if (new_selected_node === undefined) {
@@ -190,23 +195,26 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_is_valid.value = true
     node_is_morphed.value = false
 
-    function getValues(x: NodeData): ParamData {
-      const type = prettyprint_type(x.serialized_type)
-      let json_value = JSON.parse(x.serialized_value)
+    new_node_options.value = new_selected_node.options.map((data) => {
+      const type = prettyprint_type(data.serialized_type)
+      let json_value = JSON.parse(data.serialized_value)
       if (type.startsWith('type')) {
-        json_value = prettyprint_type(x.serialized_value)
+        json_value = prettyprint_type(data.serialized_value)
       }
       return {
-        key: x.key,
+        key: data.key,
         value: {
           type: type,
           value: json_value
         }
-      } as ParamData
-    }
-    new_node_options.value = new_selected_node.options.map((x) => getValues(x))
-    new_node_inputs.value = new_selected_node.inputs.map((x) => getValues(x))
-    new_node_outputs.value = new_selected_node.outputs.map((x) => getValues(x))
+      } as OptionData
+    })
+    new_node_inputs.value = new_selected_node.inputs.map((data) => 
+      parseNodeIO(data, new_selected_node.options)
+    )
+    new_node_outputs.value = new_selected_node.outputs.map((data) => 
+      parseNodeIO(data, new_selected_node.options)
+    )
   }
 
   function selectMultipleNodes(new_selected_node_names: string[]) {
@@ -252,7 +260,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     const new_reference_node = flow_control_nodes.value.find(
       (node: DocumentedNode) => node.module + node.node_class === node_module_class
     )
-    console.log(new_reference_node)
 
     if (new_reference_node === undefined) {
       console.warn("Can't locate node morph target")
@@ -263,14 +270,20 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     new_node_class.value = new_reference_node.node_class
     new_node_module.value = new_reference_node.module
 
-    new_node_options.value = new_reference_node.options.map((x) =>
-      getInitialValues(x, new_reference_node.options)
-    )
+    new_node_options.value = new_reference_node.options.map((data) =>{
+      return {
+        key: data.key,
+        value: getDefaultValue(
+          prettyprint_type(data.serialized_type), 
+          new_reference_node.options
+        )
+      } as OptionData
+    })
     new_node_inputs.value = new_reference_node.inputs.map((x) =>
-      getInitialValues(x, new_reference_node.options)
+      parseNodeIO(x, new_reference_node.options)
     )
     new_node_outputs.value = new_reference_node.outputs.map((x) =>
-      getInitialValues(x, new_reference_node.options)
+      parseNodeIO(x, new_reference_node.options)
     )
 
     node_has_changed.value = true
@@ -278,12 +291,12 @@ export const useEditNodeStore = defineStore('edit_node', () => {
   }
 
   function updateParamValue(
-    paramType: string, //"options" | "inputs" | "outputs",
+    paramType: "options",
     key: string,
     new_value: ValueTypes
   ) {
     node_has_changed.value = true
-    function map_fun(x: ParamData): ParamData {
+    function map_fun(x: OptionData): OptionData {
       if (x.key === key) {
         return {
           key: key,
@@ -297,26 +310,24 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       }
     }
 
-    if (paramType.toLowerCase() === 'options') {
-      // All of these are lists containing lists of [key, ref_key]
-      //
-      // That is, if options = { foo : int, bar : OptionRef(foo) }
-      // ref_keys will be [[bar, foo]]
-
+    if (paramType === 'options') {
       if (reference_node.value === undefined) {
         console.error('Cannot recover node information')
         return
       }
 
-      function findOptionRefs(ref_list: NodeData[]): [string, string][] {
+      // All of these are lists containing lists of [key, ref_key]
+      // That is, if options = { foo : int, bar : OptionRef(foo) }
+      // ref_keys will be [[bar, foo]]
+      function findOptionRefs(ref_list: NodeIO[]): [string, string][] {
         return ref_list.filter((x) => 
-            prettyprint_type(x.serialized_value).startsWith('OptionRef(')
+            prettyprint_type(x.serialized_type).startsWith('OptionRef(')
           )
           .map((x): [string, string] => [
             x.key,
-            prettyprint_type(x.serialized_value).substring(
+            prettyprint_type(x.serialized_type).substring(
               'OptionRef('.length,
-              prettyprint_type(x.serialized_value).length - 1
+              prettyprint_type(x.serialized_type).length - 1
             )
           ])
           .filter((x) => x[1] === key)
@@ -329,7 +340,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       const output_ref_keys = findOptionRefs(reference_node.value.outputs)
 
       new_node_options.value = new_node_options.value.map(map_fun)
-      function resolve_refs(refs: [string, string][], current_item: ParamData): ParamData {
+      function resolve_refs(refs: [string, string][], current_item: OptionData): OptionData {
         // See if the current option references the changed key
         const refData = refs.find((ref) => ref[0] === current_item.key)!
         if (refData) {
@@ -351,24 +362,38 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         resolve_refs(option_ref_keys, item)
       )
 
+      function resolve_io_refs(refs: [string, string][], current_item: IOData): IOData {
+        // See if the current option references the changed key
+        const refData = refs.find((ref) => ref[0] === current_item.key)!
+        if (refData) {
+          // If it does, find the type of the referred key
+          const optionType = new_node_options.value.find((opt) => opt.key === refData[1])
+          if (optionType) {
+            const opt_value = optionType.value.value as string
+            // Get a default value for the type indicated by the
+            // referenced option
+            return {
+              key: current_item.key,
+              type: opt_value
+            }
+          }
+        }
+        return current_item
+      }
       if (input_ref_keys.length > 0) {
         new_node_inputs.value = new_node_inputs.value.map((item) =>
-          resolve_refs(input_ref_keys, item)
+          resolve_io_refs(input_ref_keys, item)
         )
       }
       if (output_ref_keys.length > 0) {
         new_node_outputs.value = new_node_outputs.value.map((item) =>
-          resolve_refs(output_ref_keys, item)
+          resolve_io_refs(output_ref_keys, item)
         )
       }
-    } else if (paramType.toLowerCase() === 'inputs') {
-      new_node_inputs.value = new_node_inputs.value.map(map_fun)
-    } else if (paramType.toLowerCase() === 'outputs') {
-      new_node_outputs.value = new_node_outputs.value.map(map_fun)
     }
   }
 
-  function buildNodeMsg(): NodeMsg {
+  function buildNodeMsg(): NodeStructure {
     return {
       module: new_node_module.value,
       node_class: new_node_class.value,
@@ -379,7 +404,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       inputs: [],
       outputs: [],
       version: '',
-      state: NodeState.UNINITIALIZED
     }
   }
 
