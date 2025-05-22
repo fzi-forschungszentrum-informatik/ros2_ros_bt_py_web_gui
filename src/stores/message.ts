@@ -53,7 +53,9 @@ export const useMessasgeStore = defineStore('messages', () => {
   const ros_type_fuse_options = structuredClone(messages_fuse_options)
   ros_type_fuse_options.keys = []
   // This type conversion is necessary, because we target a different type of data
-  const ros_name_fuse_options = structuredClone(messages_fuse_options) as unknown as IFuseOptions<Channel>
+  const ros_name_fuse_options = structuredClone(
+    messages_fuse_options
+  ) as unknown as IFuseOptions<Channel>
   ros_name_fuse_options.keys = ['name', 'type']
 
   const ros_topic_type_fuse = ref<Fuse<string>>(new Fuse([], ros_type_fuse_options))
@@ -75,9 +77,7 @@ export const useMessasgeStore = defineStore('messages', () => {
     if (message_parts.length !== 3) {
       return
     }
-    messages.value.push(
-      message_parts[0] + '.' + message_parts[1] + '.' + message_parts[2]
-    )
+    messages.value.push(message_parts[0] + '.' + message_parts[1] + '.' + message_parts[2])
   }
 
   function addServiceMessages(message: string): void {
