@@ -30,7 +30,7 @@
 import type { Package } from '@/types/types'
 import Fuse from 'fuse.js'
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, shallowRef } from 'vue'
 
 export const usePackageStore = defineStore('packages', () => {
   const packages_fuse_options = {
@@ -46,8 +46,8 @@ export const usePackageStore = defineStore('packages', () => {
     useExtendedSearch: true
   }
 
-  const packages = ref<Package[]>([])
-  const packages_fuse = ref<Fuse<Package>>(new Fuse([], packages_fuse_options))
+  const packages = shallowRef<Package[]>([])
+  const packages_fuse = shallowRef<Fuse<Package>>(new Fuse([], packages_fuse_options))
   const packages_available = ref<boolean>(false)
 
   function arePackagesAvailable(available: boolean) {
