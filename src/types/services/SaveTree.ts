@@ -27,12 +27,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { TreeMsg } from '../types'
+import type { TreeStructure } from '../types'
 
 export type SaveTreeRequest = {
   storage_path: string
   filepath: string
-  tree: TreeMsg
+  tree: TreeStructure
   allow_overwrite: boolean
   allow_rename: boolean
 }

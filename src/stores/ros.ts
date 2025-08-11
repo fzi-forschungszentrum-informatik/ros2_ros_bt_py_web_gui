@@ -27,10 +27,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { ref, computed } from 'vue'
+import { ref, shallowRef, computed } from 'vue'
 import { defineStore } from 'pinia'
-import {Service, Topic, Ros} from 'roslib'
-import type { Packages, MessageTypes, TreeMsg, SubtreeInfo, Channels } from '@/types/types'
+import { Service, Topic, Ros } from 'roslib'
+import type {
+  Packages,
+  MessageTypes,
+  Channels,
+  TreeStructureList,
+  TreeStateList,
+  TreeDataList
+} from '@/types/types'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
@@ -84,6 +91,7 @@ import type {
 } from '@/types/services/LoadTreeFromPath'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { useNodesStore } from './nodes'
+import { useEditorStore } from './editor'
 
 export const useROSStore = defineStore(
   'ros',
@@ -91,13 +99,14 @@ export const useROSStore = defineStore(
     const messages_store = useMessasgeStore()
     const packages_store = usePackageStore()
     const nodes_store = useNodesStore()
-    const ros = ref<Ros>(new Ros({}))
-    const connected = computed<boolean>(() => ros.value.isConnected)
+    const editor_store = useEditorStore()
+    const ros = shallowRef<Ros>(new Ros({}))
+    const connected = ref<boolean>(false)
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
-    const services_for_type_service = ref<
+    const services_for_type_service = shallowRef<
       Service<ServicesForTypeRequest, ServicesForTypeResponse>
     >(
       new Service({
@@ -107,7 +116,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const load_tree_service = ref<Service<LoadTreeRequest, LoadTreeResponse>>(
+    const load_tree_service = shallowRef<Service<LoadTreeRequest, LoadTreeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'load_tree',
@@ -115,7 +124,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const fix_yaml_service = ref<Service<FixYamlRequest, FixYamlResponse>>(
+    const fix_yaml_service = shallowRef<Service<FixYamlRequest, FixYamlResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'fix_yaml',
@@ -123,7 +132,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const control_tree_execution_service = ref<
+    const control_tree_execution_service = shallowRef<
       Service<ControlTreeExecutionRequest, ControlTreeExecutionResponse>
     >(
       new Service({
@@ -133,7 +142,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const clear_tree_service = ref<Service<ClearTreeRequest, ClearTreeResponse>>(
+    const clear_tree_service = shallowRef<Service<ClearTreeRequest, ClearTreeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'clear',
@@ -141,7 +150,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const set_publish_subtrees_service = ref<Service<SetBoolRequest, SetBoolResponse>>(
+    const set_publish_subtrees_service = shallowRef<Service<SetBoolRequest, SetBoolResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
@@ -149,27 +158,45 @@ export const useROSStore = defineStore(
       })
     )
 
-    const tree_sub = ref<Topic<TreeMsg>>(
+    const set_publish_data_service = shallowRef<Service<SetBoolRequest, SetBoolResponse>>(
+      new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+    )
+
+    const tree_structure_sub = shallowRef<Topic<TreeStructureList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
     )
 
-    const subtree_info_sub = ref<Topic<SubtreeInfo>>(
+    const tree_state_sub = shallowRef<Topic<TreeStateList>>(
       new Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
         latch: true,
         reconnect_on_close: true
       })
     )
 
-    const packages_sub = ref<Topic<Packages>>(
+    const tree_data_sub = shallowRef<Topic<TreeDataList>>(
+      new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+
+    const packages_sub = shallowRef<Topic<Packages>>(
       new Topic({
         ros: ros.value,
         name: namespace.value + 'packages',
@@ -178,7 +205,7 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
-    const messages_sub = ref<Topic<MessageTypes>>(
+    const messages_sub = shallowRef<Topic<MessageTypes>>(
       new Topic({
         ros: ros.value,
         name: namespace.value + 'message_types',
@@ -187,7 +214,7 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
-    const channels_sub = ref<Topic<Channels>>(
+    const channels_sub = shallowRef<Topic<Channels>>(
       new Topic({
         ros: ros.value,
         name: namespace.value + 'message_channels',
@@ -197,7 +224,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const get_available_nodes_service = ref<
+    const get_available_nodes_service = shallowRef<
       Service<GetAvailableNodesRequest, GetAvailableNodesResponse>
     >(
       new Service({
@@ -207,7 +234,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const get_message_fields_service = ref<
+    const get_message_fields_service = shallowRef<
       Service<GetMessageFieldsRequest, GetMessageFieldsResponse>
     >(
       new Service({
@@ -217,7 +244,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const unwire_data_service = ref<Service<WireNodeDataRequest, WireNodeDataResponse>>(
+    const unwire_data_service = shallowRef<Service<WireNodeDataRequest, WireNodeDataResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
@@ -225,7 +252,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const remove_node_service = ref<Service<RemoveNodeRequest, RemoveNodeResponse>>(
+    const remove_node_service = shallowRef<Service<RemoveNodeRequest, RemoveNodeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'remove_node',
@@ -233,7 +260,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const replace_node_service = ref<Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
+    const replace_node_service = shallowRef<Service<ReplaceNodeRequest, ReplaceNodeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'replace_node',
@@ -241,7 +268,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const set_options_service = ref<Service<SetOptionsRequest, SetOptionsResponse>>(
+    const set_options_service = shallowRef<Service<SetOptionsRequest, SetOptionsResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'set_options',
@@ -249,7 +276,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const morph_node_service = ref<Service<MorphNodeRequest, MorphNodeResponse>>(
+    const morph_node_service = shallowRef<Service<MorphNodeRequest, MorphNodeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'morph_node',
@@ -257,7 +284,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const move_node_service = ref<Service<MoveNodeRequest, MoveNodeResponse>>(
+    const move_node_service = shallowRef<Service<MoveNodeRequest, MoveNodeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'move_node',
@@ -265,7 +292,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const add_node_at_index_service = ref<
+    const add_node_at_index_service = shallowRef<
       Service<AddNodeAtIndexRequest, AddNodeAtIndexResponse>
     >(
       new Service({
@@ -275,7 +302,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const wire_data_service = ref<Service<WireNodeDataRequest, WireNodeDataResponse>>(
+    const wire_data_service = shallowRef<Service<WireNodeDataRequest, WireNodeDataResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'wire_data',
@@ -283,7 +310,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const generate_subtree_service = ref<
+    const generate_subtree_service = shallowRef<
       Service<GenerateSubtreeRequest, GenerateSubtreeResponse>
     >(
       new Service({
@@ -293,7 +320,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const get_storage_folders_service = ref<
+    const get_storage_folders_service = shallowRef<
       Service<GetStorageFoldersRequest, GetStorageFoldersResponse>
     >(
       new Service({
@@ -303,7 +330,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const get_folder_structure_service = ref<
+    const get_folder_structure_service = shallowRef<
       Service<GetFolderStructureRequest, GetFolderStructureResponse>
     >(
       new Service({
@@ -313,7 +340,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const get_package_structure_service = ref<
+    const get_package_structure_service = shallowRef<
       Service<GetPackageStructureRequest, GetPackageStructureResponse>
     >(
       new Service({
@@ -323,7 +350,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const save_tree_service = ref<Service<SaveTreeRequest, SaveTreeResponse>>(
+    const save_tree_service = shallowRef<Service<SaveTreeRequest, SaveTreeResponse>>(
       new Service({
         ros: ros.value,
         name: namespace.value + 'save_tree',
@@ -331,7 +358,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const change_tree_name_service = ref<
+    const change_tree_name_service = shallowRef<
       Service<ChangeTreeNameRequest, ChangeTreeNameResponse>
     >(
       new Service({
@@ -341,7 +368,7 @@ export const useROSStore = defineStore(
       })
     )
 
-    const load_tree_from_path_service = ref<
+    const load_tree_from_path_service = shallowRef<
       Service<LoadTreeFromPathRequest, LoadTreeFromPathResponse>
     >(
       new Service({
@@ -367,22 +394,32 @@ export const useROSStore = defineStore(
     })
 
     function updateROSServices() {
-      tree_sub.value.unsubscribe()
-      tree_sub.value.removeAllListeners()
-      tree_sub.value = new Topic({
+      tree_structure_sub.value.unsubscribe()
+      tree_structure_sub.value.removeAllListeners()
+      tree_structure_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'tree',
-        messageType: 'ros_bt_py_interfaces/msg/Tree',
+        name: namespace.value + 'tree_structure_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStructureList',
         latch: true,
         reconnect_on_close: true
       })
 
-      subtree_info_sub.value.unsubscribe()
-      subtree_info_sub.value.removeAllListeners()
-      subtree_info_sub.value = new Topic({
+      tree_state_sub.value.unsubscribe()
+      tree_state_sub.value.removeAllListeners()
+      tree_state_sub.value = new Topic({
         ros: ros.value,
-        name: namespace.value + 'debug/subtree_info',
-        messageType: 'ros_bt_py_interfaces/msg/SubtreeInfo',
+        name: namespace.value + 'tree_state_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeStateList',
+        latch: true,
+        reconnect_on_close: true
+      })
+
+      tree_data_sub.value.unsubscribe()
+      tree_data_sub.value.removeAllListeners()
+      tree_data_sub.value = new Topic({
+        ros: ros.value,
+        name: namespace.value + 'tree_data_list',
+        messageType: 'ros_bt_py_interfaces/msg/TreeDataList',
         latch: true,
         reconnect_on_close: true
       })
@@ -420,6 +457,12 @@ export const useROSStore = defineStore(
       set_publish_subtrees_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
+        serviceType: 'std_srvs/srv/SetBool'
+      })
+
+      set_publish_data_service.value = new Service({
+        ros: ros.value,
+        name: namespace.value + 'debug/set_publish_data',
         serviceType: 'std_srvs/srv/SetBool'
       })
 
@@ -567,6 +610,7 @@ export const useROSStore = defineStore(
     }
 
     function hasConnected() {
+      connected.value = true
       notify({
         title: 'ROS connection established!',
         type: 'success'
@@ -574,8 +618,12 @@ export const useROSStore = defineStore(
     }
 
     function hasDisconnected() {
+      connected.value = false
       messages_store.areMessagesAvailable(false)
       packages_store.arePackagesAvailable(false)
+
+      editor_store.enableSubtreePublishing(false)
+      editor_store.publish_data = false
 
       notify({
         title: 'ROS connection closed!',
@@ -618,14 +666,16 @@ export const useROSStore = defineStore(
       add_node_at_index_service,
       generate_subtree_service,
       set_publish_subtrees_service,
+      set_publish_data_service,
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,
       save_tree_service,
       change_tree_name_service,
       load_tree_from_path_service,
-      tree_sub,
-      subtree_info_sub,
+      tree_structure_sub,
+      tree_state_sub,
+      tree_data_sub,
       packages_sub,
       messages_sub,
       channels_sub,

@@ -31,7 +31,7 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useMessasgeStore } from '@/stores/message'
-import type { ParamData } from '@/types/types'
+import type { OptionData } from '@/types/types'
 import { getTypeAndInfo, python_builtin_types } from '@/utils'
 import Fuse from 'fuse.js'
 import { computed, ref } from 'vue'
@@ -47,7 +47,7 @@ const messages_store = useMessasgeStore()
 
 const search_results = ref<string[]>([])
 
-const param = computed<ParamData | undefined>(() =>
+const param = computed<OptionData | undefined>(() =>
   edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
@@ -133,7 +133,7 @@ function releaseDropdown() {
         type="text"
         class="form-control mt-2"
         :value="display_value"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
         @input="onChange"
         @focus="focusInput"
         @blur="unfocusInput"

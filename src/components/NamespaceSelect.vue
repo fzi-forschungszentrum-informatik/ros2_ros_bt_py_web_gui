@@ -28,47 +28,18 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type {
   ServicesForTypeRequest,
   ServicesForTypeResponse
 } from '@/types/services/ServicesForType'
 import { notify } from '@kyvg/vue3-notification'
 import { useROSStore } from '../stores/ros'
-import { useMessasgeStore } from '@/stores/message'
-import { usePackageStore } from '@/stores/package'
+
 const ros_store = useROSStore()
-const messages_store = useMessasgeStore()
-const packages_store = usePackageStore()
 
 const edit_rosbridge_server = ref<boolean>(false)
 const new_url = ref<string>(ros_store.url)
-
-const connection_status_attrs = computed<object>(() => {
-  if (!ros_store.connected) {
-    return {
-      class: 'disconnected',
-      title: 'Disconnected'
-    }
-  }
-  if (!messages_store.messages_available) {
-    return {
-      class: 'messages-missing',
-      title:
-        'Connected, message info not (yet) available. ' + 'ROS-type autocompletion will not work.'
-    }
-  }
-  if (!packages_store.packages_available) {
-    return {
-      class: 'packages-missing',
-      title: 'Connected, package list not (yet) available. ' + 'File browser will not work.'
-    }
-  }
-  return {
-    class: 'connected',
-    title: 'Connected'
-  }
-})
 
 function handleNamespaceChange(event: Event) {
   const target = event.target as HTMLSelectElement
@@ -107,10 +78,6 @@ function updateAvailableNamespaces() {
   )
 }
 
-function editRosbridgeServer() {
-  edit_rosbridge_server.value = !edit_rosbridge_server.value
-}
-
 function changeRosbridgeServer(event: Event) {
   const target = event.target as HTMLInputElement
   new_url.value = target.value
@@ -126,42 +93,10 @@ onMounted(updateAvailableNamespaces)
 </script>
 
 <template>
-  <div class="d-flex align-items-center">
-    <FontAwesomeIcon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="mx-2 fs-4"
-      v-bind="connection_status_attrs"
-    />
+  <div>
+    <div class="h4 my-3">Connection Settings</div>
 
-    <div class="input-group flex-nowrap me-2">
-      <button
-        type="button"
-        class="btn btn-outline-contrast"
-        title="Edit rosbridge server"
-        @click="editRosbridgeServer"
-      >
-        <FontAwesomeIcon
-          aria-hidden="true"
-          :icon="'fa-solid ' + (edit_rosbridge_server ? 'fa-xmark' : 'fa-cog')"
-        />
-      </button>
-      <template v-if="edit_rosbridge_server">
-        <label class="input-group-text">Rosbridge Server</label>
-        <input
-          class="form-control"
-          type="text"
-          placeholder="Websocket URL"
-          aria-describedby="websocketURL"
-          aria-label="Websocket URL"
-          :value="new_url"
-          @change="changeRosbridgeServer"
-        />
-        <button type="button" class="btn btn-primary" @click="saveRosbridgeServer">Save</button>
-      </template>
-    </div>
-
-    <div v-if="!edit_rosbridge_server" class="input-group flex-nowrap me-2">
+    <div class="input-group flex-nowrap my-3">
       <label class="input-group-text">Namespace</label>
       <select
         class="form-select w-auto"
@@ -176,32 +111,25 @@ onMounted(updateAvailableNamespaces)
           {{ namespace }}
         </option>
       </select>
-      <button type="button" class="btn btn-outline-contrast" @click="updateAvailableNamespaces">
+      <button type="button" class="btn btn-outline-secondary" @click="updateAvailableNamespaces">
         <FontAwesomeIcon icon="fa-solid fa-sync" aria-hidden="true" />
-        <span class="sr-only">Refresh Namespaces</span>
       </button>
+    </div>
+
+    <div class="input-group flex-nowrap my-3">
+      <label class="input-group-text">Rosbridge Server</label>
+      <input
+        class="form-control"
+        type="text"
+        placeholder="Websocket URL"
+        aria-describedby="websocketURL"
+        aria-label="Websocket URL"
+        :value="new_url"
+        @change="changeRosbridgeServer"
+      />
+      <button type="button" class="btn btn-primary" @click="saveRosbridgeServer">Save</button>
     </div>
   </div>
 </template>
 
-<style scoped lang="scss">
-.connected {
-  padding: 0.25rem;
-  color: #0caa19;
-}
 
-.disconnected {
-  padding: 0.25rem;
-  color: #ff0000;
-}
-
-.packages-missing {
-  padding: 0.25rem;
-  color: #ff7300;
-}
-
-.messages-missing {
-  padding: 0.25rem;
-  color: #ffd000;
-}
-</style>

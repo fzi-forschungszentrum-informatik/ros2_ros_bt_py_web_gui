@@ -47,7 +47,7 @@ const show_description = ref<boolean>(false)
       class="form-control-lg mb-2"
       type="text"
       :value="edit_node_store.new_node_name"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @focus="() => edit_node_store.changeCopyMode(false)"
       @change="
         (event: Event) => edit_node_store.changeNodeName((event.target as HTMLInputElement).value)
@@ -63,7 +63,7 @@ const show_description = ref<boolean>(false)
           v-else
           class="form-select"
           :value="edit_node_store.new_node_module + edit_node_store.new_node_class"
-          :disabled="editor_store.selected_subtree.is_subtree"
+          :disabled="editor_store.has_selected_subtree"
           @change="
             (event: Event) =>
               edit_node_store.changeNodeClass((event.target as HTMLInputElement).value)

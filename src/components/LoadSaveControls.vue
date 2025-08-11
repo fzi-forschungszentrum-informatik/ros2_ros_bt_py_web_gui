@@ -43,7 +43,7 @@ import {
 } from '@/types/services/ControlTreeExecution'
 import jsyaml from 'js-yaml'
 import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
-import type { TreeMsg } from '@/types/types'
+import type { TreeStructure } from '@/types/types'
 import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
 
 const ros_store = useROSStore()
@@ -113,7 +113,7 @@ function newTree() {
           })
         }
       },
-      (failed) => {
+      (failed: string) => {
         notify({
           title: 'ClearTree service call failed!',
           type: 'error',
@@ -162,7 +162,7 @@ function saveToFile() {
         })
       }
     },
-    (failed) => {
+    (failed: string) => {
       notify({
         title: 'Calling ControlTreeExecution ROS service failed!',
         text: failed,
@@ -203,7 +203,7 @@ function openFileDialog() {
   file_input_ref.value.click()
 }
 
-function loadTreeMsg(msg: TreeMsg) {
+function loadTreeMsg(msg: TreeStructure) {
   // do a version check before loading
   if (ros_store.load_tree_service === undefined) {
     notify({
@@ -269,7 +269,7 @@ function loadTreeMsg(msg: TreeMsg) {
                   })
                 }
               },
-              (failed) => {
+              (failed: string) => {
                 notify({
                   title: 'Failed to call load tree service!',
                   text: failed,
@@ -286,7 +286,7 @@ function loadTreeMsg(msg: TreeMsg) {
         })
       }
     },
-    (failed) => {
+    (failed: string) => {
       notify({
         title: 'Failed to call load tree service!',
         text: failed,
@@ -297,7 +297,7 @@ function loadTreeMsg(msg: TreeMsg) {
 }
 
 function handleFileRead() {
-  let msgs: TreeMsg[] = []
+  let msgs: TreeStructure[] = []
   try {
     if (file_reader.result === null) {
       notify({
@@ -307,8 +307,8 @@ function handleFileRead() {
       return
     }
     const file_text: string = file_reader.result as string
-    msgs = jsyaml.loadAll(file_text) as TreeMsg[]
-    let msg: TreeMsg | null = null
+    msgs = jsyaml.loadAll(file_text) as TreeStructure[]
+    let msg: TreeStructure | null = null
     for (let i = 0; i < msgs.length; i++) {
       if (msgs[i] != null) {
         msg = msgs[i]
@@ -333,7 +333,7 @@ function handleFileRead() {
       } as FixYamlRequest,
       (response: FixYamlResponse) => {
         if (response.success) {
-          msgs = jsyaml.loadAll(response.fixed_yaml) as TreeMsg[]
+          msgs = jsyaml.loadAll(response.fixed_yaml) as TreeStructure[]
           let msg = null
           for (let i = 0; i < msgs.length; i++) {
             if (msgs[i] != null) {
@@ -374,7 +374,9 @@ function saveTree() {
           title: 'Tree shutdown successful!',
           type: 'success'
         })
-        const tree = editor_store.tree
+        const tree = editor_store.tree_structure_list.find(
+          (tree) => tree.tree_id === ""
+        )
         if (tree === undefined) {
           notify({
             title: 'Tree is undefined, cannot save!',
@@ -383,14 +385,6 @@ function saveTree() {
           return
         }
 
-        for (const node in tree.nodes) {
-          for (const node_input in tree.nodes[node].inputs) {
-            tree.nodes[node].inputs[node_input].serialized_value = 'null'
-          }
-          for (const node_output in tree.nodes[node].outputs) {
-            tree.nodes[node].outputs[node_output].serialized_value = 'null'
-          }
-        }
         const msg = jsyaml.dump(tree)
 
         downloadURI('data:text/plain,' + encodeURIComponent(msg), 'tree.yaml')
@@ -402,7 +396,7 @@ function saveTree() {
         })
       }
     },
-    (failed) => {
+    (failed: string) => {
       notify({
         title: 'Calling ControlTreeExecution ROS service failed!',
         text: failed,
@@ -418,7 +412,7 @@ function saveTree() {
     <button
       class="btn btn-primary"
       title="New tree"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => newTree()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
@@ -431,7 +425,7 @@ function saveTree() {
         class="btn btn-primary dropdown-toggle"
         data-bs-toggle="dropdown"
         aria-expanded="false"
-        :disabled="editor_store.selected_subtree.is_subtree"
+        :disabled="editor_store.has_selected_subtree"
       >
         <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
         <span class="ms-1 hide-button-text">Load</span>
@@ -441,7 +435,7 @@ function saveTree() {
           <button
             class="dropdown-item btn btn-primary"
             title="Load from package"
-            :disabled="editor_store.selected_subtree.is_subtree"
+            :disabled="editor_store.has_selected_subtree"
             @click="() => loadFromPackage()"
           >
             <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
@@ -452,7 +446,7 @@ function saveTree() {
           <button
             class="dropdown-item btn btn-primary"
             title="Load from file"
-            :disabled="editor_store.selected_subtree.is_subtree"
+            :disabled="editor_store.has_selected_subtree"
             @click="() => loadFromFile()"
           >
             <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
@@ -464,7 +458,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Save to remote"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => saveToFile()"
     >
       <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
@@ -474,7 +468,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Upload"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => openFileDialog()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
@@ -483,7 +477,7 @@ function saveTree() {
     <button
       class="btn btn-primary btn-spaced"
       title="Download"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
       @click="() => saveTree()"
     >
       <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />

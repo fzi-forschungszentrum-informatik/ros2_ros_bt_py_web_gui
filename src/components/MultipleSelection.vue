@@ -37,7 +37,7 @@ import { notify } from '@kyvg/vue3-notification'
 import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { TreeMsg } from '@/types/types'
+import type { TreeStructure } from '@/types/types'
 import { NameConflictHandler, parseConflictHandler } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { removeNode } from '@/tree_manipulation'
@@ -122,7 +122,7 @@ function generateSubtree() {
   )
 }
 
-function saveSubtree(tree: TreeMsg) {
+function saveSubtree(tree: TreeStructure) {
   tree.name = name.value
 
   const [allow_overwrite, allow_rename] = parseConflictHandler(handle_name_conflict.value)
