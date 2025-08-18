@@ -86,6 +86,8 @@ const pan_rate: number = 30
 const drag_pan_boundary: number = 50
 const pan_per_frame: number = 10.0
 
+const line_wrap_regex: RegExp = /[a-z][A-Z]|[_\- ][a-zA-Z]/gd
+
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
 
@@ -96,7 +98,14 @@ const io_edge_curve_offset: number = 5
 const io_edge_curve_factor: number = 0.0001
 
 const forest_root_name: string = '__forest_root'
+const node_padding: number = 10
 const node_spacing: number = 80
+const name_line_length: number = 20
+const name_first_line_indent: number = 3
+const class_line_length: number = 25
+const icon_width: number = 30
+const node_name_height: number = 40
+const node_class_height: number = 30
 const drop_target_root_size: number = 150
 
 // constants for css classes & ids used with d3
@@ -104,7 +113,7 @@ const tree_node_css_class: string = 'node'
 const node_body_css_class: string = 'btnode'
 const node_name_css_class: string = 'node_name'
 const node_class_css_class: string = 'class_name'
-const node_state_css_class: string = 'icon'
+const node_state_css_class: string = 'state_icon'
 const tree_edge_css_class: string = 'link'
 const drop_target_css_class: string = 'drop_target'
 const data_vert_group_css_class: string = 'gripper-group'
@@ -141,8 +150,10 @@ function resetView() {
   }
   const viewport = d3.select(viewport_ref.value)
   const height = viewport.node()!.getBoundingClientRect().height
+  const zoom_factor = d3.zoomTransform(viewport_ref.value).k
+  const offset = height * 0.5 / zoom_factor - 60.0
 
-  viewport.call(zoomObject.translateTo, 0.0, height * 0.5 - 10.0)
+  viewport.call(zoomObject.translateTo, 0.0, offset)
 }
 
 function buildNodeMessage(node: DocumentedNode): NodeStructure {
@@ -282,8 +293,9 @@ function drawEverything() {
       options: node.options.map(onlyKeyAndType),
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
-      size: { width: 1, height: 1 }
-    }
+      size: { width: 1, height: 1 },
+      offset: {x: 0, y: 0}
+    } as TrimmedNode
   })
 
   const forest_root: TrimmedNode = {
@@ -295,7 +307,8 @@ function drawEverything() {
     inputs: [],
     outputs: [],
     options: [],
-    size: { width: 0, height: 0 }
+    size: { width: 0, height: 0 },
+    offset: {x: 0, y: 0}
   }
 
   if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
@@ -349,7 +362,7 @@ function drawEverything() {
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
 
   const node = g_vertex
-    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
     .data(
       root.descendants().filter((node) => node.data.name !== forest_root_name),
       (node) => node.id!
@@ -370,8 +383,8 @@ function drawEverything() {
 function drawNewNodes(
   selection: d3.Selection<d3.EnterElement, d3.HierarchyNode<TrimmedNode>, SVGGElement, never>
 ) {
-  const fo = selection
-    .append('foreignObject')
+  const group = selection
+    .append<SVGGElement>('g')
     .classed(tree_node_css_class, true)
     // The two css-classes below are currently unused
     .classed('node--internal', (d) => d.children !== undefined && d.children.length > 0)
@@ -387,80 +400,34 @@ function drawNewNodes(
 
   // No tree modifying if displaying a subtree
   if (!editor_store.has_selected_subtree) {
-    fo.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
+    group.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
       editor_store.startDraggingExistingNode(node)
       event.stopPropagation()
     })
   }
 
-  const body = fo
-    .append<HTMLBodyElement>('xhtml:body')
-    .classed(node_body_css_class, true)
+  group.append<SVGRectElement>('rect')
+      .classed(node_body_css_class, true)
 
-  // These elements get filled in updateNodeBody
-  body.append('svg')
-      .classed(node_state_css_class, true)
-      .style('float', 'right')
-    .append('path')
-      .attr('fill', 'currentColor')
-  body.append('h4')
+  group.append<SVGTextElement>('text')
       .classed(node_name_css_class, true)
-  body.append('h5')
+
+  group.append<SVGTextElement>('text')
       .classed(node_class_css_class, true)
+
+  group.append('svg')
+      .classed(node_state_css_class, true)
+      .attr('width', icon_width)
+      .attr('height', icon_width)
+    .append('path')
   
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
-  return fo
+  return group
 }
 
-function updateNodeBody(
-  selection: d3.Selection<
-    SVGForeignObjectElement,
-    d3.HierarchyNode<TrimmedNode>,
-    SVGGElement,
-    never
-  >
-) {
-  const body = selection.select<HTMLBodyElement>('.' + node_body_css_class)
-
-  body.select<HTMLHeadingElement>('.' + node_name_css_class)
-      .html((d) => d.data.name)
-
-  body.select<HTMLHeadingElement>('.' + node_class_css_class)
-      .html((d) => d.data.node_class)
-
-  body.style('min-height', (d) => {
-      // We need to ensure a minimum height, in case the node body
-      // would otherwise be shorter than the number of grippers
-      // requires.
-      const inputs = d.data.inputs || []
-      const outputs = d.data.outputs || []
-      const max_num_grippers = Math.max(inputs.length, outputs.length)
-      return io_gripper_size * max_num_grippers + 
-        io_gripper_spacing * (max_num_grippers + 1) +
-        'px'
-    })
-
-  // The width and height has to be readjusted as if the zoom was at k=1.0
-  const k = d3.zoomTransform(viewport_ref.value!).k
-
-  // Set width and height on foreignObject
-  body.each(function (d) {
-    const rect = this.getBoundingClientRect()
-    d.data.size.width = rect.width / k
-    d.data.size.height = rect.height / k
-  })
-
-  selection
-    .transition(tree_transition)
-    .attr('width', (d) => d.data.size.width)
-    .attr('height', (d) => d.data.size.height)
-
-  return selection
-}
-
-function getIcon(state: string | undefined) {
+function getIcon(state: NodeStateValues | undefined) {
   switch (state) {
     case NodeStateValues.RUNNING:
       return faBolt.icon
@@ -476,6 +443,165 @@ function getIcon(state: string | undefined) {
   }
 }
 
+function layoutText(
+  element: SVGGElement,
+  data: d3.HierarchyNode<TrimmedNode>,
+): number {
+
+  // Track width of longest line and return that for box sizing
+  let max_width: number = 0
+
+  const group_elem = d3.select<SVGGElement, d3.HierarchyNode<TrimmedNode>>(element)
+
+  const name_elem = group_elem.select<SVGTextElement>('.' + node_name_css_class)
+  const class_elem = group_elem.select<SVGTextElement>('.' + node_class_css_class)
+
+  const node_name = data.data.name
+  const node_class = data.data.node_class
+
+  name_elem.selectAll<SVGTSpanElement, never>('tspan')
+    .remove()
+
+  class_elem.selectAll<SVGTSpanElement, never>('tspan')
+    .remove()
+
+  let title_lines: number = 0
+
+  // Find positions for potential line breaks
+  let wrap_indices: number[] = [0]
+  for(const match of node_name.matchAll(line_wrap_regex)) {
+    wrap_indices.push(match.index + 1)
+  }
+  wrap_indices.push(node_name.length)
+  wrap_indices.reverse()
+
+  // Place text into multiple lines
+  let current_index: number = 0
+  while (current_index < node_name.length) {
+
+    // Prepare DOM-element for next line
+    const tspan = name_elem.append('tspan')
+    tspan.attr('x', 0)
+    if (current_index > 0) {
+      tspan.attr('dy', node_name_height)
+    }
+
+    // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
+    let next_idx: number = wrap_indices.findIndex((val) => {
+      if (current_index === 0) {
+        return val < name_line_length - name_first_line_indent
+      } else {
+        return val < current_index + name_line_length
+      }
+    })
+
+    // If the next word is longer than the max line length, print it anyway
+    if (wrap_indices[next_idx] === current_index) {
+      next_idx -= 1
+    }
+    
+    const next_index = wrap_indices[next_idx]
+    tspan.text(node_name.slice(current_index, next_index))
+
+    // Update variables for next line
+    if (current_index === 0) {
+      max_width = tspan.node()!.getComputedTextLength() + icon_width + node_padding
+    } else {
+      max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
+    }
+    current_index = next_index
+    title_lines += 1
+  }
+
+  class_elem.attr('y', title_lines * node_name_height)
+
+  // Find positions for potential line breaks
+  wrap_indices = [0]
+  for(const match of node_class.matchAll(line_wrap_regex)) {
+    wrap_indices.push(match.index + 1)
+  }
+  wrap_indices.push(node_class.length)
+  wrap_indices.reverse()
+
+  // Place text into multiple lines
+  current_index = 0
+  while (current_index < node_class.length) {
+
+    // Prepare DOM-element for next line
+    const tspan = class_elem.append('tspan')
+    tspan.attr('x', 0)
+    if (current_index > 0) {
+      tspan.attr('dy', node_class_height)
+    }
+
+    // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
+    let next_idx: number = wrap_indices.findIndex(
+      (val) => val < current_index + class_line_length
+    )
+
+    // If the next word is longer than the max line length, print it anyway
+    if (wrap_indices[next_idx] === current_index) {
+      next_idx -= 1
+    }
+
+    const next_index = wrap_indices[next_idx]
+    tspan.text(node_class.slice(current_index, next_index))
+
+    // Update variables for next line
+    max_width = Math.max(max_width, tspan.node()!.getComputedTextLength())
+    current_index = next_index
+  }
+
+  return max_width
+}
+
+function updateNodeBody(
+  selection: d3.Selection<
+    SVGGElement,
+    d3.HierarchyNode<TrimmedNode>,
+    SVGGElement,
+    never
+  >
+) {
+
+  selection
+      .each(function (node) 
+        { node.data.size.width = layoutText(this, node) }
+      )
+
+  // Reset width and height of background rect
+  selection
+    .select<SVGRectElement>('.' + node_body_css_class)
+      .attr('x', null)
+      .attr('y', null)
+      .attr('width', null)
+      .attr('height', null)
+
+  // Get width and height from text content
+  selection.each(function (d) {
+    const inputs = d.data.inputs || []
+    const outputs = d.data.outputs || []
+    const max_num_grippers = Math.max(inputs.length, outputs.length)
+    const min_height = io_gripper_size * max_num_grippers + 
+      io_gripper_spacing * (max_num_grippers + 1)
+    const rect = this.getBBox()
+    d.data.offset.x = rect.x - node_padding
+    d.data.offset.y = rect.y - 0.5 * node_padding
+    // Width has already been set by text layout function
+    d.data.size.width += 2 * node_padding
+    d.data.size.height = Math.max(rect.height +  1.5 * node_padding, min_height)
+  })
+
+  selection
+    .select<SVGRectElement>('.' + node_body_css_class)
+      .attr('x', (d) => d.data.offset.x)
+      .attr('y', (d) => d.data.offset.y)
+      .attr('width', (d) => d.data.size.width)
+      .attr('height', (d) => d.data.size.height)
+
+  return selection
+}
+
 watch(
   () => editor_store.current_tree.state,
   updateNodeState
@@ -488,8 +614,8 @@ function updateNodeState() {
 
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
 
-  g_vertex
-    .selectAll<SVGForeignObjectElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+  const node = g_vertex
+    .selectAll<SVGSVGElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
       .each((node) => {
         if (editor_store.current_tree.state === undefined) {
           console.warn("No state to update")
@@ -502,9 +628,9 @@ function updateNodeState() {
           node.data.state = state.state
         }
       })
-    .select<HTMLBodyElement>('.' + node_body_css_class)
-    .style('border-color', (node) => {
-      switch (node.data.state) {
+  node.select<SVGRectElement>('.' + node_body_css_class)
+    .style('stroke', (d) => {
+      switch (d.data.state) {
         case NodeStateValues.RUNNING:
           return 'var(--node-color-running)'
         case NodeStateValues.IDLE:
@@ -520,11 +646,13 @@ function updateNodeState() {
           return 'var(--node-color-default)'
       }
     })
-    .select<SVGElement>('.' + node_state_css_class)
+  node.select<SVGElement>('.' + node_state_css_class)
       .attr('viewBox', (node) => {
         const icon = getIcon(node.data.state)
         return "0 0 " + icon[0] + " " + icon[1]
       })
+      .attr('x', (node) => node.data.size.width - icon_width - 2 * node_padding)
+      .attr('y', (node) => node.data.offset.y + node_padding)
     .select<SVGPathElement>('path')
       .attr('d', (node) => {
         const icon = getIcon(node.data.state)
@@ -539,7 +667,7 @@ function updateNodeState() {
 
 function layoutTree(
   selection: d3.Selection<
-    SVGForeignObjectElement,
+    SVGGElement,
     d3.HierarchyNode<TrimmedNode>,
     SVGGElement,
     never
@@ -589,9 +717,11 @@ function layoutTree(
       (node) => node.id!
     )
     .transition(tree_transition)
-    .attr('x', (d: FlextreeNode<TrimmedNode>) => d.x - d.data.size.width / 2.0)
-    .attr('y', (d: FlextreeNode<TrimmedNode>) => d.y)
-  // Setting x and y seems sufficient, compared to an explicit transform
+    .attr('transform', (d: FlextreeNode<TrimmedNode>) => {
+      const x = d.x - d.data.size.width / 2.0
+      const y = d.y
+      return 'translate(' + x + ', ' + y + ')'
+    })
 
   return tree_layout
 }
@@ -621,11 +751,17 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
         .linkVertical<SVGPathElement, HierarchyLink<TrimmedNode>, [number, number]>()
         .source((link: HierarchyLink<TrimmedNode>) => {
           const source = link.source as FlextreeNode<TrimmedNode>
-          return [source.x, source.y + source.data.size.height]
+          return [
+            source.x + source.data.offset.x, 
+            source.y + source.data.offset.y + source.data.size.height
+          ]
         })
         .target((link: HierarchyLink<TrimmedNode>) => {
           const target = link.target as FlextreeNode<TrimmedNode>
-          return [target.x, target.y]
+          return [
+            target.x + target.data.offset.x, 
+            target.y + target.data.offset.y
+          ]
         })
     )
 }
@@ -661,9 +797,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   // If there are no drop targets to draw, draw one at root
   // Adjust the size of the drop target here. Don't do this on init, it ruins the tree layout
   if (drop_targets.length === 0) {
-    tree_layout.data.size.width = drop_target_root_size
-    tree_layout.data.size.height = drop_target_root_size
-    drop_targets.push({ node: tree_layout, position: Position.BOTTOM })
+    drop_targets.push({ node: tree_layout, position: Position.ROOT })
   }
 
   // Join those with the existing drop targets and draw them
@@ -682,6 +816,8 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
         case Position.BOTTOM:
         case Position.CENTER:
           return d.node.data.size.width
+        case Position.ROOT:
+          return drop_target_root_size
         default:
           return 0
       }
@@ -694,38 +830,41 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
           return d.node.data.size.height
         case Position.TOP:
         case Position.BOTTOM:
-          return 0.45 * node_spacing
+          return 0.5 * node_spacing
+        case Position.ROOT:
+          return drop_target_root_size
         default:
           return 0
       }
     })
     .attr('x', (d) => {
-      switch (d.position) {
-        case Position.LEFT:
-          return d.node.x - node_spacing - 0.5 * d.node.data.size.width
-        case Position.RIGHT:
-          return d.node.x + 0.5 * d.node.data.size.width
-        case Position.TOP:
-        case Position.BOTTOM:
-        case Position.CENTER:
-          return d.node.x - 0.5 * d.node.data.size.width
-        default:
-          return 0
+      if (d.position === Position.ROOT) {
+        return -drop_target_root_size / 2
       }
+      let x = d.node.x + d.node.data.offset.x
+      if (d.position === Position.RIGHT) {
+        x += 0.5 * d.node.data.size.width
+      } else {
+        x -= 0.5 * d.node.data.size.width
+        if (d.position === Position.LEFT) {
+          x -= node_spacing
+        }
+      }
+      return x
     })
     .attr('y', (d) => {
-      switch (d.position) {
-        case Position.LEFT:
-        case Position.RIGHT:
-        case Position.CENTER:
-          return d.node.y
-        case Position.TOP:
-          return d.node.y - 0.5 * node_spacing
-        case Position.BOTTOM:
-          return d.node.y + d.node.data.size.height
-        default:
-          return 0
+      if (d.position === Position.ROOT)
+    {
+      return -0.5 * node_spacing
+    }
+      let y = d.node.y + d.node.data.offset.y
+      if (d.position === Position.TOP) {
+        y -= 0.5 * node_spacing
       }
+      if (d.position === Position.BOTTOM) {
+        y += d.node.data.size.height
+      }
+      return y
     })
     .attr('opacity', 0.2)
     .on('mouseover.highlight', function () {
@@ -899,6 +1038,8 @@ function toggleExistingNodeTargets() {
             drop_target.node.parent!.data.child_names.length >=
               drop_target.node.parent!.data.max_children
           )
+        case Position.ROOT:
+          // This should never happen, as an existing node implies a non-empty tree
         default:
           return true
       }
@@ -914,18 +1055,19 @@ async function addNewNode(drop_target: DropTarget) {
 
   const msg = buildNodeMessage(editor_store.dragging_new_node)
 
-  // Insert below at index 0, also handles root insert
-  if (drop_target.position === Position.BOTTOM) {
-    let parent_name = drop_target.node.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
-    await addNode(msg, parent_name, 0)
+  if (drop_target.position === Position.ROOT) {
+    await addNode(msg, '', 0)
     return
   }
 
   if (!drop_target.node.parent) {
     console.error('All non-root targets should have a set parent node')
+    return
+  }
+
+  if (drop_target.position === Position.BOTTOM) {
+    const parent_name = drop_target.node.data.name
+    await addNode(msg, parent_name, 0)
     return
   }
 
@@ -1013,6 +1155,8 @@ function toggleNewNodeTargets() {
             drop_target.node.parent!.data.child_names.length >=
               drop_target.node.parent!.data.max_children
           )
+        case Position.ROOT:
+          return false
         default:
           return true
       }
@@ -1040,8 +1184,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
         kind: IOKind.INPUT,
         key: input.key,
         type: input.serialized_type,
-        x: node.x - node.data.size.width * 0.5 - io_gripper_size,
-        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        x: node.x + node.data.offset.x - node.data.size.width * 0.5 - io_gripper_size,
+        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
     node.data.outputs.map((output: TrimmedNodeData, index: number) => {
@@ -1051,8 +1195,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
         kind: IOKind.OUTPUT,
         key: output.key,
         type: output.serialized_type,
-        x: node.x + node.data.size.width * 0.5,
-        y: node.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        x: node.x + node.data.offset.x + node.data.size.width * 0.5,
+        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
       })
     })
   })
@@ -1116,6 +1260,7 @@ function drawNewDataVert(
         // Highlight compatible vertices when dragging
         const compat = d3.select(this).classed(data_graph_comaptible_css_class)
         d3.select(this).classed(data_graph_hover_css_class, compat)
+        d3.select(draw_indicator_ref.value!).classed(data_graph_hover_css_class, compat)
       } else {
         d3.select(this)
           .classed(data_graph_hover_css_class, true)
@@ -1127,6 +1272,7 @@ function drawNewDataVert(
     .on('mouseout.highlight', function () {
       if (editor_store.is_dragging) {
         d3.select(this).classed(data_graph_hover_css_class, false)
+        d3.select(draw_indicator_ref.value!).classed(data_graph_hover_css_class, false)
       } else {
         d3.select(this)
           .classed(data_graph_hover_css_class, false)

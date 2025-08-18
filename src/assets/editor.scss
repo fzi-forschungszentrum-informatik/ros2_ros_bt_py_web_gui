@@ -41,14 +41,6 @@ rect.selection {
   fill: transparent;
 }
 
-.node-selected {
-  background: #27406d !important;
-}
-
-.lightmode .node-selected {
-  background: #76a6ff !important;
-}
-
 .node {
   cursor: pointer;
 }
@@ -60,27 +52,51 @@ rect.selection {
 }
 
 .btnode {
-  font-family: sans-serif;
-  display: inline-block;
-  background: #2a2d36;
-  border: solid;
-  border-width: 6px;
-  /* border-color is specified through d3 */
-  color: #eff0f4;
-  min-width: 200px;
-  max-width: 350px;
-  overflow-wrap: break-word;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
-
-  padding: 0.6rem;
+  fill: #2a2d36;
+  stroke-width: 5px;
 }
 
 .lightmode .btnode {
-  background-color: #dedede;
-  color: #000000;
+  fill: #dedede;
+}
+
+.node-selected {
+  fill: #27406d !important;
+}
+
+.lightmode .node-selected {
+  fill: #76a6ff !important;
+}
+
+.node_name, .class_name {
+  dominant-baseline: auto;
+  pointer-events: none;
+}
+
+.node_name {
+  fill: white;
+  font-size: 36px;
+}
+
+.lightmode .node_name {
+  fill: black;
+}
+
+.class_name {
+  fill: #858e99;
+  font-size: 28px;
+}
+
+.lightmode .class_name {
+  fill: #454954;
+}
+
+.state_icon path {
+  fill: white;
+}
+
+.lightmode .state_icon path {
+  fill: black;
 }
 
 .label {
@@ -89,25 +105,6 @@ rect.selection {
   stroke: #111215;
   stroke-width: 6px;
   paint-order: stroke;
-}
-
-.btnode h4 {
-  word-break: break-all;
-}
-
-.btnode h5 {
-  color: #858e99;
-}
-
-.lightmode .btnode h5 {
-  color: #454954;
-}
-
-.btnode div.node_state {
-  //font-size: small;
-  margin-top: 20px;
-  margin-left: 5px;
-  text-wrap: nowrap;
 }
 
 path.data-hover,
@@ -140,10 +137,4 @@ path.data-select {
 
 .drawing-indicator {
   pointer-events: none;
-}
-
-.btnode .icon {
-  width: 1.5em;
-  height: 1.5em;
-  margin-left: 5px;
 }

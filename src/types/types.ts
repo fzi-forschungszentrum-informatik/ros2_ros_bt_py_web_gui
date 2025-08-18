@@ -180,7 +180,8 @@ export const enum Position {
   BOTTOM = 'bottom',
   LEFT = 'left',
   RIGHT = 'right',
-  CENTER = 'center'
+  CENTER = 'center',
+  ROOT = 'root'
 }
 
 export type TrimmedNodeData = {
@@ -198,6 +199,7 @@ export type TrimmedNode = {
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
   size: { width: number; height: number }
+  offset: { x: number, y: number }
 
   state?: NodeStateValues
 }
@@ -286,3 +288,4 @@ export type IOData = {
   key: string
   type: string
 }
+
