@@ -86,7 +86,7 @@ const pan_rate: number = 30
 const drag_pan_boundary: number = 50
 const pan_per_frame: number = 10.0
 
-const line_wrap_regex: RegExp = /[a-z][A-Z]|[_\- ][a-zA-Z]/gd
+const line_wrap_regex: RegExp = /[a-z0-9][A-Z]|[_\- ][a-zA-Z]/gd
 
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
@@ -250,7 +250,10 @@ function dragPanTimerHandler() {
 }
 
 watch(
-  () => editor_store.current_tree.structure,
+  [
+    () => editor_store.current_tree.structure,
+    () => editor_store.is_layer_mode,
+  ],
   drawEverything,
   { immediate: true }
 )
