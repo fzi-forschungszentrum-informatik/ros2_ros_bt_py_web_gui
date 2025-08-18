@@ -5,13 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [4.1.0] - 2025-08-18
 
 ### Added
 - Add changelog ci job. by @Oberacda
 - Add changelog. by @Oberacda
 
 ### Changed
+- Update changelog by @github-actions[bot]
 - Merge pull request #32 from Doomse/pure-svg-editor by @Oberacda in [#32](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/32)
 - Align root drop target by @Doomse
 - Fix lint issues by @Doomse
@@ -344,7 +345,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @Doomse made their first contribution
 
-[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.1..HEAD
+[4.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.1..4.1.0
 [4.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.0..4.0.1
 [4.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/release/3.3.1..4.0.0
 [release/3.3.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/release/3.3.0..release/3.3.1
