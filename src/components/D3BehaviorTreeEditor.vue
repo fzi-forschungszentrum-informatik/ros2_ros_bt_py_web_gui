@@ -838,6 +838,9 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
       }
     })
     .attr('x', (d) => {
+      if (d.position === Position.ROOT) {
+        return -drop_target_root_size / 2
+      }
       let x = d.node.x + d.node.data.offset.x
       if (d.position === Position.RIGHT) {
         x += 0.5 * d.node.data.size.width
@@ -850,6 +853,10 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
       return x
     })
     .attr('y', (d) => {
+      if (d.position === Position.ROOT)
+    {
+      return -0.5 * node_spacing
+    }
       let y = d.node.y + d.node.data.offset.y
       if (d.position === Position.TOP) {
         y -= 0.5 * node_spacing
