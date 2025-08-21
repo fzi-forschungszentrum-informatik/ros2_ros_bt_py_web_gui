@@ -288,7 +288,7 @@ function saveTree() {
   <button
     class="btn btn-primary btn-spaced"
     title="Upload"
-    :disabled="editor_store.selected_subtree.is_subtree"
+    :disabled="editor_store.has_selected_subtree"
     @click="openFileDialog"
   >
     <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
@@ -297,7 +297,7 @@ function saveTree() {
   <button
     class="btn btn-primary btn-spaced"
     title="Download"
-    :disabled="editor_store.selected_subtree.is_subtree"
+    :disabled="editor_store.has_selected_subtree"
     @click="saveTree"
   >
     <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />

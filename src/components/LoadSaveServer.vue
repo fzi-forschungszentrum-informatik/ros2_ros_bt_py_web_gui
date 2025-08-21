@@ -51,8 +51,11 @@ const storage_folders = ref<string[]>([])
 
 const quick_save_location = computed<[string, string]>(() => {
   let quick_save_path = editor_store.quick_save_location
-  if (quick_save_path === '' && editor_store.tree !== undefined) {
-    quick_save_path = editor_store.tree.path
+  const tree = editor_store.tree_structure_list.find(
+    (tree) => tree.tree_id === ""
+  )
+  if (quick_save_path === '' && tree !== undefined) {
+    quick_save_path = tree.path
   }
   if (quick_save_path === '' || !quick_save_path.startsWith('file://')) {
     return ['', '']
@@ -199,10 +202,13 @@ function quickSave() {
   if (!window.confirm(`Do you want to overwrite ${quick_save_location.value[0]}/${quick_save_location.value[1]}?`)) {
     return
   }
+  const tree = editor_store.tree_structure_list.find(
+    (tree) => tree.tree_id === ""
+  )
   ros_store.save_tree_service.callService({
     storage_path: quick_save_location.value[0],
     filepath: quick_save_location.value[1],
-    tree: editor_store.tree,
+    tree: tree,
     allow_overwrite: true,
     allow_rename: false,
   } as SaveTreeRequest,
@@ -256,8 +262,8 @@ onMounted(() => {
   <button
     class="btn btn-primary"
     title="New tree"
-    :disabled="editor_store.selected_subtree.is_subtree"
-    @click="() => newTree()"
+    :disabled="editor_store.has_selected_subtree"
+    @click="newTree"
   >
     <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
     <span class="ms-1 hide-button-text">New</span>
@@ -269,7 +275,7 @@ onMounted(() => {
       class="btn btn-primary dropdown-toggle"
       data-bs-toggle="dropdown"
       aria-expanded="false"
-      :disabled="editor_store.selected_subtree.is_subtree"
+      :disabled="editor_store.has_selected_subtree"
     >
       <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
       <span class="ms-1 hide-button-text">Load</span>
@@ -279,8 +285,8 @@ onMounted(() => {
         <button
           class="dropdown-item btn btn-primary"
           title="Load from package"
-          :disabled="editor_store.selected_subtree.is_subtree"
-          @click="() => loadFromPackage()"
+          :disabled="editor_store.has_selected_subtree"
+          @click="loadFromPackage"
         >
           <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
           <span class="ms-1">Package</span>
@@ -290,8 +296,8 @@ onMounted(() => {
         <button
           class="dropdown-item btn btn-primary"
           title="Load from file"
-          :disabled="editor_store.selected_subtree.is_subtree"
-          @click="() => loadFromFile()"
+          :disabled="editor_store.has_selected_subtree"
+          @click="loadFromFile"
         >
           <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
           <span className="ms-1">File</span>
@@ -302,7 +308,7 @@ onMounted(() => {
   <button
     class="btn btn-primary btn-spaced"
     title="Quick Save to remote"
-    :disabled="editor_store.selected_subtree.is_subtree || quick_save_disable"
+    :disabled="editor_store.has_selected_subtree || quick_save_disable"
     @click="quickSave"
   >
     <!--<FontAwesomeIcon icon="fa-regular fa-save" />-->
@@ -312,8 +318,8 @@ onMounted(() => {
   <button
     class="btn btn-primary btn-spaced"
     title="Save to remote"
-    :disabled="editor_store.selected_subtree.is_subtree"
-    @click="() => saveToFile()"
+    :disabled="editor_store.has_selected_subtree"
+    @click="saveToFile"
   >
     <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
     <span class="ms-1 hide-button-text">Save</span>
