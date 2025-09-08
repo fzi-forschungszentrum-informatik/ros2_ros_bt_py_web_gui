@@ -33,6 +33,7 @@ import { useEditorStore } from '@/stores/editor'
 import { useNodesStore } from '@/stores/nodes'
 import type { DocumentedNode } from '@/types/types'
 import { computed, ref } from 'vue'
+import InlineSvg from 'vue-inline-svg'
 
 import FallbackIcon  from "@/assets/flow_control_icons/Fallback.svg"
 import MemoryFallbackIcon  from "@/assets/flow_control_icons/MemoryFallback.svg"
@@ -115,7 +116,7 @@ function getIconSrc(nodeName: string): string {
           <FontAwesomeIcon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
         </template>
         <template v-else>
-          <img :title="node.name" class="image" :src="getIconSrc(node.name)" />
+          <InlineSvg :title="node.name" class="image" :src="getIconSrc(node.name)" />
         </template>
       </div>
     </div>
@@ -144,5 +145,7 @@ function getIconSrc(nodeName: string): string {
   vertical-align: middle;
   height: 25px;
   width: 25px;
+  fill: var(--bs-body-color);
 }
+
 </style>
