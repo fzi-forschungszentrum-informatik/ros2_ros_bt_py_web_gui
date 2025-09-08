@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2025 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -26,25 +26,17 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
 <script setup lang="ts">
-import { useROSStore } from '@/stores/ros'
-import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
-import { notify } from '@kyvg/vue3-notification'
-import { ref } from 'vue'
-import { useModal } from 'vue-final-modal'
-import SaveFileModal from './modals/SaveFileModal.vue'
-import LoadFileModal from './modals/LoadFileModal.vue'
-import { useEditorStore } from '@/stores/editor'
-import {
-  TreeExecutionCommands,
-  type ControlTreeExecutionRequest,
-  type ControlTreeExecutionResponse
-} from '@/types/services/ControlTreeExecution'
+import { useEditorStore } from '@/stores/editor';
+import { useROSStore } from '@/stores/ros';
+import { notify } from '@kyvg/vue3-notification';
+import { ref } from 'vue';
 import jsyaml from 'js-yaml'
 import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
 import type { TreeStructure } from '@/types/types'
 import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
+import { TreeExecutionCommands, type ControlTreeExecutionRequest, type ControlTreeExecutionResponse } from '@/types/services/ControlTreeExecution';
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -52,134 +44,6 @@ const editor_store = useEditorStore()
 const file_input_ref = ref<HTMLInputElement>()
 
 const file_reader = new FileReader()
-
-const loadPackageModalHandle = useModal({
-  component: LoadFileModal,
-  attrs: {
-    fromPackages: true,
-    onClose() {
-      loadPackageModalHandle.close()
-    }
-  }
-})
-
-const loadFileModalHandle = useModal({
-  component: LoadFileModal,
-  attrs: {
-    fromPackages: false,
-    onClose() {
-      loadFileModalHandle.close()
-    }
-  }
-})
-
-const saveFileModalHandle = useModal({
-  component: SaveFileModal,
-  attrs: {
-    onClose() {
-      saveFileModalHandle.close()
-    }
-  }
-})
-
-function newTree() {
-  if (ros_store.clear_tree_service === undefined) {
-    notify({
-      title: 'Service not available!',
-      text: 'ClearTree ROS service not available.',
-      type: 'error'
-    })
-    return
-  }
-  if (
-    window.confirm(
-      'Do you want to create a new tree? Warning: This will discard the tree that is loaded at the moment.'
-    )
-  ) {
-    ros_store.clear_tree_service.callService(
-      {} as ClearTreeRequest,
-      (response: ClearTreeResponse) => {
-        if (response.success) {
-          console.log('called ClearTree service successfully')
-          notify({
-            title: 'Created new tree successfully!',
-            type: 'success'
-          })
-        } else {
-          notify({
-            title: 'Could not create new tree!',
-            type: 'warn',
-            text: response.error_message
-          })
-        }
-      },
-      (failed: string) => {
-        notify({
-          title: 'ClearTree service call failed!',
-          type: 'error',
-          text: failed
-        })
-      }
-    )
-  }
-}
-
-function loadFromPackage() {
-  loadPackageModalHandle.open()
-}
-
-function loadFromFile() {
-  loadFileModalHandle.open()
-}
-
-function saveToFile() {
-  if (ros_store.control_tree_execution_service === undefined) {
-    notify({
-      title: 'Service not available!',
-      text: 'ControlTreeExecution ROS service is not connected.',
-      type: 'error'
-    })
-    return
-  }
-  editor_store.runNewCommand(TreeExecutionCommands.SHUTDOWN)
-  ros_store.control_tree_execution_service.callService(
-    {
-      command: TreeExecutionCommands.SHUTDOWN
-    } as ControlTreeExecutionRequest,
-    (response: ControlTreeExecutionResponse) => {
-      editor_store.removeRunningCommand(TreeExecutionCommands.SHUTDOWN)
-      if (response.success) {
-        notify({
-          title: 'Tree shutdown successful!',
-          type: 'success'
-        })
-        saveFileModalHandle.open()
-      } else {
-        notify({
-          title: 'Failed to shutdown tree, cannot save now!',
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (failed: string) => {
-      notify({
-        title: 'Calling ControlTreeExecution ROS service failed!',
-        text: failed,
-        type: 'error'
-      })
-    }
-  )
-}
-
-function downloadURI(uri: string, name: string) {
-  const link = document.createElement('a')
-  link.download = name
-  link.href = uri
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
 
 function loadTree(event: Event) {
   const target = event.target as HTMLInputElement
@@ -195,12 +59,13 @@ function loadTree(event: Event) {
   file_reader.readAsText(target.files[0])
 }
 
-function openFileDialog() {
-  if (file_input_ref.value === undefined) {
-    console.error('Fileref is undefined!')
-    return
-  }
-  file_input_ref.value.click()
+function downloadURI(uri: string, name: string) {
+  const link = document.createElement('a')
+  link.download = name
+  link.href = uri
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
 }
 
 function loadTreeMsg(msg: TreeStructure) {
@@ -224,6 +89,7 @@ function loadTreeMsg(msg: TreeStructure) {
           title: 'Loaded tree successfully!',
           type: 'success'
         })
+        editor_store.resetQuickSaveLocation()
       } else {
         if (
           response.error_message.startsWith(
@@ -261,6 +127,7 @@ function loadTreeMsg(msg: TreeStructure) {
                     title: 'Loaded tree successfully!',
                     type: 'success'
                   })
+                  editor_store.resetQuickSaveLocation()
                 } else {
                   notify({
                     title: 'Failed to load tree!',
@@ -294,6 +161,14 @@ function loadTreeMsg(msg: TreeStructure) {
       })
     }
   )
+}
+
+function openFileDialog() {
+  if (file_input_ref.value === undefined) {
+    console.error('Fileref is undefined!')
+    return
+  }
+  file_input_ref.value.click()
 }
 
 function handleFileRead() {
@@ -405,85 +280,29 @@ function saveTree() {
     }
   )
 }
+
 </script>
 
 <template>
-  <div class="btn-group">
-    <button
-      class="btn btn-primary"
-      title="New tree"
-      :disabled="editor_store.has_selected_subtree"
-      @click="() => newTree()"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-file" aria-hidden="true" />
-      <span class="ms-1 hide-button-text">New</span>
-    </button>
-    <div class="btn-group btn-spaced" role="group">
-      <button
-        id="btnGroupDrop1"
-        type="button"
-        class="btn btn-primary dropdown-toggle"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-        :disabled="editor_store.has_selected_subtree"
-      >
-        <FontAwesomeIcon icon="fa-solid fa-folder" aria-hidden="true" />
-        <span class="ms-1 hide-button-text">Load</span>
-      </button>
-      <ul class="dropdown-menu" aria-labelledby="btnGroupDrop1">
-        <li>
-          <button
-            class="dropdown-item btn btn-primary"
-            title="Load from package"
-            :disabled="editor_store.has_selected_subtree"
-            @click="() => loadFromPackage()"
-          >
-            <FontAwesomeIcon icon="fa-solid fa-folder-tree" aria-hidden="true" />
-            <span class="ms-1">Package</span>
-          </button>
-        </li>
-        <li>
-          <button
-            class="dropdown-item btn btn-primary"
-            title="Load from file"
-            :disabled="editor_store.has_selected_subtree"
-            @click="() => loadFromFile()"
-          >
-            <FontAwesomeIcon icon="fa-solid fa-folder-open" aria-hidden="true" />
-            <span className="ms-1">File</span>
-          </button>
-        </li>
-      </ul>
-    </div>
-    <button
-      class="btn btn-primary btn-spaced"
-      title="Save to remote"
-      :disabled="editor_store.has_selected_subtree"
-      @click="() => saveToFile()"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-save" aria-hidden="true" />
-      <span class="ms-1 hide-button-text">Save</span>
-    </button>
-    <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
-    <button
-      class="btn btn-primary btn-spaced"
-      title="Upload"
-      :disabled="editor_store.has_selected_subtree"
-      @click="() => openFileDialog()"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
-      <span class="ms-1 hide-button-text">Upload</span>
-    </button>
-    <button
-      class="btn btn-primary btn-spaced"
-      title="Download"
-      :disabled="editor_store.has_selected_subtree"
-      @click="() => saveTree()"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />
-      <span class="ms-1 hide-button-text">Download</span>
-    </button>
-  </div>
+  <input ref="file_input_ref" type="file" class="file_input_ref" @change="loadTree" />
+  <button
+    class="btn btn-primary btn-spaced"
+    title="Upload"
+    :disabled="editor_store.has_selected_subtree"
+    @click="openFileDialog"
+  >
+    <FontAwesomeIcon icon="fa-solid fa-file-upload" aria-hidden="true" />
+    <span class="ms-1 hide-button-text">Upload</span>
+  </button>
+  <button
+    class="btn btn-primary btn-spaced"
+    title="Download"
+    :disabled="editor_store.has_selected_subtree"
+    @click="saveTree"
+  >
+    <FontAwesomeIcon icon="fa-solid fa-file-download" aria-hidden="true" />
+    <span class="ms-1 hide-button-text">Download</span>
+  </button>
 </template>
 
 <style scoped lang="scss">

@@ -94,6 +94,8 @@ export const useEditorStore = defineStore(
     subtree_states.value.map((tree) => tree.name)
   )*/
 
+    const quick_save_location = ref<string>('')
+
     const selected_edge = ref<Wiring | undefined>(undefined)
 
     const is_layer_mode = ref<boolean>(false)
@@ -185,6 +187,18 @@ export const useEditorStore = defineStore(
     }
   }*/
 
+    function setQuickSaveLocation(path: string) {
+      if (path.startsWith('file://')) {
+        quick_save_location.value = path
+      } else {
+        quick_save_location.value = 'file://' + path
+      }
+    }
+
+    function resetQuickSaveLocation() {
+      quick_save_location.value = ''
+    }
+
     function selectEdge(edge: Wiring) {
       selected_edge.value = edge
     }
@@ -224,12 +238,15 @@ export const useEditorStore = defineStore(
       cycleEditorSkin,
       selected_edge,
       selectEdge,
-      unselectEdge
+      unselectEdge,
+      quick_save_location,
+      setQuickSaveLocation,
+      resetQuickSaveLocation
     }
   },
   {
     persist: {
-      pick: ['publish_data', 'publish_subtrees'],
+      pick: ['publish_data', 'publish_subtrees', 'quick_save_location'],
       storage: sessionStorage
     }
   }

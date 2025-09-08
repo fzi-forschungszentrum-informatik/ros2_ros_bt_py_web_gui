@@ -47,7 +47,8 @@ import NewNode from './components/NewNode.vue'
 import SelectedNode from './components/SelectedNode.vue'
 import TreeNameStateDisplay from './components/TreeNameStateDisplay.vue'
 import EditorDisplayButtons from './components/EditorDisplayButtons.vue'
-import LoadSaveControls from './components/LoadSaveControls.vue'
+import LoadSaveClient from './components/LoadSaveClient.vue'
+import LoadSaveServer from './components/LoadSaveServer.vue'
 import NamespaceSelect from './components/NamespaceSelect.vue'
 import TickControls from './components/TickControls.vue'
 import NodeQuickSelect from './components/NodeQuickSelect.vue'
@@ -196,12 +197,14 @@ onMounted(() => {
     class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
     
-      <ConnectionStatus />
+    <ConnectionStatus />
 
-      <TickControls />
+    <TickControls />
 
-      <LoadSaveControls />
-
+    <div class="btn-group">
+      <LoadSaveServer />
+      <LoadSaveClient />
+    </div>
   </header>
 
   <main>
