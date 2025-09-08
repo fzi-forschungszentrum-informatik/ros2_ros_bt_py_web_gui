@@ -1207,7 +1207,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
   const g_data_vertices = d3
     .select(g_data_vertices_ref.value)
     .selectAll<SVGGElement, DataEdgeTerminal>('.' + data_vert_group_css_class)
-    .data(data_points, (d) => d.node.id! + '###' + d.kind + '###' + d.index)
+    .data(data_points, (d) => d.node.id! + '###' + d.kind + '###' + d.key)
     .join(drawNewDataVert)
 
   if (!editor_store.has_selected_subtree) {
