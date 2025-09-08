@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Merge pull request #35 from Doomse/quick-save by @Oberacda in [#35](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/35)
+- Update editor store for quickSave by @Doomse
+- Quick save function and icon by @Doomse
+- Initial Quick Save button by @Doomse
+- Update changelog by @github-actions[bot]
 - Merge pull request #34 from Doomse/quick-select-icon-colors by @Oberacda in [#34](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/34)
 - Update vite config to include new module by @Doomse
 - Use updated svgs inline to allow css styling. by @Doomse
