@@ -75,7 +75,6 @@ const show_details = ref<boolean>(false)
 const show_description = ref<boolean>(true)
 
 function onClick() {
-  console.log('click ' + props.node.name)
   edit_node_store.nodeListSelectionChange(props.node)
 }
 </script>
@@ -112,8 +111,8 @@ function onClick() {
     <div v-if="show_details" class="mt-3">
       <!--TODO tags temporarily removed, since they're unusable right now
       <div v-if="node.tags.length > 0" class="d-flex flex-wrap mb-2">
-        <button v-for="tag in node.tags" 
-          class="btn btn-outline-contrast px-2 py-1 m-1" 
+        <button v-for="tag in node.tags"
+          class="btn btn-outline-contrast px-2 py-1 m-1"
           :key="tag"
         >
           {{ tag }}

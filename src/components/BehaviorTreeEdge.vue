@@ -35,11 +35,39 @@ import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services
 import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
 import type { WiringData } from '@/types/types'
-import { prettyprint_type } from '@/utils'
+import { compareRosUuid, prettyprint_type, rosToUuid } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
+
+const source_name = computed<string>(() => {
+  if (editor_store.selected_edge === undefined) {
+    return ''
+  }
+  const source_node = editor_store.current_tree.structure!.nodes.find(
+    (node) => rosToUuid(node.node_id) ===
+      rosToUuid(editor_store.selected_edge!.source.node_id)
+  )
+  if (source_node === undefined) {
+    return ''
+  }
+  return source_node.name
+})
+
+const target_name = computed<string>(() => {
+  if (editor_store.selected_edge === undefined) {
+    return ''
+  }
+  const target_node = editor_store.current_tree.structure!.nodes.find(
+    (node) => rosToUuid(node.node_id) ===
+      rosToUuid(editor_store.selected_edge!.target.node_id)
+  )
+  if (target_node === undefined) {
+    return ''
+  }
+  return target_node.name
+})
 
 const edge_data = computed<WiringData | undefined>(() => {
   if (editor_store.selected_edge === undefined ||
@@ -51,10 +79,10 @@ const edge_data = computed<WiringData | undefined>(() => {
   return editor_store.current_tree.data.wiring_data.find(
     (item) => {
       const wiring = item.wiring
-      return wiring.source.node_name === edge.source.node_name &&
+      return compareRosUuid(wiring.source.node_id, edge.source.node_id) &&
         wiring.source.data_kind === edge.source.data_kind &&
         wiring.source.data_key === edge.source.data_key &&
-        wiring.target.node_name === edge.target.node_name &&
+        compareRosUuid(wiring.target.node_id, edge.target.node_id) &&
         wiring.target.data_kind === edge.target.data_kind &&
         wiring.target.data_key === edge.target.data_key
     }
@@ -90,11 +118,15 @@ function onClickDelete() {
   )
 }
 function selectSourceNode() {
-  edit_node_store.editorSelectionChange(editor_store.selected_edge!.source.node_name)
+  edit_node_store.editorSelectionChange(
+    rosToUuid(editor_store.selected_edge!.source.node_id)
+  )
 }
 
 function selectTargetNode() {
-  edit_node_store.editorSelectionChange(editor_store.selected_edge!.target.node_name)
+  edit_node_store.editorSelectionChange(
+    rosToUuid(editor_store.selected_edge!.target.node_id)
+  )
 }
 </script>
 
@@ -106,27 +138,21 @@ function selectTargetNode() {
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
-          <span class="text-primary">
-            {{ editor_store.selected_edge!.source.node_name }}
-          </span>
-          <br />
+          <span class="text-primary">{{ source_name }}</span><br />
           {{ editor_store.selected_edge!.source.data_key }}
         </button>
       </div>
       <hr class="flex-fill connector" />
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
-          <span class="text-primary">
-            {{ editor_store.selected_edge!.target.node_name }}
-          </span>
-          <br />
+          <span class="text-primary">{{ target_name }}</span><br />
           {{ editor_store.selected_edge!.target.data_key }}
         </button>
       </div>
     </div>
     <div v-if="edge_data !== undefined" class="mx-auto text-center">
       Value: {{ edge_data.serialized_data }}
-      <br /> 
+      <br />
       of type: {{ prettyprint_type(edge_data.serialized_type) }}
       <br />
       expected type: {{ prettyprint_type(edge_data.serialized_expected_type) }}

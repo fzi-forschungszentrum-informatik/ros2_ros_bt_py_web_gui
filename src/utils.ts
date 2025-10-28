@@ -27,29 +27,36 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { 
-  getPythonTypeDefault, 
-  isPythonTypeWithDefault, 
-  TypeWrapper_Name, 
-  type TypeWrapper 
+import * as uuid from 'uuid'
+import {
+  getPythonTypeDefault,
+  isPythonTypeWithDefault,
+  TypeWrapper_Name,
+  type TypeWrapper
 } from './types/python_types'
-import type { 
-  DataEdgeTerminal, 
-  OptionData, 
-  PyObject, 
-  ParamType, 
+import type {
+  DataEdgeTerminal,
+  OptionData,
+  PyObject,
+  ParamType,
   NodeOption,
-  TreeState
+  TreeState,
+  UUIDMsg,
+  UUIDString,
 } from './types/types'
 import { IOKind } from './types/types'
 
-// uuid is used to assign unique IDs to tags so we can use labels properly
-let idx = 0
-export const uuid = () => idx++
+export function rosToUuid(msg: UUIDMsg): UUIDString {
+  return uuid.stringify(msg.uuid)
+}
 
-// and another one for errors
-let error_idx = 0
-export const error_id = () => error_idx++
+export function uuidToRos(str: UUIDString): UUIDMsg {
+  return { uuid: uuid.parse(str)}
+}
+
+export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {
+  return rosToUuid(u1) === rosToUuid(u2)
+}
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   if (a.node.data.name === b.node.data.name) {

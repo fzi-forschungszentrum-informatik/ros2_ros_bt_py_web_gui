@@ -31,20 +31,23 @@
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import { rosToUuid } from '@/utils'
+import type { UUIDString } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
+import * as uuid from 'uuid'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const publish_subtrees_id: string = 'publish_subtrees'
 
-const subtree_list = computed<[string, string][]>(() =>
+const subtree_list = computed<[UUIDString, string][]>(() =>
   editor_store.tree_structure_list.filter(
-    (tree) => tree.tree_id !== ''
+    (tree) => rosToUuid(tree.tree_id) !== uuid.NIL
   ).map(
-    (tree) => [tree.tree_id, tree.name] as [string, string]
-  ).sort((a, b) => a[0].localeCompare(b[0]))
+    (tree) => [rosToUuid(tree.tree_id), tree.name] as [UUIDString, string]
+  )
 )
 
 function handlePubSubtreesChange(event: Event) {

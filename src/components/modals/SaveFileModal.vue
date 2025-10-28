@@ -31,11 +31,12 @@
 import { VueFinalModal } from 'vue-final-modal'
 import FileBrowser from './FileBrowser.vue'
 import { computed, ref } from 'vue'
+import * as uuid from 'uuid'
 import { useROSStore } from '@/stores/ros'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { useEditorStore } from '@/stores/editor'
 import { notify } from '@kyvg/vue3-notification'
-import { NameConflictHandler, parseConflictHandler } from '@/utils'
+import { NameConflictHandler, parseConflictHandler, rosToUuid } from '@/utils'
 import type { TreeStructure } from '@/types/types'
 
 const emit = defineEmits<{
@@ -57,7 +58,7 @@ const input_file_name = ref<string>('')
 
 const main_tree = computed<TreeStructure | undefined>(
   () => editor_store.tree_structure_list.find(
-    (tree) => tree.tree_id === ""
+    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
   )
 )
 
@@ -217,10 +218,10 @@ function saveTree() {
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text"> Name: </span>
-        <input 
-          v-model="input_file_name" 
-          type="text" 
-          class="form-control" 
+        <input
+          v-model="input_file_name"
+          type="text"
+          class="form-control"
           placeholder="Name of File to Save (also acts as a search bar)"
         />
       </div>

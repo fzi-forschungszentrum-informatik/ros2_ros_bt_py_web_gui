@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { NodeStructure } from '../types'
+import type { UUIDMsg, NodeStructure } from '../types'
 
 export type AddNodeAtIndexRequest = {
-  parent_name: string
+  parent_node_id: UUIDMsg
   node: NodeStructure
   allow_rename: boolean
   new_child_index: number
@@ -38,6 +38,6 @@ export type AddNodeAtIndexRequest = {
 
 export type AddNodeAtIndexResponse = {
   success: boolean
-  actual_node_name: string
+  node_id: UUIDMsg
   error_message: string
 }

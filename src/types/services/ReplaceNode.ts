@@ -27,9 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import type { UUIDMsg } from "../types"
+
 export type ReplaceNodeRequest = {
-  old_node_name: string
-  new_node_name: string
+  old_node_id: UUIDMsg
+  new_node_id: UUIDMsg
 }
 
 export type ReplaceNodeResponse = {

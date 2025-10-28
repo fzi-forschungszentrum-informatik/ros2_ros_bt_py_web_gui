@@ -37,15 +37,17 @@ import { notify } from '@kyvg/vue3-notification'
 import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { TreeStructure } from '@/types/types'
-import { NameConflictHandler, parseConflictHandler } from '@/utils'
+import type { TreeStructure, UUIDString } from '@/types/types'
+import { NameConflictHandler, parseConflictHandler, rosToUuid, uuidToRos } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { removeNode } from '@/tree_manipulation'
+import { useEditorStore } from '@/stores/editor'
 
 const ros_store = useROSStore()
+const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-let inital_name = edit_node_store.selected_node_names.join('_')
+let inital_name = edit_node_store.selected_node_ids.join('_')
 if (inital_name.length === 0) {
   inital_name = 'Subtree'
 }
@@ -59,7 +61,7 @@ const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 async function deleteNodes() {
   if (
     !window.confirm(
-      'Really delete all selected nodes (' + edit_node_store.selected_node_names.join(', ') + ')?'
+      'Really delete all selected nodes (' + edit_node_store.selected_node_ids.join(', ') + ')?'
     )
   ) {
     // Do nothing if user doesn't confirm
@@ -67,12 +69,19 @@ async function deleteNodes() {
   }
 
   const p_list: Promise<void>[] = []
-  edit_node_store.selected_node_names.forEach((name: string) => {
+  edit_node_store.selected_node_ids.forEach((node_id: UUIDString) => {
+    const node = editor_store.current_tree.structure!.nodes.find(
+      (node) => rosToUuid(node.node_id) === node_id
+    )
+    let name = node_id
+    if (node !== undefined) {
+      name = node.name
+    }
     p_list.push(
-      removeNode(name, false).then(
+      removeNode(node_id, name, false).then(
         () => {
-          edit_node_store.selected_node_names = edit_node_store.selected_node_names.filter(
-            (value: string) => value !== name
+          edit_node_store.selected_node_ids = edit_node_store.selected_node_ids.filter(
+            (value: string) => value !== node_id
           )
         }
       )
@@ -95,7 +104,7 @@ function setSaveLocation(location: string, path: string, handler: NameConflictHa
 function generateSubtree() {
   ros_store.generate_subtree_service.callService(
     {
-      nodes: edit_node_store.selected_node_names
+      node_ids: edit_node_store.selected_node_ids.map((str) => uuidToRos(str))
     } as GenerateSubtreeRequest,
     (response: GenerateSubtreeResponse) => {
       if (response.success) {

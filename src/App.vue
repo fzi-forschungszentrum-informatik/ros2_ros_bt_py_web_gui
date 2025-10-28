@@ -135,7 +135,7 @@ function findPossibleParents() {
   if (editor_store.current_tree.structure) {
     return editor_store.current_tree.structure.nodes
       .filter(
-        (node: NodeStructure) => node.max_children < 0 || node.child_names.length < node.max_children
+        (node: NodeStructure) => node.max_children < 0 || node.child_ids.length < node.max_children
       )
       .sort(function (a: NodeStructure, b: NodeStructure) {
         if (a.name < b.name) {
@@ -187,7 +187,7 @@ onMounted(() => {
     </div>
     <div class="offcanvas-body">
       <SettingsPanel />
-      
+
       <NamespaceSelect />
     </div>
   </div>
@@ -196,7 +196,7 @@ onMounted(() => {
     v-if="execution_bar_visible"
     class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-    
+
     <ConnectionStatus />
 
     <TickControls />
@@ -270,8 +270,8 @@ onMounted(() => {
           </div>
           <NodeList style="min-height: 0" />
         </div>
-        <div 
-          id="main_pane" 
+        <div
+          id="main_pane"
           class="d-flex flex-column"
           :class="nodelist_visible ? 'col-9' : 'col-12'"
         >

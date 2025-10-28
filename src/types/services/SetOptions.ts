@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { NodeOption } from '../types'
+import type { UUIDMsg, NodeOption } from '../types'
 
 export type SetOptionsRequest = {
-  node_name: string
+  node_id: UUIDMsg
   rename_node: boolean
   new_name: string
   options: NodeOption[]

@@ -29,17 +29,20 @@
  */
 import { computed, ref } from 'vue'
 import { defineStore } from 'pinia'
+import * as uuid from 'uuid'
 import { TreeExecutionCommands } from '@/types/services/ControlTreeExecution'
 import type {
   Wiring,
   DocumentedNode,
   TreeStructure,
-  TrimmedNode,
+  BTEditorNode,
   DataEdgeTerminal,
   Tree,
   TreeState,
-  TreeData
+  TreeData,
+  UUIDString
 } from '@/types/types'
+import { rosToUuid } from '@/utils'
 
 export enum EditorSkin {
   DARK = 'darkmode',
@@ -60,11 +63,11 @@ export const useEditorStore = defineStore(
 
     let drag_start_timeout: number = 0
     const drag_start_delay = 200
-    /* The dragging_new_node msg is set if we drag a new node from the node list, 
+    /* The dragging_new_node msg is set if we drag a new node from the node list,
     the dragging_existing_node is set if we drag a node from the editor canvas.
     The is_dragging boolean is set in both cases and thus can be used for general styling and such.*/
     const dragging_new_node = ref<DocumentedNode | undefined>()
-    const dragging_existing_node = ref<d3.HierarchyNode<TrimmedNode> | undefined>()
+    const dragging_existing_node = ref<d3.HierarchyNode<BTEditorNode> | undefined>()
     const data_edge_endpoint = ref<DataEdgeTerminal | undefined>()
     const is_dragging = computed<boolean>(() => {
       return (
@@ -78,21 +81,17 @@ export const useEditorStore = defineStore(
 
     const skin = ref<EditorSkin>(EditorSkin.DARK)
 
-    const selected_tree = ref<string>('')
+    const selected_tree = ref<UUIDString>(uuid.NIL)
 
     const has_selected_subtree = computed<boolean>(() => selected_tree.value !== '')
 
     const current_tree = computed<Tree>(() => {
       return {
-        structure: tree_structure_list.value.find((tree) => tree.tree_id === selected_tree.value),
-        state: tree_state_list.value.find((tree) => tree.tree_id === selected_tree.value),
-        data: tree_data_list.value.find((tree) => tree.tree_id === selected_tree.value)
+        structure: tree_structure_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value),
+        state: tree_state_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value),
+        data: tree_data_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value)
       }
     })
-
-    /*const subtree_names = computed<string[]>(() =>
-    subtree_states.value.map((tree) => tree.name)
-  )*/
 
     const quick_save_location = ref<string>('')
 
@@ -123,7 +122,7 @@ export const useEditorStore = defineStore(
       )
     }
 
-    function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<TrimmedNode>) {
+    function startDraggingExistingNode(existing_dragging_node: d3.HierarchyNode<BTEditorNode>) {
       drag_start_timeout = setTimeout(
         () => (dragging_existing_node.value = existing_dragging_node),
         drag_start_delay
@@ -162,30 +161,6 @@ export const useEditorStore = defineStore(
           return
       }
     }
-
-    /*function selectSubtree(name: string, is_subtree: boolean) {
-    let tree: TreeStructure | undefined
-    if (is_subtree) {
-      if (subtree_states.value.length === 0) {
-        notify({
-          title: 'No Subtree Information received!',
-          type: 'error'
-        })
-        return
-      }
-      tree = subtree_states.value.find((x) => x.name === name)
-    }
-
-    if (tree === undefined) {
-      return
-    }
-
-    selected_subtree.value = {
-      name: name,
-      is_subtree: is_subtree,
-      tree: tree
-    }
-  }*/
 
     function setQuickSaveLocation(path: string) {
       if (path.startsWith('file://')) {

@@ -112,11 +112,11 @@ function getIconSrc(nodeName: string): string {
         @mousedown.stop.prevent="() => editor_store.startDraggingNewNode(node)"
         @keydown.enter="edit_node_store.nodeListSelectionChange(node)"
       >
-        <template v-if="node.name === 'NameSwitch'">
-          <FontAwesomeIcon :title="node.name" class="icon" icon="fa-solid fa-network-wired" />
+        <template v-if="node.node_class === 'NameSwitch'">
+          <FontAwesomeIcon :title="node.node_class" class="icon" icon="fa-solid fa-network-wired" />
         </template>
         <template v-else>
-          <InlineSvg :title="node.name" class="image" :src="getIconSrc(node.name)" />
+          <InlineSvg :title="node.node_class" class="image" :src="getIconSrc(node.node_class)" />
         </template>
       </div>
     </div>

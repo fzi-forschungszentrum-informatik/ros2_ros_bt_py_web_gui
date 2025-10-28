@@ -31,6 +31,7 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor';
 import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
+import { compareRosUuid, rosToUuid } from '@/utils';
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -56,7 +57,7 @@ const connected_edges = computed<Wiring[]>(() => {
   if (editor_store.current_tree.structure === undefined) {
     return []
   }
-  return editor_store.current_tree.structure.data_wirings.filter((wiring) => 
+  return editor_store.current_tree.structure.data_wirings.filter((wiring) =>
     matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
   )
 })
@@ -67,7 +68,7 @@ function matchEndpoint(endpoint: NodeDataLocation): boolean {
   }
   return endpoint.data_key === props.data_key &&
     endpoint.data_kind === props.category &&
-    endpoint.node_name === edit_node_store.selected_node.name
+    compareRosUuid(endpoint.node_id, edit_node_store.selected_node.node_id)
 }
 
 function printOtherEndpoint(wiring: Wiring): string {
@@ -79,9 +80,15 @@ function printOtherEndpoint(wiring: Wiring): string {
     endpoint = wiring.source
   }
   if (endpoint === null) {
-    return ''
+    return 'Other Endpoint'
   }
-  return endpoint.node_name + '.' + endpoint.data_key
+  const node = editor_store.current_tree.structure!.nodes.find(
+    (node) => compareRosUuid(node.node_id, endpoint.node_id)
+  )
+  if (node === undefined) {
+    return 'Other Endpoint'
+  }
+  return node.name + '.' + endpoint.data_key
 }
 
 </script>
@@ -93,7 +100,7 @@ function printOtherEndpoint(wiring: Wiring): string {
       <span className="text-muted">(type: {{ param.type }})</span>
     </div>
     <div v-if="connected_edges" class="d-flex flex-wrap m-1">
-      <button 
+      <button
         v-for="edge in connected_edges"
         class="btn btn-outline-primary m-1"
         @click="editor_store.selectEdge(edge)"
