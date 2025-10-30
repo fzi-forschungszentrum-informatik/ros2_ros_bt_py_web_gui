@@ -46,12 +46,13 @@ import type {
 } from './types/types'
 import { IOKind } from './types/types'
 
+
 export function rosToUuid(msg: UUIDMsg): UUIDString {
-  return uuid.stringify(msg.uuid)
+  return uuid.stringify(Uint8Array.fromBase64(msg.uuid))
 }
 
 export function uuidToRos(str: UUIDString): UUIDMsg {
-  return { uuid: uuid.parse(str)}
+  return { uuid: uuid.parse(str).toBase64()}
 }
 
 export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {

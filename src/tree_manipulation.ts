@@ -41,7 +41,6 @@ export function addNode(
     msg: NodeStructure,
     parent_node_id: UUIDString,
     index: number,
-    allow_rename: boolean = true,
     send_notify: boolean = true
 ): Promise<UUIDString> {
     const ros_store = useROSStore()
@@ -59,7 +58,6 @@ export function addNode(
             {
             parent_node_id: uuidToRos(parent_node_id),
             node: msg,
-            allow_rename: allow_rename,
             new_child_index: index
             } as AddNodeAtIndexRequest,
             (response: AddNodeAtIndexResponse) => {

@@ -108,7 +108,7 @@ function onChange(event: Event) {
       :value="editor_store.selected_tree"
       @change="onChange"
     >
-      <option value="">Main Tree</option>
+      <option :value="uuid.NIL">Main Tree</option>
       <optgroup label="Subtrees">
         <option v-for="tree in subtree_list" :key="tree[0]" :value="tree[0]">
           {{ tree[1] }}

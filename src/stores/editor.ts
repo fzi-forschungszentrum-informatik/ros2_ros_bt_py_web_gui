@@ -83,7 +83,7 @@ export const useEditorStore = defineStore(
 
     const selected_tree = ref<UUIDString>(uuid.NIL)
 
-    const has_selected_subtree = computed<boolean>(() => selected_tree.value !== '')
+    const has_selected_subtree = computed<boolean>(() => selected_tree.value !== uuid.NIL)
 
     const current_tree = computed<Tree>(() => {
       return {

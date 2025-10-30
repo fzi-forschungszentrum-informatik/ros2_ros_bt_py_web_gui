@@ -28,9 +28,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type { NodeStructure } from '@/types/types'
+import type { UUIDString, NodeStructure } from '@/types/types'
+import { rosToUuid } from '@/utils'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'
+import * as uuid from 'uuid'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { addNode } from '@/tree_manipulation'
 
@@ -40,8 +42,8 @@ const props = defineProps<{
 
 const edit_node_store = useEditNodeStore()
 
-const selected_parent = ref<string>(
-  props.parents.length > 0 ? props.parents[0].name : ''
+const selected_parent = ref<NodeStructure | null>(
+  props.parents.length > 0 ? props.parents[0] : null
 )
 
 async function addToTree() {
@@ -52,8 +54,8 @@ async function addToTree() {
   }
 
   const new_node_name = await addNode(
-    edit_node_store.buildNodeMsg(), 
-    selected_parent.value, 
+    edit_node_store.buildNodeMsg(),
+    selected_parent.value !== null ? rosToUuid(selected_parent.value.node_id) : uuid.NIL,
     -1
   )
 
@@ -79,7 +81,7 @@ async function addToTree() {
         class="custom-select d-block"
         :disabled="parents.length === 0"
       >
-        <option v-for="parent in parents" :key="parent.name" :value="parent.name">
+        <option v-for="parent in parents" :key="rosToUuid(parent.node_id)" :value="parent">
           {{ parent.name }}
         </option>
       </select>

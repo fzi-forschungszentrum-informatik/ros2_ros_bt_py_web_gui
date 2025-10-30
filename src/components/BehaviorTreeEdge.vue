@@ -91,32 +91,44 @@ const edge_data = computed<WiringData | undefined>(() => {
 
 function onClickDelete() {
   const edge = editor_store.selected_edge!
-  ros_store.unwire_data_service.callService(
-    {
-      wirings: [
-        {
-          source: edge.source,
-          target: edge.target
-        }
-      ]
-    } as WireNodeDataRequest,
-    (response: WireNodeDataResponse) => {
-      if (response.success) {
-        notify({
-          title: 'Removed data edge: ' + edge.source + ' -> ' + edge.target + '!',
-          type: 'success'
-        })
-        editor_store.unselectEdge()
-      } else {
-        notify({
-          title: 'Failed to remove data edge: ' + edge.source + ' -> ' + edge.target + '!',
-          text: response.error_message,
-          type: 'error'
-        })
+  ros_store.unwire_data_service.callService({
+    wirings: [
+      {
+        source: edge.source,
+        target: edge.target
       }
+    ]
+  } as WireNodeDataRequest,
+  (response: WireNodeDataResponse) => {
+    const source_name = editor_store.current_tree.structure!.nodes.find(
+      (node) => compareRosUuid(edge.source.node_id, node.node_id)
+    )!.name
+    const target_name = editor_store.current_tree.structure!.nodes.find(
+      (node) => compareRosUuid(edge.target.node_id, node.node_id)
+    )!.name
+    if (response.success) {
+      notify({
+        title: 'Removed data edge: ' + source_name + ' -> ' + target_name + '!',
+        type: 'success'
+      })
+      editor_store.unselectEdge()
+    } else {
+      notify({
+        title: 'Failed to remove data edge: ' + source_name + ' -> ' + target_name + '!',
+        text: response.error_message,
+        type: 'warn'
+      })
     }
-  )
+  },
+  (error: string) => {
+    notify({
+      title: 'Failed to call UnwireNodeData service',
+      text: error,
+      type: 'error'
+    })
+  })
 }
+
 function selectSourceNode() {
   edit_node_store.editorSelectionChange(
     rosToUuid(editor_store.selected_edge!.source.node_id)

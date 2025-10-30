@@ -32,7 +32,6 @@ import type { UUIDMsg, NodeStructure } from '../types'
 export type AddNodeAtIndexRequest = {
   parent_node_id: UUIDMsg
   node: NodeStructure
-  allow_rename: boolean
   new_child_index: number
 }
 

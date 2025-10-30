@@ -290,7 +290,7 @@ function drawEverything() {
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: BTEditorNode[] = editor_store.current_tree.structure.nodes.map((node) => {
+  const editor_nodes: BTEditorNode[] = editor_store.current_tree.structure.nodes.map((node) => {
     return {
       node_id: rosToUuid(node.node_id),
       name: node.name,
@@ -320,16 +320,16 @@ function drawEverything() {
     offset: {x: 0, y: 0}
   }
 
-  if (trimmed_nodes.findIndex((x) => x.node_id === uuid.NIL) < 0) {
-    trimmed_nodes.push(forest_root)
+  if (editor_nodes.findIndex((x) => x.node_id === uuid.NIL) < 0) {
+    editor_nodes.push(forest_root)
   }
 
   // Update the visual tree
   const parents: Record<UUIDString, UUIDString> = {}
   //const node_dict: Record<string, TrimmedNode> = {}; Is unused?
   // Find parents for all nodes once
-  for (const i in trimmed_nodes) {
-    const node = trimmed_nodes[i]
+  for (const i in editor_nodes) {
+    const node = editor_nodes[i]
     //node_dict[node.name] = node;
     for (const j in node.child_ids) {
       parents[node.child_ids[j]] = node.node_id
@@ -339,7 +339,7 @@ function drawEverything() {
   const root: d3.HierarchyNode<BTEditorNode> = d3
     .stratify<BTEditorNode>()
     .id((node) => {
-      return node.name
+      return node.node_id
     })
     .parentId((node) => {
       // undefined if it has no parent - does that break the layout?
@@ -351,7 +351,7 @@ function drawEverything() {
         forest_root.child_ids.push(node.node_id)
         return forest_root.node_id
       }
-    })(trimmed_nodes)
+    })(editor_nodes)
 
   root.sort(function (a, b) {
     if (a.depth !== b.depth) {
@@ -400,9 +400,9 @@ function drawNewNodes(
     .classed('node--leaf', (d) => d.children === undefined || d.children.length == 0)
     .on('click.select', (event, node: d3.HierarchyNode<BTEditorNode>) => {
       if (event.shiftKey) {
-        edit_node_store.selectMultipleNodes([node.data.name])
+        edit_node_store.selectMultipleNodes([node.data.node_id])
       } else {
-        edit_node_store.editorSelectionChange(node.data.name)
+        edit_node_store.editorSelectionChange(node.data.node_id)
       }
       event.stopPropagation()
     })
@@ -935,7 +935,7 @@ async function moveExistingNode(drop_target: DropTarget) {
     if (
       parent_node_id === editor_store.dragging_existing_node.parent!.data.node_id &&
       index > drop_target.node.parent.children!.findIndex(
-        (node: FlextreeNode<BTEditorNode>) => node.data.name === target_node_id
+        (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
       )
     ) {
       index--
@@ -1004,7 +1004,7 @@ function toggleExistingNodeTargets() {
         editor_store
           .dragging_existing_node!.descendants()
           .find((node: d3.HierarchyNode<BTEditorNode>) => {
-            return node.data.name === drop_target.node.data.name
+            return node.data.node_id === drop_target.node.data.node_id
           }) !== undefined
       )
     })
@@ -1030,15 +1030,15 @@ function toggleExistingNodeTargets() {
         case Position.BOTTOM:
           return (
             drop_target.node.data.max_children !== -1 &&
-            drop_target.node.data.name !== editor_store.dragging_existing_node!.parent!.data.name &&
+            drop_target.node.data.node_id !== editor_store.dragging_existing_node!.parent!.data.node_id &&
             drop_target.node.data.child_ids.length >= drop_target.node.data.max_children
           )
         case Position.LEFT:
         case Position.RIGHT:
           return (
             drop_target.node.parent!.data.max_children !== -1 &&
-            drop_target.node.parent!.data.name !==
-              editor_store.dragging_existing_node!.parent!.data.name &&
+            drop_target.node.parent!.data.node_id !==
+              editor_store.dragging_existing_node!.parent!.data.node_id &&
             drop_target.node.parent!.data.child_ids.length >=
               drop_target.node.parent!.data.max_children
           )
@@ -1337,7 +1337,7 @@ function drawDataEdges(
 
   function matchEndpoint(wire_point: NodeDataLocation, terminal: DataEdgeTerminal): boolean {
     return (
-      rosToUuid(wire_point.node_id) === terminal.node.data.name &&
+      rosToUuid(wire_point.node_id) === terminal.node.data.node_id &&
       wire_point.data_kind === terminal.kind &&
       wire_point.data_key === terminal.key
     )
@@ -1521,14 +1521,20 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
       ignore_failure: false //TODO what does this do?
     } as WireNodeDataRequest,
     (response: WireNodeDataResponse) => {
+      const source_name = editor_store.current_tree.structure!.nodes.find(
+        (node) => rosToUuid(node.node_id) === source.node.data.node_id
+      )!.name
+      const target_name = editor_store.current_tree.structure!.nodes.find(
+        (node) => rosToUuid(node.node_id) === target.node.data.node_id
+      )!.name
       if (response.success) {
         notify({
-          title: 'Added data edge',
+          title: 'Added data edge: ' + source_name + ' -> ' + target_name + '!',
           type: 'success'
         })
       } else {
         notify({
-          title: 'Failed to add data edge',
+          title: 'Failed to add data edge: ' + source_name + ' -> ' + target_name + '!',
           text: response.error_message,
           type: 'warn'
         })
