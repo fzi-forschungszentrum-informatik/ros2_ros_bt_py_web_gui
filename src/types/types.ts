@@ -30,9 +30,7 @@
 
 import type { FlextreeNode } from 'd3-flextree'
 
-export type UUIDMsg = {
-  uuid: Uint8Array
-}
+export type UUIDMsg = string
 export type UUIDString = string
 
 export type NodeIO = {
