@@ -81,15 +81,27 @@ export const useEditorStore = defineStore(
 
     const skin = ref<EditorSkin>(EditorSkin.DARK)
 
-    const selected_tree = ref<UUIDString>(uuid.NIL)
+    const selected_tree = ref<{
+      own_id: UUIDString
+      parent_id: UUIDString
+    }>({
+      own_id: uuid.NIL,
+      parent_id: uuid.NIL
+    })
 
-    const has_selected_subtree = computed<boolean>(() => selected_tree.value !== uuid.NIL)
+    const has_selected_subtree = computed<boolean>(() => selected_tree.value.own_id !== uuid.NIL)
 
     const current_tree = computed<Tree>(() => {
       return {
-        structure: tree_structure_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value),
-        state: tree_state_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value),
-        data: tree_data_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value)
+        structure: tree_structure_list.value.find(
+          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
+        ),
+        state: tree_state_list.value.find(
+          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
+        ),
+        data: tree_data_list.value.find(
+          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
+        )
       }
     })
 

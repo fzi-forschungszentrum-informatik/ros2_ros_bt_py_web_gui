@@ -89,7 +89,7 @@ export type TreeStructure = {
   tree_id: UUIDMsg
   name: string
   path: string
-  root_name: string
+  root_id: UUIDMsg
   nodes: NodeStructure[]
   data_wirings: Wiring[]
   trick_frequency_hz: number

@@ -295,7 +295,7 @@ onMounted(() => {
             </button>
 
             <!--Elements are dynamically reordered when inlining all three-->
-            <div class="col col-xl-3 order-xl-1">
+            <div class="col col-xl-auto order-xl-1">
               <SelectSubtree />
             </div>
 

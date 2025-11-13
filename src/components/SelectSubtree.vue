@@ -31,24 +31,14 @@
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
-import { rosToUuid } from '@/utils'
-import type { UUIDString } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
-import { computed } from 'vue'
-import * as uuid from 'uuid'
+import { useModal } from 'vue-final-modal'
+import SelectSubtreeModal from './modals/SelectSubtreeModal.vue'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const publish_subtrees_id: string = 'publish_subtrees'
-
-const subtree_list = computed<[UUIDString, string][]>(() =>
-  editor_store.tree_structure_list.filter(
-    (tree) => rosToUuid(tree.tree_id) !== uuid.NIL
-  ).map(
-    (tree) => [rosToUuid(tree.tree_id), tree.name] as [UUIDString, string]
-  )
-)
 
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
@@ -91,30 +81,25 @@ function handlePubSubtreesChange(event: Event) {
   )
 }
 
-function onChange(event: Event) {
-  const target = event.target as HTMLSelectElement
-  editor_store.selected_tree = target.value
-}
+const selectSubtreeModal = useModal({
+  component: SelectSubtreeModal,
+  attrs: {
+    onClose() {
+      selectSubtreeModal.close()
+    }
+  }
+})
 
 </script>
 
 <template>
   <div class="input-group my-2">
-    <label class="input-group-text" for="formTree"> Tree </label>
 
-    <select
-      id="formTree"
-      class="form-select"
-      :value="editor_store.selected_tree"
-      @change="onChange"
+    <button class="btn btn-contrast"
+      @click="selectSubtreeModal.open"
     >
-      <option :value="uuid.NIL">Main Tree</option>
-      <optgroup label="Subtrees">
-        <option v-for="tree in subtree_list" :key="tree[0]" :value="tree[0]">
-          {{ tree[1] }}
-        </option>
-      </optgroup>
-    </select>
+      Select Subtree
+    </button>
 
     <input
       :id="publish_subtrees_id"
@@ -125,7 +110,7 @@ function onChange(event: Event) {
       @change="handlePubSubtreesChange"
     />
 
-    <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
+    <label class="btn btn-primary btn-spaced" :for="publish_subtrees_id" title="Publish subtrees">
       <FontAwesomeIcon
         :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
         icon="fa-solid fa-bullhorn"
