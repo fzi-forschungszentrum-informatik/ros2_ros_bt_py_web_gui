@@ -31,7 +31,7 @@
 import * as uuid from 'uuid';
 import { useEditorStore } from '@/stores/editor';
 import type { TreeStructure, UUIDString } from '@/types/types';
-import { rosToUuid } from '@/utils';
+import { findNode, rosToUuid } from '@/utils';
 import { computed, ref } from 'vue';
 
 const editor_store = useEditorStore()
@@ -48,9 +48,7 @@ const emit = defineEmits<{
 const show_subtrees = ref<boolean>(true)
 
 const current_tree = computed<TreeStructure | undefined>(() => {
-  return editor_store.tree_structure_list.find(
-    (structure) => rosToUuid(structure.tree_id) == props.tree_id
-  )
+  return editor_store.findTree(props.tree_id)
 })
 
 const subtree_ids = computed<Set<UUIDString>>(() => {
@@ -77,15 +75,11 @@ const node_name = computed<string>(() => {
   if (props.tree_id === uuid.NIL) {
     return "Main Tree"
   }
-  const outer_tree = editor_store.tree_structure_list.find(
-    (structure) => rosToUuid(structure.tree_id) == props.parent_id
-  )
+  const outer_tree = editor_store.findTree(props.parent_id)
   if (outer_tree === undefined) {
     return "UNKNOWN"
   }
-  const node = outer_tree.nodes.find(
-    (node) => rosToUuid(node.node_id) === props.tree_id
-  )
+  const node = findNode(outer_tree, props.tree_id)
   if (node === undefined) {
     return "UNKNOWN"
   }

@@ -194,6 +194,12 @@ export const useEditorStore = defineStore(
       selected_edge.value = undefined
     }
 
+    function findTree(id: UUIDString): TreeStructure | undefined {
+      return tree_structure_list.value.find(
+        (struc) => rosToUuid(struc.tree_id) === id
+      )
+    }
+
     return {
       selected_tree,
       has_selected_subtree,
@@ -202,6 +208,7 @@ export const useEditorStore = defineStore(
       publish_data,
       debug,
       tree_structure_list,
+      findTree,
       tree_state_list,
       tree_data_list,
       running_commands,

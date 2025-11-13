@@ -34,11 +34,29 @@ import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
 import { notify } from '@kyvg/vue3-notification'
 import { useModal } from 'vue-final-modal'
 import SelectSubtreeModal from './modals/SelectSubtreeModal.vue'
+import { computed } from 'vue'
+import * as uuid from 'uuid'
+import { findNode, rosToUuid } from '@/utils'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const publish_subtrees_id: string = 'publish_subtrees'
+
+const subtree_name = computed<string>(() => {
+  if (editor_store.selected_tree.own_id === uuid.NIL) {
+    return "Main Tree"
+  }
+  const outer_tree = editor_store.findTree(editor_store.selected_tree.parent_id)
+  if (outer_tree === undefined) {
+    return "UNKNOWN"
+  }
+  const subtree_node = findNode(outer_tree, editor_store.selected_tree.own_id)
+  if (subtree_node === undefined) {
+    return "UNKNOWN"
+  }
+  return subtree_node.name
+})
 
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
@@ -94,11 +112,12 @@ const selectSubtreeModal = useModal({
 
 <template>
   <div class="input-group my-2">
+    <label class="input-group-text"> Tree </label>
 
-    <button class="btn btn-contrast"
+    <button class="btn btn-contrast dropdown-toggle"
       @click="selectSubtreeModal.open"
     >
-      Select Subtree
+      {{ subtree_name }}
     </button>
 
     <input
@@ -110,7 +129,7 @@ const selectSubtreeModal = useModal({
       @change="handlePubSubtreesChange"
     />
 
-    <label class="btn btn-primary btn-spaced" :for="publish_subtrees_id" title="Publish subtrees">
+    <label class="btn btn-primary" :for="publish_subtrees_id" title="Publish subtrees">
       <FontAwesomeIcon
         :class="editor_store.publish_subtrees ? 'text-white' : 'text-white-50'"
         icon="fa-solid fa-bullhorn"

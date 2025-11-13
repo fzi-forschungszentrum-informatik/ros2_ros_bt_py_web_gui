@@ -43,6 +43,8 @@ import type {
   TreeState,
   UUIDMsg,
   UUIDString,
+  TreeStructure,
+  NodeStructure,
 } from './types/types'
 import { IOKind } from './types/types'
 
@@ -63,6 +65,12 @@ export function uuidToRos(str: UUIDString): UUIDMsg {
 
 export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {
   return rosToUuid(u1) === rosToUuid(u2)
+}
+
+export function findNode(
+  tree: TreeStructure, node_id: UUIDString
+): NodeStructure | undefined {
+  return tree.nodes.find((node) => rosToUuid(node.node_id) === node_id)
 }
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
