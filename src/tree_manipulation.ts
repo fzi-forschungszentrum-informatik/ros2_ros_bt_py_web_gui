@@ -33,7 +33,7 @@ import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from "./types/serv
 import type { MoveNodeRequest, MoveNodeResponse } from "./types/services/MoveNode"
 import type { RemoveNodeRequest, RemoveNodeResponse } from "./types/services/RemoveNode"
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from "./types/services/ReplaceNode"
-import type { UUIDMsg, UUIDString, NodeStructure } from "./types/types"
+import type { UUIDString, NodeStructure } from "./types/types"
 import { rosToUuid, uuidToRos } from "./utils"
 import { notify } from '@kyvg/vue3-notification'
 

@@ -99,13 +99,16 @@ function selectTree() {
 <template>
   <div class="ms-4 mt-1 mb-2">
     <div class="btn-group w-100">
-      <button class="btn btn-outline-contrast text-start w-100" @click="selectTree"
+      <button
+        class="btn btn-outline-contrast text-start w-100"
         :class="{ active: tree_id === rosToUuid(editor_store.current_tree.structure!.tree_id) }"
+        @click="selectTree"
       >
         <FontAwesomeIcon icon="fa-solid fa-share-nodes" class="me-1" />
         {{ node_name }} ({{ tree_name }})
       </button>
-      <button v-if="subtree_ids.size > 0" class="btn btn-outline-contrast"
+      <button
+v-if="subtree_ids.size > 0" class="btn btn-outline-contrast"
         @click="show_subtrees = !show_subtrees"
       >
         <FontAwesomeIcon
@@ -116,7 +119,8 @@ function selectTree() {
       </button>
     </div>
     <div v-if="show_subtrees">
-      <ListSubtrees v-for="subtree_id in subtree_ids" :key="subtree_id"
+      <ListSubtrees
+v-for="subtree_id in subtree_ids" :key="subtree_id"
         :parent_id="props.tree_id" :tree_id="subtree_id" @close="emit('close')"
       />
     </div>

@@ -31,7 +31,7 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor';
 import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
-import { compareRosUuid, rosToUuid } from '@/utils';
+import { compareRosUuid } from '@/utils';
 import { computed } from 'vue'
 
 const props = defineProps<{

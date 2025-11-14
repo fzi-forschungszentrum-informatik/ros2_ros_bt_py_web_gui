@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import type { UUIDString, NodeStructure } from '@/types/types'
+import type { NodeStructure } from '@/types/types'
 import { rosToUuid } from '@/utils'
 import EditableNode from './EditableNode.vue'
 import { ref } from 'vue'

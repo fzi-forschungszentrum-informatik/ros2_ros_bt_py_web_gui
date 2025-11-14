@@ -36,7 +36,7 @@ import { useModal } from 'vue-final-modal'
 import SelectSubtreeModal from './modals/SelectSubtreeModal.vue'
 import { computed } from 'vue'
 import * as uuid from 'uuid'
-import { findNode, rosToUuid } from '@/utils'
+import { findNode } from '@/utils'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
@@ -114,7 +114,8 @@ const selectSubtreeModal = useModal({
   <div class="input-group my-2">
     <label class="input-group-text"> Tree </label>
 
-    <button class="btn btn-contrast dropdown-toggle"
+    <button
+      class="btn btn-contrast dropdown-toggle"
       @click="selectSubtreeModal.open"
     >
       {{ subtree_name }}

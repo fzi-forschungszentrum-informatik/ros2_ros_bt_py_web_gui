@@ -45,7 +45,6 @@ import type {
   NodeOption,
   NodeIO,
   Wiring,
-  UUIDMsg,
   UUIDString,
 } from '@/types/types'
 import { Position, IOKind, NodeStateValues } from '@/types/types'
