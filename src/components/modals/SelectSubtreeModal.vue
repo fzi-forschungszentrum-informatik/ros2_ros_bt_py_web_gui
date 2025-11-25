@@ -51,7 +51,9 @@ const emit = defineEmits<{
     <div class="m-4">
       <h1 class="fs-1 mb-3">Select Tree to Display</h1>
 
-      <ListSubtrees :parent_id="uuid.NIL" :tree_id="uuid.NIL" @close="emit('close')" />
+      <div class="overflow-auto" style="max-height: 80vh;">
+        <ListSubtrees :parent_id="uuid.NIL" :tree_id="uuid.NIL" @close="emit('close')" />
+      </div>
     </div>
   </VueFinalModal>
 </template>
