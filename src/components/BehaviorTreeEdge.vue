@@ -145,7 +145,13 @@ function selectTargetNode() {
 <template>
   <div class="d-flex flex-column">
     <div class="btn-group d-flex mb-2" role="group">
-      <button class="btn btn-danger w-100" @click="() => onClickDelete()">Delete Edge</button>
+      <button
+        class="btn btn-danger w-100"
+        :disabled="editor_store.has_selected_subtree"
+        @click="() => onClickDelete()"
+      >
+        Delete Edge
+      </button>
     </div>
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="">
