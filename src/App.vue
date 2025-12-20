@@ -156,25 +156,20 @@ const node_search = ref<string>('')
 
 const execution_bar_visible = ref<boolean>(true)
 
-ros_store.$onAction(({ name, after }) => {
-  if (name !== 'changeNamespace' && name != 'hasConnected') {
-    return
+watch(
+  () => ros_store.connected,
+  (connected) => {
+    if (connected) {
+      updateTreeSubscription()
+      updateMessagesSubscription()
+      updateChannelssubscription()
+      updatePackagesSubscription()
+    }
   }
-
-  after(() => {
-    updateTreeSubscription()
-    updateMessagesSubscription()
-    updateChannelssubscription()
-    updatePackagesSubscription()
-  })
-})
+)
 
 onMounted(() => {
-  ros_store.connect()
-  updateTreeSubscription()
-  updateMessagesSubscription()
-  updateChannelssubscription()
-  updatePackagesSubscription()
+  ros_store.startConnectTimeout()
 })
 </script>
 

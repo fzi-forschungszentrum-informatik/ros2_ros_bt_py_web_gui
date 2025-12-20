@@ -85,7 +85,6 @@ function changeRosbridgeServer(event: Event) {
 
 function saveRosbridgeServer() {
   ros_store.setUrl(new_url.value)
-  ros_store.connect()
   edit_rosbridge_server.value = false
 }
 

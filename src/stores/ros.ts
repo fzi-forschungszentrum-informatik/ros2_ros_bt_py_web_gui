@@ -106,6 +106,16 @@ export const useROSStore = defineStore(
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
+    let connect_timeout: number = 0
+    function startConnectTimeout() {
+      clearTimeout(connect_timeout)
+        connect_timeout = setTimeout(() => {
+          ros.value.connect(url.value)
+        }, 
+        1000
+      )
+    }
+
     const services_for_type_service = shallowRef<
       Service<ServicesForTypeRequest, ServicesForTypeResponse>
     >(
@@ -601,16 +611,14 @@ export const useROSStore = defineStore(
       nodes_store.getNodes('')
     }
 
-    function connect() {
-      ros.value.connect(url.value)
-    }
-
     function setUrl(new_url: string) {
       url.value = new_url
+      startConnectTimeout()
     }
 
     function hasConnected() {
       connected.value = true
+      clearTimeout(connect_timeout)
       notify({
         title: 'ROS connection established!',
         type: 'success'
@@ -624,6 +632,8 @@ export const useROSStore = defineStore(
 
       editor_store.enableSubtreePublishing(false)
       editor_store.publish_data = false
+
+      startConnectTimeout()
 
       notify({
         title: 'ROS connection closed!',
@@ -679,7 +689,7 @@ export const useROSStore = defineStore(
       packages_sub,
       messages_sub,
       channels_sub,
-      connect,
+      startConnectTimeout,
       setUrl,
       changeNamespace,
       setAvailableNamespaces,
