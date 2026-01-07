@@ -641,12 +641,20 @@ function updateNodeState() {
         case NodeStateValues.SUCCEEDED:
           return 'var(--node-color-succeeded)'
         case NodeStateValues.FAILED:
+        case NodeStateValues.BROKEN:
           return 'var(--node-color-failed)'
         case NodeStateValues.SHUTDOWN:
           return 'var(--node-color-shutdown)'
         case NodeStateValues.UNINITIALIZED:
         default:
           return 'var(--node-color-default)'
+      }
+    })
+    .style('fill', (d) => {
+      if (d.data.state == NodeStateValues.BROKEN) {
+        return 'var(--node-bg-broken)'
+      } else {
+        return 'var(--node-bg-default)'
       }
     })
   node.select<SVGElement>('.' + node_state_css_class)
@@ -1569,8 +1577,8 @@ function colorSelectedNodes() {
   const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
 
   d3.select<SVGGElement, never>(g_vertices_ref.value)
-    .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
-    .select<HTMLBodyElement>('.' + node_body_css_class)
+    .selectAll<SVGSVGElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+    .select<SVGRectElement>('.' + node_body_css_class)
     .classed(node_selected_css_class, (node: FlextreeNode<TrimmedNode>) =>
       all_selected_nodes.includes(node.data.name)
     )

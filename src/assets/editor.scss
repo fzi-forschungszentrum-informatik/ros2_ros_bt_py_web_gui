@@ -17,6 +17,9 @@
   --node-color-failed: #dc3545;
   --node-color-shutdown: #7c1e27;
   --node-color-default: #4e5666;
+
+  --node-bg-broken: #941d1d;
+  --node-bg-default: #2a2d36;
 }
 
 .lightmode.reactive-svg {
@@ -28,6 +31,9 @@
   --node-color-failed: #ff0019;
   --node-color-shutdown: #ab0011;
   --node-color-default: #353535;
+
+  --node-bg-broken: #e98080;
+  --node-bg-default: #dedede;
 }
 
 .svg-button:hover {
@@ -52,12 +58,7 @@ rect.selection {
 }
 
 .btnode {
-  fill: #2a2d36;
   stroke-width: 5px;
-}
-
-.lightmode .btnode {
-  fill: #dedede;
 }
 
 .node-selected {
