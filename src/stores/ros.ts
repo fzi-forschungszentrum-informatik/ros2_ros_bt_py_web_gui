@@ -613,7 +613,7 @@ export const useROSStore = defineStore(
 
     function setUrl(new_url: string) {
       url.value = new_url
-      startConnectTimeout()
+      ros.value.close()
     }
 
     function hasConnected() {
