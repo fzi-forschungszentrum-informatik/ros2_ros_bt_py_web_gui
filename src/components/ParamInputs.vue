@@ -29,6 +29,7 @@
  -->
 <script setup lang="ts">
 import type { OptionData } from '@/types/types'
+import BytesParam from './param_inputs/BytesParam.vue'
 import TypeParam from './param_inputs/TypeParam.vue'
 import JSONInput from './JSONInput.vue'
 import MathOperatorParam from './param_inputs/MathOperatorParam.vue'
@@ -161,6 +162,12 @@ function onFocus() {
       </label>
       <input v-bind="input_attrs" @change="onChange" @focus="onFocus" />
     </div>
+
+    <BytesParam
+      v-else-if="param_type === 'bytes'"
+      :category="props.category"
+      :data_key="props.data_key"
+    />
 
     <TypeParam
       v-else-if="param_type === 'type'"

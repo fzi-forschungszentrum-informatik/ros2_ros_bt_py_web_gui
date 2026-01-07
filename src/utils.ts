@@ -44,7 +44,8 @@ import type {
   UUIDMsg,
   UUIDString,
   TreeStructure,
-  NodeStructure
+  NodeStructure,
+  PyB64
 } from './types/types'
 import { IOKind } from './types/types'
 
@@ -96,16 +97,28 @@ export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
 export const python_builtin_types = [
   'int',
   'float',
-  //'long',
   'str',
-  //'basestring',
-  //'unicode',
+  'bytes',
   'bool',
   'list',
   'dict',
   'set',
   'type' //TODO Is this reasonable to allow?
 ]
+
+export function hexToPyB64(hex_s: string): PyB64 {
+  // If length is odd, prepend a zero
+  if (hex_s.length % 2 != 0) {
+    hex_s = "0" + hex_s
+  }
+  const arr = Uint8Array.fromHex(hex_s)
+  return {'py/b64': arr.toBase64()}
+}
+
+export function pyB64ToHex(py_b64: PyB64): string {
+  const arr = Uint8Array.fromBase64(py_b64['py/b64'])
+  return arr.toHex()
+}
 
 export function prettyprint_type(jsonpickled_type: string): string {
   const json_type = JSON.parse(jsonpickled_type)
@@ -202,6 +215,11 @@ export function getDefaultValue(typeStr: string, options: NodeOption[] | null = 
     return {
       type: typeStr,
       value: 'foo'
+    }
+  } else if (typeName === 'bytes') {
+    return {
+      type: typeStr,
+      value: hexToPyB64('00')
     }
   } else if (typeName === 'float') {
     return {

@@ -276,6 +276,8 @@ export type PackageStructure = {
   type: FileType
 }
 
+export type PyB64 = { 'py/b64': string }
+
 export type PyObject = { 'py/object': string }
 
 export type PyType = { 'py/type': string }
@@ -289,6 +291,7 @@ export type ValueTypes =
   | number
   | []
   | Record<string, never>
+  | PyB64
   | PyReduce
   | PyObject
 
