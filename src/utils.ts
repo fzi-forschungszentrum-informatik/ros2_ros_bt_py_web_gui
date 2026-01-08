@@ -111,12 +111,14 @@ export function hexToPyB64(hex_s: string): PyB64 {
   if (hex_s.length % 2 != 0) {
     hex_s = "0" + hex_s
   }
-  const arr = Uint8Array.fromHex(hex_s)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const arr = (Uint8Array as any).fromHex(hex_s)
   return {'py/b64': arr.toBase64()}
 }
 
 export function pyB64ToHex(py_b64: PyB64): string {
-  const arr = Uint8Array.fromBase64(py_b64['py/b64'])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const arr = (Uint8Array as any).fromBase64(py_b64['py/b64'])
   return arr.toHex()
 }
 
