@@ -164,6 +164,14 @@ export function prettyprint_type(jsonpickled_type: string): string {
   return 'Unknown type object: ' + jsonpickled_type
 }
 
+export function prettyprint_value(jsonpickle: string): string {
+  const json_value = JSON.parse(jsonpickle)
+  if (json_value['py/b64'] !== undefined) {
+    return "0x" + pyB64ToHex(json_value)
+  }
+  return json_value
+}
+
 export function getTypeAndInfo(typeStr: string): [string, string] {
   let match
   if (typeStr.startsWith('OptionRef(')) {
