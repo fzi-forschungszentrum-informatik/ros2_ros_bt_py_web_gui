@@ -5,10 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [6.0.0] - 2026-01-14
 
 ### Changed
 
+- Fix changelog.
+- Disable do not commit to main check.
+- Fix pre-commit issues.
+- Update changelog by @github-actions[bot]
 - Use UUIDs for BTNodes by @Doomse in [#38](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/38)
 - Update changelog by @github-actions[bot]
 - Auto connect by @Doomse in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
@@ -401,7 +405,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - @Oberacda made their first contribution
 - @Doomse made their first contribution
 
-[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/5.0.0..HEAD
+[6.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/5.0.0..6.0.0
 [5.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.1.0..5.0.0
 [4.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.1..4.1.0
 [4.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.0..4.0.1
