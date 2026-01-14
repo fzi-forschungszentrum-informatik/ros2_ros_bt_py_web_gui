@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
 - Use UUIDs for BTNodes by @Doomse in [#38](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/38)
 - Update changelog by @github-actions[bot]
 - Auto connect by @Doomse in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
@@ -18,12 +19,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update changelog by @github-actions[bot]
 
 ### Removed
-- Remove shutdown call when saving tree by @Doomse
 
+- Remove shutdown call when saving tree by @Doomse
 
 ## [5.0.0] - 2025-09-08
 
 ### Changed
+
 - Bump version. by @Oberacda
 - Update changelog by @github-actions[bot]
 - Merge pull request #36 from Doomse/data-vert-update by @Oberacda in [#36](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/36)
@@ -42,14 +44,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update changelog by @github-actions[bot]
 - Update changelog to v4.1.0. by @Oberacda
 
-
 ## [4.1.0] - 2025-08-18
 
 ### Added
+
 - Add changelog ci job. by @Oberacda
 - Add changelog. by @Oberacda
 
 ### Changed
+
 - Update changelog by @github-actions[bot]
 - Merge pull request #32 from Doomse/pure-svg-editor by @Oberacda in [#32](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/32)
 - Align root drop target by @Doomse
@@ -59,21 +62,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update changelog by @github-actions[bot]
 
 ## New Contributors
-* @github-actions[bot] made their first contribution
+
+- @github-actions[bot] made their first contribution
 
 ## [4.0.1] - 2025-05-22
 
 ### Changed
-- Fix build issue. by @Oberacda
 
+- Fix build issue. by @Oberacda
 
 ## [4.0.0] - 2025-05-22
 
 ### Added
+
 - Add settings panel for configuration, allow toggle for data publishing by @Doomse
 - Add basic output for tree data by @Doomse
 
 ### Changed
+
 - Increase version to 4.0.0 by @Oberacda
 - Make ros connections shallowRefs. by @Oberacda
 - Update editor store. by @Oberacda
@@ -117,16 +123,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix width of main column to avoid display issues by @Doomse
 - Update package versions. by @Oberacda
 
-
 ## [release/3.3.1] - 2025-02-26
 
 ### Changed
-- Fix missing icons. by @Oberacda
 
+- Fix missing icons. by @Oberacda
 
 ## [release/3.3.0] - 2025-02-26
 
 ### Added
+
 - Add Icons for Quick Select by @Doomse
 - Add Quick Select for Flow Control Nodes by @Doomse
 - Add node list icons by @Doomse
@@ -136,6 +142,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add searcher with partial messages by @Doomse
 
 ### Changed
+
 - Merge pull request #29 from Doomse/editor-updates by @Oberacda in [#29](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/29)
 - Update icons, add hover text by @Doomse
 - Update Node with, collapse package loader by @Doomse
@@ -166,14 +173,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Revert changes coming from a different branch/feature by @Doomse
 - Allow node options to give type hints by @Doomse
 
-
 ## [release/3.2.3] - 2025-01-23
 
 ### Added
+
 - Add tree undefined checks to editor by @Doomse
 - Add state icons by @Doomse
 
 ### Changed
+
 - Merge pull request #22 from Doomse/editor-display by @Oberacda in [#22](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/22)
 - Update colors by @Doomse
 - Nodes have their min-height dynamically changed if their number in- or outputs changes by @Doomse
@@ -182,24 +190,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Merge pull request #24 from Doomse/main by @Oberacda in [#24](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/24)
 - Fix path building for packages (use name instead of full path) by @Doomse
 
-
 ## [release/3.2.2] - 2025-01-14
 
 ### Added
+
 - Add default values to Ros Message types by @Doomse
 
 ### Changed
+
 - Merge pull request #21 from Doomse/main by @Oberacda in [#21](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/21)
 - Change action default type. by @Oberacda
 - Do not consider current type value when filtering for Names by @Doomse
 
-
 ## [release/3.2.0] - 2025-01-13
 
 ### Added
+
 - Add CI workflow. by @Oberacda
 
 ### Changed
+
 - Merge pull request #20 from Doomse/type_system by @Oberacda in [#20](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/20)
 - Fix node versions in CI. by @Oberacda
 - Fix Math type imports by @Doomse
@@ -229,16 +239,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix formatting issues. by @Oberacda
 
 ### Removed
+
 - Remove usage of deleted type by @Doomse
 - Remove GetMessageFields usage by @Doomse
-
 
 ## [release/3.1.0] - 2024-12-16
 
 ### Added
+
 - Add multi-delete option by @Doomse
 
 ### Changed
+
 - Update pr script. by @Oberacda
 - Merge pull request #12 from Doomse/main by @Oberacda in [#12](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/12)
 - Fixed handling of zoom when drawing tree by @Doomse
@@ -266,16 +278,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Edge select component and highlighting update by @Doomse
 
 ### Fixed
+
 - Fix top-bar height by @Doomse
 
 ### Removed
+
 - Remove unused component by @Doomse
 - Remove unused components by @Doomse
-
 
 ## [release/3.0.0] - 2024-11-04
 
 ### Added
+
 - Add PR creation script. by @Oberacda
 - Added save tree modal by @Doomse
 - Add modal specific buttons, clean up type PackageStructure by @Doomse
@@ -294,6 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add vue-notification library by @Oberacda
 
 ### Changed
+
 - Fix invalid store in BehaviorTreeEdge.vue by @Oberacda
 - Merge pull request #10 from Doomse/dev-vue by @Oberacda in [#10](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/10)
 - Clean up minor todos by @Doomse
@@ -370,18 +385,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial commit. by @Oberacda
 
 ### Fixed
+
 - Fix resolving optionref default values by @Doomse
 - Fix basic paraminputs by @Doomse
 - Fix fuse option config by @Doomse
 - Fix node type-param dropdown by @Doomse
 
 ### Removed
+
 - Remove svg-use elements as they break event handlers by @Doomse
 - Remove the now unused components by @Doomse
 
 ## New Contributors
-* @Oberacda made their first contribution
-* @Doomse made their first contribution
+
+- @Oberacda made their first contribution
+- @Doomse made their first contribution
 
 [unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/5.0.0..HEAD
 [5.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.1.0..5.0.0
