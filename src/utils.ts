@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -44,10 +44,9 @@ import type {
   UUIDMsg,
   UUIDString,
   TreeStructure,
-  NodeStructure,
+  NodeStructure
 } from './types/types'
 import { IOKind } from './types/types'
-
 
 export function rosToUuid(msg: UUIDMsg): UUIDString {
   if (!uuid.validate(msg)) {
@@ -67,9 +66,7 @@ export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {
   return rosToUuid(u1) === rosToUuid(u2)
 }
 
-export function findNode(
-  tree: TreeStructure, node_id: UUIDString
-): NodeStructure | undefined {
+export function findNode(tree: TreeStructure, node_id: UUIDString): NodeStructure | undefined {
   return tree.nodes.find((node) => rosToUuid(node.node_id) === node_id)
 }
 
@@ -135,14 +132,9 @@ export function prettyprint_type(jsonpickled_type: string): string {
   }
 
   // Fully hide HintedType, the Typeparam recovers hints on its own
-  if (
-    json_type['py/object'] !== undefined &&
-    json_type['py/object'] === TypeWrapper_Name
-  ) {
+  if (json_type['py/object'] !== undefined && json_type['py/object'] === TypeWrapper_Name) {
     const wrapper = json_type as TypeWrapper
-    return prettyprint_type(
-      JSON.stringify(wrapper.actual_type)
-    ) + '(' + wrapper.info + ')'
+    return prettyprint_type(JSON.stringify(wrapper.actual_type)) + '(' + wrapper.info + ')'
   }
 
   if (
@@ -172,10 +164,7 @@ export function getTypeAndInfo(typeStr: string): [string, string] {
 
 export const unset_ref_str = 'unset_optionref'
 
-export function parseOptionRef(
-  typeStr: string,
-  options: NodeOption[] | null = null
-): string {
+export function parseOptionRef(typeStr: string, options: NodeOption[] | null = null): string {
   if (typeStr.startsWith('OptionRef(')) {
     const optionTypeName = typeStr.substring('OptionRef('.length, typeStr.length - 1)
     if (options === null) {
@@ -197,10 +186,7 @@ export function parseOptionRef(
   }
 }
 
-export function getDefaultValue(
-  typeStr: string,
-  options: NodeOption[] | null = null
-): ParamType {
+export function getDefaultValue(typeStr: string, options: NodeOption[] | null = null): ParamType {
   const typeName = getTypeAndInfo(typeStr)[0]
   if (typeName === 'type') {
     return {
@@ -247,8 +233,8 @@ export function getDefaultValue(
       }
     }
     return getDefaultValue(refStr, options)
-  // This checks all types defined in `python_types`
-  // which provide default values
+    // This checks all types defined in `python_types`
+    // which provide default values
   } else if (isPythonTypeWithDefault(typeName)) {
     return {
       type: typeStr,
@@ -271,7 +257,7 @@ export function serializeNodeOptions(node_options: OptionData[]): NodeOption[] {
     }
     if (x.value.type.startsWith('type')) {
       if (python_builtin_types.indexOf(x.value.value as string) >= 0) {
-        x.value.value = 'builtins.' + x.value.value;
+        x.value.value = 'builtins.' + x.value.value
       }
       option.serialized_value = JSON.stringify({
         'py/type': x.value.value

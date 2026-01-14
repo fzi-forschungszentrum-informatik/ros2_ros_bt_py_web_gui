@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -78,13 +78,11 @@ async function deleteNodes() {
       name = node.name
     }
     p_list.push(
-      removeNode(node_id, name, false).then(
-        () => {
-          edit_node_store.selected_node_ids = edit_node_store.selected_node_ids.filter(
-            (value: string) => value !== node_id
-          )
-        }
-      )
+      removeNode(node_id, name, false).then(() => {
+        edit_node_store.selected_node_ids = edit_node_store.selected_node_ids.filter(
+          (value: string) => value !== node_id
+        )
+      })
     )
   })
   await Promise.all(p_list)

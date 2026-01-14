@@ -1,5 +1,5 @@
 <!--
-*  Copyright 2024 FZI Forschungszentrum Informatik
+*  Copyright 2024-2026 FZI Forschungszentrum Informatik
 *
 *  Redistribution and use in source and binary forms, with or without
 *  modification, are permitted provided that the following conditions are met:
@@ -56,10 +56,8 @@ const selected_path = ref<string[]>([])
 const is_directory = ref<boolean>(true)
 const input_file_name = ref<string>('')
 
-const main_tree = computed<TreeStructure | undefined>(
-  () => editor_store.tree_structure_list.find(
-    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
-  )
+const main_tree = computed<TreeStructure | undefined>(() =>
+  editor_store.tree_structure_list.find((tree) => rosToUuid(tree.tree_id) === uuid.NIL)
 )
 
 const file_path = computed<string>(() => {

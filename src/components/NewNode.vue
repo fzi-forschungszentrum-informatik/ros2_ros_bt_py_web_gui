@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -47,7 +47,6 @@ const selected_parent = ref<NodeStructure | null>(
 )
 
 async function addToTree() {
-
   if (edit_node_store.reference_node === undefined) {
     console.error("Undefined node reference, can't add node to tree")
     return
@@ -61,7 +60,6 @@ async function addToTree() {
 
   edit_node_store.clearNodeHasChanged()
   edit_node_store.editorSelectionChange(new_node_name)
-
 }
 </script>
 

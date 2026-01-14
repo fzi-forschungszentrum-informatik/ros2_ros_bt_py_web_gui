@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2025 FZI Forschungszentrum Informatik
+ *  Copyright 2025-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,6 @@ const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
 
-
 const connection_status_attrs = computed<object>(() => {
   if (!ros_store.connected) {
     return {
@@ -63,28 +62,26 @@ const connection_status_attrs = computed<object>(() => {
     title: 'Connected'
   }
 })
-
-
 </script>
 
 <template>
-    <div class="d-flex align-items-center">
-        <FontAwesomeIcon
-            icon="fa-solid fa-wifi"
-            aria-hidden="true"
-            class="mx-2 fs-4"
-            v-bind="connection_status_attrs"
-        />
+  <div class="d-flex align-items-center">
+    <FontAwesomeIcon
+      icon="fa-solid fa-wifi"
+      aria-hidden="true"
+      class="mx-2 fs-4"
+      v-bind="connection_status_attrs"
+    />
 
-        <button 
-            class="btn btn-outline-contrast" 
-            type="button" 
-            data-bs-toggle="offcanvas" 
-            data-bs-target="#settings"
-        >
-            <FontAwesomeIcon icon="fa-solid fa-cog" />
-        </button>
-    </div>
+    <button
+      class="btn btn-outline-contrast"
+      type="button"
+      data-bs-toggle="offcanvas"
+      data-bs-target="#settings"
+    >
+      <FontAwesomeIcon icon="fa-solid fa-cog" />
+    </button>
+  </div>
 </template>
 
 <style scoped lang="scss">

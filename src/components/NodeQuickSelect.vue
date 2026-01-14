@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2025 FZI Forschungszentrum Informatik
+ *  Copyright 2025-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -35,12 +35,12 @@ import type { DocumentedNode } from '@/types/types'
 import { computed, ref } from 'vue'
 import InlineSvg from 'vue-inline-svg'
 
-import FallbackIcon  from "@/assets/flow_control_icons/Fallback.svg"
-import MemoryFallbackIcon  from "@/assets/flow_control_icons/MemoryFallback.svg"
-import MemorySequenceIcon  from "@/assets/flow_control_icons/MemorySequence.svg"
-import ParallelIcon  from "@/assets/flow_control_icons/Parallel.svg"
-import ParallelFailureTolereanceIcon  from "@/assets/flow_control_icons/ParallelFailureTolerance.svg"
-import SequenceIcon  from "@/assets/flow_control_icons/Sequence.svg"
+import FallbackIcon from '@/assets/flow_control_icons/Fallback.svg'
+import MemoryFallbackIcon from '@/assets/flow_control_icons/MemoryFallback.svg'
+import MemorySequenceIcon from '@/assets/flow_control_icons/MemorySequence.svg'
+import ParallelIcon from '@/assets/flow_control_icons/Parallel.svg'
+import ParallelFailureTolereanceIcon from '@/assets/flow_control_icons/ParallelFailureTolerance.svg'
+import SequenceIcon from '@/assets/flow_control_icons/Sequence.svg'
 
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
@@ -67,10 +67,9 @@ function getNodeCss(node: DocumentedNode): string {
   return css_grab
 }
 
-
 // A helper function that returns the correct URL for a given node name.
 function getIconSrc(nodeName: string): string {
-  switch (nodeName){
+  switch (nodeName) {
     case 'Fallback':
       return FallbackIcon
     case 'MemoryFallback':
@@ -147,5 +146,4 @@ function getIconSrc(nodeName: string): string {
   width: 25px;
   fill: var(--bs-body-color);
 }
-
 </style>

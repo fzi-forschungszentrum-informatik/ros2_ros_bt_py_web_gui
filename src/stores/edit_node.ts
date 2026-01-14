@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,13 +28,29 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DocumentedNode, IOData, NodeIO, NodeOption, NodeStructure, OptionData, UUIDString, ValueTypes } from '@/types/types'
+import type {
+  DocumentedNode,
+  IOData,
+  NodeIO,
+  NodeOption,
+  NodeStructure,
+  OptionData,
+  UUIDString,
+  ValueTypes
+} from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import * as uuid from 'uuid'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, parseOptionRef, prettyprint_type, rosToUuid, serializeNodeOptions, uuidToRos } from '@/utils'
+import {
+  getDefaultValue,
+  parseOptionRef,
+  prettyprint_type,
+  rosToUuid,
+  serializeNodeOptions,
+  uuidToRos
+} from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -138,10 +154,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     new_node_options.value = new_selected_node.options.map((data) => {
       return {
         key: data.key,
-        value: getDefaultValue(
-          prettyprint_type(data.serialized_type),
-          new_selected_node.options
-        )
+        value: getDefaultValue(prettyprint_type(data.serialized_type), new_selected_node.options)
       } as OptionData
     })
     new_node_inputs.value = new_selected_node.inputs.map((data) =>
@@ -271,13 +284,10 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     new_node_class.value = new_reference_node.node_class
     new_node_module.value = new_reference_node.module
 
-    new_node_options.value = new_reference_node.options.map((data) =>{
+    new_node_options.value = new_reference_node.options.map((data) => {
       return {
         key: data.key,
-        value: getDefaultValue(
-          prettyprint_type(data.serialized_type),
-          new_reference_node.options
-        )
+        value: getDefaultValue(prettyprint_type(data.serialized_type), new_reference_node.options)
       } as OptionData
     })
     new_node_inputs.value = new_reference_node.inputs.map((x) =>
@@ -291,11 +301,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_is_morphed.value = true
   }
 
-  function updateParamValue(
-    paramType: "options",
-    key: string,
-    new_value: ValueTypes
-  ) {
+  function updateParamValue(paramType: 'options', key: string, new_value: ValueTypes) {
     node_has_changed.value = true
     function map_fun(x: OptionData): OptionData {
       if (x.key === key) {
@@ -321,9 +327,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       // That is, if options = { foo : int, bar : OptionRef(foo) }
       // ref_keys will be [[bar, foo]]
       function findOptionRefs(ref_list: NodeIO[]): [string, string][] {
-        return ref_list.filter((x) =>
-            prettyprint_type(x.serialized_type).startsWith('OptionRef(')
-          )
+        return ref_list
+          .filter((x) => prettyprint_type(x.serialized_type).startsWith('OptionRef('))
           .map((x): [string, string] => [
             x.key,
             prettyprint_type(x.serialized_type).substring(
@@ -405,7 +410,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       child_ids: [],
       options: serializeNodeOptions(new_node_options.value),
       inputs: [],
-      outputs: [],
+      outputs: []
     }
   }
 

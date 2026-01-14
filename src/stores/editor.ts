@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -195,9 +195,7 @@ export const useEditorStore = defineStore(
     }
 
     function findTree(id: UUIDString): TreeStructure | undefined {
-      return tree_structure_list.value.find(
-        (struc) => rosToUuid(struc.tree_id) === id
-      )
+      return tree_structure_list.value.find((struc) => rosToUuid(struc.tree_id) === id)
     }
 
     return {

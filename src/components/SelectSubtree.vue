@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -45,15 +45,15 @@ const publish_subtrees_id: string = 'publish_subtrees'
 
 const subtree_name = computed<string>(() => {
   if (editor_store.selected_tree.own_id === uuid.NIL) {
-    return "Main Tree"
+    return 'Main Tree'
   }
   const outer_tree = editor_store.findTree(editor_store.selected_tree.parent_id)
   if (outer_tree === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
   const subtree_node = findNode(outer_tree, editor_store.selected_tree.own_id)
   if (subtree_node === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
   return subtree_node.name
 })
@@ -107,17 +107,13 @@ const selectSubtreeModal = useModal({
     }
   }
 })
-
 </script>
 
 <template>
   <div class="input-group my-2">
     <label class="input-group-text"> Tree </label>
 
-    <button
-      class="btn btn-contrast dropdown-toggle"
-      @click="selectSubtreeModal.open"
-    >
+    <button class="btn btn-contrast dropdown-toggle" @click="selectSubtreeModal.open">
       {{ subtree_name }}
     </button>
 

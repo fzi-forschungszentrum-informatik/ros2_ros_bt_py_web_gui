@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -100,10 +100,10 @@ function setLoadLocation(path: string[], dir: boolean) {
         </select>
         <div class="input-group">
           <span class="input-group-text"> Search: </span>
-          <input 
-            v-model="search_term" 
-            type="text" 
-            class="form-control" 
+          <input
+            v-model="search_term"
+            type="text"
+            class="form-control"
             placeholder="Search Folder or File"
           />
         </div>

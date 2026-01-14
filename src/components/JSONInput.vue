@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,10 @@
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useROSStore } from '@/stores/ros'
 import { RosTopicType_Name, type RosType } from '@/types/python_types'
-import type { GetMessageFieldsRequest, GetMessageFieldsResponse } from '@/types/services/GetMessageFields'
+import type {
+  GetMessageFieldsRequest,
+  GetMessageFieldsResponse
+} from '@/types/services/GetMessageFields'
 import type { OptionData } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import JSONEditor from 'jsoneditor'
@@ -95,7 +98,7 @@ function handleChange() {
 
 function fetchRosMessageDefault() {
   if (topic_ref_param.value === undefined) {
-    console.warn("Nothing to fetch")
+    console.warn('Nothing to fetch')
     return
   }
   const message_type = (topic_ref_param.value.value.value as RosType).type_str
@@ -133,7 +136,7 @@ function fetchRosMessageDefault() {
       })
     }
   )
-  console.log("Sent message fields request")
+  console.log('Sent message fields request')
 }
 
 // This fires when param type changes and updates the editor accordingly
@@ -181,11 +184,7 @@ onUnmounted(() => {
     <label>
       {{ param?.key }}
     </label>
-    <button
-      v-if="topic_ref_param"
-      class="btn btn-primary btn-sm"
-      @click="fetchRosMessageDefault"
-    >
+    <button v-if="topic_ref_param" class="btn btn-primary btn-sm" @click="fetchRosMessageDefault">
       Fetch default message fields
     </button>
   </div>

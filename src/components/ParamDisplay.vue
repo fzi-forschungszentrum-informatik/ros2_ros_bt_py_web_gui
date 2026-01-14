@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -29,9 +29,9 @@
  -->
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
-import { useEditorStore } from '@/stores/editor';
+import { useEditorStore } from '@/stores/editor'
 import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
-import { compareRosUuid } from '@/utils';
+import { compareRosUuid } from '@/utils'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -57,8 +57,8 @@ const connected_edges = computed<Wiring[]>(() => {
   if (editor_store.current_tree.structure === undefined) {
     return []
   }
-  return editor_store.current_tree.structure.data_wirings.filter((wiring) =>
-    matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
+  return editor_store.current_tree.structure.data_wirings.filter(
+    (wiring) => matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
   )
 })
 
@@ -66,9 +66,11 @@ function matchEndpoint(endpoint: NodeDataLocation): boolean {
   if (edit_node_store.selected_node === undefined) {
     return false
   }
-  return endpoint.data_key === props.data_key &&
+  return (
+    endpoint.data_key === props.data_key &&
     endpoint.data_kind === props.category &&
     compareRosUuid(endpoint.node_id, edit_node_store.selected_node.node_id)
+  )
 }
 
 function printOtherEndpoint(wiring: Wiring): string {
@@ -82,15 +84,14 @@ function printOtherEndpoint(wiring: Wiring): string {
   if (endpoint === null) {
     return 'Other Endpoint'
   }
-  const node = editor_store.current_tree.structure!.nodes.find(
-    (node) => compareRosUuid(node.node_id, endpoint.node_id)
+  const node = editor_store.current_tree.structure!.nodes.find((node) =>
+    compareRosUuid(node.node_id, endpoint.node_id)
   )
   if (node === undefined) {
     return 'Other Endpoint'
   }
   return node.name + '.' + endpoint.data_key
 }
-
 </script>
 
 <template>

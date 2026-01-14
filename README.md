@@ -2,7 +2,6 @@
 
 Vue3 implementation of the `ros_bt_py` web gui.
 
-
 ## Project Setup
 
 ```sh

@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -69,10 +69,7 @@ const nodes = computed<DocumentedNode[]>(() => {
 </script>
 <template>
   <div class="border rounded m-1 pb-2 d-flex flex-column">
-    <div
-      class="text-center cursor-pointer m-2"
-      @click="nodelist_collapsed = !nodelist_collapsed"
-    >
+    <div class="text-center cursor-pointer m-2" @click="nodelist_collapsed = !nodelist_collapsed">
       Node List
       <FontAwesomeIcon
         :icon="'fa-solid ' + (nodelist_collapsed ? 'fa-angle-down' : 'fa-angle-up')"

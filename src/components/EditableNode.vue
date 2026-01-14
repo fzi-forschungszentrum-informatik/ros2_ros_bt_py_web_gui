@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -81,14 +81,13 @@ const show_description = ref<boolean>(false)
     </div>
     <div
       v-if="
-        edit_node_store.reference_node && 
-        getShortDoc(edit_node_store.reference_node.doc) !== ''
-      " 
+        edit_node_store.reference_node && getShortDoc(edit_node_store.reference_node.doc) !== ''
+      "
       class="mb-3"
     >
       <div
-        class="d-flex align-items-baseline cursor-pointer" 
-        @click="() => show_description = !show_description"
+        class="d-flex align-items-baseline cursor-pointer"
+        @click="() => (show_description = !show_description)"
       >
         <h5>Description</h5>
         <FontAwesomeIcon

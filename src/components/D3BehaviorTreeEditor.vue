@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -45,7 +45,7 @@ import type {
   NodeOption,
   NodeIO,
   Wiring,
-  UUIDString,
+  UUIDString
 } from '@/types/types'
 import { Position, IOKind, NodeStateValues } from '@/types/types'
 import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
@@ -58,7 +58,14 @@ import { flextree, type FlextreeNode } from 'd3-flextree'
 import * as uuid from 'uuid'
 import { rosToUuid, uuidToRos } from '@/utils'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import { faBolt, faCheck, faExclamation, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
+import {
+  faBolt,
+  faCheck,
+  faExclamation,
+  faPause,
+  faPowerOff,
+  faXmark
+} from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -89,7 +96,7 @@ const pan_rate: number = 30
 const drag_pan_boundary: number = 50
 const pan_per_frame: number = 10.0
 
-const line_wrap_regex: RegExp = /[a-z0-9][A-Z]|[_\- ][a-zA-Z]/gd
+const line_wrap_regex: RegExp = /[a-z0-9][A-Z]|[_\- ][a-zA-Z]/dg
 
 const io_gripper_size: number = 15
 const io_gripper_spacing: number = 10
@@ -153,7 +160,7 @@ function resetView() {
   const viewport = d3.select(viewport_ref.value)
   const height = viewport.node()!.getBoundingClientRect().height
   const zoom_factor = d3.zoomTransform(viewport_ref.value).k
-  const offset = height * 0.5 / zoom_factor - 60.0
+  const offset = (height * 0.5) / zoom_factor - 60.0
 
   viewport.call(zoomObject.translateTo, 0.0, offset)
 }
@@ -176,7 +183,7 @@ function buildNodeMessage(node: DocumentedNode): NodeStructure {
     child_ids: [],
     options: serializeNodeOptions(options),
     inputs: [],
-    outputs: [],
+    outputs: []
   }
 }
 
@@ -253,23 +260,18 @@ function dragPanTimerHandler() {
 }
 
 watch(
-  [
-    () => editor_store.current_tree.structure,
-    () => editor_store.is_layer_mode,
-  ],
+  [() => editor_store.current_tree.structure, () => editor_store.is_layer_mode],
   drawEverything,
   { immediate: true }
 )
 function drawEverything() {
-  if (svg_g_ref.value === undefined ||
-    g_vertices_ref.value === undefined
-  ) {
+  if (svg_g_ref.value === undefined || g_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
   }
 
   if (editor_store.current_tree.structure === undefined) {
-    console.warn("Nothing to draw")
+    console.warn('Nothing to draw')
     return
   }
 
@@ -277,15 +279,15 @@ function drawEverything() {
   tree_transition = d3
     .select<d3.BaseType, unknown>(svg_g_ref.value)
     .transition('tree-transition')
-      .duration(100)
-      .ease(d3.easeQuad)
+    .duration(100)
+    .ease(d3.easeQuad)
 
   // Strips potentially additional properties
   const onlyKeyAndType = (nodeData: NodeIO) =>
     ({
       key: nodeData.key,
       serialized_type: nodeData.serialized_type
-    }) as TrimmedNodeData
+    } as TrimmedNodeData)
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
@@ -301,7 +303,7 @@ function drawEverything() {
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
       size: { width: 1, height: 1 },
-      offset: {x: 0, y: 0}
+      offset: { x: 0, y: 0 }
     } as BTEditorNode
   })
 
@@ -316,7 +318,7 @@ function drawEverything() {
     outputs: [],
     options: [],
     size: { width: 0, height: 0 },
-    offset: {x: 0, y: 0}
+    offset: { x: 0, y: 0 }
   }
 
   if (editor_nodes.findIndex((x) => x.node_id === uuid.NIL) < 0) {
@@ -378,7 +380,7 @@ function drawEverything() {
     .join(drawNewNodes)
     .call(updateNodeBody)
 
-    updateNodeState()
+  updateNodeState()
 
   // Since we want to return the tree, we can't use the .call() syntax here
   const tree_layout = layoutTree(node, root)
@@ -414,21 +416,18 @@ function drawNewNodes(
     })
   }
 
-  group.append<SVGRectElement>('rect')
-      .classed(node_body_css_class, true)
+  group.append<SVGRectElement>('rect').classed(node_body_css_class, true)
 
-  group.append<SVGTextElement>('text')
-      .classed(node_name_css_class, true)
+  group.append<SVGTextElement>('text').classed(node_name_css_class, true)
 
-  group.append<SVGTextElement>('text')
-      .classed(node_class_css_class, true)
+  group.append<SVGTextElement>('text').classed(node_class_css_class, true)
 
-  group.append('svg')
-      .classed(node_state_css_class, true)
-      .attr('width', icon_width)
-      .attr('height', icon_width)
+  group
+    .append('svg')
+    .classed(node_state_css_class, true)
+    .attr('width', icon_width)
+    .attr('height', icon_width)
     .append('path')
-
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
@@ -453,11 +452,7 @@ function getIcon(state: NodeStateValues | undefined) {
   }
 }
 
-function layoutText(
-  element: SVGGElement,
-  data: d3.HierarchyNode<BTEditorNode>,
-): number {
-
+function layoutText(element: SVGGElement, data: d3.HierarchyNode<BTEditorNode>): number {
   // Track width of longest line and return that for box sizing
   let max_width: number = 0
 
@@ -469,17 +464,15 @@ function layoutText(
   const node_name = data.data.name
   const node_class = data.data.node_class
 
-  name_elem.selectAll<SVGTSpanElement, never>('tspan')
-    .remove()
+  name_elem.selectAll<SVGTSpanElement, never>('tspan').remove()
 
-  class_elem.selectAll<SVGTSpanElement, never>('tspan')
-    .remove()
+  class_elem.selectAll<SVGTSpanElement, never>('tspan').remove()
 
   let title_lines: number = 0
 
   // Find positions for potential line breaks
   let wrap_indices: number[] = [0]
-  for(const match of node_name.matchAll(line_wrap_regex)) {
+  for (const match of node_name.matchAll(line_wrap_regex)) {
     wrap_indices.push(match.index + 1)
   }
   wrap_indices.push(node_name.length)
@@ -488,7 +481,6 @@ function layoutText(
   // Place text into multiple lines
   let current_index: number = 0
   while (current_index < node_name.length) {
-
     // Prepare DOM-element for next line
     const tspan = name_elem.append('tspan')
     tspan.attr('x', 0)
@@ -527,7 +519,7 @@ function layoutText(
 
   // Find positions for potential line breaks
   wrap_indices = [0]
-  for(const match of node_class.matchAll(line_wrap_regex)) {
+  for (const match of node_class.matchAll(line_wrap_regex)) {
     wrap_indices.push(match.index + 1)
   }
   wrap_indices.push(node_class.length)
@@ -536,7 +528,6 @@ function layoutText(
   // Place text into multiple lines
   current_index = 0
   while (current_index < node_class.length) {
-
     // Prepare DOM-element for next line
     const tspan = class_elem.append('tspan')
     tspan.attr('x', 0)
@@ -545,9 +536,7 @@ function layoutText(
     }
 
     // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
-    let next_idx: number = wrap_indices.findIndex(
-      (val) => val < current_index + class_line_length
-    )
+    let next_idx: number = wrap_indices.findIndex((val) => val < current_index + class_line_length)
 
     // If the next word is longer than the max line length, print it anyway
     if (wrap_indices[next_idx] === current_index) {
@@ -566,59 +555,49 @@ function layoutText(
 }
 
 function updateNodeBody(
-  selection: d3.Selection<
-    SVGGElement,
-    d3.HierarchyNode<BTEditorNode>,
-    SVGGElement,
-    never
-  >
+  selection: d3.Selection<SVGGElement, d3.HierarchyNode<BTEditorNode>, SVGGElement, never>
 ) {
-
-  selection
-      .each(function (node)
-        { node.data.size.width = layoutText(this, node) }
-      )
+  selection.each(function (node) {
+    node.data.size.width = layoutText(this, node)
+  })
 
   // Reset width and height of background rect
   selection
     .select<SVGRectElement>('.' + node_body_css_class)
-      .attr('x', null)
-      .attr('y', null)
-      .attr('width', null)
-      .attr('height', null)
+    .attr('x', null)
+    .attr('y', null)
+    .attr('width', null)
+    .attr('height', null)
 
   // Get width and height from text content
   selection.each(function (d) {
     const inputs = d.data.inputs || []
     const outputs = d.data.outputs || []
     const max_num_grippers = Math.max(inputs.length, outputs.length)
-    const min_height = io_gripper_size * max_num_grippers +
-      io_gripper_spacing * (max_num_grippers + 1)
+    const min_height =
+      io_gripper_size * max_num_grippers + io_gripper_spacing * (max_num_grippers + 1)
     const rect = this.getBBox()
     d.data.offset.x = rect.x - node_padding
     d.data.offset.y = rect.y - 0.5 * node_padding
     // Width has already been set by text layout function
     d.data.size.width += 2 * node_padding
-    d.data.size.height = Math.max(rect.height +  1.5 * node_padding, min_height)
+    d.data.size.height = Math.max(rect.height + 1.5 * node_padding, min_height)
   })
 
   selection
     .select<SVGRectElement>('.' + node_body_css_class)
-      .attr('x', (d) => d.data.offset.x)
-      .attr('y', (d) => d.data.offset.y)
-      .attr('width', (d) => d.data.size.width)
-      .attr('height', (d) => d.data.size.height)
+    .attr('x', (d) => d.data.offset.x)
+    .attr('y', (d) => d.data.offset.y)
+    .attr('width', (d) => d.data.size.width)
+    .attr('height', (d) => d.data.size.height)
 
   return selection
 }
 
-watch(
-  () => editor_store.current_tree.state,
-  updateNodeState
-)
+watch(() => editor_store.current_tree.state, updateNodeState)
 function updateNodeState() {
   if (g_vertices_ref.value === undefined) {
-    console.warn("DOM is broken")
+    console.warn('DOM is broken')
     return
   }
 
@@ -626,19 +605,20 @@ function updateNodeState() {
 
   const node = g_vertex
     .selectAll<SVGSVGElement, d3.HierarchyNode<BTEditorNode>>('.' + tree_node_css_class)
-      .each((node) => {
-        if (editor_store.current_tree.state === undefined) {
-          console.warn("No state to update")
-          return
-        }
-        const state = editor_store.current_tree.state.node_states.find(
-          (state) => rosToUuid(state.node_id) === node.data.node_id
-        )
-        if (state !== undefined) {
-          node.data.state = state.state
-        }
-      })
-  node.select<SVGRectElement>('.' + node_body_css_class)
+    .each((node) => {
+      if (editor_store.current_tree.state === undefined) {
+        console.warn('No state to update')
+        return
+      }
+      const state = editor_store.current_tree.state.node_states.find(
+        (state) => rosToUuid(state.node_id) === node.data.node_id
+      )
+      if (state !== undefined) {
+        node.data.state = state.state
+      }
+    })
+  node
+    .select<SVGRectElement>('.' + node_body_css_class)
     .style('stroke', (d) => {
       switch (d.data.state) {
         case NodeStateValues.RUNNING:
@@ -664,32 +644,28 @@ function updateNodeState() {
         return 'var(--node-bg-default)'
       }
     })
-  node.select<SVGElement>('.' + node_state_css_class)
-      .attr('viewBox', (node) => {
-        const icon = getIcon(node.data.state)
-        return "0 0 " + icon[0] + " " + icon[1]
-      })
-      .attr('x', (node) => node.data.size.width - icon_width - 2 * node_padding)
-      .attr('y', (node) => node.data.offset.y + node_padding)
+  node
+    .select<SVGElement>('.' + node_state_css_class)
+    .attr('viewBox', (node) => {
+      const icon = getIcon(node.data.state)
+      return '0 0 ' + icon[0] + ' ' + icon[1]
+    })
+    .attr('x', (node) => node.data.size.width - icon_width - 2 * node_padding)
+    .attr('y', (node) => node.data.offset.y + node_padding)
     .select<SVGPathElement>('path')
-      .attr('d', (node) => {
-        const icon = getIcon(node.data.state)
-        if (typeof icon[4] === "string") {
-          return icon[4]
-        } else {
-          console.warn("Potentially unhandled multivalue path", icon[4])
-          return icon[4].join('')
-        }
-      })
+    .attr('d', (node) => {
+      const icon = getIcon(node.data.state)
+      if (typeof icon[4] === 'string') {
+        return icon[4]
+      } else {
+        console.warn('Potentially unhandled multivalue path', icon[4])
+        return icon[4].join('')
+      }
+    })
 }
 
 function layoutTree(
-  selection: d3.Selection<
-    SVGGElement,
-    d3.HierarchyNode<BTEditorNode>,
-    SVGGElement,
-    never
-  >,
+  selection: d3.Selection<SVGGElement, d3.HierarchyNode<BTEditorNode>, SVGGElement, never>,
   root: d3.HierarchyNode<BTEditorNode>
 ): FlextreeNode<BTEditorNode> {
   // If the tree is in layer_mode, we have to get the max height for each layer
@@ -755,9 +731,7 @@ function drawEdges(tree_layout: FlextreeNode<BTEditorNode>) {
     .data(
       tree_layout
         .links()
-        .filter(
-          (link: d3.HierarchyLink<BTEditorNode>) => link.source.data.node_id !== uuid.NIL
-        ),
+        .filter((link: d3.HierarchyLink<BTEditorNode>) => link.source.data.node_id !== uuid.NIL),
       (link) => link.source.id! + '###' + link.target.id!
     )
     .join('path')
@@ -776,10 +750,7 @@ function drawEdges(tree_layout: FlextreeNode<BTEditorNode>) {
         })
         .target((link: HierarchyLink<BTEditorNode>) => {
           const target = link.target as FlextreeNode<BTEditorNode>
-          return [
-            target.x + target.data.offset.x,
-            target.y + target.data.offset.y
-          ]
+          return [target.x + target.data.offset.x, target.y + target.data.offset.y]
         })
     )
 }
@@ -871,10 +842,9 @@ function drawDropTargets(tree_layout: FlextreeNode<BTEditorNode>) {
       return x
     })
     .attr('y', (d) => {
-      if (d.position === Position.ROOT)
-    {
-      return -0.5 * node_spacing
-    }
+      if (d.position === Position.ROOT) {
+        return -0.5 * node_spacing
+      }
       let y = d.node.y + d.node.data.offset.y
       if (d.position === Position.TOP) {
         y -= 0.5 * node_spacing
@@ -931,10 +901,7 @@ async function moveExistingNode(drop_target: DropTarget) {
     return
   }
 
-  if (
-    drop_target.position === Position.LEFT ||
-    drop_target.position === Position.RIGHT
-  ) {
+  if (drop_target.position === Position.LEFT || drop_target.position === Position.RIGHT) {
     const parent_node_id = drop_target.node.parent.data.node_id
     let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
@@ -943,9 +910,10 @@ async function moveExistingNode(drop_target: DropTarget) {
     // If the node is moved in it's own row (same parent), we need to offset the index
     if (
       parent_node_id === editor_store.dragging_existing_node.parent!.data.node_id &&
-      index > drop_target.node.parent.children!.findIndex(
-        (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
-      )
+      index >
+        drop_target.node.parent.children!.findIndex(
+          (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
+        )
     ) {
       index--
     }
@@ -962,9 +930,10 @@ async function moveExistingNode(drop_target: DropTarget) {
     // If the node is moved in it's own row (same parent), we need to offset the index
     if (
       parent_node_id === editor_store.dragging_existing_node.parent!.data.node_id &&
-      index > drop_target.node.parent.children!.findIndex(
-        (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
-      )
+      index >
+        drop_target.node.parent.children!.findIndex(
+          (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
+        )
     ) {
       index--
     }
@@ -977,12 +946,16 @@ async function moveExistingNode(drop_target: DropTarget) {
   }
 
   if (drop_target.position === Position.CENTER) {
-    await replaceNode(drop_target.node.data.node_id, drop_target.node.data.name, target_node_id, target_node_name)
+    await replaceNode(
+      drop_target.node.data.node_id,
+      drop_target.node.data.name,
+      target_node_id,
+      target_node_name
+    )
     return
   }
 
   console.warn("Couldn't identify drop target position, this should never happen")
-
 }
 
 watchEffect(toggleExistingNodeTargets)
@@ -1034,12 +1007,13 @@ function toggleExistingNodeTargets() {
           return (
             editor_store.dragging_existing_node!.data.max_children !== -1 &&
             editor_store.dragging_existing_node!.data.child_ids.length >=
-            editor_store.dragging_existing_node!.data.max_children
+              editor_store.dragging_existing_node!.data.max_children
           )
         case Position.BOTTOM:
           return (
             drop_target.node.data.max_children !== -1 &&
-            drop_target.node.data.node_id !== editor_store.dragging_existing_node!.parent!.data.node_id &&
+            drop_target.node.data.node_id !==
+              editor_store.dragging_existing_node!.parent!.data.node_id &&
             drop_target.node.data.child_ids.length >= drop_target.node.data.max_children
           )
         case Position.LEFT:
@@ -1052,7 +1026,7 @@ function toggleExistingNodeTargets() {
               drop_target.node.parent!.data.max_children
           )
         case Position.ROOT:
-          // This should never happen, as an existing node implies a non-empty tree
+        // This should never happen, as an existing node implies a non-empty tree
         default:
           return true
       }
@@ -1061,7 +1035,7 @@ function toggleExistingNodeTargets() {
 }
 
 async function addNewNode(drop_target: DropTarget) {
-  if (editor_store.dragging_new_node === undefined){
+  if (editor_store.dragging_new_node === undefined) {
     console.warn('Tried to add new node by dragging but none selected')
     return
   }
@@ -1084,10 +1058,7 @@ async function addNewNode(drop_target: DropTarget) {
     return
   }
 
-  if (
-    drop_target.position === Position.LEFT ||
-    drop_target.position === Position.RIGHT
-  ) {
+  if (drop_target.position === Position.LEFT || drop_target.position === Position.RIGHT) {
     const parent_node_id = drop_target.node.parent.data.node_id
     let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
@@ -1114,12 +1085,16 @@ async function addNewNode(drop_target: DropTarget) {
 
   if (drop_target.position === Position.CENTER) {
     const new_node_id = await addNode(msg, uuid.NIL, -1)
-    await replaceNode(drop_target.node.data.node_id, drop_target.node.data.name, new_node_id, msg.name)
+    await replaceNode(
+      drop_target.node.data.node_id,
+      drop_target.node.data.name,
+      new_node_id,
+      msg.name
+    )
     return
   }
 
   console.warn("Couldn't identify drop target position, this should never happen")
-
 }
 
 watchEffect(toggleNewNodeTargets)
@@ -1192,7 +1167,11 @@ function drawDataGraph(tree_layout: FlextreeNode<BTEditorNode>, data_wirings: Wi
         key: input.key,
         type: input.serialized_type,
         x: node.x + node.data.offset.x - node.data.size.width * 0.5 - io_gripper_size,
-        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        y:
+          node.y +
+          node.data.offset.y +
+          io_gripper_spacing +
+          index * (io_gripper_size + io_gripper_spacing)
       })
     })
     node.data.outputs.map((output: TrimmedNodeData, index: number) => {
@@ -1203,7 +1182,11 @@ function drawDataGraph(tree_layout: FlextreeNode<BTEditorNode>, data_wirings: Wi
         key: output.key,
         type: output.serialized_type,
         x: node.x + node.data.offset.x + node.data.size.width * 0.5,
-        y: node.y + node.data.offset.y + io_gripper_spacing + index * (io_gripper_size + io_gripper_spacing)
+        y:
+          node.y +
+          node.data.offset.y +
+          io_gripper_spacing +
+          index * (io_gripper_size + io_gripper_spacing)
       })
     })
   })
@@ -1220,26 +1203,26 @@ function drawDataGraph(tree_layout: FlextreeNode<BTEditorNode>, data_wirings: Wi
     // but that appears to be wrong.
     g_data_vertices
       .select('.' + data_vert_grip_css_class)
-        .on('mousedown.drawedge', (ev, term: DataEdgeTerminal) => {
-          editor_store.startDrawingDataEdge(term)
-        })
-        .on('mouseup.drawedge', (ev, term: DataEdgeTerminal) => {
-          if (editor_store.data_edge_endpoint === undefined) {
-            console.warn('Unintended data edge draw')
-            return
-          }
+      .on('mousedown.drawedge', (ev, term: DataEdgeTerminal) => {
+        editor_store.startDrawingDataEdge(term)
+      })
+      .on('mouseup.drawedge', (ev, term: DataEdgeTerminal) => {
+        if (editor_store.data_edge_endpoint === undefined) {
+          console.warn('Unintended data edge draw')
+          return
+        }
 
-          if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
-            console.warn('Invalid edge')
-            return
-          }
+        if (!typesCompatible(term, editor_store.data_edge_endpoint)) {
+          console.warn('Invalid edge')
+          return
+        }
 
-          if (term.kind === IOKind.INPUT) {
-            addNewDataEdge(editor_store.data_edge_endpoint, term)
-          } else {
-            addNewDataEdge(term, editor_store.data_edge_endpoint)
-          }
-        })
+        if (term.kind === IOKind.INPUT) {
+          addNewDataEdge(editor_store.data_edge_endpoint, term)
+        } else {
+          addNewDataEdge(term, editor_store.data_edge_endpoint)
+        }
+      })
   }
 
   // Since types of DataVerts can change, type values are added out here
@@ -1396,45 +1379,45 @@ function drawDataEdges(
         d.target.index
     )
     .join('path')
-      .classed(data_edge_css_class, true)
-      .on('click.select', (event, edge: DataEdge) => {
-        editor_store.selectEdge(edge.wiring)
-        event.stopPropagation()
-      })
-      .on('mouseover.highlight', function (ev, edge: DataEdge) {
-        if (editor_store.is_dragging) {
-          return // No highlights while dragging
-        }
-        g_data_vertices
-          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-          .dispatch('mouseover')
-          .attr('id', (term: DataEdgeTerminal) =>
-            term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
-          )
-          //Hide target label
-          .select('.' + data_vert_label_css_class)
-          .attr('visibility', (term: DataEdgeTerminal) => {
-            if (term.kind === IOKind.INPUT) {
-              return 'hidden'
-            }
-            return 'visible'
-          })
+    .classed(data_edge_css_class, true)
+    .on('click.select', (event, edge: DataEdge) => {
+      editor_store.selectEdge(edge.wiring)
+      event.stopPropagation()
+    })
+    .on('mouseover.highlight', function (ev, edge: DataEdge) {
+      if (editor_store.is_dragging) {
+        return // No highlights while dragging
+      }
+      g_data_vertices
+        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+        .dispatch('mouseover')
+        .attr('id', (term: DataEdgeTerminal) =>
+          term.kind === IOKind.INPUT ? data_vert2_highlight_css_id : data_vert1_highlight_css_id
+        )
+        //Hide target label
+        .select('.' + data_vert_label_css_class)
+        .attr('visibility', (term: DataEdgeTerminal) => {
+          if (term.kind === IOKind.INPUT) {
+            return 'hidden'
+          }
+          return 'visible'
+        })
 
-        d3.select(this)
-          .classed(data_graph_hover_css_class, true)
-          .attr('id', data_edge_highlight_css_id)
-      })
-      .on('mouseout.highlight', function (ev, edge: DataEdge) {
-        if (editor_store.is_dragging) {
-          return // No highlights while dragging
-        }
-        g_data_vertices
-          .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
-          .dispatch('mouseout')
-        d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
-      })
+      d3.select(this)
+        .classed(data_graph_hover_css_class, true)
+        .attr('id', data_edge_highlight_css_id)
+    })
+    .on('mouseout.highlight', function (ev, edge: DataEdge) {
+      if (editor_store.is_dragging) {
+        return // No highlights while dragging
+      }
+      g_data_vertices
+        .filter((term: DataEdgeTerminal) => term === edge.source || term === edge.target)
+        .dispatch('mouseout')
+      d3.select(this).classed(data_graph_hover_css_class, false).attr('id', null)
+    })
     .transition(tree_transition)
-      .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
+    .attr('d', (edge: DataEdge) => drawDataLine(edge.source, edge.target))
 }
 
 function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
@@ -1445,8 +1428,7 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
     .curve(d3.curveCatmullRom.alpha(0.9))
   let y_offset = 0
   if (Math.abs(source.y - target.y) < io_edge_bump_thresh) {
-    y_offset = Math.min(source.y, target.y) -
-      io_edge_bump_factor * Math.abs(source.x - target.x)
+    y_offset = Math.min(source.y, target.y) - io_edge_bump_factor * Math.abs(source.x - target.x)
   }
   const source_offset: DataEdgePoint = {
     x: source.x + io_edge_offset,
@@ -1463,13 +1445,15 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
   // Backwards edges require some extra work
   if (source.x > target.x) {
     if (y_offset === 0) {
-      source_offset.y += io_edge_curve_factor * (target.y - source.y) +
+      source_offset.y +=
+        io_edge_curve_factor * (target.y - source.y) +
         Math.sign(target.y - source.y) * io_edge_curve_offset
-      target_offset.y += io_edge_curve_factor * (source.y - target.y) +
+      target_offset.y +=
+        io_edge_curve_factor * (source.y - target.y) +
         Math.sign(source.y - target.y) * io_edge_curve_offset
     } else {
-      const curve_offset = io_edge_curve_offset +
-        io_edge_curve_factor * Math.abs(source.x - target.x)
+      const curve_offset =
+        io_edge_curve_offset + io_edge_curve_factor * Math.abs(source.x - target.x)
       source_offset.y -= curve_offset
       midpoint.y -= curve_offset * 4
       target_offset.y -= curve_offset

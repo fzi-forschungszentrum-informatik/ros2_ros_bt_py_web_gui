@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,7 +27,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { UUIDMsg } from "../types"
+import type { UUIDMsg } from '../types'
 
 export type MoveNodeRequest = {
   node_id: UUIDMsg

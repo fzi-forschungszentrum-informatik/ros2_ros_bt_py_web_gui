@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -31,7 +31,6 @@
 import { ref } from 'vue'
 import { useNodesStore } from '@/stores/nodes'
 
-
 const nodes_store = useNodesStore()
 
 const collapsed = ref<boolean>(true)
@@ -45,7 +44,6 @@ function handlePackageNameChange(event: Event) {
   const target = event.target as HTMLInputElement
   package_name.value = target.value
 }
-
 </script>
 
 <template>
@@ -58,8 +56,8 @@ function handlePackageNameChange(event: Event) {
     <div v-if="!collapsed" class="m-2">
       <div class="d-grid gap-2 mb-2">
         <button
-          id="refresh" 
-          class="btn btn-block btn-primary mt-2" 
+          id="refresh"
+          class="btn btn-block btn-primary mt-2"
           @click="() => nodes_store.getNodes('')"
         >
           Refresh

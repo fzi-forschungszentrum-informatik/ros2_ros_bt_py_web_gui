@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -77,9 +77,7 @@ const param_type = computed<string>(() => {
 const input_type_values = ['int', 'float', 'bool', 'str', unset_ref_str]
 //  ...and gives the appropriate attributes.
 const input_attrs = computed<object | undefined>(() => {
-  if (param.value === undefined ||
-    !input_type_values.includes(param_type.value)
-  ) {
+  if (param.value === undefined || !input_type_values.includes(param_type.value)) {
     return undefined
   }
   let type: string,
@@ -169,7 +167,7 @@ function onFocus() {
       :category="props.category"
       :data_key="props.data_key"
     />
-    
+
     <MathOperatorParam
       v-else-if="param_type === MathUnaryOperator_Name"
       :category="props.category"

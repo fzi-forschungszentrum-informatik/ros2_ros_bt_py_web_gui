@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2025 FZI Forschungszentrum Informatik
+ *  Copyright 2025-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -28,14 +28,13 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import * as uuid from 'uuid';
+import * as uuid from 'uuid'
 import { VueFinalModal } from 'vue-final-modal'
-import ListSubtrees from './ListSubtrees.vue';
+import ListSubtrees from './ListSubtrees.vue'
 
 const emit = defineEmits<{
   (e: 'close'): void
 }>()
-
 </script>
 
 <template>
@@ -51,7 +50,7 @@ const emit = defineEmits<{
     <div class="m-4">
       <h1 class="fs-1 mb-3">Select Tree to Display</h1>
 
-      <div class="overflow-auto" style="max-height: 80vh;">
+      <div class="overflow-auto" style="max-height: 80vh">
         <ListSubtrees :parent_id="uuid.NIL" :tree_id="uuid.NIL" @close="emit('close')" />
       </div>
     </div>

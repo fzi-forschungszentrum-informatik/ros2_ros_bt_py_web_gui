@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -111,7 +111,7 @@ export const enum NodeStateValues {
   UNASSIGNED = 'UNASSIGNED',
   ASSIGNED = 'ASSIGNED',
   BROKEN = 'BROKEN',
-  PAUSED = 'PAUSED',
+  PAUSED = 'PAUSED'
 }
 
 export type NodeState = {
@@ -125,7 +125,7 @@ export const enum TreeStateValues {
   TICKING = 'TICKING',
   WAITING_FOR_TICK = 'WAITING_FOR_TICK',
   STOP_REQUESTED = 'STOP_REQUESTED',
-  ERROR = 'ERROR',
+  ERROR = 'ERROR'
 }
 
 export type TreeState = {
@@ -159,8 +159,6 @@ export type Tree = {
   state?: TreeState
   data?: TreeData
 }
-
-
 
 export type DataEdgePoint = {
   x: number
@@ -221,12 +219,10 @@ export type BTEditorNode = {
   options: TrimmedNodeData[]
 
   size: { width: number; height: number }
-  offset: { x: number, y: number }
+  offset: { x: number; y: number }
 
   state?: NodeStateValues
 }
-
-
 
 export type Package = {
   package: string
@@ -310,4 +306,3 @@ export type IOData = {
   key: string
   type: string
 }
-

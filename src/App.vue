@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -35,7 +35,14 @@ import { usePackageStore } from './stores/package'
 import { useNodesStore } from './stores/nodes'
 import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
-import type { MessageTypes, NodeStructure, Packages, TreeDataList, TreeStateList, TreeStructureList } from './types/types'
+import type {
+  MessageTypes,
+  NodeStructure,
+  Packages,
+  TreeDataList,
+  TreeStateList,
+  TreeStructureList
+} from './types/types'
 import { useEditorStore } from './stores/editor'
 import { useEditNodeStore } from './stores/edit_node'
 import NodeList from './components/NodeList.vue'
@@ -54,7 +61,6 @@ import TickControls from './components/TickControls.vue'
 import NodeQuickSelect from './components/NodeQuickSelect.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import ConnectionStatus from './components/ConnectionStatus.vue'
-
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
@@ -160,7 +166,7 @@ watch(
   () => ros_store.connected,
   (connected) => {
     if (connected) {
-      console.log("Update subscriptions")
+      console.log('Update subscriptions')
       updateTreeSubscription()
       updateMessagesSubscription()
       updateChannelssubscription()
@@ -175,7 +181,6 @@ onMounted(() => {
 </script>
 
 <template>
-
   <div id="settings" class="offcanvas offcanvas-start" tabindex="-1">
     <div class="offcanvas-header">
       <h5 class="offcanvas-title">Settings</h5>
@@ -192,7 +197,6 @@ onMounted(() => {
     v-if="execution_bar_visible"
     class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-
     <ConnectionStatus />
 
     <TickControls />

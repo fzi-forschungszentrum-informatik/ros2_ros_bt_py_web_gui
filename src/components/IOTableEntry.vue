@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import type { NodeIO } from '@/types/types'
 import { prettyprint_type } from '@/utils'
-import { ref } from 'vue';
+import { ref } from 'vue'
 
 defineProps<{
   io_node_data: NodeIO[]
@@ -38,7 +38,6 @@ defineProps<{
 }>()
 
 const show_details = ref<boolean>(true)
-
 </script>
 
 <template>
@@ -49,7 +48,7 @@ const show_details = ref<boolean>(true)
         :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
         class="cursor-pointer ms-auto"
-        @click="() => show_details = !show_details"
+        @click="() => (show_details = !show_details)"
       />
     </div>
     <template v-if="show_details">

@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -38,7 +38,10 @@ import LoadFileModal from './modals/LoadFileModal.vue'
 import { useEditorStore } from '@/stores/editor'
 import { rosToUuid } from '@/utils'
 import { computed, onMounted, ref } from 'vue'
-import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
+import type {
+  GetStorageFoldersRequest,
+  GetStorageFoldersResponse
+} from '@/types/services/GetStorageFolders'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 
 const ros_store = useROSStore()
@@ -48,9 +51,7 @@ const storage_folders = ref<string[]>([])
 
 const quick_save_location = computed<[string, string]>(() => {
   let quick_save_path = editor_store.quick_save_location
-  const tree = editor_store.tree_structure_list.find(
-    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
-  )
+  const tree = editor_store.tree_structure_list.find((tree) => rosToUuid(tree.tree_id) === uuid.NIL)
   if (quick_save_path === '' && tree !== undefined) {
     quick_save_path = tree.path
   }
@@ -58,9 +59,7 @@ const quick_save_location = computed<[string, string]>(() => {
     return ['', '']
   }
   quick_save_path = quick_save_path.replace('file://', '')
-  const location = storage_folders.value.find(
-    (loc) => quick_save_path.startsWith(loc + '/')
-  )
+  const location = storage_folders.value.find((loc) => quick_save_path.startsWith(loc + '/'))
   if (location === undefined) {
     return ['', '']
   }
@@ -68,8 +67,7 @@ const quick_save_location = computed<[string, string]>(() => {
 })
 
 const quick_save_disable = computed<boolean>(() => {
-  return quick_save_location.value[0] === '' ||
-    quick_save_location.value[1] === ''
+  return quick_save_location.value[0] === '' || quick_save_location.value[1] === ''
 })
 
 const loadPackageModalHandle = useModal({
@@ -160,41 +158,45 @@ function quickSave() {
   if (quick_save_disable.value) {
     return
   }
-  if (!window.confirm(`Do you want to overwrite ${quick_save_location.value[0]}/${quick_save_location.value[1]}?`)) {
+  if (
+    !window.confirm(
+      `Do you want to overwrite ${quick_save_location.value[0]}/${quick_save_location.value[1]}?`
+    )
+  ) {
     return
   }
-  const tree = editor_store.tree_structure_list.find(
-    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
-  )
-  ros_store.save_tree_service.callService({
-    storage_path: quick_save_location.value[0],
-    filepath: quick_save_location.value[1],
-    tree: tree,
-    allow_overwrite: true,
-    allow_rename: false,
-  } as SaveTreeRequest,
-  (response: SaveTreeResponse) => {
-    if (response.success) {
+  const tree = editor_store.tree_structure_list.find((tree) => rosToUuid(tree.tree_id) === uuid.NIL)
+  ros_store.save_tree_service.callService(
+    {
+      storage_path: quick_save_location.value[0],
+      filepath: quick_save_location.value[1],
+      tree: tree,
+      allow_overwrite: true,
+      allow_rename: false
+    } as SaveTreeRequest,
+    (response: SaveTreeResponse) => {
+      if (response.success) {
+        notify({
+          title: 'Successfully saved tree to',
+          text: response.file_path,
+          type: 'success'
+        })
+      } else {
+        notify({
+          title: 'Quick save failed',
+          text: response.error_message,
+          type: 'warn'
+        })
+      }
+    },
+    (error: string) => {
       notify({
-        title: "Successfully saved tree to",
-        text: response.file_path,
-        type: 'success'
-      })
-    } else {
-      notify({
-        title: "Quick save failed",
-        text: response.error_message,
-        type: 'warn'
+        title: 'Failed to call SaveTree service',
+        text: error,
+        type: 'error'
       })
     }
-  },
-  (error: string) => {
-    notify({
-      title: "Failed to call SaveTree service",
-      text: error,
-      type: 'error'
-    })
-  })
+  )
 }
 
 function getStorageFolders() {
@@ -216,7 +218,6 @@ function getStorageFolders() {
 onMounted(() => {
   getStorageFolders()
 })
-
 </script>
 
 <template>
@@ -286,5 +287,3 @@ onMounted(() => {
     <span class="ms-1 hide-button-text">Save</span>
   </button>
 </template>
-
-

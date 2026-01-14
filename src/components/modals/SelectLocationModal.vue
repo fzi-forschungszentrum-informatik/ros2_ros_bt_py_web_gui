@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -109,10 +109,10 @@ function setLocation(path: string[], dir: boolean) {
       </div>
       <div class="input-group mb-3">
         <span class="input-group-text"> Name: </span>
-        <input 
-          v-model="input_file_name" 
-          type="text" 
-          class="form-control" 
+        <input
+          v-model="input_file_name"
+          type="text"
+          class="form-control"
           placeholder="Name of File to Save (also acts as a search bar)"
         />
       </div>

@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -90,19 +90,17 @@ function onClick() {
   >
     <div class="d-flex w-100">
       <div class="text-truncate fs-4">
-      {{ node.node_class }}
+        {{ node.node_class }}
       </div>
       <div class="text-muted mx-2 my-auto">
-        <FontAwesomeIcon
-          :icon="'fa-solid ' + node_type_icon"
-        />
-        {{ (node.max_children > 0 ? '(' + node.max_children + ')' : '') }}
+        <FontAwesomeIcon :icon="'fa-solid ' + node_type_icon" />
+        {{ node.max_children > 0 ? '(' + node.max_children + ')' : '' }}
       </div>
       <FontAwesomeIcon
         :icon="'fa-solid ' + (show_details ? 'fa-angle-up' : 'fa-angle-down')"
         aria-hidden="true"
         class="cursor-pointer ms-auto p-1"
-        @click.stop="() => show_details = !show_details"
+        @click.stop="() => (show_details = !show_details)"
       />
     </div>
     <div class="text-muted">
@@ -121,14 +119,12 @@ function onClick() {
       <div class="list-group">
         <div v-if="getShortDoc(node.doc) !== ''" class="list-group-item">
           <div class="d-flex w-100">
-            <div class="fs-5">
-              Description
-            </div>
+            <div class="fs-5">Description</div>
             <FontAwesomeIcon
               :icon="'fa-solid ' + (show_description ? 'fa-angle-up' : 'fa-angle-down')"
               aria-hidden="true"
               class="cursor-pointer ms-auto"
-              @click="() => show_description = !show_description"
+              @click="() => (show_description = !show_description)"
             />
           </div>
           <div v-if="show_description">
@@ -156,9 +152,7 @@ function onClick() {
 </template>
 
 <style scoped lang="scss">
-
 .grab:hover {
   cursor: grab;
 }
-
 </style>

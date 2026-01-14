@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -97,13 +97,12 @@ onMounted(updateAvailableNamespaces)
 
     <div class="form-check form-switch my-3 fs-5">
       <input
-        type="checkbox" class="form-check-input"
+        type="checkbox"
+        class="form-check-input"
         :checked="ros_store.auto_connect"
         @click="ros_store.toggleAutoConnect"
-      >
-      <label class="form-check-label ms-2">
-        Automatic reconnect
-      </label>
+      />
+      <label class="form-check-label ms-2"> Automatic reconnect </label>
     </div>
 
     <div class="input-group flex-nowrap my-3">
@@ -141,5 +140,3 @@ onMounted(updateAvailableNamespaces)
     </div>
   </div>
 </template>
-
-

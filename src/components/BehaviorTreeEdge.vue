@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -46,8 +46,7 @@ const source_name = computed<string>(() => {
     return ''
   }
   const source_node = editor_store.current_tree.structure!.nodes.find(
-    (node) => rosToUuid(node.node_id) ===
-      rosToUuid(editor_store.selected_edge!.source.node_id)
+    (node) => rosToUuid(node.node_id) === rosToUuid(editor_store.selected_edge!.source.node_id)
   )
   if (source_node === undefined) {
     return ''
@@ -60,8 +59,7 @@ const target_name = computed<string>(() => {
     return ''
   }
   const target_node = editor_store.current_tree.structure!.nodes.find(
-    (node) => rosToUuid(node.node_id) ===
-      rosToUuid(editor_store.selected_edge!.target.node_id)
+    (node) => rosToUuid(node.node_id) === rosToUuid(editor_store.selected_edge!.target.node_id)
   )
   if (target_node === undefined) {
     return ''
@@ -70,75 +68,71 @@ const target_name = computed<string>(() => {
 })
 
 const edge_data = computed<WiringData | undefined>(() => {
-  if (editor_store.selected_edge === undefined ||
-    editor_store.current_tree.data === undefined
-  ) {
+  if (editor_store.selected_edge === undefined || editor_store.current_tree.data === undefined) {
     return undefined
   }
   const edge = editor_store.selected_edge
-  return editor_store.current_tree.data.wiring_data.find(
-    (item) => {
-      const wiring = item.wiring
-      return compareRosUuid(wiring.source.node_id, edge.source.node_id) &&
-        wiring.source.data_kind === edge.source.data_kind &&
-        wiring.source.data_key === edge.source.data_key &&
-        compareRosUuid(wiring.target.node_id, edge.target.node_id) &&
-        wiring.target.data_kind === edge.target.data_kind &&
-        wiring.target.data_key === edge.target.data_key
-    }
-  )
+  return editor_store.current_tree.data.wiring_data.find((item) => {
+    const wiring = item.wiring
+    return (
+      compareRosUuid(wiring.source.node_id, edge.source.node_id) &&
+      wiring.source.data_kind === edge.source.data_kind &&
+      wiring.source.data_key === edge.source.data_key &&
+      compareRosUuid(wiring.target.node_id, edge.target.node_id) &&
+      wiring.target.data_kind === edge.target.data_kind &&
+      wiring.target.data_key === edge.target.data_key
+    )
+  })
 })
 
 function onClickDelete() {
   const edge = editor_store.selected_edge!
-  ros_store.unwire_data_service.callService({
-    wirings: [
-      {
-        source: edge.source,
-        target: edge.target
+  ros_store.unwire_data_service.callService(
+    {
+      wirings: [
+        {
+          source: edge.source,
+          target: edge.target
+        }
+      ]
+    } as WireNodeDataRequest,
+    (response: WireNodeDataResponse) => {
+      const source_name = editor_store.current_tree.structure!.nodes.find((node) =>
+        compareRosUuid(edge.source.node_id, node.node_id)
+      )!.name
+      const target_name = editor_store.current_tree.structure!.nodes.find((node) =>
+        compareRosUuid(edge.target.node_id, node.node_id)
+      )!.name
+      if (response.success) {
+        notify({
+          title: 'Removed data edge: ' + source_name + ' -> ' + target_name + '!',
+          type: 'success'
+        })
+        editor_store.unselectEdge()
+      } else {
+        notify({
+          title: 'Failed to remove data edge: ' + source_name + ' -> ' + target_name + '!',
+          text: response.error_message,
+          type: 'warn'
+        })
       }
-    ]
-  } as WireNodeDataRequest,
-  (response: WireNodeDataResponse) => {
-    const source_name = editor_store.current_tree.structure!.nodes.find(
-      (node) => compareRosUuid(edge.source.node_id, node.node_id)
-    )!.name
-    const target_name = editor_store.current_tree.structure!.nodes.find(
-      (node) => compareRosUuid(edge.target.node_id, node.node_id)
-    )!.name
-    if (response.success) {
+    },
+    (error: string) => {
       notify({
-        title: 'Removed data edge: ' + source_name + ' -> ' + target_name + '!',
-        type: 'success'
-      })
-      editor_store.unselectEdge()
-    } else {
-      notify({
-        title: 'Failed to remove data edge: ' + source_name + ' -> ' + target_name + '!',
-        text: response.error_message,
-        type: 'warn'
+        title: 'Failed to call UnwireNodeData service',
+        text: error,
+        type: 'error'
       })
     }
-  },
-  (error: string) => {
-    notify({
-      title: 'Failed to call UnwireNodeData service',
-      text: error,
-      type: 'error'
-    })
-  })
+  )
 }
 
 function selectSourceNode() {
-  edit_node_store.editorSelectionChange(
-    rosToUuid(editor_store.selected_edge!.source.node_id)
-  )
+  edit_node_store.editorSelectionChange(rosToUuid(editor_store.selected_edge!.source.node_id))
 }
 
 function selectTargetNode() {
-  edit_node_store.editorSelectionChange(
-    rosToUuid(editor_store.selected_edge!.target.node_id)
-  )
+  edit_node_store.editorSelectionChange(rosToUuid(editor_store.selected_edge!.target.node_id))
 }
 </script>
 
@@ -156,14 +150,16 @@ function selectTargetNode() {
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
-          <span class="text-primary">{{ source_name }}</span><br />
+          <span class="text-primary">{{ source_name }}</span
+          ><br />
           {{ editor_store.selected_edge!.source.data_key }}
         </button>
       </div>
       <hr class="flex-fill connector" />
       <div class="">
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
-          <span class="text-primary">{{ target_name }}</span><br />
+          <span class="text-primary">{{ target_name }}</span
+          ><br />
           {{ editor_store.selected_edge!.target.data_key }}
         </button>
       </div>

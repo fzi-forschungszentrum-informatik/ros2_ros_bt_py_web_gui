@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2025 FZI Forschungszentrum Informatik
+ *  Copyright 2025-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -37,7 +37,11 @@ import jsyaml from 'js-yaml'
 import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
 import type { TreeStructure } from '@/types/types'
 import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
-import { TreeExecutionCommands, type ControlTreeExecutionRequest, type ControlTreeExecutionResponse } from '@/types/services/ControlTreeExecution';
+import {
+  TreeExecutionCommands,
+  type ControlTreeExecutionRequest,
+  type ControlTreeExecutionResponse
+} from '@/types/services/ControlTreeExecution'
 import { rosToUuid } from '@/utils'
 
 const ros_store = useROSStore()
@@ -282,7 +286,6 @@ function saveTree() {
     }
   )
 }
-
 </script>
 
 <template>

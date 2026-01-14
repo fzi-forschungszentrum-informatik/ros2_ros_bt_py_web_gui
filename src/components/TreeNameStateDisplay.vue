@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -86,7 +86,7 @@ const tree_state_styles = computed<object>(() => {
       break
   }
   return {
-    backgroundColor: 'var(' + bg_color_var + ')',
+    backgroundColor: 'var(' + bg_color_var + ')'
     //borderColor: 'var(' + border_color_var + ')'
   }
 })
@@ -122,9 +122,7 @@ const tree_state_icon = computed<string>(() => {
 watchEffect(errorPopUp)
 function errorPopUp(): void {
   if (tree_state.value === TreeStateValues.ERROR) {
-    window.alert(
-      "There has been an error while running the tree"
-    )
+    window.alert('There has been an error while running the tree')
   }
 }
 
@@ -185,11 +183,7 @@ function renameTree(): void {
     <div class="col-auto">
       <div class="input-group state-display">
         <label class="input-group-text"> State </label>
-        <label
-          class="input-group-text"
-          :style="tree_state_styles"
-          style="width: 12em"
-        >
+        <label class="input-group-text" :style="tree_state_styles" style="width: 12em">
           <FontAwesomeIcon :icon="tree_state_icon" class="me-2" />
           {{ tree_state }}
         </label>
@@ -199,7 +193,6 @@ function renameTree(): void {
 </template>
 
 <style lang="scss" scoped>
-
 .state-display {
   --bg-color-waiting-for-tick: #e5d900;
   --bg-color-idle: #4da3ff;
@@ -217,5 +210,4 @@ function renameTree(): void {
   --bg-color-stop-requested: #682800;
   --bg-color-default: #4c4b4b;
 }
-
 </style>

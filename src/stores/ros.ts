@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 FZI Forschungszentrum Informatik
+ * Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -107,25 +107,22 @@ export const useROSStore = defineStore(
     const available_namespaces = ref<string[]>(['/'])
 
     function connect() {
-      console.log("Start connect attempt")
+      console.log('Start connect attempt')
       ros.value.connect(url.value)
     }
 
     const auto_connect = ref<boolean>(true)
     let connect_timeout: number = 0
     function startConnectTimeout() {
-      console.log("Start connect timeout")
+      console.log('Start connect timeout')
       clearTimeout(connect_timeout)
       if (auto_connect.value) {
-        connect_timeout = setTimeout(
-          () => {
-            console.log("Connect callback")
-            if (auto_connect.value) {
-              connect()
-            }
-          },
-          1000
-        )
+        connect_timeout = setTimeout(() => {
+          console.log('Connect callback')
+          if (auto_connect.value) {
+            connect()
+          }
+        }, 1000)
       }
     }
 

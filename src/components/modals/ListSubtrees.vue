@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -28,11 +28,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import * as uuid from 'uuid';
-import { useEditorStore } from '@/stores/editor';
-import type { TreeStructure, UUIDString } from '@/types/types';
-import { findNode, rosToUuid } from '@/utils';
-import { computed, ref } from 'vue';
+import * as uuid from 'uuid'
+import { useEditorStore } from '@/stores/editor'
+import type { TreeStructure, UUIDString } from '@/types/types'
+import { findNode, rosToUuid } from '@/utils'
+import { computed, ref } from 'vue'
 
 const editor_store = useEditorStore()
 
@@ -66,22 +66,22 @@ const subtree_ids = computed<Set<UUIDString>>(() => {
 
 const tree_name = computed<string>(() => {
   if (current_tree.value === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
   return current_tree.value.name
 })
 
 const node_name = computed<string>(() => {
   if (props.tree_id === uuid.NIL) {
-    return "Main Tree"
+    return 'Main Tree'
   }
   const outer_tree = editor_store.findTree(props.parent_id)
   if (outer_tree === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
   const node = findNode(outer_tree, props.tree_id)
   if (node === undefined) {
-    return "UNKNOWN"
+    return 'UNKNOWN'
   }
   return node.name
 })
@@ -89,11 +89,10 @@ const node_name = computed<string>(() => {
 function selectTree() {
   editor_store.selected_tree = {
     own_id: props.tree_id,
-    parent_id: props.parent_id,
+    parent_id: props.parent_id
   }
   emit('close')
 }
-
 </script>
 
 <template>
@@ -108,7 +107,8 @@ function selectTree() {
         {{ node_name }} ({{ tree_name }})
       </button>
       <button
-v-if="subtree_ids.size > 0" class="btn btn-outline-contrast"
+        v-if="subtree_ids.size > 0"
+        class="btn btn-outline-contrast"
         @click="show_subtrees = !show_subtrees"
       >
         <FontAwesomeIcon
@@ -120,8 +120,11 @@ v-if="subtree_ids.size > 0" class="btn btn-outline-contrast"
     </div>
     <div v-if="show_subtrees">
       <ListSubtrees
-v-for="subtree_id in subtree_ids" :key="subtree_id"
-        :parent_id="props.tree_id" :tree_id="subtree_id" @close="emit('close')"
+        v-for="subtree_id in subtree_ids"
+        :key="subtree_id"
+        :parent_id="props.tree_id"
+        :tree_id="subtree_id"
+        @close="emit('close')"
       />
     </div>
   </div>

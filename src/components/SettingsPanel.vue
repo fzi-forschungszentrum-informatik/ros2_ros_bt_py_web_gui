@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2025 FZI Forschungszentrum Informatik
+ *  Copyright 2025-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -28,34 +28,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor';
-import { useROSStore } from '@/stores/ros';
-import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool';
-import { notify } from '@kyvg/vue3-notification';
+import { useEditorStore } from '@/stores/editor'
+import { useROSStore } from '@/stores/ros'
+import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import { notify } from '@kyvg/vue3-notification'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 function setPublishData(event: Event) {
-    const target = event.target as HTMLInputElement
+  const target = event.target as HTMLInputElement
 
-    ros_store.set_publish_data_service.callService({
-        data: target.checked
+  ros_store.set_publish_data_service.callService(
+    {
+      data: target.checked
     } as SetBoolRequest,
     (response: SetBoolResponse) => {
-        if (response.success) {
-            notify({
-                title: (target.checked ? 'Enable' : 'Disable') + ' data publishing',
-                type: 'success'
-            })
-            editor_store.publish_data = target.checked
-        } else {
-            notify({
-                title: 'Failed to toggle data publishing',
-                text: response.message,
-                type: 'warn'
-            })
-        }
+      if (response.success) {
+        notify({
+          title: (target.checked ? 'Enable' : 'Disable') + ' data publishing',
+          type: 'success'
+        })
+        editor_store.publish_data = target.checked
+      } else {
+        notify({
+          title: 'Failed to toggle data publishing',
+          text: response.message,
+          type: 'warn'
+        })
+      }
     },
     (error: string) => {
       notify({
@@ -63,21 +64,21 @@ function setPublishData(event: Event) {
         text: error,
         type: 'error'
       })
-    })
+    }
+  )
 }
-
 </script>
 
 <template>
-    <div class="h4 mb-3">Tree Data Settings</div>
+  <div class="h4 mb-3">Tree Data Settings</div>
 
-    <div class="form-check form-switch my-3 fs-5">
-        <input
-            type="checkbox" class="form-check-input" 
-            :checked="editor_store.publish_data" @click="setPublishData"
-        >
-        <label class="form-check-label ms-2">
-            Transmit data flow information
-        </label>
-    </div>
+  <div class="form-check form-switch my-3 fs-5">
+    <input
+      type="checkbox"
+      class="form-check-input"
+      :checked="editor_store.publish_data"
+      @click="setPublishData"
+    />
+    <label class="form-check-label ms-2"> Transmit data flow information </label>
+  </div>
 </template>

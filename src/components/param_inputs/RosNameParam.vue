@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -97,9 +97,7 @@ const hide_results = ref<boolean>(true)
 const keep_results = ref<boolean>(false)
 
 function onInput(event: Event) {
-  if (param.value === undefined ||
-    search_fuse.value === undefined
-  ) {
+  if (param.value === undefined || search_fuse.value === undefined) {
     console.error('Undefined parameter')
     return
   }
@@ -208,6 +206,4 @@ function releaseDropdown() {
   <div v-else>Error loading param data</div>
 </template>
 
-<style scoped lang="scss">
-
-</style>
+<style scoped lang="scss"></style>

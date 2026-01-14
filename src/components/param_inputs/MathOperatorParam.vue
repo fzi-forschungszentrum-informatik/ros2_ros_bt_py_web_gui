@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2024-2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -28,131 +28,127 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import { useEditorStore } from '@/stores/editor';
-import type { PyOperator } from '@/types/python_types';
-import type { OptionData } from '@/types/types';
-import { computed } from 'vue';
-
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
+import type { PyOperator } from '@/types/python_types'
+import type { OptionData } from '@/types/types'
+import { computed } from 'vue'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
 const props = defineProps<{
-    category: 'options',
-    data_key: string,
-    op_type: 'unary' | 'binary'
+  category: 'options'
+  data_key: string
+  op_type: 'unary' | 'binary'
 }>()
 
-const param = computed<OptionData | undefined>(() => 
-    edit_node_store.new_node_options.find((x) => x.key === props.data_key)
+const param = computed<OptionData | undefined>(() =>
+  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
 )
 
 function handleChange(event: Event) {
-    if (param.value === undefined) {
-        console.error("Undefined parameter")
-        return
-    }
+  if (param.value === undefined) {
+    console.error('Undefined parameter')
+    return
+  }
 
-    const target = event.target as HTMLSelectElement
+  const target = event.target as HTMLSelectElement
 
-    const operator_obj = param.value.value.value as PyOperator
-    operator_obj.operator = target.value
+  const operator_obj = param.value.value.value as PyOperator
+  operator_obj.operator = target.value
 
-    edit_node_store.updateParamValue(props.category, param.value.key, operator_obj)
+  edit_node_store.updateParamValue(props.category, param.value.key, operator_obj)
 }
 
 // Lookup for all possible values for operators and operands
 const options = {
-    unary: [
-        'not',
-        'inv',
-        '~',
-        'neg',
-        '-',
-        'pos',
-        '+',
-        'exp',
-        'expm1',
-        'log',
-        'log1p',
-        'log10',
-        'ceil',
-        'fabs',
-        'factorial',
-        'floor',
-        'sqrt',
-        'acos',
-        'asin',
-        'atan',
-        'acosh',
-        'asinh',
-        'atanh',
-        'cos',
-        'sin',
-        'tan',
-        'cosh',
-        'sinh',
-        'tanh',
-        'degrees',
-        'radians',
-        'erf',
-        'erfc',
-        'gamma',
-        'lgamma'
-    ],
-    binary: [
-        'add',
-        '+',
-        'and',
-        '&',
-        'div',
-        '/',
-        'floordiv',
-        '//',
-        'lshift',
-        '<<',
-        'mod',
-        '%',
-        'mul',
-        '*',
-        'or',
-        '|',
-        'pow',
-        '**',
-        'rshift',
-        '>>',
-        'sub',
-        '-',
-        'truediv',
-        'xor',
-        '^'
-    ]
+  unary: [
+    'not',
+    'inv',
+    '~',
+    'neg',
+    '-',
+    'pos',
+    '+',
+    'exp',
+    'expm1',
+    'log',
+    'log1p',
+    'log10',
+    'ceil',
+    'fabs',
+    'factorial',
+    'floor',
+    'sqrt',
+    'acos',
+    'asin',
+    'atan',
+    'acosh',
+    'asinh',
+    'atanh',
+    'cos',
+    'sin',
+    'tan',
+    'cosh',
+    'sinh',
+    'tanh',
+    'degrees',
+    'radians',
+    'erf',
+    'erfc',
+    'gamma',
+    'lgamma'
+  ],
+  binary: [
+    'add',
+    '+',
+    'and',
+    '&',
+    'div',
+    '/',
+    'floordiv',
+    '//',
+    'lshift',
+    '<<',
+    'mod',
+    '%',
+    'mul',
+    '*',
+    'or',
+    '|',
+    'pow',
+    '**',
+    'rshift',
+    '>>',
+    'sub',
+    '-',
+    'truediv',
+    'xor',
+    '^'
+  ]
 }
-
-
 </script>
 
 <template>
-    <div v-if="param !== undefined" class="form-group">
-        <label class="d-block">
-            {{ param.key }}
-        </label>
-        <select
-            class="form-select" 
-            :value="(param.value.value as PyOperator).operator"
-            :disabled="editor_store.has_selected_subtree" 
-            @change="handleChange" 
-        >
-            <option
-                v-for="operator_option in options[props.op_type]" 
-                :key="operator_option" :value="operator_option"
-            >
-                {{ operator_option }}
-            </option>
-        </select>
-    </div>
-    <div v-else>
-        Error loading param data
-    </div>
+  <div v-if="param !== undefined" class="form-group">
+    <label class="d-block">
+      {{ param.key }}
+    </label>
+    <select
+      class="form-select"
+      :value="(param.value.value as PyOperator).operator"
+      :disabled="editor_store.has_selected_subtree"
+      @change="handleChange"
+    >
+      <option
+        v-for="operator_option in options[props.op_type]"
+        :key="operator_option"
+        :value="operator_option"
+      >
+        {{ operator_option }}
+      </option>
+    </select>
+  </div>
+  <div v-else>Error loading param data</div>
 </template>
