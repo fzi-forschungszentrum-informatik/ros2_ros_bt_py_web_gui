@@ -85,7 +85,6 @@ function changeRosbridgeServer(event: Event) {
 
 function saveRosbridgeServer() {
   ros_store.setUrl(new_url.value)
-  ros_store.connect()
   edit_rosbridge_server.value = false
 }
 
@@ -95,6 +94,17 @@ onMounted(updateAvailableNamespaces)
 <template>
   <div>
     <div class="h4 my-3">Connection Settings</div>
+
+    <div class="form-check form-switch my-3 fs-5">
+      <input
+        type="checkbox" class="form-check-input"
+        :checked="ros_store.auto_connect"
+        @click="ros_store.toggleAutoConnect"
+      >
+      <label class="form-check-label ms-2">
+        Automatic reconnect
+      </label>
+    </div>
 
     <div class="input-group flex-nowrap my-3">
       <label class="input-group-text">Namespace</label>

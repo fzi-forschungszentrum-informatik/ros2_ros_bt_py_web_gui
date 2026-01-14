@@ -58,7 +58,7 @@ import { flextree, type FlextreeNode } from 'd3-flextree'
 import * as uuid from 'uuid'
 import { rosToUuid, uuidToRos } from '@/utils'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import { faBolt, faCheck, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faBolt, faCheck, faExclamation, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -445,6 +445,8 @@ function getIcon(state: NodeStateValues | undefined) {
       return faCheck.icon
     case NodeStateValues.FAILED:
       return faXmark.icon
+    case NodeStateValues.BROKEN:
+      return faExclamation.icon
     case NodeStateValues.SHUTDOWN:
     default:
       return faPowerOff.icon
@@ -646,12 +648,20 @@ function updateNodeState() {
         case NodeStateValues.SUCCEEDED:
           return 'var(--node-color-succeeded)'
         case NodeStateValues.FAILED:
+        case NodeStateValues.BROKEN:
           return 'var(--node-color-failed)'
         case NodeStateValues.SHUTDOWN:
           return 'var(--node-color-shutdown)'
         case NodeStateValues.UNINITIALIZED:
         default:
           return 'var(--node-color-default)'
+      }
+    })
+    .style('fill', (d) => {
+      if (d.data.state == NodeStateValues.BROKEN) {
+        return 'var(--node-bg-broken)'
+      } else {
+        return 'var(--node-bg-default)'
       }
     })
   node.select<SVGElement>('.' + node_state_css_class)
@@ -1569,9 +1579,9 @@ function colorSelectedNodes() {
   const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
 
   d3.select<SVGGElement, never>(g_vertices_ref.value)
-    .selectAll<SVGForeignObjectElement, FlextreeNode<BTEditorNode>>('.' + tree_node_css_class)
-    .select<HTMLBodyElement>('.' + node_body_css_class)
-    .classed(node_selected_css_class, (node: FlextreeNode<BTEditorNode>) =>
+    .selectAll<SVGSVGElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+    .select<SVGRectElement>('.' + node_body_css_class)
+    .classed(node_selected_css_class, (node: FlextreeNode<TrimmedNode>) =>
       all_selected_nodes.includes(node.data.node_id)
     )
 }

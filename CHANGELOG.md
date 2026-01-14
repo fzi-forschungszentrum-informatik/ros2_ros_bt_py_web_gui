@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Auto connect by @Doomse in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
+- Update changelog by @github-actions[bot]
+- Highlight nodes in broken state by @Doomse in [#41](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/41)
+- Update changelog by @github-actions[bot]
 - Merge pull request #39 from Doomse/remove-shutdown-on-save by @Oberacda in [#39](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/39)
 - Update changelog by @github-actions[bot]
 
