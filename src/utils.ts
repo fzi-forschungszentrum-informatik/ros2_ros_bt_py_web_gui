@@ -109,11 +109,11 @@ export const python_builtin_types = [
 export function hexToPyB64(hex_s: string): PyB64 {
   // If length is odd, prepend a zero
   if (hex_s.length % 2 != 0) {
-    hex_s = "0" + hex_s
+    hex_s = '0' + hex_s
   }
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const arr = (Uint8Array as any).fromHex(hex_s)
-  return {'py/b64': arr.toBase64()}
+  return { 'py/b64': arr.toBase64() }
 }
 
 export function pyB64ToHex(py_b64: PyB64): string {
@@ -167,7 +167,7 @@ export function prettyprint_type(jsonpickled_type: string): string {
 export function prettyprint_value(jsonpickle: string): string {
   const json_value = JSON.parse(jsonpickle)
   if (json_value['py/b64'] !== undefined) {
-    return "0x" + pyB64ToHex(json_value)
+    return '0x' + pyB64ToHex(json_value)
   }
   return json_value
 }

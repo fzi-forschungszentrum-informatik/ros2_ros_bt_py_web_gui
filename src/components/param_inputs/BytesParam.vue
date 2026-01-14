@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -28,17 +28,16 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node';
-import type { OptionData, PyB64 } from '@/types/types';
-import { hexToPyB64, pyB64ToHex } from '@/utils';
-import { computed } from 'vue';
-
+import { useEditNodeStore } from '@/stores/edit_node'
+import type { OptionData, PyB64 } from '@/types/types'
+import { hexToPyB64, pyB64ToHex } from '@/utils'
+import { computed } from 'vue'
 
 const edit_node_store = useEditNodeStore()
 
 const props = defineProps<{
-    category: 'options',
-    data_key: string
+  category: 'options'
+  data_key: string
 }>()
 
 const param = computed<OptionData | undefined>(() =>
@@ -87,7 +86,6 @@ function onChange(event: Event) {
   }
   edit_node_store.updateParamValue(props.category, param.value.key, py_b64)
 }
-
 </script>
 
 <template>
