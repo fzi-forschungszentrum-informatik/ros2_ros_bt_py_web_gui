@@ -9,7 +9,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  pre-commit:
     runs-on: ubuntu-latest
 
     strategy:
@@ -24,6 +24,7 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
+      - run: npm install
       - run: npm install -g eslint
       - name: Install pre-commit
         run: |
