@@ -106,6 +106,36 @@ export const useROSStore = defineStore(
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
+    function connect() {
+      console.log("Start connect attempt")
+      ros.value.connect(url.value)
+    }
+
+    const auto_connect = ref<boolean>(true)
+    let connect_timeout: number = 0
+    function startConnectTimeout() {
+      console.log("Start connect timeout")
+      clearTimeout(connect_timeout)
+      if (auto_connect.value) {
+        connect_timeout = setTimeout(
+          () => {
+            console.log("Connect callback")
+            if (auto_connect.value) {
+              connect()
+            }
+          },
+          1000
+        )
+      }
+    }
+
+    function toggleAutoConnect() {
+      auto_connect.value = !auto_connect.value
+      if (auto_connect.value) {
+        startConnectTimeout()
+      }
+    }
+
     const services_for_type_service = shallowRef<
       Service<ServicesForTypeRequest, ServicesForTypeResponse>
     >(
@@ -601,16 +631,14 @@ export const useROSStore = defineStore(
       nodes_store.getNodes('')
     }
 
-    function connect() {
-      ros.value.connect(url.value)
-    }
-
     function setUrl(new_url: string) {
       url.value = new_url
+      ros.value.close()
     }
 
     function hasConnected() {
       connected.value = true
+      clearTimeout(connect_timeout)
       notify({
         title: 'ROS connection established!',
         type: 'success'
@@ -624,6 +652,8 @@ export const useROSStore = defineStore(
 
       editor_store.enableSubtreePublishing(false)
       editor_store.publish_data = false
+
+      startConnectTimeout()
 
       notify({
         title: 'ROS connection closed!',
@@ -649,6 +679,9 @@ export const useROSStore = defineStore(
       url,
       namespace,
       available_namespaces,
+      connect,
+      auto_connect,
+      toggleAutoConnect,
       services_for_type_service,
       load_tree_service,
       fix_yaml_service,
@@ -679,7 +712,7 @@ export const useROSStore = defineStore(
       packages_sub,
       messages_sub,
       channels_sub,
-      connect,
+      startConnectTimeout,
       setUrl,
       changeNamespace,
       setAvailableNamespaces,
@@ -690,7 +723,7 @@ export const useROSStore = defineStore(
   },
   {
     persist: {
-      pick: ['namespace', 'url', 'available_namespaces'],
+      pick: ['namespace', 'url', 'available_namespaces', 'auto_connect'],
       storage: localStorage,
       afterHydrate: (context) => {
         context.store.updateROSServices()
