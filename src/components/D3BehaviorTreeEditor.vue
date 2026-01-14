@@ -1579,9 +1579,9 @@ function colorSelectedNodes() {
   const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
 
   d3.select<SVGGElement, never>(g_vertices_ref.value)
-    .selectAll<SVGSVGElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, FlextreeNode<BTEditorNode>>('.' + tree_node_css_class)
     .select<SVGRectElement>('.' + node_body_css_class)
-    .classed(node_selected_css_class, (node: FlextreeNode<TrimmedNode>) =>
+    .classed(node_selected_css_class, (node: FlextreeNode<BTEditorNode>) =>
       all_selected_nodes.includes(node.data.node_id)
     )
 }
