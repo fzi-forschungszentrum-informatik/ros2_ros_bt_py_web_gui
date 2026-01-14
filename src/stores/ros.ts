@@ -106,14 +106,34 @@ export const useROSStore = defineStore(
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
 
+    function connect() {
+      console.log("Start connect attempt")
+      ros.value.connect(url.value)
+    }
+
+    const auto_connect = ref<boolean>(true)
     let connect_timeout: number = 0
     function startConnectTimeout() {
+      console.log("Start connect timeout")
       clearTimeout(connect_timeout)
-        connect_timeout = setTimeout(() => {
-          ros.value.connect(url.value)
-        }, 
-        1000
-      )
+      if (auto_connect.value) {
+        connect_timeout = setTimeout(
+          () => {
+            console.log("Connect callback")
+            if (auto_connect.value) {
+              connect()
+            }
+          },
+          1000
+        )
+      }
+    }
+
+    function toggleAutoConnect() {
+      auto_connect.value = !auto_connect.value
+      if (auto_connect.value) {
+        startConnectTimeout()
+      }
     }
 
     const services_for_type_service = shallowRef<
@@ -659,6 +679,9 @@ export const useROSStore = defineStore(
       url,
       namespace,
       available_namespaces,
+      connect,
+      auto_connect,
+      toggleAutoConnect,
       services_for_type_service,
       load_tree_service,
       fix_yaml_service,
@@ -700,7 +723,7 @@ export const useROSStore = defineStore(
   },
   {
     persist: {
-      pick: ['namespace', 'url', 'available_namespaces'],
+      pick: ['namespace', 'url', 'available_namespaces', 'auto_connect'],
       storage: localStorage,
       afterHydrate: (context) => {
         context.store.updateROSServices()

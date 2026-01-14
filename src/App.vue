@@ -160,6 +160,7 @@ watch(
   () => ros_store.connected,
   (connected) => {
     if (connected) {
+      console.log("Update subscriptions")
       updateTreeSubscription()
       updateMessagesSubscription()
       updateChannelssubscription()
@@ -169,7 +170,7 @@ watch(
 )
 
 onMounted(() => {
-  ros_store.startConnectTimeout()
+  ros_store.connect()
 })
 </script>
 
@@ -182,7 +183,7 @@ onMounted(() => {
     </div>
     <div class="offcanvas-body">
       <SettingsPanel />
-      
+
       <NamespaceSelect />
     </div>
   </div>
@@ -191,7 +192,7 @@ onMounted(() => {
     v-if="execution_bar_visible"
     class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-    
+
     <ConnectionStatus />
 
     <TickControls />
@@ -265,8 +266,8 @@ onMounted(() => {
           </div>
           <NodeList style="min-height: 0" />
         </div>
-        <div 
-          id="main_pane" 
+        <div
+          id="main_pane"
           class="d-flex flex-column"
           :class="nodelist_visible ? 'col-9' : 'col-12'"
         >
