@@ -55,7 +55,7 @@ import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
-import { faBolt, faCheck, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faBolt, faCheck, faExclamation, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -258,7 +258,7 @@ watch(
   { immediate: true }
 )
 function drawEverything() {
-  if (svg_g_ref.value === undefined || 
+  if (svg_g_ref.value === undefined ||
     g_vertices_ref.value === undefined
   ) {
     console.warn('DOM is broken')
@@ -372,7 +372,7 @@ function drawEverything() {
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
     .call(updateNodeBody)
-    
+
     updateNodeState()
 
   // Since we want to return the tree, we can't use the .call() syntax here
@@ -423,7 +423,7 @@ function drawNewNodes(
       .attr('width', icon_width)
       .attr('height', icon_width)
     .append('path')
-  
+
 
   // The join pattern requires a return of the appended elements
   // For consistency the node body is filled using the update method
@@ -440,6 +440,8 @@ function getIcon(state: NodeStateValues | undefined) {
       return faCheck.icon
     case NodeStateValues.FAILED:
       return faXmark.icon
+    case NodeStateValues.BROKEN:
+      return faExclamation.icon
     case NodeStateValues.SHUTDOWN:
     default:
       return faPowerOff.icon
@@ -502,7 +504,7 @@ function layoutText(
     if (wrap_indices[next_idx] === current_index) {
       next_idx -= 1
     }
-    
+
     const next_index = wrap_indices[next_idx]
     tspan.text(node_name.slice(current_index, next_index))
 
@@ -568,7 +570,7 @@ function updateNodeBody(
 ) {
 
   selection
-      .each(function (node) 
+      .each(function (node)
         { node.data.size.width = layoutText(this, node) }
       )
 
@@ -585,7 +587,7 @@ function updateNodeBody(
     const inputs = d.data.inputs || []
     const outputs = d.data.outputs || []
     const max_num_grippers = Math.max(inputs.length, outputs.length)
-    const min_height = io_gripper_size * max_num_grippers + 
+    const min_height = io_gripper_size * max_num_grippers +
       io_gripper_spacing * (max_num_grippers + 1)
     const rect = this.getBBox()
     d.data.offset.x = rect.x - node_padding
@@ -641,12 +643,20 @@ function updateNodeState() {
         case NodeStateValues.SUCCEEDED:
           return 'var(--node-color-succeeded)'
         case NodeStateValues.FAILED:
+        case NodeStateValues.BROKEN:
           return 'var(--node-color-failed)'
         case NodeStateValues.SHUTDOWN:
           return 'var(--node-color-shutdown)'
         case NodeStateValues.UNINITIALIZED:
         default:
           return 'var(--node-color-default)'
+      }
+    })
+    .style('fill', (d) => {
+      if (d.data.state == NodeStateValues.BROKEN) {
+        return 'var(--node-bg-broken)'
+      } else {
+        return 'var(--node-bg-default)'
       }
     })
   node.select<SVGElement>('.' + node_state_css_class)
@@ -755,14 +765,14 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
         .source((link: HierarchyLink<TrimmedNode>) => {
           const source = link.source as FlextreeNode<TrimmedNode>
           return [
-            source.x + source.data.offset.x, 
+            source.x + source.data.offset.x,
             source.y + source.data.offset.y + source.data.size.height
           ]
         })
         .target((link: HierarchyLink<TrimmedNode>) => {
           const target = link.target as FlextreeNode<TrimmedNode>
           return [
-            target.x + target.data.offset.x, 
+            target.x + target.data.offset.x,
             target.y + target.data.offset.y
           ]
         })
@@ -1212,7 +1222,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
 
   if (!editor_store.has_selected_subtree) {
     //NOTE These are added here, because they see an outdated datum otherwise
-    // d3 claims that listeners are passed a "current" datum, 
+    // d3 claims that listeners are passed a "current" datum,
     // but that appears to be wrong.
     g_data_vertices
       .select('.' + data_vert_grip_css_class)
@@ -1242,7 +1252,7 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
   g_data_vertices
     .select('.' + data_vert_label_css_class)
     .select('.' + data_vert_label_type_css_class)
-    .text((d) => '(type: ' + prettyprint_type(d.type) + ')')     
+    .text((d) => '(type: ' + prettyprint_type(d.type) + ')')
 
   g_data_vertices
     .transition(tree_transition)
@@ -1441,7 +1451,7 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
     .curve(d3.curveCatmullRom.alpha(0.9))
   let y_offset = 0
   if (Math.abs(source.y - target.y) < io_edge_bump_thresh) {
-    y_offset = Math.min(source.y, target.y) - 
+    y_offset = Math.min(source.y, target.y) -
       io_edge_bump_factor * Math.abs(source.x - target.x)
   }
   const source_offset: DataEdgePoint = {
@@ -1464,7 +1474,7 @@ function drawDataLine(source: DataEdgePoint, target: DataEdgePoint) {
       target_offset.y += io_edge_curve_factor * (source.y - target.y) +
         Math.sign(source.y - target.y) * io_edge_curve_offset
     } else {
-      const curve_offset = io_edge_curve_offset + 
+      const curve_offset = io_edge_curve_offset +
         io_edge_curve_factor * Math.abs(source.x - target.x)
       source_offset.y -= curve_offset
       midpoint.y -= curve_offset * 4
@@ -1569,8 +1579,8 @@ function colorSelectedNodes() {
   const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
 
   d3.select<SVGGElement, never>(g_vertices_ref.value)
-    .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
-    .select<HTMLBodyElement>('.' + node_body_css_class)
+    .selectAll<SVGSVGElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+    .select<SVGRectElement>('.' + node_body_css_class)
     .classed(node_selected_css_class, (node: FlextreeNode<TrimmedNode>) =>
       all_selected_nodes.includes(node.data.name)
     )
