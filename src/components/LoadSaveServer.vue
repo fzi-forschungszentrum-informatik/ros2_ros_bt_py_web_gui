@@ -37,11 +37,6 @@ import SaveFileModal from './modals/SaveFileModal.vue'
 import LoadFileModal from './modals/LoadFileModal.vue'
 import { useEditorStore } from '@/stores/editor'
 import { rosToUuid } from '@/utils'
-import {
-  TreeExecutionCommands,
-  type ControlTreeExecutionRequest,
-  type ControlTreeExecutionResponse
-} from '@/types/services/ControlTreeExecution'
 import { computed, onMounted, ref } from 'vue'
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
@@ -158,43 +153,7 @@ function loadFromFile() {
 }
 
 function saveToFile() {
-  if (ros_store.control_tree_execution_service === undefined) {
-    notify({
-      title: 'Service not available!',
-      text: 'ControlTreeExecution ROS service is not connected.',
-      type: 'error'
-    })
-    return
-  }
-  editor_store.runNewCommand(TreeExecutionCommands.SHUTDOWN)
-  ros_store.control_tree_execution_service.callService(
-    {
-      command: TreeExecutionCommands.SHUTDOWN
-    } as ControlTreeExecutionRequest,
-    (response: ControlTreeExecutionResponse) => {
-      editor_store.removeRunningCommand(TreeExecutionCommands.SHUTDOWN)
-      if (response.success) {
-        notify({
-          title: 'Tree shutdown successful!',
-          type: 'success'
-        })
-        saveFileModalHandle.open()
-      } else {
-        notify({
-          title: 'Failed to shutdown tree, cannot save now!',
-          text: response.error_message,
-          type: 'warn'
-        })
-      }
-    },
-    (failed) => {
-      notify({
-        title: 'Calling ControlTreeExecution ROS service failed!',
-        text: failed,
-        type: 'error'
-      })
-    }
-  )
+  saveFileModalHandle.open()
 }
 
 function quickSave() {

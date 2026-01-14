@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Merge pull request #39 from Doomse/remove-shutdown-on-save by @Oberacda in [#39](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/39)
+- Update changelog by @github-actions[bot]
+
+### Removed
+- Remove shutdown call when saving tree by @Doomse
+
+
 ## [5.0.0] - 2025-09-08
 
 ### Changed
@@ -367,6 +377,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @Doomse made their first contribution
 
+[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/5.0.0..HEAD
 [5.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.1.0..5.0.0
 [4.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.1..4.1.0
 [4.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/4.0.0..4.0.1
