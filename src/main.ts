@@ -91,7 +91,8 @@ import {
   faLeaf,
   faLink,
   faNetworkWired,
-  faBookmark
+  faBookmark,
+  faShareNodes
 } from '@fortawesome/free-solid-svg-icons'
 
 import { faSun as faSunAlt, faMoon as faMoonAlt, faSave as faSaveAlt } from '@fortawesome/free-regular-svg-icons'
@@ -140,7 +141,8 @@ library.add(
   faNetworkWired,
   faLink,
   faSaveAlt,
-  faBookmark
+  faBookmark,
+  faShareNodes
 )
 
 const app = createApp(App)

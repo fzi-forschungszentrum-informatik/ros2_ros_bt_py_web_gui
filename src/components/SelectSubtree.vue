@@ -32,20 +32,31 @@ import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
 import { notify } from '@kyvg/vue3-notification'
+import { useModal } from 'vue-final-modal'
+import SelectSubtreeModal from './modals/SelectSubtreeModal.vue'
 import { computed } from 'vue'
+import * as uuid from 'uuid'
+import { findNode } from '@/utils'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const publish_subtrees_id: string = 'publish_subtrees'
 
-const subtree_list = computed<[string, string][]>(() =>
-  editor_store.tree_structure_list.filter(
-    (tree) => tree.tree_id !== ''
-  ).map(
-    (tree) => [tree.tree_id, tree.name] as [string, string]
-  ).sort((a, b) => a[0].localeCompare(b[0]))
-)
+const subtree_name = computed<string>(() => {
+  if (editor_store.selected_tree.own_id === uuid.NIL) {
+    return "Main Tree"
+  }
+  const outer_tree = editor_store.findTree(editor_store.selected_tree.parent_id)
+  if (outer_tree === undefined) {
+    return "UNKNOWN"
+  }
+  const subtree_node = findNode(outer_tree, editor_store.selected_tree.own_id)
+  if (subtree_node === undefined) {
+    return "UNKNOWN"
+  }
+  return subtree_node.name
+})
 
 function handlePubSubtreesChange(event: Event) {
   const target = event.target as HTMLInputElement
@@ -88,30 +99,27 @@ function handlePubSubtreesChange(event: Event) {
   )
 }
 
-function onChange(event: Event) {
-  const target = event.target as HTMLSelectElement
-  editor_store.selected_tree = target.value
-}
+const selectSubtreeModal = useModal({
+  component: SelectSubtreeModal,
+  attrs: {
+    onClose() {
+      selectSubtreeModal.close()
+    }
+  }
+})
 
 </script>
 
 <template>
   <div class="input-group my-2">
-    <label class="input-group-text" for="formTree"> Tree </label>
+    <label class="input-group-text"> Tree </label>
 
-    <select
-      id="formTree"
-      class="form-select"
-      :value="editor_store.selected_tree"
-      @change="onChange"
+    <button
+      class="btn btn-contrast dropdown-toggle"
+      @click="selectSubtreeModal.open"
     >
-      <option value="">Main Tree</option>
-      <optgroup label="Subtrees">
-        <option v-for="tree in subtree_list" :key="tree[0]" :value="tree[0]">
-          {{ tree[1] }}
-        </option>
-      </optgroup>
-    </select>
+      {{ subtree_name }}
+    </button>
 
     <input
       :id="publish_subtrees_id"

@@ -39,12 +39,13 @@ import type {
   DropTarget,
   NodeDataLocation,
   OptionData,
-  TrimmedNode,
+  BTEditorNode,
   TrimmedNodeData,
   NodeStructure,
   NodeOption,
   NodeIO,
   Wiring,
+  UUIDString,
 } from '@/types/types'
 import { Position, IOKind, NodeStateValues } from '@/types/types'
 import { getDefaultValue, prettyprint_type, serializeNodeOptions, typesCompatible } from '@/utils'
@@ -54,6 +55,8 @@ import { onMounted, ref, watch, watchEffect } from 'vue'
 import { addNode, moveNode, replaceNode } from '@/tree_manipulation'
 import type { HierarchyNode, HierarchyLink } from 'd3-hierarchy'
 import { flextree, type FlextreeNode } from 'd3-flextree'
+import * as uuid from 'uuid'
+import { rosToUuid, uuidToRos } from '@/utils'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import { faBolt, faCheck, faExclamation, faPause, faPowerOff, faXmark } from '@fortawesome/free-solid-svg-icons'
 
@@ -78,7 +81,7 @@ let selection: boolean = false
 let mouse_moved: boolean = false
 let start_x: number = 0.0
 let start_y: number = 0.0
-const selected_nodes = ref<string[]>([])
+const selected_nodes = ref<UUIDString[]>([])
 
 let pan_interval_id: number | undefined = undefined
 let pan_direction: number[] = [0.0, 0.0]
@@ -97,7 +100,6 @@ const io_edge_bump_factor: number = 0.02
 const io_edge_curve_offset: number = 5
 const io_edge_curve_factor: number = 0.0001
 
-const forest_root_name: string = '__forest_root'
 const node_padding: number = 10
 const node_spacing: number = 80
 const name_line_length: number = 20
@@ -165,15 +167,16 @@ function buildNodeMessage(node: DocumentedNode): NodeStructure {
   })
 
   return {
+    node_id: uuidToRos(uuid.v4()),
+    name: node.node_class,
     module: node.module,
     node_class: node.node_class,
-    name: node.name,
-    options: serializeNodeOptions(options),
-    child_names: [],
-    inputs: [],
-    outputs: [],
     version: '',
     max_children: 0,
+    child_ids: [],
+    options: serializeNodeOptions(options),
+    inputs: [],
+    outputs: [],
   }
 }
 
@@ -286,27 +289,29 @@ function drawEverything() {
 
   // Trim the serialized data values from the node data - we won't
   // render them, so don't clutter the DOM with the data
-  const trimmed_nodes: TrimmedNode[] = editor_store.current_tree.structure.nodes.map((node) => {
+  const editor_nodes: BTEditorNode[] = editor_store.current_tree.structure.nodes.map((node) => {
     return {
+      node_id: rosToUuid(node.node_id),
+      name: node.name,
       node_class: node.node_class,
       module: node.module,
-      name: node.name,
       max_children: node.max_children,
-      child_names: node.child_names,
+      child_ids: node.child_ids.map(rosToUuid),
       options: node.options.map(onlyKeyAndType),
       inputs: node.inputs.map(onlyKeyAndType),
       outputs: node.outputs.map(onlyKeyAndType),
       size: { width: 1, height: 1 },
       offset: {x: 0, y: 0}
-    } as TrimmedNode
+    } as BTEditorNode
   })
 
-  const forest_root: TrimmedNode = {
+  const forest_root: BTEditorNode = {
+    node_id: uuid.NIL,
+    name: '',
     node_class: '',
     module: '',
     max_children: -1,
-    name: forest_root_name,
-    child_names: [],
+    child_ids: [],
     inputs: [],
     outputs: [],
     options: [],
@@ -314,38 +319,38 @@ function drawEverything() {
     offset: {x: 0, y: 0}
   }
 
-  if (trimmed_nodes.findIndex((x) => x.name === forest_root_name) < 0) {
-    trimmed_nodes.push(forest_root)
+  if (editor_nodes.findIndex((x) => x.node_id === uuid.NIL) < 0) {
+    editor_nodes.push(forest_root)
   }
 
   // Update the visual tree
-  const parents: Record<string, string> = {}
+  const parents: Record<UUIDString, UUIDString> = {}
   //const node_dict: Record<string, TrimmedNode> = {}; Is unused?
   // Find parents for all nodes once
-  for (const i in trimmed_nodes) {
-    const node = trimmed_nodes[i]
+  for (const i in editor_nodes) {
+    const node = editor_nodes[i]
     //node_dict[node.name] = node;
-    for (const j in node.child_names) {
-      parents[node.child_names[j]] = node.name
+    for (const j in node.child_ids) {
+      parents[node.child_ids[j]] = node.node_id
     }
   }
 
-  const root: d3.HierarchyNode<TrimmedNode> = d3
-    .stratify<TrimmedNode>()
+  const root: d3.HierarchyNode<BTEditorNode> = d3
+    .stratify<BTEditorNode>()
     .id((node) => {
-      return node.name
+      return node.node_id
     })
     .parentId((node) => {
       // undefined if it has no parent - does that break the layout?
-      if (node.name in parents) {
-        return parents[node.name]
-      } else if (node.name === forest_root.name) {
+      if (node.node_id in parents) {
+        return parents[node.node_id]
+      } else if (node.node_id === forest_root.node_id) {
         return undefined
       } else {
-        forest_root.child_names.push(node.name)
-        return forest_root.name
+        forest_root.child_ids.push(node.node_id)
+        return forest_root.node_id
       }
-    })(trimmed_nodes)
+    })(editor_nodes)
 
   root.sort(function (a, b) {
     if (a.depth !== b.depth) {
@@ -355,19 +360,19 @@ function drawEverything() {
       a = a.parent!
       b = b.parent!
     }
-    const child_list = a.parent!.data.child_names
+    const child_list = a.parent!.data.child_ids
     return (
-      child_list.findIndex((x) => x === a.data.name) -
-      child_list.findIndex((x) => x === b.data.name)
+      child_list.findIndex((x) => x === a.data.node_id) -
+      child_list.findIndex((x) => x === b.data.node_id)
     )
   })
 
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
 
   const node = g_vertex
-    .selectAll<SVGSVGElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, d3.HierarchyNode<BTEditorNode>>('.' + tree_node_css_class)
     .data(
-      root.descendants().filter((node) => node.data.name !== forest_root_name),
+      root.descendants().filter((node) => node.data.node_id !== uuid.NIL),
       (node) => node.id!
     ) // Join performs enter, update and exit at once
     .join(drawNewNodes)
@@ -384,7 +389,7 @@ function drawEverything() {
 }
 
 function drawNewNodes(
-  selection: d3.Selection<d3.EnterElement, d3.HierarchyNode<TrimmedNode>, SVGGElement, never>
+  selection: d3.Selection<d3.EnterElement, d3.HierarchyNode<BTEditorNode>, SVGGElement, never>
 ) {
   const group = selection
     .append<SVGGElement>('g')
@@ -392,18 +397,18 @@ function drawNewNodes(
     // The two css-classes below are currently unused
     .classed('node--internal', (d) => d.children !== undefined && d.children.length > 0)
     .classed('node--leaf', (d) => d.children === undefined || d.children.length == 0)
-    .on('click.select', (event, node: d3.HierarchyNode<TrimmedNode>) => {
+    .on('click.select', (event, node: d3.HierarchyNode<BTEditorNode>) => {
       if (event.shiftKey) {
-        edit_node_store.selectMultipleNodes([node.data.name])
+        edit_node_store.selectMultipleNodes([node.data.node_id])
       } else {
-        edit_node_store.editorSelectionChange(node.data.name)
+        edit_node_store.editorSelectionChange(node.data.node_id)
       }
       event.stopPropagation()
     })
 
   // No tree modifying if displaying a subtree
   if (!editor_store.has_selected_subtree) {
-    group.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<TrimmedNode>) => {
+    group.on('mousedown.dragdrop', (event, node: d3.HierarchyNode<BTEditorNode>) => {
       editor_store.startDraggingExistingNode(node)
       event.stopPropagation()
     })
@@ -450,13 +455,13 @@ function getIcon(state: NodeStateValues | undefined) {
 
 function layoutText(
   element: SVGGElement,
-  data: d3.HierarchyNode<TrimmedNode>,
+  data: d3.HierarchyNode<BTEditorNode>,
 ): number {
 
   // Track width of longest line and return that for box sizing
   let max_width: number = 0
 
-  const group_elem = d3.select<SVGGElement, d3.HierarchyNode<TrimmedNode>>(element)
+  const group_elem = d3.select<SVGGElement, d3.HierarchyNode<BTEditorNode>>(element)
 
   const name_elem = group_elem.select<SVGTextElement>('.' + node_name_css_class)
   const class_elem = group_elem.select<SVGTextElement>('.' + node_class_css_class)
@@ -563,7 +568,7 @@ function layoutText(
 function updateNodeBody(
   selection: d3.Selection<
     SVGGElement,
-    d3.HierarchyNode<TrimmedNode>,
+    d3.HierarchyNode<BTEditorNode>,
     SVGGElement,
     never
   >
@@ -620,14 +625,14 @@ function updateNodeState() {
   const g_vertex = d3.select<SVGGElement, never>(g_vertices_ref.value)
 
   const node = g_vertex
-    .selectAll<SVGSVGElement, d3.HierarchyNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, d3.HierarchyNode<BTEditorNode>>('.' + tree_node_css_class)
       .each((node) => {
         if (editor_store.current_tree.state === undefined) {
           console.warn("No state to update")
           return
         }
         const state = editor_store.current_tree.state.node_states.find(
-          (state) => state.name === node.data.name
+          (state) => rosToUuid(state.node_id) === node.data.node_id
         )
         if (state !== undefined) {
           node.data.state = state.state
@@ -681,23 +686,23 @@ function updateNodeState() {
 function layoutTree(
   selection: d3.Selection<
     SVGGElement,
-    d3.HierarchyNode<TrimmedNode>,
+    d3.HierarchyNode<BTEditorNode>,
     SVGGElement,
     never
   >,
-  root: d3.HierarchyNode<TrimmedNode>
-): FlextreeNode<TrimmedNode> {
+  root: d3.HierarchyNode<BTEditorNode>
+): FlextreeNode<BTEditorNode> {
   // If the tree is in layer_mode, we have to get the max height for each layer
   const max_height_per_layer = Array<number>(root.height + 1).fill(0.0)
-  selection.each((node: d3.HierarchyNode<TrimmedNode>) => {
+  selection.each((node: d3.HierarchyNode<BTEditorNode>) => {
     max_height_per_layer[node.depth] = Math.max(
       node.data.size.height,
       max_height_per_layer[node.depth]
     )
   })
 
-  const tree_layout = flextree<TrimmedNode>({
-    nodeSize: (node: HierarchyNode<TrimmedNode>) => {
+  const tree_layout = flextree<BTEditorNode>({
+    nodeSize: (node: HierarchyNode<BTEditorNode>) => {
       let height: number
       if (editor_store.is_layer_mode) {
         height = max_height_per_layer[node.depth]
@@ -707,7 +712,7 @@ function layoutTree(
       height += node.depth > 0 ? node_spacing : 0
       return [node.data.size.width, height]
     },
-    spacing: (node: HierarchyNode<TrimmedNode>, oNode: HierarchyNode<TrimmedNode>) => {
+    spacing: (node: HierarchyNode<BTEditorNode>, oNode: HierarchyNode<BTEditorNode>) => {
       if (editor_store.is_layer_mode) {
         return node_spacing
       }
@@ -717,7 +722,7 @@ function layoutTree(
         return node_spacing
       }
     } // This only applies to horizontal adjacent nodes
-  })(root as HierarchyNode<TrimmedNode>)
+  })(root as HierarchyNode<BTEditorNode>)
   //FIXME This typecast shouldn't be necessary, but apparrently the types
   // d3.HierarchyNode and d3-hierarchy.HierarchyNode differ, as
   // d3.HierarchyNode doesn't expose the find function???
@@ -726,11 +731,11 @@ function layoutTree(
   // Bind the new data to get a selection with all flextree properties
   selection
     .data(
-      tree_layout.descendants().filter((node) => node.data.name !== forest_root_name),
+      tree_layout.descendants().filter((node) => node.data.node_id !== uuid.NIL),
       (node) => node.id!
     )
     .transition(tree_transition)
-    .attr('transform', (d: FlextreeNode<TrimmedNode>) => {
+    .attr('transform', (d: FlextreeNode<BTEditorNode>) => {
       const x = d.x - d.data.size.width / 2.0
       const y = d.y
       return 'translate(' + x + ', ' + y + ')'
@@ -739,19 +744,19 @@ function layoutTree(
   return tree_layout
 }
 
-function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
+function drawEdges(tree_layout: FlextreeNode<BTEditorNode>) {
   if (g_edges_ref.value === undefined) {
     console.warn('DOM is broken')
     return
   }
 
   d3.select(g_edges_ref.value)
-    .selectAll<SVGPathElement, d3.HierarchyLink<TrimmedNode>>('.' + tree_edge_css_class)
+    .selectAll<SVGPathElement, d3.HierarchyLink<BTEditorNode>>('.' + tree_edge_css_class)
     .data(
       tree_layout
         .links()
         .filter(
-          (link: d3.HierarchyLink<TrimmedNode>) => link.source.data.name !== forest_root_name
+          (link: d3.HierarchyLink<BTEditorNode>) => link.source.data.node_id !== uuid.NIL
         ),
       (link) => link.source.id! + '###' + link.target.id!
     )
@@ -761,16 +766,16 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
     .attr(
       'd',
       d3
-        .linkVertical<SVGPathElement, HierarchyLink<TrimmedNode>, [number, number]>()
-        .source((link: HierarchyLink<TrimmedNode>) => {
-          const source = link.source as FlextreeNode<TrimmedNode>
+        .linkVertical<SVGPathElement, HierarchyLink<BTEditorNode>, [number, number]>()
+        .source((link: HierarchyLink<BTEditorNode>) => {
+          const source = link.source as FlextreeNode<BTEditorNode>
           return [
             source.x + source.data.offset.x,
             source.y + source.data.offset.y + source.data.size.height
           ]
         })
-        .target((link: HierarchyLink<TrimmedNode>) => {
-          const target = link.target as FlextreeNode<TrimmedNode>
+        .target((link: HierarchyLink<BTEditorNode>) => {
+          const target = link.target as FlextreeNode<BTEditorNode>
           return [
             target.x + target.data.offset.x,
             target.y + target.data.offset.y
@@ -779,7 +784,7 @@ function drawEdges(tree_layout: FlextreeNode<TrimmedNode>) {
     )
 }
 
-function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
+function drawDropTargets(tree_layout: FlextreeNode<BTEditorNode>) {
   if (g_drop_targets_ref.value === undefined) {
     console.warn('DOM is broken')
     return
@@ -790,8 +795,8 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
   // Only draw drop targets if not displaying a subtree
   if (!editor_store.has_selected_subtree) {
     // Construct the list of drop targets that should exist
-    tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
-      if (node.data.name === forest_root_name) {
+    tree_layout.each((node: FlextreeNode<BTEditorNode>) => {
+      if (node.data.node_id === uuid.NIL) {
         return
       }
 
@@ -801,7 +806,7 @@ function drawDropTargets(tree_layout: FlextreeNode<TrimmedNode>) {
       drop_targets.push({ node: node, position: Position.CENTER })
       drop_targets.push({ node: node, position: Position.RIGHT })
       drop_targets.push({ node: node, position: Position.TOP }) // Does this make sense?
-      if (node.data.max_children === -1 || node.data.max_children > node.data.child_names.length) {
+      if (node.data.max_children === -1 || node.data.max_children > node.data.child_ids.length) {
         drop_targets.push({ node: node, position: Position.BOTTOM })
       }
     })
@@ -913,7 +918,8 @@ async function moveExistingNode(drop_target: DropTarget) {
     return
   }
 
-  const node_name = editor_store.dragging_existing_node.data.name
+  const target_node_id = editor_store.dragging_existing_node.data.node_id
+  const target_node_name = editor_store.dragging_existing_node.data.name
 
   if (!drop_target.node.parent) {
     console.error('A tree with an existing node should never show the root target')
@@ -921,7 +927,7 @@ async function moveExistingNode(drop_target: DropTarget) {
   }
 
   if (drop_target.position === Position.BOTTOM) {
-    await moveNode(node_name, drop_target.node.data.name, 0)
+    await moveNode(target_node_id, target_node_name, drop_target.node.data.node_id, 0)
     return
   }
 
@@ -929,24 +935,21 @@ async function moveExistingNode(drop_target: DropTarget) {
     drop_target.position === Position.LEFT ||
     drop_target.position === Position.RIGHT
   ) {
-    let parent_name = drop_target.node.parent.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
+    const parent_node_id = drop_target.node.parent.data.node_id
     let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
     // If the node is moved in it's own row (same parent), we need to offset the index
     if (
-      parent_name === editor_store.dragging_existing_node.parent!.data.name &&
+      parent_node_id === editor_store.dragging_existing_node.parent!.data.node_id &&
       index > drop_target.node.parent.children!.findIndex(
-        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+        (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
       )
     ) {
       index--
     }
-    await moveNode(node_name, parent_name, index)
+    await moveNode(target_node_id, target_node_name, parent_node_id, index)
     return
   }
 
@@ -954,16 +957,13 @@ async function moveExistingNode(drop_target: DropTarget) {
   // are presumed done based on whether this target was available in the first place.
 
   if (drop_target.position === Position.TOP) {
-    let parent_name = drop_target.node.parent.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
+    const parent_node_id = drop_target.node.parent.data.node_id
     let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     // If the node is moved in it's own row (same parent), we need to offset the index
     if (
-      parent_name === editor_store.dragging_existing_node.parent!.data.name &&
+      parent_node_id === editor_store.dragging_existing_node.parent!.data.node_id &&
       index > drop_target.node.parent.children!.findIndex(
-        (node: FlextreeNode<TrimmedNode>) => node.data.name === node_name
+        (node: FlextreeNode<BTEditorNode>) => node.data.node_id === target_node_id
       )
     ) {
       index--
@@ -971,13 +971,13 @@ async function moveExistingNode(drop_target: DropTarget) {
 
     // Care has to be taken regarding order of operations to not overload the parent node.
     // Insert new node at the end, then move node to old position
-    await moveNode(drop_target.node.data.name, node_name, -1)
-    await moveNode(node_name, parent_name, index)
+    await moveNode(drop_target.node.data.node_id, drop_target.node.data.name, target_node_id, -1)
+    await moveNode(target_node_id, target_node_name, parent_node_id, index)
     return
   }
 
   if (drop_target.position === Position.CENTER) {
-    await replaceNode(drop_target.node.data.name, node_name)
+    await replaceNode(drop_target.node.data.node_id, drop_target.node.data.name, target_node_id, target_node_name)
     return
   }
 
@@ -1012,8 +1012,8 @@ function toggleExistingNodeTargets() {
       return (
         editor_store
           .dragging_existing_node!.descendants()
-          .find((node: d3.HierarchyNode<TrimmedNode>) => {
-            return node.data.name === drop_target.node.data.name
+          .find((node: d3.HierarchyNode<BTEditorNode>) => {
+            return node.data.node_id === drop_target.node.data.node_id
           }) !== undefined
       )
     })
@@ -1026,29 +1026,29 @@ function toggleExistingNodeTargets() {
         case Position.CENTER:
           return (
             editor_store.dragging_existing_node!.data.max_children !== -1 &&
-            drop_target.node.data.child_names.length +
-              editor_store.dragging_existing_node!.data.child_names.length >
+            drop_target.node.data.child_ids.length +
+              editor_store.dragging_existing_node!.data.child_ids.length >
               editor_store.dragging_existing_node!.data.max_children
           )
         case Position.TOP:
           return (
             editor_store.dragging_existing_node!.data.max_children !== -1 &&
-            editor_store.dragging_existing_node!.data.child_names.length >=
+            editor_store.dragging_existing_node!.data.child_ids.length >=
             editor_store.dragging_existing_node!.data.max_children
           )
         case Position.BOTTOM:
           return (
             drop_target.node.data.max_children !== -1 &&
-            drop_target.node.data.name !== editor_store.dragging_existing_node!.parent!.data.name &&
-            drop_target.node.data.child_names.length >= drop_target.node.data.max_children
+            drop_target.node.data.node_id !== editor_store.dragging_existing_node!.parent!.data.node_id &&
+            drop_target.node.data.child_ids.length >= drop_target.node.data.max_children
           )
         case Position.LEFT:
         case Position.RIGHT:
           return (
             drop_target.node.parent!.data.max_children !== -1 &&
-            drop_target.node.parent!.data.name !==
-              editor_store.dragging_existing_node!.parent!.data.name &&
-            drop_target.node.parent!.data.child_names.length >=
+            drop_target.node.parent!.data.node_id !==
+              editor_store.dragging_existing_node!.parent!.data.node_id &&
+            drop_target.node.parent!.data.child_ids.length >=
               drop_target.node.parent!.data.max_children
           )
         case Position.ROOT:
@@ -1069,7 +1069,7 @@ async function addNewNode(drop_target: DropTarget) {
   const msg = buildNodeMessage(editor_store.dragging_new_node)
 
   if (drop_target.position === Position.ROOT) {
-    await addNode(msg, '', 0)
+    await addNode(msg, uuid.NIL, 0)
     return
   }
 
@@ -1079,8 +1079,8 @@ async function addNewNode(drop_target: DropTarget) {
   }
 
   if (drop_target.position === Position.BOTTOM) {
-    const parent_name = drop_target.node.data.name
-    await addNode(msg, parent_name, 0)
+    const parent_node_id = drop_target.node.data.node_id
+    await addNode(msg, parent_node_id, 0)
     return
   }
 
@@ -1088,15 +1088,12 @@ async function addNewNode(drop_target: DropTarget) {
     drop_target.position === Position.LEFT ||
     drop_target.position === Position.RIGHT
   ) {
-    let parent_name = drop_target.node.parent.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
+    const parent_node_id = drop_target.node.parent.data.node_id
     let index = drop_target.node.parent.children!.indexOf(drop_target.node)
     if (drop_target.position === Position.RIGHT) {
       index++
     }
-    await addNode(msg, parent_name, index)
+    await addNode(msg, parent_node_id, index)
     return
   }
 
@@ -1104,23 +1101,20 @@ async function addNewNode(drop_target: DropTarget) {
   // are presumed done based on whether this target was available in the first place.
 
   if (drop_target.position === Position.TOP) {
-    let parent_name = drop_target.node.parent.data.name
-    if (parent_name === forest_root_name) {
-      parent_name = ''
-    }
+    const parent_node_id = drop_target.node.parent.data.node_id
     const index = drop_target.node.parent.children!.indexOf(drop_target.node)
 
     // Care has to be taken regarding order of operations to not overload the parent node.
     // Insert at top temporarily
-    const new_node_name = await addNode(msg, '', -1)
-    await moveNode(drop_target.node.data.name, new_node_name, 0)
-    await moveNode(new_node_name, parent_name, index)
+    const new_node_id = await addNode(msg, uuid.NIL, -1)
+    await moveNode(drop_target.node.data.node_id, drop_target.node.data.name, new_node_id, 0)
+    await moveNode(new_node_id, msg.name, parent_node_id, index)
     return
   }
 
   if (drop_target.position === Position.CENTER) {
-    const new_node_name = await addNode(msg, '', -1)
-    await replaceNode(drop_target.node.data.name, new_node_name)
+    const new_node_id = await addNode(msg, uuid.NIL, -1)
+    await replaceNode(drop_target.node.data.node_id, drop_target.node.data.name, new_node_id, msg.name)
     return
   }
 
@@ -1152,20 +1146,20 @@ function toggleNewNodeTargets() {
         case Position.CENTER:
           return (
             editor_store.dragging_new_node!.max_children !== -1 &&
-            drop_target.node.data.child_names.length > editor_store.dragging_new_node!.max_children
+            drop_target.node.data.child_ids.length > editor_store.dragging_new_node!.max_children
           )
         case Position.TOP:
           return editor_store.dragging_new_node!.max_children === 0
         case Position.BOTTOM:
           return (
             drop_target.node.data.max_children !== -1 &&
-            drop_target.node.data.child_names.length >= drop_target.node.data.max_children
+            drop_target.node.data.child_ids.length >= drop_target.node.data.max_children
           )
         case Position.LEFT:
         case Position.RIGHT:
           return (
             drop_target.node.parent!.data.max_children !== -1 &&
-            drop_target.node.parent!.data.child_names.length >=
+            drop_target.node.parent!.data.child_ids.length >=
               drop_target.node.parent!.data.max_children
           )
         case Position.ROOT:
@@ -1177,7 +1171,7 @@ function toggleNewNodeTargets() {
     .attr('visibility', 'hidden')
 }
 
-function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wiring[]) {
+function drawDataGraph(tree_layout: FlextreeNode<BTEditorNode>, data_wirings: Wiring[]) {
   if (g_data_graph_ref.value === undefined || g_data_vertices_ref.value === undefined) {
     console.warn('DOM is broken')
     return
@@ -1185,8 +1179,8 @@ function drawDataGraph(tree_layout: FlextreeNode<TrimmedNode>, data_wirings: Wir
 
   const data_points: DataEdgeTerminal[] = []
 
-  tree_layout.each((node: FlextreeNode<TrimmedNode>) => {
-    if (node.data.name === forest_root_name) {
+  tree_layout.each((node: FlextreeNode<BTEditorNode>) => {
+    if (node.data.node_id === uuid.NIL) {
       return
     }
 
@@ -1352,7 +1346,7 @@ function drawDataEdges(
 
   function matchEndpoint(wire_point: NodeDataLocation, terminal: DataEdgeTerminal): boolean {
     return (
-      wire_point.node_name === terminal.node.data.name &&
+      rosToUuid(wire_point.node_id) === terminal.node.data.node_id &&
       wire_point.data_kind === terminal.kind &&
       wire_point.data_key === terminal.key
     )
@@ -1522,12 +1516,12 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
       wirings: [
         {
           source: {
-            node_name: source.node.data.name,
+            node_id: uuidToRos(source.node.data.node_id),
             data_kind: source.kind,
             data_key: source.key
           },
           target: {
-            node_name: target.node.data.name,
+            node_id: uuidToRos(target.node.data.node_id),
             data_kind: target.kind,
             data_key: target.key
           }
@@ -1536,14 +1530,20 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
       ignore_failure: false //TODO what does this do?
     } as WireNodeDataRequest,
     (response: WireNodeDataResponse) => {
+      const source_name = editor_store.current_tree.structure!.nodes.find(
+        (node) => rosToUuid(node.node_id) === source.node.data.node_id
+      )!.name
+      const target_name = editor_store.current_tree.structure!.nodes.find(
+        (node) => rosToUuid(node.node_id) === target.node.data.node_id
+      )!.name
       if (response.success) {
         notify({
-          title: 'Added data edge',
+          title: 'Added data edge: ' + source_name + ' -> ' + target_name + '!',
           type: 'success'
         })
       } else {
         notify({
-          title: 'Failed to add data edge',
+          title: 'Failed to add data edge: ' + source_name + ' -> ' + target_name + '!',
           text: response.error_message,
           type: 'warn'
         })
@@ -1560,7 +1560,7 @@ function addNewDataEdge(source: DataEdgeTerminal, target: DataEdgeTerminal) {
 }
 
 watch(
-  () => [edit_node_store.selected_node_names, selected_nodes.value],
+  () => [edit_node_store.selected_node_ids, selected_nodes.value],
   () => colorSelectedNodes()
 )
 function colorSelectedNodes() {
@@ -1570,19 +1570,19 @@ function colorSelectedNodes() {
   }
 
   // Color all nodes that are in either set but not both
-  const old_selected_nodes = edit_node_store.selected_node_names.filter(
+  const old_selected_nodes = edit_node_store.selected_node_ids.filter(
     (node: string) => !selected_nodes.value.includes(node)
   )
   const new_selected_nodes = selected_nodes.value.filter(
-    (node: string) => !edit_node_store.selected_node_names.includes(node)
+    (node: string) => !edit_node_store.selected_node_ids.includes(node)
   )
   const all_selected_nodes = old_selected_nodes.concat(new_selected_nodes)
 
   d3.select<SVGGElement, never>(g_vertices_ref.value)
-    .selectAll<SVGSVGElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+    .selectAll<SVGSVGElement, FlextreeNode<BTEditorNode>>('.' + tree_node_css_class)
     .select<SVGRectElement>('.' + node_body_css_class)
-    .classed(node_selected_css_class, (node: FlextreeNode<TrimmedNode>) =>
-      all_selected_nodes.includes(node.data.name)
+    .classed(node_selected_css_class, (node: FlextreeNode<BTEditorNode>) =>
+      all_selected_nodes.includes(node.data.node_id)
     )
 }
 
@@ -1718,9 +1718,9 @@ onMounted(() => {
 
       // Update which nodes are in the selection
       d3.select<SVGGElement, never>(g_vertices_ref.value)
-        .selectAll<SVGForeignObjectElement, FlextreeNode<TrimmedNode>>('.' + tree_node_css_class)
+        .selectAll<SVGForeignObjectElement, FlextreeNode<BTEditorNode>>('.' + tree_node_css_class)
         .select<HTMLBodyElement>('.' + node_body_css_class)
-        .each((node: FlextreeNode<TrimmedNode>) => {
+        .each((node: FlextreeNode<BTEditorNode>) => {
           // Select all nodes in the selection rectangle
           // Node coordinates are given for the top-center point
           if (
@@ -1729,7 +1729,7 @@ onMounted(() => {
             node.y >= new_y &&
             node.y + node.data.size.height <= new_y + height
           ) {
-            temp_selected_nodes.push(node.data.name)
+            temp_selected_nodes.push(node.data.node_id)
           }
         })
 

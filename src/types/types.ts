@@ -30,6 +30,9 @@
 
 import type { FlextreeNode } from 'd3-flextree'
 
+export type UUIDMsg = string
+export type UUIDString = string
+
 export type NodeIO = {
   key: string
   serialized_type: string
@@ -40,25 +43,39 @@ export type NodeOption = NodeIO & {
 }
 
 export type NodeStructure = {
+  node_id: UUIDMsg
+  name: string
+
   module: string
   node_class: string
   version: string
+
   max_children: number
-  name: string
-  child_names: string[]
+  child_ids: UUIDMsg[]
+
   options: NodeOption[]
   inputs: NodeIO[]
   outputs: NodeIO[]
 }
 
-export type DocumentedNode = NodeStructure & {
+export type DocumentedNode = {
+  module: string
+  node_class: string
+  version: string
+
+  max_children: number
+
+  options: NodeOption[]
+  inputs: NodeIO[]
+  outputs: NodeIO[]
+
   doc: string
   tags: string[]
   node_type?: string
 }
 
 export type NodeDataLocation = {
-  node_name: string
+  node_id: UUIDMsg
   data_kind: string
   data_key: string
 }
@@ -69,10 +86,10 @@ export type Wiring = {
 }
 
 export type TreeStructure = {
-  tree_id: string
+  tree_id: UUIDMsg
   name: string
   path: string
-  root_name: string
+  root_id: UUIDMsg
   nodes: NodeStructure[]
   data_wirings: Wiring[]
   trick_frequency_hz: number
@@ -98,7 +115,7 @@ export const enum NodeStateValues {
 }
 
 export type NodeState = {
-  name: string
+  node_id: UUIDMsg
   state: NodeStateValues
 }
 
@@ -112,7 +129,7 @@ export const enum TreeStateValues {
 }
 
 export type TreeState = {
-  tree_id: string
+  tree_id: UUIDMsg
   state: TreeStateValues
   node_states: NodeState[]
 }
@@ -129,7 +146,7 @@ export type WiringData = {
 }
 
 export type TreeData = {
-  tree_id: string
+  tree_id: UUIDMsg
   wiring_data: WiringData[]
 }
 
@@ -151,7 +168,7 @@ export type DataEdgePoint = {
 }
 
 export type DataEdgeTerminal = DataEdgePoint & {
-  node: FlextreeNode<TrimmedNode>
+  node: FlextreeNode<BTEditorNode>
   index: number
   kind: IOKind
   key: string
@@ -171,7 +188,7 @@ export type DataEdge = {
 }
 
 export type DropTarget = {
-  node: FlextreeNode<TrimmedNode>
+  node: FlextreeNode<BTEditorNode>
   position: Position
 }
 
@@ -189,15 +206,20 @@ export type TrimmedNodeData = {
   serialized_type: string
 }
 
-export type TrimmedNode = {
+export type BTEditorNode = {
+  node_id: UUIDString
+  name: string
+
   node_class: string
   module: string
+
   max_children: number
-  name: string
-  child_names: string[]
+  child_ids: UUIDString[]
+
   inputs: TrimmedNodeData[]
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
+
   size: { width: number; height: number }
   offset: { x: number, y: number }
 

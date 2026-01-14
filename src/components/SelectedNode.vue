@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { serializeNodeOptions } from '@/utils'
+import { rosToUuid, serializeNodeOptions } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import EditableNode from './EditableNode.vue'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
@@ -55,7 +55,11 @@ async function onClickDelete() {
     return
   }
 
-  await removeNode(edit_node_store.selected_node.name, false)
+  await removeNode(
+    rosToUuid(edit_node_store.selected_node.node_id),
+    edit_node_store.selected_node.name,
+    false
+  )
   edit_node_store.clearSelection()
 }
 
@@ -76,7 +80,7 @@ function onClickDeleteWithChildren() {
 
   ros_store.remove_node_service.callService(
     {
-      node_name: edit_node_store.selected_node.name,
+      node_id: edit_node_store.selected_node.node_id,
       remove_children: true
     } as RemoveNodeRequest,
     (response: RemoveNodeResponse) => {
@@ -105,7 +109,7 @@ function updateNode() {
   }
   ros_store.set_options_service.callService(
     {
-      node_name: edit_node_store.selected_node.name,
+      node_id: edit_node_store.selected_node.node_id,
       rename_node: true,
       new_name: edit_node_store.new_node_name,
       options: serializeNodeOptions(edit_node_store.new_node_options)
@@ -117,7 +121,6 @@ function updateNode() {
           type: 'success'
         })
         edit_node_store.clearNodeHasChanged()
-        edit_node_store.editorSelectionChange(edit_node_store.new_node_name)
       } else {
         notify({
           title: 'Failed to update node ' + edit_node_store.selected_node!.name + '!',
@@ -137,7 +140,7 @@ function onClickUpdate() {
     }
     ros_store.morph_node_service.callService(
       {
-        node_name: edit_node_store.selected_node.name,
+        node_id: edit_node_store.selected_node.node_id,
         new_node: edit_node_store.buildNodeMsg()
       } as MorphNodeRequest,
       (response: MorphNodeResponse) => {

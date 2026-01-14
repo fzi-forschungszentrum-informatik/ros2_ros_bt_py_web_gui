@@ -27,29 +27,51 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import { 
-  getPythonTypeDefault, 
-  isPythonTypeWithDefault, 
-  TypeWrapper_Name, 
-  type TypeWrapper 
+import * as uuid from 'uuid'
+import {
+  getPythonTypeDefault,
+  isPythonTypeWithDefault,
+  TypeWrapper_Name,
+  type TypeWrapper
 } from './types/python_types'
-import type { 
-  DataEdgeTerminal, 
-  OptionData, 
-  PyObject, 
-  ParamType, 
+import type {
+  DataEdgeTerminal,
+  OptionData,
+  PyObject,
+  ParamType,
   NodeOption,
-  TreeState
+  TreeState,
+  UUIDMsg,
+  UUIDString,
+  TreeStructure,
+  NodeStructure,
 } from './types/types'
 import { IOKind } from './types/types'
 
-// uuid is used to assign unique IDs to tags so we can use labels properly
-let idx = 0
-export const uuid = () => idx++
 
-// and another one for errors
-let error_idx = 0
-export const error_id = () => error_idx++
+export function rosToUuid(msg: UUIDMsg): UUIDString {
+  if (!uuid.validate(msg)) {
+    throw TypeError(`Message ${msg} is not a valid uuid`)
+  }
+  return msg
+}
+
+export function uuidToRos(str: UUIDString): UUIDMsg {
+  if (!uuid.validate(str)) {
+    throw TypeError(`String ${str} is not a valid uuid`)
+  }
+  return str
+}
+
+export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {
+  return rosToUuid(u1) === rosToUuid(u2)
+}
+
+export function findNode(
+  tree: TreeStructure, node_id: UUIDString
+): NodeStructure | undefined {
+  return tree.nodes.find((node) => rosToUuid(node.node_id) === node_id)
+}
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
   if (a.node.data.name === b.node.data.name) {

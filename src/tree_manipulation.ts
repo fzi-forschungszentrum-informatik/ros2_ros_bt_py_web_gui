@@ -33,16 +33,16 @@ import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from "./types/serv
 import type { MoveNodeRequest, MoveNodeResponse } from "./types/services/MoveNode"
 import type { RemoveNodeRequest, RemoveNodeResponse } from "./types/services/RemoveNode"
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from "./types/services/ReplaceNode"
-import type { NodeStructure } from "./types/types"
+import type { UUIDString, NodeStructure } from "./types/types"
+import { rosToUuid, uuidToRos } from "./utils"
 import { notify } from '@kyvg/vue3-notification'
 
 export function addNode(
-    msg: NodeStructure, 
-    parent_name: string, 
+    msg: NodeStructure,
+    parent_node_id: UUIDString,
     index: number,
-    allow_rename: boolean = true,
     send_notify: boolean = true
-): Promise<string> {
+): Promise<UUIDString> {
     const ros_store = useROSStore()
 
     // Supress notifications for all callbacks
@@ -56,18 +56,17 @@ export function addNode(
     return new Promise<string>((resolve, reject) => {
         ros_store.add_node_at_index_service.callService(
             {
-            parent_name: parent_name,
+            parent_node_id: uuidToRos(parent_node_id),
             node: msg,
-            allow_rename: allow_rename,
             new_child_index: index
             } as AddNodeAtIndexRequest,
             (response: AddNodeAtIndexResponse) => {
                 if (response.success) {
                     local_notify({
-                        title: 'Added node ' + response.actual_node_name,
+                        title: 'Added node ' + msg.name,
                         type: 'success'
                     })
-                    resolve(response.actual_node_name)
+                    resolve(rosToUuid(response.node_id))
                 } else {
                     local_notify({
                         title: 'Failed to add node ' + msg.name,
@@ -90,8 +89,9 @@ export function addNode(
 }
 
 export function moveNode(
+    node_id: UUIDString,
     node_name: string,
-    parent_name: string,
+    parent_node_id: UUIDString,
     index: number,
     send_notify: boolean = true
 ): Promise<void> {
@@ -109,8 +109,8 @@ export function moveNode(
     return new Promise<void>((resolve, reject) => {
         ros_store.move_node_service.callService(
             {
-                node_name: node_name,
-                new_parent_name: parent_name,
+                node_id: uuidToRos(node_id),
+                parent_node_id: uuidToRos(parent_node_id),
                 new_child_index: index
             } as MoveNodeRequest,
             (response: MoveNodeResponse) => {
@@ -142,6 +142,7 @@ export function moveNode(
 }
 
 export function removeNode(
+    node_id: UUIDString,
     node_name: string,
     remove_children: boolean,
     send_notify: boolean = true
@@ -160,19 +161,19 @@ export function removeNode(
     return new Promise<void>((resolve, reject) => {
         ros_store.remove_node_service.callService(
             {
-                node_name: node_name,
+                node_id: uuidToRos(node_id),
                 remove_children: remove_children
             } as RemoveNodeRequest,
             (response: RemoveNodeResponse) => {
                 if (response.success) {
                     local_notify({
-                        title: 'Removed node',
+                        title: 'Removed node ' + node_name,
                         type: 'success'
                     })
                     resolve()
                 } else {
                     local_notify({
-                        title: 'Failed to remove node',
+                        title: 'Failed to remove node ' + node_name,
                         text: response.error_message,
                         type: 'warn'
                     })
@@ -192,7 +193,9 @@ export function removeNode(
 }
 
 export function replaceNode(
+    old_node_id: UUIDString,
     old_node_name: string,
+    new_node_id: UUIDString,
     new_node_name: string,
     send_notify: boolean = true
 ): Promise<void> {
@@ -209,8 +212,8 @@ export function replaceNode(
 
     return new Promise<void>((resolve, reject) => {
         ros_store.replace_node_service.callService({
-            old_node_name: old_node_name,
-            new_node_name: new_node_name
+            old_node_id: uuidToRos(old_node_id),
+            new_node_id: uuidToRos(new_node_id)
         } as ReplaceNodeRequest,
         (response: ReplaceNodeResponse) => {
             if (response.success) {

@@ -32,9 +32,11 @@ import { useROSStore } from '@/stores/ros'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import { notify } from '@kyvg/vue3-notification'
 import { useModal } from 'vue-final-modal'
+import * as uuid from 'uuid'
 import SaveFileModal from './modals/SaveFileModal.vue'
 import LoadFileModal from './modals/LoadFileModal.vue'
 import { useEditorStore } from '@/stores/editor'
+import { rosToUuid } from '@/utils'
 import { computed, onMounted, ref } from 'vue'
 import type { GetStorageFoldersRequest, GetStorageFoldersResponse } from '@/types/services/GetStorageFolders'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
@@ -47,7 +49,7 @@ const storage_folders = ref<string[]>([])
 const quick_save_location = computed<[string, string]>(() => {
   let quick_save_path = editor_store.quick_save_location
   const tree = editor_store.tree_structure_list.find(
-    (tree) => tree.tree_id === ""
+    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
   )
   if (quick_save_path === '' && tree !== undefined) {
     quick_save_path = tree.path
@@ -162,7 +164,7 @@ function quickSave() {
     return
   }
   const tree = editor_store.tree_structure_list.find(
-    (tree) => tree.tree_id === ""
+    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
   )
   ros_store.save_tree_service.callService({
     storage_path: quick_save_location.value[0],

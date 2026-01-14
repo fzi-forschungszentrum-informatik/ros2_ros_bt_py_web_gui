@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024 FZI Forschungszentrum Informatik
+ *  Copyright 2025 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -26,66 +26,34 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
 <script setup lang="ts">
-import type { NodeStructure } from '@/types/types'
-import { rosToUuid } from '@/utils'
-import EditableNode from './EditableNode.vue'
-import { ref } from 'vue'
-import * as uuid from 'uuid'
-import { useEditNodeStore } from '@/stores/edit_node'
-import { addNode } from '@/tree_manipulation'
+import * as uuid from 'uuid';
+import { VueFinalModal } from 'vue-final-modal'
+import ListSubtrees from './ListSubtrees.vue';
 
-const props = defineProps<{
-  parents: NodeStructure[]
+const emit = defineEmits<{
+  (e: 'close'): void
 }>()
 
-const edit_node_store = useEditNodeStore()
-
-const selected_parent = ref<NodeStructure | null>(
-  props.parents.length > 0 ? props.parents[0] : null
-)
-
-async function addToTree() {
-
-  if (edit_node_store.reference_node === undefined) {
-    console.error("Undefined node reference, can't add node to tree")
-    return
-  }
-
-  const new_node_name = await addNode(
-    edit_node_store.buildNodeMsg(),
-    selected_parent.value !== null ? rosToUuid(selected_parent.value.node_id) : uuid.NIL,
-    -1
-  )
-
-  edit_node_store.clearNodeHasChanged()
-  edit_node_store.editorSelectionChange(new_node_name)
-
-}
 </script>
 
 <template>
-  <div class="d-flex flex-column">
-    <button
-      class="btn btn-block btn-primary"
-      :disabled="!edit_node_store.node_is_valid"
-      @click="addToTree"
-    >
-      Add to Tree
+  <VueFinalModal
+    class="flex justify-center items-center"
+    content-class="flex flex-col mt-4 mx-4 border rounded space-y-2"
+    content-style="background-color: var(--bs-body-bg);"
+  >
+    <button class="btn float-end" @click="emit('close')">
+      <FontAwesomeIcon class="fa-3x" style="opacity: 0.1" icon="fa-solid fa-xmark" />
     </button>
-    <label class="pt-2 pb-2">
-      Parent
-      <select
-        v-model="selected_parent"
-        class="custom-select d-block"
-        :disabled="parents.length === 0"
-      >
-        <option v-for="parent in parents" :key="rosToUuid(parent.node_id)" :value="parent">
-          {{ parent.name }}
-        </option>
-      </select>
-    </label>
-    <EditableNode />
-  </div>
+
+    <div class="m-4">
+      <h1 class="fs-1 mb-3">Select Tree to Display</h1>
+
+      <div class="overflow-auto" style="max-height: 80vh;">
+        <ListSubtrees :parent_id="uuid.NIL" :tree_id="uuid.NIL" @close="emit('close')" />
+      </div>
+    </div>
+  </VueFinalModal>
 </template>

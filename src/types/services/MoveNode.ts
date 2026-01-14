@@ -27,9 +27,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import type { UUIDMsg } from "../types"
+
 export type MoveNodeRequest = {
-  node_name: string
-  new_parent_name: string
+  node_id: UUIDMsg
+  parent_node_id: UUIDMsg
   new_child_index: number
 }
 

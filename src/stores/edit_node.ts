@@ -28,12 +28,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { DocumentedNode, IOData, NodeIO, NodeOption, NodeStructure, OptionData, ValueTypes } from '@/types/types'
+import type { DocumentedNode, IOData, NodeIO, NodeOption, NodeStructure, OptionData, UUIDString, ValueTypes } from '@/types/types'
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import * as uuid from 'uuid'
 import { useEditorStore } from './editor'
 import { useNodesStore } from './nodes'
-import { getDefaultValue, parseOptionRef, prettyprint_type, serializeNodeOptions } from '@/utils'
+import { getDefaultValue, parseOptionRef, prettyprint_type, rosToUuid, serializeNodeOptions, uuidToRos } from '@/utils'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -57,7 +58,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
   const node_has_changed = ref<boolean>(false)
   const selected_node = ref<NodeStructure | undefined>(undefined)
   const reference_node = ref<DocumentedNode | undefined>(undefined)
-  const selected_node_names = ref<string[]>([])
+  const selected_node_ids = ref<UUIDString[]>([])
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
 
   const new_node_name = ref<string>('')
@@ -104,7 +105,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
     selected_node.value = undefined
     reference_node.value = undefined
-    selected_node_names.value = []
+    selected_node_ids.value = []
     last_seletion_source.value = EditorSelectionSource.NONE
   }
 
@@ -123,12 +124,12 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     reference_node.value = new_selected_node
     copy_node_mode.value = false
     is_new_node.value = true
-    selected_node_names.value = []
+    selected_node_ids.value = []
     last_seletion_source.value = EditorSelectionSource.NODELIST
 
     // Initialize editable attributes
 
-    new_node_name.value = new_selected_node.name
+    new_node_name.value = new_selected_node.node_class
     new_node_class.value = new_selected_node.node_class
     new_node_module.value = new_selected_node.module
     node_is_valid.value = true
@@ -138,12 +139,12 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       return {
         key: data.key,
         value: getDefaultValue(
-          prettyprint_type(data.serialized_type), 
+          prettyprint_type(data.serialized_type),
           new_selected_node.options
         )
       } as OptionData
     })
-    new_node_inputs.value = new_selected_node.inputs.map((data) => 
+    new_node_inputs.value = new_selected_node.inputs.map((data) =>
       parseNodeIO(data, new_selected_node.options)
     )
     new_node_outputs.value = new_selected_node.outputs.map((data) =>
@@ -151,7 +152,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     )
   }
 
-  function editorSelectionChange(new_selected_node_name: string) {
+  function editorSelectionChange(new_selected_node_id: UUIDString) {
     if (node_has_changed.value) {
       if (
         window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
@@ -163,7 +164,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
 
     const new_selected_node = editor_store.current_tree.structure!.nodes.find(
-      (x: NodeStructure) => x.name === new_selected_node_name
+      (x: NodeStructure) => rosToUuid(x.node_id) === new_selected_node_id
     )
 
     if (new_selected_node === undefined) {
@@ -185,7 +186,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     reference_node.value = new_reference_node
     copy_node_mode.value = true
     is_new_node.value = false
-    selected_node_names.value = [new_selected_node_name]
+    selected_node_ids.value = [new_selected_node_id]
     last_seletion_source.value = EditorSelectionSource.EDITOR
 
     // Initialize editable attributes
@@ -209,15 +210,15 @@ export const useEditNodeStore = defineStore('edit_node', () => {
         }
       } as OptionData
     })
-    new_node_inputs.value = new_selected_node.inputs.map((data) => 
+    new_node_inputs.value = new_selected_node.inputs.map((data) =>
       parseNodeIO(data, new_selected_node.options)
     )
-    new_node_outputs.value = new_selected_node.outputs.map((data) => 
+    new_node_outputs.value = new_selected_node.outputs.map((data) =>
       parseNodeIO(data, new_selected_node.options)
     )
   }
 
-  function selectMultipleNodes(new_selected_node_names: string[]) {
+  function selectMultipleNodes(new_selected_node_ids: UUIDString[]) {
     if (node_has_changed.value) {
       if (
         window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
@@ -232,18 +233,18 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     reference_node.value = undefined
     last_seletion_source.value = EditorSelectionSource.MULTIPLE
 
-    selected_node_names.value.forEach((node_name: string) => {
-      const index = new_selected_node_names.indexOf(node_name)
+    selected_node_ids.value.forEach((node_id: string) => {
+      const index = new_selected_node_ids.indexOf(node_id)
       if (index === -1) {
-        new_selected_node_names.push(node_name)
+        new_selected_node_ids.push(node_id)
       } else {
-        new_selected_node_names.splice(index, 1)
+        new_selected_node_ids.splice(index, 1)
       }
     })
 
     //FIXME this explicit assignment is necessary to make watchers trigger (color nodes).
     // This shouldn't be an issue (watchers are supposed to be deep by default)
-    selected_node_names.value = new_selected_node_names
+    selected_node_ids.value = new_selected_node_ids
   }
 
   function changeCopyMode(new_mode: boolean) {
@@ -274,7 +275,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       return {
         key: data.key,
         value: getDefaultValue(
-          prettyprint_type(data.serialized_type), 
+          prettyprint_type(data.serialized_type),
           new_reference_node.options
         )
       } as OptionData
@@ -320,7 +321,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       // That is, if options = { foo : int, bar : OptionRef(foo) }
       // ref_keys will be [[bar, foo]]
       function findOptionRefs(ref_list: NodeIO[]): [string, string][] {
-        return ref_list.filter((x) => 
+        return ref_list.filter((x) =>
             prettyprint_type(x.serialized_type).startsWith('OptionRef(')
           )
           .map((x): [string, string] => [
@@ -395,22 +396,23 @@ export const useEditNodeStore = defineStore('edit_node', () => {
 
   function buildNodeMsg(): NodeStructure {
     return {
+      node_id: uuidToRos(uuid.v4()),
+      name: new_node_name.value,
       module: new_node_module.value,
       node_class: new_node_class.value,
-      name: new_node_name.value,
+      version: '',
       max_children: 0,
-      child_names: [],
+      child_ids: [],
       options: serializeNodeOptions(new_node_options.value),
       inputs: [],
       outputs: [],
-      version: '',
     }
   }
 
   return {
     selected_node,
     reference_node,
-    selected_node_names,
+    selected_node_ids,
     last_seletion_source,
     node_has_changed,
     copy_node_mode,

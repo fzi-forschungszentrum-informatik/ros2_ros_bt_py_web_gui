@@ -27,10 +27,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { NodeStructure } from '../types'
+import type { UUIDMsg, NodeStructure } from '../types'
 
 export type MorphNodeRequest = {
-  node_name: string
+  node_id: UUIDMsg
   new_node: NodeStructure
 }
 

@@ -28,15 +28,17 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { useEditorStore } from '@/stores/editor';
-import { useROSStore } from '@/stores/ros';
-import { notify } from '@kyvg/vue3-notification';
-import { ref } from 'vue';
+import { useEditorStore } from '@/stores/editor'
+import { useROSStore } from '@/stores/ros'
+import { notify } from '@kyvg/vue3-notification'
+import { ref } from 'vue'
+import * as uuid from 'uuid'
 import jsyaml from 'js-yaml'
 import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
 import type { TreeStructure } from '@/types/types'
 import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
 import { TreeExecutionCommands, type ControlTreeExecutionRequest, type ControlTreeExecutionResponse } from '@/types/services/ControlTreeExecution';
+import { rosToUuid } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -250,7 +252,7 @@ function saveTree() {
           type: 'success'
         })
         const tree = editor_store.tree_structure_list.find(
-          (tree) => tree.tree_id === ""
+          (tree) => rosToUuid(tree.tree_id) === uuid.NIL
         )
         if (tree === undefined) {
           notify({

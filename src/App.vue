@@ -135,7 +135,7 @@ function findPossibleParents() {
   if (editor_store.current_tree.structure) {
     return editor_store.current_tree.structure.nodes
       .filter(
-        (node: NodeStructure) => node.max_children < 0 || node.child_names.length < node.max_children
+        (node: NodeStructure) => node.max_children < 0 || node.child_ids.length < node.max_children
       )
       .sort(function (a: NodeStructure, b: NodeStructure) {
         if (a.name < b.name) {
@@ -291,7 +291,7 @@ onMounted(() => {
             </button>
 
             <!--Elements are dynamically reordered when inlining all three-->
-            <div class="col col-xl-3 order-xl-1">
+            <div class="col col-xl-auto order-xl-1">
               <SelectSubtree />
             </div>
 

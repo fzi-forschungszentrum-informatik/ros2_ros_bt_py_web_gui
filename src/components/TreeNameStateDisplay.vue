@@ -30,10 +30,12 @@
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
 import { useROSStore } from '@/stores/ros'
+import { rosToUuid } from '@/utils'
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { TreeStateValues } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import { computed, ref, watchEffect } from 'vue'
+import * as uuid from 'uuid'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
@@ -50,7 +52,7 @@ const new_tree_name = ref<string>(tree_name.value)
 
 const tree_state = computed<TreeStateValues>(() => {
   const main_tree_state = editor_store.tree_state_list.find(
-    (tree) => tree.tree_id === ""
+    (tree) => rosToUuid(tree.tree_id) === uuid.NIL
   )
   if (main_tree_state !== undefined) {
     return main_tree_state.state
