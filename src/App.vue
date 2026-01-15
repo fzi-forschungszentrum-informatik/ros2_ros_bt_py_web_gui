@@ -32,6 +32,7 @@ import { ModalsContainer } from 'vue-final-modal'
 import { useROSStore } from './stores/ros'
 import { useMessasgeStore } from './stores/message'
 import { usePackageStore } from './stores/package'
+import { useLogsStore } from './stores/logs'
 import { useNodesStore } from './stores/nodes'
 import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
@@ -65,6 +66,7 @@ import ConnectionStatus from './components/ConnectionStatus.vue'
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
 const packages_store = usePackageStore()
+const logs_store = useLogsStore()
 const nodes_store = useNodesStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -120,8 +122,12 @@ function updateTreeSubscription() {
   ros_store.tree_data_sub.subscribe(onNewTreeData)
 }
 
-function updateChannelssubscription() {
+function updateChannelsSubscription() {
   ros_store.channels_sub.subscribe(messages_store.updateMessageChannels)
+}
+
+function updateLogSubscription() {
+  ros_store.log_msgs_sub.subscribe(logs_store.storeLogMessage)
 }
 
 function handleNodeSearch(event: Event) {
@@ -157,7 +163,6 @@ function findPossibleParents() {
 }
 
 const nodelist_visible = ref<boolean>(true)
-const nodelist_input_ref = ref<HTMLInputElement>()
 const node_search = ref<string>('')
 
 const execution_bar_visible = ref<boolean>(true)
@@ -169,8 +174,9 @@ watch(
       console.log('Update subscriptions')
       updateTreeSubscription()
       updateMessagesSubscription()
-      updateChannelssubscription()
+      updateChannelsSubscription()
       updatePackagesSubscription()
+      updateLogSubscription()
     }
   }
 )

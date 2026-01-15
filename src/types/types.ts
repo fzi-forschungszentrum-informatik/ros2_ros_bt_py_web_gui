@@ -33,6 +33,11 @@ import type { FlextreeNode } from 'd3-flextree'
 export type UUIDMsg = string
 export type UUIDString = string
 
+export type RosTime = {
+  sec: number
+  nanosec: number
+}
+
 export type NodeIO = {
   key: string
   serialized_type: string
@@ -305,4 +310,41 @@ export type OptionData = {
 export type IOData = {
   key: string
   type: string
+}
+
+export const enum LogLevel {
+  DEBUG = 10,
+  INFO = 20,
+  WARN = 30,
+  ERROR = 40,
+  FATAL = 50
+}
+
+export type RosLogMsg = {
+  stamp: RosTime
+  level: LogLevel
+  name: string
+  msg: string
+  file: string
+  function: string
+  line: number
+}
+
+export type LogMessage = {
+  stamp: Date
+  level: LogLevel
+  tree: {
+    name: string
+    id: UUIDString
+  }
+  node:
+    | {
+        name: string
+        id: UUIDString
+      }
+    | undefined
+  msg: string
+  file: string
+  function: string
+  line: number
 }
