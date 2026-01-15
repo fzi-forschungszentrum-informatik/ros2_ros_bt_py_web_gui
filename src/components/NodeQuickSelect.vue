@@ -71,7 +71,7 @@ function getNodeCss(node: DocumentedNode): string {
 // A helper function that returns the correct URL for a given node name.
 function getIconSrc(nodeName: string): string {
   switch (nodeName) {
-    case 'EnumSwitch'
+    case 'EnumSwitch':
       return EnumSwitchIcon
     case 'Fallback':
       return FallbackIcon
