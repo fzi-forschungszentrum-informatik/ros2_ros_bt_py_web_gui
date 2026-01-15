@@ -35,6 +35,7 @@ import type { DocumentedNode } from '@/types/types'
 import { computed, ref } from 'vue'
 import InlineSvg from 'vue-inline-svg'
 
+import EnumSwitchIcon from '@/assets/flow_control_icons/EnumSwitch.svg'
 import FallbackIcon from '@/assets/flow_control_icons/Fallback.svg'
 import MemoryFallbackIcon from '@/assets/flow_control_icons/MemoryFallback.svg'
 import MemorySequenceIcon from '@/assets/flow_control_icons/MemorySequence.svg'
@@ -70,6 +71,8 @@ function getNodeCss(node: DocumentedNode): string {
 // A helper function that returns the correct URL for a given node name.
 function getIconSrc(nodeName: string): string {
   switch (nodeName) {
+    case 'EnumSwitch'
+      return EnumSwitchIcon
     case 'Fallback':
       return FallbackIcon
     case 'MemoryFallback':
