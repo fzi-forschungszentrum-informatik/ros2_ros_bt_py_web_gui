@@ -30,7 +30,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import * as uuid from 'uuid'
-import type { LogMessage, RosLogMsg, UUIDString } from '@/types/types'
+import type { LogLevel, LogMessage, RosLogMsg, UUIDString } from '@/types/types'
 import { useROSStore } from './ros'
 import { parseRosTime } from '@/utils'
 
@@ -88,8 +88,37 @@ export const useLogsStore = defineStore('logs', () => {
     log_messages.value.push(log_message)
   }
 
+  function getRelevantLogs(
+    tree_id: UUIDString | undefined,
+    node_id: UUIDString | undefined,
+    log_levels: LogLevel[]
+  ) {
+    return log_messages.value
+      .filter((log: LogMessage) => {
+        if (!log_levels.includes(log.level)) {
+          return false
+        }
+        if (tree_id !== undefined) {
+          if (log.tree.id !== tree_id) {
+            return false
+          }
+        }
+        if (node_id !== undefined) {
+          if (log.node === undefined) {
+            return false
+          }
+          if (log.node.id !== node_id) {
+            return false
+          }
+        }
+        return true
+      })
+      .reverse()
+  }
+
   return {
     log_messages,
-    storeLogMessage
+    storeLogMessage,
+    getRelevantLogs
   }
 })

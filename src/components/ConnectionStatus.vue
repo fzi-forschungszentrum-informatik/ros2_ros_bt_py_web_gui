@@ -65,23 +65,12 @@ const connection_status_attrs = computed<object>(() => {
 </script>
 
 <template>
-  <div class="d-flex align-items-center">
-    <FontAwesomeIcon
-      icon="fa-solid fa-wifi"
-      aria-hidden="true"
-      class="mx-2 fs-4"
-      v-bind="connection_status_attrs"
-    />
-
-    <button
-      class="btn btn-outline-contrast"
-      type="button"
-      data-bs-toggle="offcanvas"
-      data-bs-target="#settings"
-    >
-      <FontAwesomeIcon icon="fa-solid fa-cog" />
-    </button>
-  </div>
+  <FontAwesomeIcon
+    icon="fa-solid fa-wifi"
+    aria-hidden="true"
+    class="mx-2 fs-4"
+    v-bind="connection_status_attrs"
+  />
 </template>
 
 <style scoped lang="scss">

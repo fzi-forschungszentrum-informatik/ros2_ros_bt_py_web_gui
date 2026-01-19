@@ -62,6 +62,7 @@ import TickControls from './components/TickControls.vue'
 import NodeQuickSelect from './components/NodeQuickSelect.vue'
 import SettingsPanel from './components/SettingsPanel.vue'
 import ConnectionStatus from './components/ConnectionStatus.vue'
+import LogsDisplay from './components/LogsDisplay.vue'
 
 const ros_store = useROSStore()
 const messages_store = useMessasgeStore()
@@ -167,6 +168,8 @@ const node_search = ref<string>('')
 
 const execution_bar_visible = ref<boolean>(true)
 
+const filter_logs = ref<boolean>(false)
+
 watch(
   () => ros_store.connected,
   (connected) => {
@@ -194,8 +197,24 @@ onMounted(() => {
     </div>
     <div class="offcanvas-body">
       <SettingsPanel />
-
+      <br />
       <NamespaceSelect />
+    </div>
+  </div>
+
+  <div id="logging" class="offcanvas offcanvas-start" tabindex="-1">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title">Logging</h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+    </div>
+    <div class="offcanvas-body">
+      <div class="form-check form-switch mb-3">
+        <input type="checkbox" class="form-check-input" v-model="filter_logs" />
+        <label class="form-check-label ms-2"> Filter for Current Tree </label>
+      </div>
+      <LogsDisplay
+        :tree_id="filter_logs ? editor_store.current_tree.structure?.tree_id : undefined"
+      />
     </div>
   </div>
 
@@ -203,7 +222,28 @@ onMounted(() => {
     v-if="execution_bar_visible"
     class="d-flex justify-content-between align-items-center w-100 p-2 top-bar"
   >
-    <ConnectionStatus />
+    <div class="d-flex align-items-center">
+      <ConnectionStatus />
+      <div class="btn-group" role="group">
+        <button
+          class="btn btn-outline-contrast"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#settings"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-cog" />
+        </button>
+
+        <button
+          class="btn btn-outline-contrast"
+          type="button"
+          data-bs-toggle="offcanvas"
+          data-bs-target="#logging"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-align-justify" />
+        </button>
+      </div>
+    </div>
 
     <TickControls />
 
@@ -301,11 +341,11 @@ onMounted(() => {
             </button>
 
             <!--Elements are dynamically reordered when inlining all three-->
-            <div class="col col-xl-auto order-xl-1">
+            <div class="col col-xxl-auto order-xxl-1">
               <SelectSubtree />
             </div>
 
-            <div class="col-auto order-xl-3">
+            <div class="col-auto order-xxl-3">
               <EditorDisplayButtons
                 :exec-bar-visible="execution_bar_visible"
                 @show="
@@ -323,7 +363,7 @@ onMounted(() => {
               />
             </div>
 
-            <div class="col-12 col-xl order-xl-2">
+            <div class="col-12 col-xxl order-xxl-2">
               <TreeNameStateDisplay />
             </div>
           </div>
