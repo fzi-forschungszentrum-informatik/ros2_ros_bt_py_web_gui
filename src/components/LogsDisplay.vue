@@ -34,6 +34,7 @@ import { computed, ref } from 'vue'
 
 const props = defineProps<{
   tree_id?: UUIDString
+  node_id?: UUIDString
 }>()
 
 const log_store = useLogsStore()
@@ -61,7 +62,7 @@ const log_levels = computed<LogLevel[]>(() => {
 })
 
 const log_messages = computed<LogMessage[]>(() => {
-  return log_store.getRelevantLogs(props.tree_id, undefined, log_levels.value)
+  return log_store.getRelevantLogs(props.tree_id, props.node_id, log_levels.value)
 })
 
 function logLevelString(level: LogLevel): string {
