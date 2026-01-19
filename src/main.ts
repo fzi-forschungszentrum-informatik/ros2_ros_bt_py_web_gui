@@ -93,7 +93,8 @@ import {
   faNetworkWired,
   faBookmark,
   faShareNodes,
-  faAlignJustify
+  faAlignJustify,
+  faTrashCan
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -148,7 +149,8 @@ library.add(
   faSaveAlt,
   faBookmark,
   faShareNodes,
-  faAlignJustify
+  faAlignJustify,
+  faTrashCan
 )
 
 const app = createApp(App)

@@ -134,10 +134,19 @@ export const useLogsStore = defineStore('logs', () => {
     )
   }
 
+  function removeLogMessage(log_msg: LogMessage) {
+    const remove_index = log_messages.value.indexOf(log_msg)
+    if (remove_index === -1) {
+      return
+    }
+    log_messages.value.splice(remove_index, 1)
+  }
+
   return {
     log_messages,
     storeLogMessage,
     getRelevantLogs,
-    clearRelevantLogs
+    clearRelevantLogs,
+    removeLogMessage
   }
 })

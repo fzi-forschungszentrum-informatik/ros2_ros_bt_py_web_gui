@@ -142,7 +142,7 @@ function clearLogDisplay() {
         </button>
       </div>
       <button type="button" class="btn btn-sm btn-outline-secondary" @click="clearLogDisplay">
-        Clear
+        <FontAwesomeIcon icon="fa-solid fa-trash-can" />
       </button>
     </div>
     <div class="overflow-auto flex-grow-1">
@@ -168,8 +168,15 @@ function clearLogDisplay() {
           &ensp;
           <span class="text-body-secondary">{{ log_msg.file }}:{{ log_msg.line }}</span>
         </div>
-        <div>
+        <div class="d-flex justify-content-between align-items-end mt-1">
           <small class="text-body-tertiary">{{ log_msg.stamp.toUTCString() }}</small>
+          <button
+            type="button"
+            class="btn btn-sm btn-outline-secondary"
+            @click="() => log_store.removeLogMessage(log_msg)"
+          >
+            <FontAwesomeIcon icon="fa-solid fa-trash-can" />
+          </button>
         </div>
       </div>
     </div>
