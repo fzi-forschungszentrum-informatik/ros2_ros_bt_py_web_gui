@@ -88,37 +88,56 @@ export const useLogsStore = defineStore('logs', () => {
     log_messages.value.push(log_message)
   }
 
+  // Returns true if the given message MATCHES the filter parameters
+  function logFilterPredicate(
+    log_message: LogMessage,
+    tree_id: UUIDString | undefined,
+    node_id: UUIDString | undefined,
+    log_levels: LogLevel[]
+  ): boolean {
+    if (!log_levels.includes(log_message.level)) {
+      return false
+    }
+    if (tree_id !== undefined) {
+      if (log_message.tree.id !== tree_id) {
+        return false
+      }
+    }
+    if (node_id !== undefined) {
+      if (log_message.node === undefined) {
+        return false
+      }
+      if (log_message.node.id !== node_id) {
+        return false
+      }
+    }
+    return true
+  }
+
   function getRelevantLogs(
     tree_id: UUIDString | undefined,
     node_id: UUIDString | undefined,
     log_levels: LogLevel[]
   ) {
     return log_messages.value
-      .filter((log: LogMessage) => {
-        if (!log_levels.includes(log.level)) {
-          return false
-        }
-        if (tree_id !== undefined) {
-          if (log.tree.id !== tree_id) {
-            return false
-          }
-        }
-        if (node_id !== undefined) {
-          if (log.node === undefined) {
-            return false
-          }
-          if (log.node.id !== node_id) {
-            return false
-          }
-        }
-        return true
-      })
+      .filter((log: LogMessage) => logFilterPredicate(log, tree_id, node_id, log_levels))
       .reverse()
+  }
+
+  function clearRelevantLogs(
+    tree_id: UUIDString | undefined,
+    node_id: UUIDString | undefined,
+    log_levels: LogLevel[]
+  ) {
+    log_messages.value = log_messages.value.filter(
+      (log: LogMessage) => !logFilterPredicate(log, tree_id, node_id, log_levels)
+    )
   }
 
   return {
     log_messages,
     storeLogMessage,
-    getRelevantLogs
+    getRelevantLogs,
+    clearRelevantLogs
   }
 })

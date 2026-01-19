@@ -214,6 +214,7 @@ onMounted(() => {
       </div>
       <LogsDisplay
         :tree_id="filter_logs ? editor_store.current_tree.structure?.tree_id : undefined"
+        style="max-height: 80vh"
       />
     </div>
   </div>

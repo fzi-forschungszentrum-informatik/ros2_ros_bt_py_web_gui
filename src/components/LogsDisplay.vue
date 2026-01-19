@@ -98,10 +98,14 @@ function logLevelStyles(level: LogLevel): string {
       return ''
   }
 }
+
+function clearLogDisplay() {
+  log_store.clearRelevantLogs(props.tree_id, props.node_id, log_levels.value)
+}
 </script>
 
 <template>
-  <div class="d-flex flex-column h-100">
+  <div class="d-flex flex-column">
     <div class="mb-3 d-flex justify-content-between">
       <div>
         <button
@@ -137,7 +141,9 @@ function logLevelStyles(level: LogLevel): string {
           Error
         </button>
       </div>
-      <button type="button" class="btn btn-sm btn-outline-secondary">Clear</button>
+      <button type="button" class="btn btn-sm btn-outline-secondary" @click="clearLogDisplay">
+        Clear
+      </button>
     </div>
     <div class="overflow-auto flex-grow-1">
       <div
