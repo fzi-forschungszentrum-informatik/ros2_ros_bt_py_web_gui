@@ -26,6 +26,7 @@ repos:
     rev: 'v2.7.1' # Use the sha / tag you want to point at
     hooks:
       - id: prettier
+        exclude: ^CHANGELOG\.md$
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.4
     hooks:
