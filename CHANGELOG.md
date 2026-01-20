@@ -7,9 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add skip rule for 'Update changelog' message by @Oberacda
+
 ### Changed
 - Exclude CHANGELOG.md from Prettier checks by @Oberacda
-- Update changelog by @github-actions[bot]
 
 
 ## [6.0.1] - 2026-01-14
@@ -26,15 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix changelog. by @Oberacda
 - Disable do not commit to main check. by @Oberacda
 - Fix pre-commit issues. by @Oberacda
-- Update changelog by @github-actions[bot]
 - Use UUIDs for BTNodes by @Doomse in [#38](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/38)
-- Update changelog by @github-actions[bot]
 - Auto connect by @Doomse in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
-- Update changelog by @github-actions[bot]
 - Highlight nodes in broken state by @Doomse in [#41](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/41)
-- Update changelog by @github-actions[bot]
 - Merge pull request #39 from Doomse/remove-shutdown-on-save by @Oberacda in [#39](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/39)
-- Update changelog by @github-actions[bot]
 
 ### Removed
 - Remove shutdown call when saving tree by @Doomse
@@ -44,22 +41,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bump version. by @Oberacda
-- Update changelog by @github-actions[bot]
 - Merge pull request #36 from Doomse/data-vert-update by @Oberacda in [#36](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/36)
 - Correctly id and update data vertices by @Doomse
-- Update changelog by @github-actions[bot]
 - Merge pull request #35 from Doomse/quick-save by @Oberacda in [#35](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/35)
 - Update editor store for quickSave by @Doomse
 - Quick save function and icon by @Doomse
 - Initial Quick Save button by @Doomse
-- Update changelog by @github-actions[bot]
 - Merge pull request #34 from Doomse/quick-select-icon-colors by @Oberacda in [#34](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/34)
 - Update vite config to include new module by @Doomse
 - Use updated svgs inline to allow css styling. by @Doomse
 - Merge pull request #33 from Doomse/pure-svg-editor by @Oberacda in [#33](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/33)
 - Properly redraw tree when display mode changes by @Doomse
-- Update changelog by @github-actions[bot]
-- Update changelog to v4.1.0. by @Oberacda
 
 
 ## [4.1.0] - 2025-08-18
@@ -69,13 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add changelog. by @Oberacda
 
 ### Changed
-- Update changelog by @github-actions[bot]
 - Merge pull request #32 from Doomse/pure-svg-editor by @Oberacda in [#32](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/32)
 - Align root drop target by @Doomse
 - Fix lint issues by @Doomse
 - Merge branch 'main' into pure-svg-editor by @Doomse
-- Update changelog by @github-actions[bot]
-- Update changelog by @github-actions[bot]
 
 ## New Contributors
 * @github-actions[bot] made their first contribution
