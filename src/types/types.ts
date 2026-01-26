@@ -323,8 +323,11 @@ export const enum LogLevel {
 export type RosLogMsg = {
   stamp: RosTime
   level: LogLevel
-  name: string
   msg: string
+  tree_id: UUIDMsg | ""
+  tree_name: string
+  node_id: UUIDMsg | ""
+  node_name: string
   file: string
   function: string
   line: number
@@ -333,14 +336,16 @@ export type RosLogMsg = {
 export type LogMessage = {
   stamp: Date
   level: LogLevel
-  tree: {
-    name: string
-    id: UUIDString
-  }
+  tree:
+    | {
+        id: UUIDString
+        name: string
+      }
+    | undefined
   node:
     | {
-        name: string
         id: UUIDString
+        name: string
       }
     | undefined
   msg: string

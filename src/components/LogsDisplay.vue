@@ -39,7 +39,7 @@ const props = defineProps<{
 
 const log_store = useLogsStore()
 
-const debug = ref<boolean>(true)
+const debug = ref<boolean>(false)
 const info = ref<boolean>(true)
 const warn = ref<boolean>(true)
 const error = ref<boolean>(true)
@@ -151,7 +151,10 @@ function clearLogDisplay() {
         :key="log_msg.stamp.getTime()"
         class="border border-3 bg-body p-1 my-1"
       >
-        <div v-if="log_msg.node === undefined">
+        <div v-if="log_msg.tree === undefined">
+          General
+        </div>
+        <div v-else-if="log_msg.node === undefined">
           Tree <span class="text-primary">{{ log_msg.tree.name }}</span>
         </div>
         <div v-else>

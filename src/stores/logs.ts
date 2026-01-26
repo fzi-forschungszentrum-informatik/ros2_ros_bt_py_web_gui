@@ -29,8 +29,8 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import * as uuid from 'uuid'
 import type { LogLevel, LogMessage, RosLogMsg, UUIDString } from '@/types/types'
+import { rosToUuid } from '../utils'
 import { useROSStore } from './ros'
 import { parseRosTime } from '@/utils'
 
@@ -39,40 +39,20 @@ export const useLogsStore = defineStore('logs', () => {
 
   const log_messages = ref<LogMessage[]>([])
 
-  function parseNameId(name_id: string): { name: string; id: UUIDString } | null {
-    const split_reg_exp = /^(\w+)\((.*)\)/
-    const split_match = name_id.match(split_reg_exp)
-    if (split_match === null) {
-      return null
-    }
-    if (!uuid.validate(split_match[2])) {
-      return null
-    }
-    return { name: split_match[1], id: split_match[2] }
-  }
-
   function storeLogMessage(log_msg: RosLogMsg) {
-    const log_name_parts = log_msg.name.split('.')
-    if (log_name_parts.length < 2) {
-      return
+    let tree = undefined
+    if (log_msg.tree_id !== "") {
+      tree = {
+        id: rosToUuid(log_msg.tree_id),
+        name: log_msg.tree_name
+      }
     }
-    if (log_name_parts[0] !== ros_store.namespace.replaceAll('/', '')) {
-      return
-    }
-
-    const tree = parseNameId(log_name_parts[1])
-    if (tree === null) {
-      console.warn('Log message with invalid tree id', log_name_parts[1])
-      return
-    }
-
     let node = undefined
-    if (log_name_parts.length > 2) {
-      node = parseNameId(log_name_parts[2])
-    }
-    if (node === null) {
-      console.warn('Log message with invalid node id', log_name_parts[2])
-      return
+    if (log_msg.node_id !== "") {
+      node = {
+        id: rosToUuid(log_msg.node_id),
+        name: log_msg.node_name
+      }
     }
 
     const log_message = {
@@ -99,6 +79,9 @@ export const useLogsStore = defineStore('logs', () => {
       return false
     }
     if (tree_id !== undefined) {
+      if (log_message.tree === undefined) {
+        return false
+      }
       if (log_message.tree.id !== tree_id) {
         return false
       }

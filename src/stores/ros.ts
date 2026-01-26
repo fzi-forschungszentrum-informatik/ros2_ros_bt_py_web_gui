@@ -257,8 +257,8 @@ export const useROSStore = defineStore(
     const log_msgs_sub = shallowRef<Topic<RosLogMsg>>(
       new Topic({
         ros: ros.value,
-        name: '/rosout',
-        messageType: 'rcl_interfaces/msg/Log',
+        name: namespace.value + 'log_messages',
+        messageType: 'ros_bt_py_interfaces/msg/BTLogMessage',
         latch: true,
         reconnect_on_close: true
       })
@@ -498,8 +498,8 @@ export const useROSStore = defineStore(
       log_msgs_sub.value.removeAllListeners()
       log_msgs_sub.value = new Topic({
         ros: ros.value,
-        name: '/rosout',
-        messageType: 'rcl_interfaces/msg/Log',
+        name: namespace.value + 'log_messages',
+        messageType: 'ros_bt_py_interfaces/msg/BTLogMessage',
         latch: true,
         reconnect_on_close: true
       })
