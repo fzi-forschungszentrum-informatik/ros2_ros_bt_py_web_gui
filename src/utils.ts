@@ -72,7 +72,7 @@ export function findNode(tree: TreeStructure, node_id: UUIDString): NodeStructur
 }
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
-  if (a.node.data.name === b.node.data.name) {
+  if (a.node.data.node_id === b.node.data.node_id) {
     return false
   }
 
