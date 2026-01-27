@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add skip rule for 'Update changelog' message by @Oberacda
 
 ### Changed
+- Bump version. by @Oberacda
 - Use node_id for wiring targets by @Doomse in [#44](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/44)
 - Exclude CHANGELOG.md from Prettier checks by @Oberacda
 
