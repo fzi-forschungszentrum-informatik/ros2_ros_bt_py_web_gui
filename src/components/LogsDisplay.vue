@@ -28,9 +28,12 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
+import { useEditNodeStore } from '@/stores/edit_node'
+import { useEditorStore } from '@/stores/editor'
 import { useLogsStore } from '@/stores/logs'
 import { LogLevel, type LogMessage, type UUIDString } from '@/types/types'
 import { computed, ref } from 'vue'
+import * as uuid from 'uuid'
 
 const props = defineProps<{
   tree_id?: UUIDString
@@ -38,6 +41,8 @@ const props = defineProps<{
 }>()
 
 const log_store = useLogsStore()
+const editor_store = useEditorStore()
+const edit_node_store = useEditNodeStore()
 
 const debug = ref<boolean>(false)
 const info = ref<boolean>(true)
@@ -102,6 +107,42 @@ function logLevelStyles(level: LogLevel): string {
 function clearLogDisplay() {
   log_store.clearRelevantLogs(props.tree_id, props.node_id, log_levels.value)
 }
+
+function selectTree(log_msg: LogMessage): boolean {
+  if (log_msg.tree === undefined) {
+    return false
+  }
+  if (!edit_node_store.clearSelection()) {
+    return false
+  }
+  if (log_msg.tree.id !== uuid.NIL) {
+    if (!editor_store.publish_subtrees) {
+      window.alert('You need to enable subtree publishing to display this tree')
+      return false
+    }
+  }
+  if (editor_store.findTree(log_msg.tree.id) === undefined) {
+    window.alert("This tree doesn't exist, perhaps the message is outdated?")
+    return false
+  }
+  editor_store.selected_tree = log_msg.tree.id
+  return true
+}
+
+function selectNode(log_msg: LogMessage): boolean {
+  if (log_msg.node === undefined) {
+    return false
+  }
+  if (selectTree(log_msg)) {
+    window.setTimeout(
+      (log_msg: LogMessage) => edit_node_store.editorSelectionChange(log_msg.node!.id),
+      100,
+      log_msg
+    )
+    return true
+  }
+  return false
+}
 </script>
 
 <template>
@@ -151,15 +192,22 @@ function clearLogDisplay() {
         :key="log_msg.stamp.getTime()"
         class="border border-3 bg-body p-1 my-1"
       >
-        <div v-if="log_msg.tree === undefined">
-          General
-        </div>
+        <div v-if="log_msg.tree === undefined">General</div>
         <div v-else-if="log_msg.node === undefined">
-          Tree <span class="text-primary">{{ log_msg.tree.name }}</span>
+          Tree
+          <a class="text-primary text-decoration-underline" @click="() => selectTree(log_msg)">
+            {{ log_msg.tree.name }}
+          </a>
         </div>
         <div v-else>
-          Node <span class="text-primary">{{ log_msg.node.name }}</span> in Tree
-          <span class="text-primary">{{ log_msg.tree.name }}</span>
+          Node
+          <a class="text-primary text-decoration-underline" @click="() => selectNode(log_msg)">
+            {{ log_msg.node.name }}
+          </a>
+          in Tree
+          <a class="text-primary text-decoration-underline" @click="() => selectTree(log_msg)">
+            {{ log_msg.tree.name }}
+          </a>
         </div>
         <div :class="logLevelStyles(log_msg.level)">
           {{ log_msg.msg }}
@@ -172,7 +220,7 @@ function clearLogDisplay() {
           <span class="text-body-secondary">{{ log_msg.file }}:{{ log_msg.line }}</span>
         </div>
         <div class="d-flex justify-content-between align-items-end mt-1">
-          <small class="text-body-tertiary">{{ log_msg.stamp.toUTCString() }}</small>
+          <small class="text-body-tertiary">{{ log_msg.stamp.toLocaleString() }}</small>
           <button
             type="button"
             class="btn btn-sm btn-outline-secondary"

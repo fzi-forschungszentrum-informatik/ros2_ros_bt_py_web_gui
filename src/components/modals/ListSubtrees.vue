@@ -38,7 +38,6 @@ const editor_store = useEditorStore()
 
 const props = defineProps<{
   tree_id: UUIDString
-  parent_id: UUIDString
 }>()
 
 const emit = defineEmits<{
@@ -75,7 +74,7 @@ const node_name = computed<string>(() => {
   if (props.tree_id === uuid.NIL) {
     return 'Main Tree'
   }
-  const outer_tree = editor_store.findTree(props.parent_id)
+  const outer_tree = editor_store.findTreeContainingNode(props.tree_id)
   if (outer_tree === undefined) {
     return 'UNKNOWN'
   }
@@ -87,10 +86,7 @@ const node_name = computed<string>(() => {
 })
 
 function selectTree() {
-  editor_store.selected_tree = {
-    own_id: props.tree_id,
-    parent_id: props.parent_id
-  }
+  editor_store.selected_tree = props.tree_id
   emit('close')
 }
 </script>

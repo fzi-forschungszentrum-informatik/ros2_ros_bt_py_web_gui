@@ -324,9 +324,9 @@ export type RosLogMsg = {
   stamp: RosTime
   level: LogLevel
   msg: string
-  tree_id: UUIDMsg | ""
+  tree_id: UUIDMsg | ''
   tree_name: string
-  node_id: UUIDMsg | ""
+  node_id: UUIDMsg | ''
   node_name: string
   file: string
   function: string

@@ -31,24 +31,21 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import type { LogLevel, LogMessage, RosLogMsg, UUIDString } from '@/types/types'
 import { rosToUuid } from '../utils'
-import { useROSStore } from './ros'
 import { parseRosTime } from '@/utils'
 
 export const useLogsStore = defineStore('logs', () => {
-  const ros_store = useROSStore()
-
   const log_messages = ref<LogMessage[]>([])
 
   function storeLogMessage(log_msg: RosLogMsg) {
     let tree = undefined
-    if (log_msg.tree_id !== "") {
+    if (log_msg.tree_id !== '') {
       tree = {
         id: rosToUuid(log_msg.tree_id),
         name: log_msg.tree_name
       }
     }
     let node = undefined
-    if (log_msg.node_id !== "") {
+    if (log_msg.node_id !== '') {
       node = {
         id: rosToUuid(log_msg.node_id),
         name: log_msg.node_name
