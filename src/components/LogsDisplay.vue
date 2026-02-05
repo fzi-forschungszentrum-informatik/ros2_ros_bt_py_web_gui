@@ -217,7 +217,7 @@ function selectNode(log_msg: LogMessage): boolean {
         <div>
           <span class="text-primary-emphasis font-monospace">{{ log_msg.function }}</span>
           &ensp;
-          <span class="text-body-secondary">{{ log_msg.file }}:{{ log_msg.line }}</span>
+          <span class="text-body-secondary text-break">{{ log_msg.file }}:{{ log_msg.line }}</span>
         </div>
         <div class="d-flex justify-content-between align-items-end mt-1">
           <small class="text-body-tertiary">{{ log_msg.stamp.toLocaleString() }}</small>
