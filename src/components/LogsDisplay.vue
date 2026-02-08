@@ -32,7 +32,7 @@ import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
 import { useLogsStore } from '@/stores/logs'
 import { LogLevel, type LogMessage, type UUIDString } from '@/types/types'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import * as uuid from 'uuid'
 
 const props = defineProps<{
@@ -44,10 +44,11 @@ const log_store = useLogsStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-const debug = ref<boolean>(false)
-const info = ref<boolean>(true)
-const warn = ref<boolean>(true)
-const error = ref<boolean>(true)
+// False means toggled off, null means unavailable due to backend settings.
+const debug = ref<boolean | null>(null)
+const info = ref<boolean | null>(null)
+const warn = ref<boolean | null>(null)
+const error = ref<boolean | null>(null)
 
 const log_levels = computed<LogLevel[]>(() => {
   const levels = [LogLevel.FATAL]
@@ -70,20 +71,29 @@ const log_messages = computed<LogMessage[]>(() => {
   return log_store.getRelevantLogs(props.tree_id, props.node_id, log_levels.value)
 })
 
-function logLevelString(level: LogLevel): string {
-  switch (level) {
-    case LogLevel.DEBUG:
-      return 'DEBUG'
-    case LogLevel.INFO:
-      return 'INFO'
-    case LogLevel.WARN:
-      return 'WARN'
-    case LogLevel.ERROR:
-      return 'ERROR'
-    case LogLevel.FATAL:
-      return 'FATAL'
-    default:
-      return 'UNKNOWN'
+watch(() => log_store.min_log_level, updateLogLevels, {
+  immediate: true
+})
+function updateLogLevels(min_log_level: LogLevel) {
+  if (min_log_level >= LogLevel.FATAL) {
+    error.value = null
+  } else {
+    error.value = true
+  }
+  if (min_log_level >= LogLevel.ERROR) {
+    warn.value = null
+  } else {
+    warn.value = true
+  }
+  if (min_log_level >= LogLevel.WARN) {
+    info.value = null
+  } else {
+    info.value = true
+  }
+  if (min_log_level >= LogLevel.INFO) {
+    debug.value = null
+  } else {
+    debug.value = false
   }
 }
 
@@ -153,6 +163,7 @@ function selectNode(log_msg: LogMessage): boolean {
           type="button"
           class="btn btn-sm mx-1"
           :class="debug ? 'btn-secondary' : 'btn-outline-secondary'"
+          :disabled="debug === null"
           @click="() => (debug = !debug)"
         >
           Debug
@@ -161,6 +172,7 @@ function selectNode(log_msg: LogMessage): boolean {
           type="button"
           class="btn btn-sm mx-1"
           :class="info ? 'btn-info' : 'btn-outline-info'"
+          :disabled="info === null"
           @click="() => (info = !info)"
         >
           Info
@@ -169,6 +181,7 @@ function selectNode(log_msg: LogMessage): boolean {
           type="button"
           class="btn btn-sm mx-1"
           :class="warn ? 'btn-warning' : 'btn-outline-warning'"
+          :disabled="warn === null"
           @click="() => (warn = !warn)"
         >
           Warning
@@ -177,6 +190,7 @@ function selectNode(log_msg: LogMessage): boolean {
           type="button"
           class="btn btn-sm mx-1"
           :class="error ? 'btn-danger' : 'btn-outline-danger'"
+          :disabled="error === null"
           @click="() => (error = !error)"
         >
           Error
@@ -211,7 +225,7 @@ function selectNode(log_msg: LogMessage): boolean {
         </div>
         <div :class="logLevelStyles(log_msg.level)">
           {{ log_msg.msg }}
-          &ensp; [{{ logLevelString(log_msg.level) }}]
+          &ensp; [{{ log_store.getLogLevelString(log_msg.level) }}]
         </div>
         <hr class="my-1" />
         <div>

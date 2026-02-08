@@ -93,6 +93,7 @@ import type {
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { useNodesStore } from './nodes'
 import { useEditorStore } from './editor'
+import type { SetLogLevelRequest, SetLogLevelResponse } from '@/types/services/SetLogLevel'
 
 export const useROSStore = defineStore(
   'ros',
@@ -192,6 +193,17 @@ export const useROSStore = defineStore(
         name: namespace.value + 'debug/set_publish_data',
         serviceType: 'std_srvs/srv/SetBool'
       })
+    )
+
+    function buildSetLogLevelService() {
+      return new Service<SetLogLevelRequest, SetLogLevelResponse>({
+        ros: ros.value,
+        name: namespace.value + 'set_log_level',
+        serviceType: 'ros_bt_py_interfaces/srv/SetLogLevel'
+      })
+    }
+    const set_log_level_service = shallowRef<Service<SetLogLevelRequest, SetLogLevelResponse>>(
+      buildSetLogLevelService()
     )
 
     const tree_structure_sub = shallowRef<Topic<TreeStructureList>>(
@@ -516,6 +528,8 @@ export const useROSStore = defineStore(
         serviceType: 'std_srvs/srv/SetBool'
       })
 
+      set_log_level_service.value = buildSetLogLevelService()
+
       services_for_type_service.value = new Service({
         ros: ros.value,
         name: '/rosapi/services_for_type',
@@ -720,6 +734,7 @@ export const useROSStore = defineStore(
       generate_subtree_service,
       set_publish_subtrees_service,
       set_publish_data_service,
+      set_log_level_service,
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,

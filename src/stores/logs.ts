@@ -29,12 +29,16 @@
  */
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
-import type { LogLevel, LogMessage, RosLogMsg, UUIDString } from '@/types/types'
+import { LogLevel, type LogMessage, type RosLogMsg, type UUIDString } from '@/types/types'
 import { rosToUuid } from '../utils'
 import { parseRosTime } from '@/utils'
+import { useROSStore } from './ros'
+import { notify } from '@kyvg/vue3-notification'
 
 export const useLogsStore = defineStore('logs', () => {
   const log_messages = ref<LogMessage[]>([])
+
+  const min_log_level = ref<LogLevel>(LogLevel.INFO)
 
   function storeLogMessage(log_msg: RosLogMsg) {
     let tree = undefined
@@ -63,6 +67,51 @@ export const useLogsStore = defineStore('logs', () => {
       line: log_msg.line
     } as LogMessage
     log_messages.value.push(log_message)
+  }
+
+  function setMinLogLevel(log_level: LogLevel) {
+    const old_log_level = min_log_level.value
+    min_log_level.value = log_level
+    const ros_store = useROSStore()
+    ros_store.set_log_level_service.callService(
+      {
+        min_log_level: log_level
+      },
+      () => {
+        notify({
+          title: `Set log level to ${getLogLevelString(log_level)}`,
+          type: 'success'
+        })
+        log_messages.value = log_messages.value.filter(
+          (log_msg) => log_msg.level >= min_log_level.value
+        )
+      },
+      (error: string) => {
+        notify({
+          title: 'Failed to set log level',
+          text: error,
+          type: 'error'
+        })
+        min_log_level.value = old_log_level
+      }
+    )
+  }
+
+  function getLogLevelString(level: LogLevel): string {
+    switch (level) {
+      case LogLevel.DEBUG:
+        return 'DEBUG'
+      case LogLevel.INFO:
+        return 'INFO'
+      case LogLevel.WARN:
+        return 'WARN'
+      case LogLevel.ERROR:
+        return 'ERROR'
+      case LogLevel.FATAL:
+        return 'FATAL'
+      default:
+        return 'UNKNOWN'
+    }
   }
 
   // Returns true if the given message MATCHES the filter parameters
@@ -124,7 +173,10 @@ export const useLogsStore = defineStore('logs', () => {
 
   return {
     log_messages,
+    min_log_level,
     storeLogMessage,
+    setMinLogLevel,
+    getLogLevelString,
     getRelevantLogs,
     clearRelevantLogs,
     removeLogMessage

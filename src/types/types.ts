@@ -315,7 +315,7 @@ export type IOData = {
   type: string
 }
 
-export const enum LogLevel {
+export enum LogLevel {
   DEBUG = 10,
   INFO = 20,
   WARN = 30,
