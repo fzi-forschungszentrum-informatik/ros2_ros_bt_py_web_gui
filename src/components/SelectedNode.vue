@@ -28,9 +28,11 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import { ref } from 'vue'
 import { rosToUuid, serializeNodeOptions } from '@/utils'
 import { notify } from '@kyvg/vue3-notification'
 import EditableNode from './EditableNode.vue'
+import LogsDisplay from './LogsDisplay.vue'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
 import type { SetOptionsRequest, SetOptionsResponse } from '@/types/services/SetOptions'
@@ -43,6 +45,8 @@ import { removeNode } from '@/tree_manipulation'
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
+
+const show_logs = ref<boolean>(false)
 
 async function onClickDelete() {
   if (edit_node_store.selected_node === undefined) {
@@ -168,7 +172,7 @@ function onClickUpdate() {
 
 <template>
   <div class="d-flex flex-column">
-    <div class="row g-2 mb-3">
+    <div class="row g-1 mb-3">
       <div class="btn-group col-4">
         <button
           class="btn btn-primary"
@@ -178,7 +182,16 @@ function onClickUpdate() {
           Update Node
         </button>
       </div>
-      <div class="btn-group col-8">
+      <div class="btn-group col-1">
+        <button
+          class="btn btn-secondary"
+          :class="{ active: show_logs }"
+          @click="() => (show_logs = !show_logs)"
+        >
+          <FontAwesomeIcon icon="fa-solid fa-align-justify" />
+        </button>
+      </div>
+      <div class="btn-group col-7">
         <button
           class="btn btn-danger"
           :disabled="editor_store.has_selected_subtree"
@@ -195,6 +208,11 @@ function onClickUpdate() {
         </button>
       </div>
     </div>
-    <EditableNode />
+    <LogsDisplay
+      v-if="show_logs"
+      :node_id="edit_node_store.selected_node?.node_id"
+      style="max-height: 40vh"
+    />
+    <EditableNode v-else />
   </div>
 </template>

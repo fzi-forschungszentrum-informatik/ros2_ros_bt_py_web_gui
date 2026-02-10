@@ -45,9 +45,14 @@ import type {
   UUIDString,
   TreeStructure,
   NodeStructure,
+  RosTime,
   PyB64
 } from './types/types'
 import { IOKind } from './types/types'
+
+export function parseRosTime(time: RosTime): Date {
+  return new Date(time.sec * 1000 + time.nanosec / 1000000)
+}
 
 export function rosToUuid(msg: UUIDMsg): UUIDString {
   if (!uuid.validate(msg)) {
