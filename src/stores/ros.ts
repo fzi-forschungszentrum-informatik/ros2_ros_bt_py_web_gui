@@ -36,7 +36,8 @@ import type {
   Channels,
   TreeStructureList,
   TreeStateList,
-  TreeDataList
+  TreeDataList,
+  RosLogMsg
 } from '@/types/types'
 import type {
   ServicesForTypeRequest,
@@ -92,6 +93,7 @@ import type {
 import type { ChangeTreeNameRequest, ChangeTreeNameResponse } from '@/types/services/ChangeTreeName'
 import { useNodesStore } from './nodes'
 import { useEditorStore } from './editor'
+import type { SetLogLevelRequest, SetLogLevelResponse } from '@/types/services/SetLogLevel'
 
 export const useROSStore = defineStore(
   'ros',
@@ -193,6 +195,17 @@ export const useROSStore = defineStore(
       })
     )
 
+    function buildSetLogLevelService() {
+      return new Service<SetLogLevelRequest, SetLogLevelResponse>({
+        ros: ros.value,
+        name: namespace.value + 'set_log_level',
+        serviceType: 'ros_bt_py_interfaces/srv/SetLogLevel'
+      })
+    }
+    const set_log_level_service = shallowRef<Service<SetLogLevelRequest, SetLogLevelResponse>>(
+      buildSetLogLevelService()
+    )
+
     const tree_structure_sub = shallowRef<Topic<TreeStructureList>>(
       new Topic({
         ros: ros.value,
@@ -232,6 +245,7 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
+
     const messages_sub = shallowRef<Topic<MessageTypes>>(
       new Topic({
         ros: ros.value,
@@ -241,11 +255,22 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
     )
+
     const channels_sub = shallowRef<Topic<Channels>>(
       new Topic({
         ros: ros.value,
         name: namespace.value + 'message_channels',
         messageType: 'ros_bt_py_interfaces/msg/MessageChannels',
+        latch: true,
+        reconnect_on_close: true
+      })
+    )
+
+    const log_msgs_sub = shallowRef<Topic<RosLogMsg>>(
+      new Topic({
+        ros: ros.value,
+        name: namespace.value + 'log_messages',
+        messageType: 'ros_bt_py_interfaces/msg/BTLogMessage',
         latch: true,
         reconnect_on_close: true
       })
@@ -481,6 +506,16 @@ export const useROSStore = defineStore(
         reconnect_on_close: true
       })
 
+      log_msgs_sub.value.unsubscribe()
+      log_msgs_sub.value.removeAllListeners()
+      log_msgs_sub.value = new Topic({
+        ros: ros.value,
+        name: namespace.value + 'log_messages',
+        messageType: 'ros_bt_py_interfaces/msg/BTLogMessage',
+        latch: true,
+        reconnect_on_close: true
+      })
+
       set_publish_subtrees_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'debug/set_publish_subtrees',
@@ -492,6 +527,8 @@ export const useROSStore = defineStore(
         name: namespace.value + 'debug/set_publish_data',
         serviceType: 'std_srvs/srv/SetBool'
       })
+
+      set_log_level_service.value = buildSetLogLevelService()
 
       services_for_type_service.value = new Service({
         ros: ros.value,
@@ -697,6 +734,7 @@ export const useROSStore = defineStore(
       generate_subtree_service,
       set_publish_subtrees_service,
       set_publish_data_service,
+      set_log_level_service,
       get_storage_folders_service,
       get_folder_structure_service,
       get_package_structure_service,
@@ -709,6 +747,7 @@ export const useROSStore = defineStore(
       packages_sub,
       messages_sub,
       channels_sub,
+      log_msgs_sub,
       startConnectTimeout,
       setUrl,
       changeNamespace,

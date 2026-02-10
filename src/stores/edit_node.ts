@@ -109,20 +109,21 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     node_has_changed.value = false
   }
 
-  function clearSelection() {
+  function clearSelection(): boolean {
     if (node_has_changed.value) {
       if (
         window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
       ) {
         node_has_changed.value = false
       } else {
-        return
+        return false
       }
     }
     selected_node.value = undefined
     reference_node.value = undefined
     selected_node_ids.value = []
     last_seletion_source.value = EditorSelectionSource.NONE
+    return true
   }
 
   function nodeListSelectionChange(new_selected_node: DocumentedNode) {

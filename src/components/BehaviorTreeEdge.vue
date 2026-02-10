@@ -35,7 +35,7 @@ import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services
 import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
 import type { WiringData } from '@/types/types'
-import { compareRosUuid, prettyprint_type, rosToUuid } from '@/utils'
+import { compareRosUuid, prettyprint_type, rosToUuid, prettyprint_value } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -165,7 +165,7 @@ function selectTargetNode() {
       </div>
     </div>
     <div v-if="edge_data !== undefined" class="mx-auto text-center">
-      Value: {{ edge_data.serialized_data }}
+      Value: {{ prettyprint_value(edge_data.serialized_data) }}
       <br />
       of type: {{ prettyprint_type(edge_data.serialized_type) }}
       <br />

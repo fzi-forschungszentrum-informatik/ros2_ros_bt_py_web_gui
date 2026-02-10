@@ -15,17 +15,18 @@ repos:
       - id: check-executables-have-shebangs
       - id: fix-byte-order-marker # Forbid UTF-8 byte-order markers
   - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: 'v8.52.0' # Use the sha / tag you want to point at
+    rev: 'v9.39.0' # Use the sha / tag you want to point at
     hooks:
       - id: eslint
         types_or: [javascript, jsx, ts, tsx, vue]
         types: [file]
         additional_dependencies:
-          - eslint-plugin-vue@v7.5.0
+          - eslint-plugin-vue@v10.0.0
   - repo: https://github.com/pre-commit/mirrors-prettier
     rev: 'v2.7.1' # Use the sha / tag you want to point at
     hooks:
       - id: prettier
+        exclude: ^CHANGELOG\.md$
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.5.4
     hooks:

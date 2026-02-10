@@ -33,6 +33,11 @@ import type { FlextreeNode } from 'd3-flextree'
 export type UUIDMsg = string
 export type UUIDString = string
 
+export type RosTime = {
+  sec: number
+  nanosec: number
+}
+
 export type NodeIO = {
   key: string
   serialized_type: string
@@ -276,6 +281,8 @@ export type PackageStructure = {
   type: FileType
 }
 
+export type PyB64 = { 'py/b64': string }
+
 export type PyObject = { 'py/object': string }
 
 export type PyType = { 'py/type': string }
@@ -289,6 +296,7 @@ export type ValueTypes =
   | number
   | []
   | Record<string, never>
+  | PyB64
   | PyReduce
   | PyObject
 
@@ -305,4 +313,46 @@ export type OptionData = {
 export type IOData = {
   key: string
   type: string
+}
+
+export enum LogLevel {
+  DEBUG = 10,
+  INFO = 20,
+  WARN = 30,
+  ERROR = 40,
+  FATAL = 50
+}
+
+export type RosLogMsg = {
+  stamp: RosTime
+  level: LogLevel
+  msg: string
+  tree_id: UUIDMsg | ''
+  tree_name: string
+  node_id: UUIDMsg | ''
+  node_name: string
+  file: string
+  function: string
+  line: number
+}
+
+export type LogMessage = {
+  stamp: Date
+  level: LogLevel
+  tree:
+    | {
+        id: UUIDString
+        name: string
+      }
+    | undefined
+  node:
+    | {
+        id: UUIDString
+        name: string
+      }
+    | undefined
+  msg: string
+  file: string
+  function: string
+  line: number
 }

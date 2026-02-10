@@ -81,27 +81,19 @@ export const useEditorStore = defineStore(
 
     const skin = ref<EditorSkin>(EditorSkin.DARK)
 
-    const selected_tree = ref<{
-      own_id: UUIDString
-      parent_id: UUIDString
-    }>({
-      own_id: uuid.NIL,
-      parent_id: uuid.NIL
-    })
+    const selected_tree = ref<UUIDString>(uuid.NIL)
 
-    const has_selected_subtree = computed<boolean>(() => selected_tree.value.own_id !== uuid.NIL)
+    const has_selected_subtree = computed<boolean>(() => selected_tree.value !== uuid.NIL)
 
     const current_tree = computed<Tree>(() => {
       return {
         structure: tree_structure_list.value.find(
-          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
+          (tree) => rosToUuid(tree.tree_id) === selected_tree.value
         ),
         state: tree_state_list.value.find(
-          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
+          (tree) => rosToUuid(tree.tree_id) === selected_tree.value
         ),
-        data: tree_data_list.value.find(
-          (tree) => rosToUuid(tree.tree_id) === selected_tree.value.own_id
-        )
+        data: tree_data_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value)
       }
     })
 
@@ -198,6 +190,13 @@ export const useEditorStore = defineStore(
       return tree_structure_list.value.find((struc) => rosToUuid(struc.tree_id) === id)
     }
 
+    function findTreeContainingNode(id: UUIDString): TreeStructure | undefined {
+      return tree_structure_list.value.find(
+        (t_struc) =>
+          t_struc.nodes.find((n_struc) => rosToUuid(n_struc.node_id) === id) !== undefined
+      )
+    }
+
     return {
       selected_tree,
       has_selected_subtree,
@@ -207,6 +206,7 @@ export const useEditorStore = defineStore(
       debug,
       tree_structure_list,
       findTree,
+      findTreeContainingNode,
       tree_state_list,
       tree_data_list,
       running_commands,

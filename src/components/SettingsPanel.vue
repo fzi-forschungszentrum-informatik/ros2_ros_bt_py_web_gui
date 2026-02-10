@@ -29,11 +29,14 @@
 -->
 <script setup lang="ts">
 import { useEditorStore } from '@/stores/editor'
+import { useLogsStore } from '@/stores/logs'
 import { useROSStore } from '@/stores/ros'
 import type { SetBoolRequest, SetBoolResponse } from '@/types/services/SetBool'
+import { LogLevel } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 
 const editor_store = useEditorStore()
+const log_store = useLogsStore()
 const ros_store = useROSStore()
 
 function setPublishData(event: Event) {
@@ -67,12 +70,33 @@ function setPublishData(event: Event) {
     }
   )
 }
+
+function setMinLogLevel(event: Event) {
+  const level = (event.target as HTMLSelectElement).value
+  log_store.setMinLogLevel(parseInt(level))
+}
 </script>
 
 <template>
-  <div class="h4 mb-3">Tree Data Settings</div>
+  <div class="h4 mb-3">General Settings</div>
 
-  <div class="form-check form-switch my-3 fs-5">
+  <div class="input-group mb-3">
+    <label class="input-group-text"> Min Log Level </label>
+    <select class="form-select" @change="setMinLogLevel">
+      <template v-for="level in Object.values(LogLevel)" :key="level">
+        <!--This ugly v-if check is necessary because enums can't trivially be iterated-->
+        <option
+          v-if="typeof level === 'number'"
+          :value="level"
+          :selected="log_store.min_log_level === level"
+        >
+          {{ log_store.getLogLevelString(level as LogLevel) }}
+        </option>
+      </template>
+    </select>
+  </div>
+
+  <div class="form-check form-switch mb-3 fs-5">
     <input
       type="checkbox"
       class="form-check-input"
