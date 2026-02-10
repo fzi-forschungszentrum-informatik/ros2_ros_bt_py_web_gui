@@ -209,7 +209,7 @@ onMounted(() => {
     </div>
     <div class="offcanvas-body">
       <div class="form-check form-switch mb-3">
-        <input type="checkbox" class="form-check-input" v-model="filter_logs" />
+        <input v-model="filter_logs" type="checkbox" class="form-check-input" />
         <label class="form-check-label ms-2"> Filter for Current Tree </label>
       </div>
       <LogsDisplay
