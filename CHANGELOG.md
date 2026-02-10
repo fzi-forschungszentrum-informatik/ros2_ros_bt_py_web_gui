@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add EnumSwitchIcon by @nspielbau in [#43](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/43)
 
 ### Changed
-- Bump verison to 7.0.0
+- Bump verison to 7.0.0 by @Oberacda
 - Logging display by @Doomse in [#45](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/45)
 
 ## New Contributors
