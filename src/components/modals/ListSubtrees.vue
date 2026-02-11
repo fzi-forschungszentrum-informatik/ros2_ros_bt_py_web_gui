@@ -31,7 +31,7 @@
 import * as uuid from 'uuid'
 import { useEditorStore } from '@/stores/editor'
 import type { TreeStructure, UUIDString } from '@/types/types'
-import { findNode, rosToUuid } from '@/utils'
+import { findNodeForSubtree, rosToUuid } from '@/utils'
 import { computed, ref } from 'vue'
 
 const editor_store = useEditorStore()
@@ -50,17 +50,17 @@ const current_tree = computed<TreeStructure | undefined>(() => {
   return editor_store.findTree(props.tree_id)
 })
 
-const subtree_ids = computed<Set<UUIDString>>(() => {
+const subtree_ids = computed<UUIDString[]>(() => {
   if (current_tree.value === undefined) {
-    return new Set<UUIDString>()
+    return []
   }
-  const node_ids = new Set<UUIDString>(
-    current_tree.value.nodes.map((node) => rosToUuid(node.node_id))
-  )
-  const tree_ids = new Set<UUIDString>(
-    editor_store.tree_structure_list.map((struc) => rosToUuid(struc.tree_id))
-  )
-  return node_ids.intersection(tree_ids)
+  const subtree_ids: UUIDString[] = []
+  current_tree.value.nodes.forEach((node) => {
+    if (node.tree_ref !== '') {
+      subtree_ids.push(rosToUuid(node.tree_ref))
+    }
+  })
+  return subtree_ids
 })
 
 const tree_name = computed<string>(() => {
@@ -74,11 +74,11 @@ const node_name = computed<string>(() => {
   if (props.tree_id === uuid.NIL) {
     return 'Main Tree'
   }
-  const outer_tree = editor_store.findTreeContainingNode(props.tree_id)
+  const outer_tree = editor_store.findOuterTree(props.tree_id)
   if (outer_tree === undefined) {
     return 'UNKNOWN'
   }
-  const node = findNode(outer_tree, props.tree_id)
+  const node = findNodeForSubtree(outer_tree, props.tree_id)
   if (node === undefined) {
     return 'UNKNOWN'
   }
@@ -103,7 +103,7 @@ function selectTree() {
         {{ node_name }} ({{ tree_name }})
       </button>
       <button
-        v-if="subtree_ids.size > 0"
+        v-if="subtree_ids.length > 0"
         class="btn btn-outline-contrast"
         @click="show_subtrees = !show_subtrees"
       >

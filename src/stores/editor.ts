@@ -190,10 +190,15 @@ export const useEditorStore = defineStore(
       return tree_structure_list.value.find((struc) => rosToUuid(struc.tree_id) === id)
     }
 
-    function findTreeContainingNode(id: UUIDString): TreeStructure | undefined {
+    function findOuterTree(id: UUIDString): TreeStructure | undefined {
       return tree_structure_list.value.find(
         (t_struc) =>
-          t_struc.nodes.find((n_struc) => rosToUuid(n_struc.node_id) === id) !== undefined
+          t_struc.nodes.find((n_struc) => {
+            if (n_struc.tree_ref === '') {
+              return false
+            }
+            return rosToUuid(n_struc.tree_ref) === id
+          }) !== undefined
       )
     }
 
@@ -206,7 +211,7 @@ export const useEditorStore = defineStore(
       debug,
       tree_structure_list,
       findTree,
-      findTreeContainingNode,
+      findOuterTree,
       tree_state_list,
       tree_data_list,
       running_commands,

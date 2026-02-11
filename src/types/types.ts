@@ -61,6 +61,8 @@ export type NodeStructure = {
   options: NodeOption[]
   inputs: NodeIO[]
   outputs: NodeIO[]
+
+  tree_ref: UUIDMsg | ''
 }
 
 export type DocumentedNode = {
