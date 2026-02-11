@@ -1,9 +1,44 @@
-<svg width="640" height="640" xmlns="http://www.w3.org/2000/svg">
- <!--!Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.-->
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="640"
+   height="640"
+   viewBox="0 0 127 127"
+   xml:space="preserve"
+   version="1.1"
+   id="svg8"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+   id="defs12" />
 
- <g>
-  <title>Layer 1</title>
-  <path id="svg_1" d="m280,152l80,0l0,48l-80,0l0,-48zm-8,-56c-26.5,0 -48,21.5 -48,48l0,64c0,26.5 21.5,48 48,48l16,0l0,32l-224,0c-17.7,0 -32,14.3 -32,32c0,17.7 14.3,32 32,32l96,0l0,32l-16,0c-26.5,0 -48,21.5 -48,48l0,64c0,26.5 21.5,48 48,48l96,0c26.5,0 48,-21.5 48,-48l0,-64c0,-26.5 -21.5,-48 -48,-48l-16,0l0,-32l192,0l0,32l-16,0c-26.5,0 -48,21.5 -48,48l0,64c0,26.5 21.5,48 48,48l96,0c26.5,0 48,-21.5 48,-48l0,-64c0,-26.5 -21.5,-48 -48,-48l-16,0l0,-32l96,0c17.7,0 32,-14.3 32,-32c0,-17.7 -14.3,-32 -32,-32l-224,0l0,-32l16,0c26.5,0 48,-21.5 48,-48l0,-64c0,-26.5 -21.5,-48 -48,-48l-96,0zm208,344l8,0l0,48l-80,0l0,-48l72,0zm-256,0l8,0l0,48l-80,0l0,-48l72,0z"/>
-  <text transform="matrix(1.38523, 0, 0, 1.2549, -48.9246, -16.7308)" font-style="normal" font-weight="normal" xml:space="preserve" text-anchor="start" font-family="'Asset'" font-size="100" id="svg_6" y="190.53127" x="124.1124" stroke-width="0" stroke="#000" fill="#000000">E</text>
- </g>
-</svg>
+ <text
+   transform="scale(1.0506459,0.95179546)"
+   font-style="normal"
+   font-weight="normal"
+   xml:space="preserve"
+   text-anchor="start"
+   font-size="52.2969px"
+   id="svg_6"
+   y="49.676693"
+   x="4.527854"
+   stroke-width="0"
+   style="stroke:none;stroke-width:0.396787;stroke-dasharray:none"><tspan
+     style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:sans-serif;-inkscape-font-specification:sans-serif"
+     id="tspan1987">E</tspan></text>
+<path
+   style="stroke-width:0.999927;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;stop-color:#000000"
+   d="M 12.321939,73.425254 H 115.28609"
+   id="path953" /><g
+   id="g1883"
+   style="fill:none;stroke-width:6.94531;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1"><path
+     style="fill:none;fill-opacity:0.5;stroke-width:6.94531;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;stop-color:#000000"
+     d="M 13.276519,72.253164 113.52779,72.162848"
+     id="path1009" /><path
+     style="fill:none;fill-opacity:0.5;stroke-width:6.94531;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;stop-color:#000000"
+     d="M 38.836076,72.780825 38.695312,91.267012 H 51.59375 V 110.11857 H 25.796875 V 91.267012 h 22.070844"
+     id="path1107" /><path
+     style="fill:none;fill-opacity:0.5;stroke-width:6.94531;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;stop-color:#000000"
+     d="M 88.66538,72.780825 88.524616,91.267012 H 101.42305 V 110.11857 H 75.626179 V 91.267012 h 22.070844"
+     id="path1107-3" /><path
+     style="fill:none;fill-opacity:0.5;stroke-width:6.94531;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:none;stroke-opacity:1;paint-order:markers fill stroke;stop-color:#000000"
+     d="M 63.525146,71.838885 63.66591,53.352695 H 50.767475 V 34.501136 h 25.79687 V 53.352695 H 54.493503"
+     id="path1107-7" /></g></svg>

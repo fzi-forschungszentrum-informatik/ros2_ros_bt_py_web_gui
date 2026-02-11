@@ -183,7 +183,8 @@ function buildNodeMessage(node: DocumentedNode): NodeStructure {
     child_ids: [],
     options: serializeNodeOptions(options),
     inputs: [],
-    outputs: []
+    outputs: [],
+    tree_ref: ''
   }
 }
 

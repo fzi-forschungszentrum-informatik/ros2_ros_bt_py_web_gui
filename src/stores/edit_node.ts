@@ -411,7 +411,8 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       child_ids: [],
       options: serializeNodeOptions(new_node_options.value),
       inputs: [],
-      outputs: []
+      outputs: [],
+      tree_ref: ''
     }
   }
 
