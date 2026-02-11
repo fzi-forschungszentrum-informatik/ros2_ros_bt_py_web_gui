@@ -54,10 +54,16 @@ const subtree_ids = computed<UUIDString[]>(() => {
   if (current_tree.value === undefined) {
     return []
   }
+  const tree_ids = new Set<UUIDString>(
+    editor_store.tree_structure_list.map((t) => rosToUuid(t.tree_id))
+  )
   const subtree_ids: UUIDString[] = []
   current_tree.value.nodes.forEach((node) => {
     if (node.tree_ref !== '') {
-      subtree_ids.push(rosToUuid(node.tree_ref))
+      const t_id = rosToUuid(node.tree_ref)
+      if (tree_ids.has(t_id)) {
+        subtree_ids.push(t_id)
+      }
     }
   })
   return subtree_ids
@@ -96,7 +102,7 @@ function selectTree() {
     <div class="btn-group w-100">
       <button
         class="btn btn-outline-contrast text-start w-100"
-        :class="{ active: tree_id === rosToUuid(editor_store.current_tree.structure!.tree_id) }"
+        :class="{ active: tree_id === editor_store.selected_tree }"
         @click="selectTree"
       >
         <FontAwesomeIcon icon="fa-solid fa-share-nodes" class="me-1" />
