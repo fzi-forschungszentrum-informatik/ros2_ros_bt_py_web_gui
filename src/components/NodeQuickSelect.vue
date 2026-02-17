@@ -148,5 +148,6 @@ function getIconSrc(nodeName: string): string {
   height: 25px;
   width: 25px;
   fill: var(--bs-body-color);
+  stroke: var(--bs-body-color);
 }
 </style>
