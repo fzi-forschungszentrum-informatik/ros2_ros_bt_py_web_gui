@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [7.0.1] - 2026-02-17
 
 ### Changed
+- Bump version. by @Oberacda
 - Use new tree_ref to associate nodes and subtrees by @Doomse in [#46](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/46)
 
 
