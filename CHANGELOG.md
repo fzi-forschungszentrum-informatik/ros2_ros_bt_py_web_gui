@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Use new tree_ref to associate nodes and subtrees by @Doomse in [#46](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/46)
+
+
 ## [7.0.0] - 2026-02-10
 
 ### Added
@@ -406,6 +412,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @Doomse made their first contribution
 
+[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.0..HEAD
 [7.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/6.0.2..7.0.0
 [6.0.2]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/6.0.1..6.0.2
 [6.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/6.0.0..6.0.1
