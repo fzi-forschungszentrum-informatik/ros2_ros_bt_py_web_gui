@@ -31,7 +31,6 @@ gh pr create \
   --base "main" \
   --assignee "@me" \
   --label "bot" \
-  --label "enhancement" \
   --label "GUI" \
   --reviewer "fzi-forschungszentrum-informatik/ros2_ros_bt_py-write"
 

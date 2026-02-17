@@ -1,6 +1,6 @@
 {
   "name": "ros_bt_py_web_gui",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "private": true,
   "author": {
     "name": "David Oberacker",
