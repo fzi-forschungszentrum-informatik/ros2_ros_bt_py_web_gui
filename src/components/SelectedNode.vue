@@ -125,6 +125,7 @@ function updateNode() {
           type: 'success'
         })
         edit_node_store.clearNodeHasChanged()
+        edit_node_store.editorSelectionChange(edit_node_store.selected_node!.node_id)
       } else {
         notify({
           title: 'Failed to update node ' + edit_node_store.selected_node!.name + '!',
