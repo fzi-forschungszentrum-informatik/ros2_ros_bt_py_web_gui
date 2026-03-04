@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.1.0] - 2026-03-04
 
+### Changed
+- Bump version. by @Oberacda
+
 ### Removed
 - Remove bad default and auto-update options by @Doomse in [#47](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/47)
 
