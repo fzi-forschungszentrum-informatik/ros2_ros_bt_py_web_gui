@@ -43,7 +43,7 @@ import {
   type ControlTreeExecutionResponse
 } from '@/types/services/ControlTreeExecution'
 import { findTree } from '@/tree_selection'
-import { isLoadErrorTreatable, notifyLoadMigration } from '@/utils'
+import { isLoadErrorTreatable } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -96,9 +96,6 @@ function loadTreeMsg(msg: TreeStructure) {
           title: 'Loaded tree successfully!',
           type: 'success'
         })
-        if (response.actual_path !== '' && msg.path !== response.actual_path) {
-          notifyLoadMigration(response.actual_path)
-        }
         editor_store.resetQuickSaveLocation()
       } else {
         notify({
@@ -136,9 +133,6 @@ function loadTreeMsg(msg: TreeStructure) {
                 text: 'Permissive mode might not completely restore the tree',
                 type: 'success'
               })
-              if (response.actual_path !== '' && msg.path !== response.actual_path) {
-                notifyLoadMigration(response.actual_path)
-              }
               editor_store.resetQuickSaveLocation()
             } else {
               notify({

@@ -403,10 +403,3 @@ export function isLoadErrorTreatable(error: string) {
   })
   return treatable
 }
-
-export function notifyLoadMigration(actual_path: string) {
-  window.alert(
-    `We had to run migrations on the tree file you tried to load.
-    The updated version can be found at "${actual_path}" and it is currently loaded.`
-  )
-}

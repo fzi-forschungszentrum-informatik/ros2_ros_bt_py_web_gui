@@ -38,7 +38,7 @@ import type {
 } from '@/types/services/LoadTreeFromPath'
 import { notify } from '@kyvg/vue3-notification'
 import { useEditorStore } from '@/stores/editor'
-import { isLoadErrorTreatable, notifyLoadMigration } from '@/utils'
+import { isLoadErrorTreatable } from '@/utils'
 
 const props = defineProps<{
   fromPackages: boolean
@@ -89,12 +89,8 @@ function loadTree() {
       if (response.success) {
         notify({
           title: 'Successfully loaded tree!',
-          text: response.actual_path,
           type: 'success'
         })
-        if (file_path.value !== response.actual_path) {
-          notifyLoadMigration(response.actual_path)
-        }
         editor_store.resetQuickSaveLocation()
         emit('close')
       } else {
@@ -130,12 +126,8 @@ function loadTree() {
             if (response.success) {
               notify({
                 title: 'Successfully loaded tree in permissive mode!',
-                text: response.actual_path,
                 type: 'success'
               })
-              if (file_path.value !== response.actual_path) {
-                notifyLoadMigration(response.actual_path)
-              }
               editor_store.resetQuickSaveLocation()
               emit('close')
             } else {

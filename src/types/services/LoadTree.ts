@@ -37,5 +37,4 @@ export type LoadTreeRequest = {
 export type LoadTreeResponse = {
   success: boolean
   error_message: string
-  actual_path: string
 }
