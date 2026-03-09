@@ -37,7 +37,6 @@ import {
 import type {
   DataEdgeTerminal,
   OptionData,
-  PyObject,
   ParamType,
   NodeOption,
   TreeState,
@@ -323,11 +322,6 @@ export function serializeNodeOptions(node_options: OptionData[]): NodeOption[] {
       option.serialized_value = JSON.stringify({
         'py/type': x.value.value
       })
-    } else if (x.value.type.startsWith('__')) {
-      //TODO This should be changed to not generate "bad" defaults
-      const val = x.value.value as PyObject
-      val['py/object'] = x.value.type.substring('__'.length)
-      option.serialized_value = JSON.stringify(x.value.value)
     } else {
       option.serialized_value = JSON.stringify(x.value.value)
     }
