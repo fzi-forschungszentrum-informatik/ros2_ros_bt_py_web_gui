@@ -54,7 +54,7 @@ export const useEditorStore = defineStore(
     const tree_state_list = ref<TreeState[]>([])
     const tree_data_list = ref<TreeData[]>([])
 
-    const publish_subtrees = ref<boolean>(false)
+    const publish_subtrees = ref<boolean>(true)
     const publish_data = ref<boolean>(false)
     const debug = ref<boolean>(false)
     const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())

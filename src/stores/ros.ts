@@ -116,11 +116,9 @@ export const useROSStore = defineStore(
     const auto_connect = ref<boolean>(true)
     let connect_timeout: number = 0
     function startConnectTimeout() {
-      console.log('Start connect timeout')
       clearTimeout(connect_timeout)
       if (auto_connect.value) {
         connect_timeout = setTimeout(() => {
-          console.log('Connect callback')
           if (auto_connect.value) {
             connect()
           }
