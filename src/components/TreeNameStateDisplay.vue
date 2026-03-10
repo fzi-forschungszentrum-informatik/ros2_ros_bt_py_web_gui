@@ -36,13 +36,15 @@ import { TreeStateValues } from '@/types/types'
 import { notify } from '@kyvg/vue3-notification'
 import { computed, ref, watchEffect } from 'vue'
 import * as uuid from 'uuid'
+import { findTree } from '@/tree_selection'
 
 const editor_store = useEditorStore()
 const ros_store = useROSStore()
 
 const tree_name = computed<string>(() => {
-  if (editor_store.current_tree.structure !== undefined) {
-    return editor_store.current_tree.structure.name
+  const current_tree = findTree(editor_store.tree_structure_list, editor_store.selected_tree)
+  if (current_tree !== undefined) {
+    return current_tree.name
   } else {
     return ''
   }

@@ -82,8 +82,12 @@ rect.selection {
 
 .link {
   fill: none;
-  stroke: #1e2226;
+  stroke: #aaadaf;
   stroke-width: 3.5px;
+}
+
+.lightmode .link {
+  stroke: #1e2226;
 }
 
 .btnode {
@@ -100,8 +104,12 @@ rect.selection {
 
 .node_name,
 .class_name {
-  dominant-baseline: auto;
+  dominant-baseline: hanging;
   pointer-events: none;
+}
+
+.lightmode .warn_msg {
+  stroke: white;
 }
 
 .node_name {
@@ -130,6 +138,14 @@ rect.selection {
   fill: black;
 }
 
+.button_icon path {
+  fill: white;
+}
+
+.lightmode .button_icon path {
+  fill: black;
+}
+
 .label {
   pointer-events: none;
   fill: #eff0f4;
@@ -145,7 +161,11 @@ path.data-select {
 }
 
 .gripper {
-  fill: #74777f;
+  fill: slategray;
+}
+
+.gripper-duplicate {
+  fill: url(#pattern_stripes);
 }
 
 .data-link,

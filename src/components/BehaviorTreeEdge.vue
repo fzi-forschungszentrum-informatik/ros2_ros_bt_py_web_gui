@@ -34,55 +34,87 @@ import { useROSStore } from '@/stores/ros'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
-import type { WiringData } from '@/types/types'
-import { compareRosUuid, prettyprint_type, rosToUuid, prettyprint_value } from '@/utils'
+import type { NodeStructure, WiringData } from '@/types/types'
+import { prettyprint_type, rosToUuid, prettyprint_value, replaceNameIdParts } from '@/utils'
+import {
+  findNodeInTreeList,
+  findWiringInTreeList,
+  getNodeStructures,
+  getWiringData
+} from '@/tree_selection'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
+const source_node = computed<NodeStructure | undefined>(() => {
+  if (editor_store.selected_edge === undefined) {
+    return
+  }
+  return findNodeInTreeList(
+    editor_store.tree_structure_list,
+    getNodeStructures,
+    editor_store.selected_edge_tree_id,
+    rosToUuid(editor_store.selected_edge.source.node_id)
+  )
+})
+
 const source_name = computed<string>(() => {
+  if (source_node.value === undefined) {
+    return ''
+  }
+  return source_node.value.name
+})
+
+const source_key = computed<string>(() => {
   if (editor_store.selected_edge === undefined) {
     return ''
   }
-  const source_node = editor_store.current_tree.structure!.nodes.find(
-    (node) => rosToUuid(node.node_id) === rosToUuid(editor_store.selected_edge!.source.node_id)
-  )
-  if (source_node === undefined) {
-    return ''
+  if (source_node.value === undefined) {
+    return editor_store.selected_edge.source.data_key
   }
-  return source_node.name
+  return replaceNameIdParts(source_node.value.tree_ref, editor_store.selected_edge.source.data_key)
+})
+
+const target_node = computed<NodeStructure | undefined>(() => {
+  if (editor_store.selected_edge === undefined) {
+    return
+  }
+  return findNodeInTreeList(
+    editor_store.tree_structure_list,
+    getNodeStructures,
+    editor_store.selected_edge_tree_id,
+    rosToUuid(editor_store.selected_edge.target.node_id)
+  )
 })
 
 const target_name = computed<string>(() => {
+  if (target_node.value === undefined) {
+    return ''
+  }
+  return target_node.value.name
+})
+
+const target_key = computed<string>(() => {
   if (editor_store.selected_edge === undefined) {
     return ''
   }
-  const target_node = editor_store.current_tree.structure!.nodes.find(
-    (node) => rosToUuid(node.node_id) === rosToUuid(editor_store.selected_edge!.target.node_id)
-  )
-  if (target_node === undefined) {
-    return ''
+  if (target_node.value === undefined) {
+    return editor_store.selected_edge.target.data_key
   }
-  return target_node.name
+  return replaceNameIdParts(target_node.value.tree_ref, editor_store.selected_edge.target.data_key)
 })
 
 const edge_data = computed<WiringData | undefined>(() => {
-  if (editor_store.selected_edge === undefined || editor_store.current_tree.data === undefined) {
+  if (editor_store.selected_edge === undefined) {
     return undefined
   }
-  const edge = editor_store.selected_edge
-  return editor_store.current_tree.data.wiring_data.find((item) => {
-    const wiring = item.wiring
-    return (
-      compareRosUuid(wiring.source.node_id, edge.source.node_id) &&
-      wiring.source.data_kind === edge.source.data_kind &&
-      wiring.source.data_key === edge.source.data_key &&
-      compareRosUuid(wiring.target.node_id, edge.target.node_id) &&
-      wiring.target.data_kind === edge.target.data_kind &&
-      wiring.target.data_key === edge.target.data_key
-    )
-  })
+  return findWiringInTreeList(
+    editor_store.tree_data_list,
+    getWiringData,
+    editor_store.selected_edge_tree_id,
+    editor_store.selected_edge
+  )
 })
 
 function onClickDelete() {
@@ -97,21 +129,16 @@ function onClickDelete() {
       ]
     } as WireNodeDataRequest,
     (response: WireNodeDataResponse) => {
-      const source_name = editor_store.current_tree.structure!.nodes.find((node) =>
-        compareRosUuid(edge.source.node_id, node.node_id)
-      )!.name
-      const target_name = editor_store.current_tree.structure!.nodes.find((node) =>
-        compareRosUuid(edge.target.node_id, node.node_id)
-      )!.name
       if (response.success) {
         notify({
-          title: 'Removed data edge: ' + source_name + ' -> ' + target_name + '!',
+          title: 'Removed data edge: ' + source_name.value + ' -> ' + target_name.value + '!',
           type: 'success'
         })
         editor_store.unselectEdge()
       } else {
         notify({
-          title: 'Failed to remove data edge: ' + source_name + ' -> ' + target_name + '!',
+          title:
+            'Failed to remove data edge: ' + source_name.value + ' -> ' + target_name.value + '!',
           text: response.error_message,
           type: 'warn'
         })
@@ -128,11 +155,17 @@ function onClickDelete() {
 }
 
 function selectSourceNode() {
-  edit_node_store.editorSelectionChange(rosToUuid(editor_store.selected_edge!.source.node_id))
+  edit_node_store.editorSelectionChange(
+    editor_store.selected_edge_tree_id,
+    rosToUuid(editor_store.selected_edge!.source.node_id)
+  )
 }
 
 function selectTargetNode() {
-  edit_node_store.editorSelectionChange(rosToUuid(editor_store.selected_edge!.target.node_id))
+  edit_node_store.editorSelectionChange(
+    editor_store.selected_edge_tree_id,
+    rosToUuid(editor_store.selected_edge!.target.node_id)
+  )
 }
 </script>
 
@@ -152,7 +185,7 @@ function selectTargetNode() {
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
           <span class="text-primary">{{ source_name }}</span
           ><br />
-          {{ editor_store.selected_edge!.source.data_key }}
+          {{ source_key }}
         </button>
       </div>
       <hr class="flex-fill connector" />
@@ -160,7 +193,7 @@ function selectTargetNode() {
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
           <span class="text-primary">{{ target_name }}</span
           ><br />
-          {{ editor_store.selected_edge!.target.data_key }}
+          {{ target_key }}
         </button>
       </div>
     </div>

@@ -37,12 +37,10 @@ import type {
   TreeStructure,
   BTEditorNode,
   DataEdgeTerminal,
-  Tree,
   TreeState,
   TreeData,
   UUIDString
 } from '@/types/types'
-import { rosToUuid } from '@/utils'
 
 export enum EditorSkin {
   DARK = 'darkmode',
@@ -56,7 +54,7 @@ export const useEditorStore = defineStore(
     const tree_state_list = ref<TreeState[]>([])
     const tree_data_list = ref<TreeData[]>([])
 
-    const publish_subtrees = ref<boolean>(false)
+    const publish_subtrees = ref<boolean>(true)
     const publish_data = ref<boolean>(false)
     const debug = ref<boolean>(false)
     const running_commands = ref<Set<TreeExecutionCommands>>(new Set<TreeExecutionCommands>())
@@ -85,21 +83,13 @@ export const useEditorStore = defineStore(
 
     const has_selected_subtree = computed<boolean>(() => selected_tree.value !== uuid.NIL)
 
-    const current_tree = computed<Tree>(() => {
-      return {
-        structure: tree_structure_list.value.find(
-          (tree) => rosToUuid(tree.tree_id) === selected_tree.value
-        ),
-        state: tree_state_list.value.find(
-          (tree) => rosToUuid(tree.tree_id) === selected_tree.value
-        ),
-        data: tree_data_list.value.find((tree) => rosToUuid(tree.tree_id) === selected_tree.value)
-      }
-    })
+    const expanded_subtrees = ref<UUIDString[]>([])
 
     const quick_save_location = ref<string>('')
 
     const selected_edge = ref<Wiring | undefined>(undefined)
+
+    const selected_edge_tree_id = ref<UUIDString | ''>('')
 
     const is_layer_mode = ref<boolean>(false)
 
@@ -178,40 +168,24 @@ export const useEditorStore = defineStore(
       quick_save_location.value = ''
     }
 
-    function selectEdge(edge: Wiring) {
+    function selectEdge(tree_id: UUIDString, edge: Wiring) {
       selected_edge.value = edge
+      selected_edge_tree_id.value = tree_id
     }
 
     function unselectEdge() {
       selected_edge.value = undefined
-    }
-
-    function findTree(id: UUIDString): TreeStructure | undefined {
-      return tree_structure_list.value.find((struc) => rosToUuid(struc.tree_id) === id)
-    }
-
-    function findOuterTree(id: UUIDString): TreeStructure | undefined {
-      return tree_structure_list.value.find(
-        (t_struc) =>
-          t_struc.nodes.find((n_struc) => {
-            if (n_struc.tree_ref === '') {
-              return false
-            }
-            return rosToUuid(n_struc.tree_ref) === id
-          }) !== undefined
-      )
+      selected_edge_tree_id.value = ''
     }
 
     return {
       selected_tree,
       has_selected_subtree,
-      current_tree,
+      expanded_subtrees,
       publish_subtrees,
       publish_data,
       debug,
       tree_structure_list,
-      findTree,
-      findOuterTree,
       tree_state_list,
       tree_data_list,
       running_commands,
@@ -234,6 +208,7 @@ export const useEditorStore = defineStore(
       skin,
       cycleEditorSkin,
       selected_edge,
+      selected_edge_tree_id,
       selectEdge,
       unselectEdge,
       quick_save_location,

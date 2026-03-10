@@ -28,6 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
+import * as uuid from 'uuid'
 import { useROSStore } from '@/stores/ros'
 import type {
   GenerateSubtreeRequest,
@@ -35,33 +36,40 @@ import type {
 } from '@/types/services/GenerateSubtree'
 import { notify } from '@kyvg/vue3-notification'
 import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { TreeStructure, UUIDString } from '@/types/types'
-import { NameConflictHandler, parseConflictHandler, rosToUuid, uuidToRos } from '@/utils'
+import type { TreeStructure } from '@/types/types'
+import { NameConflictHandler, parseConflictHandler, uuidToRos } from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { removeNode } from '@/tree_manipulation'
 import { useEditorStore } from '@/stores/editor'
+import { findNodeInTreeList, getNodeStructures } from '@/tree_selection'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
-let inital_name = edit_node_store.selected_node_ids.join('_')
-if (inital_name.length === 0) {
-  inital_name = 'Subtree'
-}
-const name = ref<string>(inital_name)
+const name = ref<string>('Subtree')
 const storage_location = ref<string>('')
 const file_path = ref<string>('')
 const show_selection_modal = ref<boolean>(false)
 
 const handle_name_conflict = ref<NameConflictHandler>(NameConflictHandler.ASK)
 
+// For convenience, this is also false if the selection is empty
+const all_in_main_tree = computed<boolean>(() => {
+  return (
+    edit_node_store.selected_node_id_pairs.find((id_pair) => id_pair.tree !== uuid.NIL) ===
+      undefined && edit_node_store.selected_node_id_pairs.length > 0
+  )
+})
+
 async function deleteNodes() {
   if (
     !window.confirm(
-      'Really delete all selected nodes (' + edit_node_store.selected_node_ids.join(', ') + ')?'
+      'Really delete all selected nodes (' +
+        edit_node_store.selected_node_id_pairs.map((id_pair) => id_pair.node).join(', ') +
+        ')?'
     )
   ) {
     // Do nothing if user doesn't confirm
@@ -69,18 +77,21 @@ async function deleteNodes() {
   }
 
   const p_list: Promise<void>[] = []
-  edit_node_store.selected_node_ids.forEach((node_id: UUIDString) => {
-    const node = editor_store.current_tree.structure!.nodes.find(
-      (node) => rosToUuid(node.node_id) === node_id
+  edit_node_store.selected_node_id_pairs.forEach((id_pair) => {
+    const node = findNodeInTreeList(
+      editor_store.tree_structure_list,
+      getNodeStructures,
+      id_pair.tree,
+      id_pair.node
     )
-    let name = node_id
+    let name = id_pair.node
     if (node !== undefined) {
       name = node.name
     }
     p_list.push(
-      removeNode(node_id, name, false).then(() => {
-        edit_node_store.selected_node_ids = edit_node_store.selected_node_ids.filter(
-          (value: string) => value !== node_id
+      removeNode(id_pair.node, name, false).then(() => {
+        edit_node_store.selected_node_id_pairs = edit_node_store.selected_node_id_pairs.filter(
+          (value) => value !== id_pair
         )
       })
     )
@@ -102,7 +113,7 @@ function setSaveLocation(location: string, path: string, handler: NameConflictHa
 function generateSubtree() {
   ros_store.generate_subtree_service.callService(
     {
-      node_ids: edit_node_store.selected_node_ids.map((str) => uuidToRos(str))
+      node_ids: edit_node_store.selected_node_id_pairs.map((val) => uuidToRos(val.node))
     } as GenerateSubtreeRequest,
     (response: GenerateSubtreeResponse) => {
       if (response.success) {
@@ -226,7 +237,13 @@ function saveSubtree(tree: TreeStructure) {
   <div class="d-flex flex-column">
     <div class="row g-2 mb-3">
       <div class="btn-group col-8">
-        <button class="btn btn-primary" @click="selectSubtreeSaveLocation">Select Location</button>
+        <button
+          class="btn btn-primary"
+          :disabled="!all_in_main_tree"
+          @click="selectSubtreeSaveLocation"
+        >
+          Select Location
+        </button>
         <button
           class="btn btn-primary"
           :disabled="storage_location === '' || file_path === ''"
@@ -236,7 +253,9 @@ function saveSubtree(tree: TreeStructure) {
         </button>
       </div>
       <div class="btn-group col-4">
-        <button class="btn btn-danger" @click="deleteNodes">Delete Nodes</button>
+        <button class="btn btn-danger" :disabled="!all_in_main_tree" @click="deleteNodes">
+          Delete Nodes
+        </button>
       </div>
     </div>
 

@@ -47,10 +47,10 @@ import {
   getDefaultValue,
   parseOptionRef,
   prettyprint_type,
-  rosToUuid,
   serializeNodeOptions,
   uuidToRos
 } from '@/utils'
+import { findNodeInTreeList, getNodeStructures } from '@/tree_selection'
 
 export enum EditorSelectionSource {
   NONE = 'none',
@@ -66,6 +66,11 @@ function parseNodeIO(data: NodeIO, options?: NodeOption[] | null): IOData {
   } as IOData
 }
 
+type TreeNodeIdPair = {
+  tree: UUIDString
+  node: UUIDString
+}
+
 export const useEditNodeStore = defineStore('edit_node', () => {
   const editor_store = useEditorStore()
   const nodes_store = useNodesStore()
@@ -73,8 +78,9 @@ export const useEditNodeStore = defineStore('edit_node', () => {
   const is_new_node = ref<boolean>(false)
   const node_has_changed = ref<boolean>(false)
   const selected_node = ref<NodeStructure | undefined>(undefined)
+  const selected_node_tree_id = ref<UUIDString | ''>('')
   const reference_node = ref<DocumentedNode | undefined>(undefined)
-  const selected_node_ids = ref<UUIDString[]>([])
+  const selected_node_id_pairs = ref<TreeNodeIdPair[]>([])
   const last_seletion_source = ref<EditorSelectionSource>(EditorSelectionSource.NONE)
 
   const new_node_name = ref<string>('')
@@ -121,7 +127,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
     selected_node.value = undefined
     reference_node.value = undefined
-    selected_node_ids.value = []
+    selected_node_id_pairs.value = []
     last_seletion_source.value = EditorSelectionSource.NONE
     return true
   }
@@ -138,10 +144,11 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
 
     selected_node.value = undefined
+    selected_node_tree_id.value = ''
     reference_node.value = new_selected_node
     copy_node_mode.value = false
     is_new_node.value = true
-    selected_node_ids.value = []
+    selected_node_id_pairs.value = []
     last_seletion_source.value = EditorSelectionSource.NODELIST
 
     // Initialize editable attributes
@@ -166,7 +173,10 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     )
   }
 
-  function editorSelectionChange(new_selected_node_id: UUIDString) {
+  function editorSelectionChange(
+    new_selected_node_tree_id: UUIDString,
+    new_selected_node_id: UUIDString
+  ) {
     if (node_has_changed.value) {
       if (
         window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
@@ -177,8 +187,11 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       }
     }
 
-    const new_selected_node = editor_store.current_tree.structure!.nodes.find(
-      (x: NodeStructure) => rosToUuid(x.node_id) === new_selected_node_id
+    const new_selected_node = findNodeInTreeList(
+      editor_store.tree_structure_list,
+      getNodeStructures,
+      new_selected_node_tree_id,
+      new_selected_node_id
     )
 
     if (new_selected_node === undefined) {
@@ -197,10 +210,16 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
 
     selected_node.value = new_selected_node
+    selected_node_tree_id.value = new_selected_node_tree_id
     reference_node.value = new_reference_node
     copy_node_mode.value = true
     is_new_node.value = false
-    selected_node_ids.value = [new_selected_node_id]
+    selected_node_id_pairs.value = [
+      {
+        tree: new_selected_node_tree_id,
+        node: new_selected_node_id
+      }
+    ]
     last_seletion_source.value = EditorSelectionSource.EDITOR
 
     // Initialize editable attributes
@@ -232,7 +251,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     )
   }
 
-  function selectMultipleNodes(new_selected_node_ids: UUIDString[]) {
+  function selectMultipleNodes(new_selected_node_id_pairs: TreeNodeIdPair[]) {
     if (node_has_changed.value) {
       if (
         window.confirm('Are you sure you wish to discard all changes to the currently edited node?')
@@ -247,18 +266,20 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     reference_node.value = undefined
     last_seletion_source.value = EditorSelectionSource.MULTIPLE
 
-    selected_node_ids.value.forEach((node_id: string) => {
-      const index = new_selected_node_ids.indexOf(node_id)
+    selected_node_id_pairs.value.forEach((id_pair: TreeNodeIdPair) => {
+      const index = new_selected_node_id_pairs.findIndex(
+        (val) => val.tree === id_pair.tree && val.node === id_pair.node
+      )
       if (index === -1) {
-        new_selected_node_ids.push(node_id)
+        new_selected_node_id_pairs.push(id_pair)
       } else {
-        new_selected_node_ids.splice(index, 1)
+        new_selected_node_id_pairs.splice(index, 1)
       }
     })
 
     //FIXME this explicit assignment is necessary to make watchers trigger (color nodes).
     // This shouldn't be an issue (watchers are supposed to be deep by default)
-    selected_node_ids.value = new_selected_node_ids
+    selected_node_id_pairs.value = new_selected_node_id_pairs
   }
 
   function changeCopyMode(new_mode: boolean) {
@@ -418,8 +439,9 @@ export const useEditNodeStore = defineStore('edit_node', () => {
 
   return {
     selected_node,
+    selected_node_tree_id,
     reference_node,
-    selected_node_ids,
+    selected_node_id_pairs,
     last_seletion_source,
     node_has_changed,
     copy_node_mode,

@@ -27,15 +27,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
+import * as uuid from 'uuid'
 import { useROSStore } from './stores/ros'
 import type { AddNodeAtIndexRequest, AddNodeAtIndexResponse } from './types/services/AddNodeAtIndex'
 import type { MoveNodeRequest, MoveNodeResponse } from './types/services/MoveNode'
 import type { RemoveNodeRequest, RemoveNodeResponse } from './types/services/RemoveNode'
 import type { ReplaceNodeRequest, ReplaceNodeResponse } from './types/services/ReplaceNode'
-import type { UUIDString, NodeStructure } from './types/types'
-import { rosToUuid, uuidToRos } from './utils'
+import type { WireNodeDataRequest, WireNodeDataResponse } from './types/services/WireNodeData'
+import type {
+  UUIDString,
+  NodeStructure,
+  DataEdgeTerminal,
+  Wiring,
+  DocumentedNode,
+  NodeOption,
+  OptionData
+} from './types/types'
+import {
+  getDefaultValue,
+  prettyprint_type,
+  rosToUuid,
+  serializeNodeOptions,
+  uuidToRos
+} from './utils'
 import { notify } from '@kyvg/vue3-notification'
+
+export function buildDefaultNodeMessage(node: DocumentedNode): NodeStructure {
+  const options = node.options.map((opt: NodeOption) => {
+    return {
+      key: opt.key,
+      value: getDefaultValue(prettyprint_type(opt.serialized_type), node.options)
+    } as OptionData
+  })
+
+  return {
+    node_id: uuidToRos(uuid.v4()),
+    name: node.node_class,
+    module: node.module,
+    node_class: node.node_class,
+    version: '',
+    max_children: 0,
+    child_ids: [],
+    options: serializeNodeOptions(options),
+    inputs: [],
+    outputs: [],
+    tree_ref: ''
+  }
+}
 
 export function addNode(
   msg: NodeStructure,
@@ -233,6 +271,71 @@ export function replaceNode(
       (error: string) => {
         local_notify({
           title: 'Failed to call ReplaceNode service',
+          text: error,
+          type: 'error'
+        })
+        reject(error)
+      }
+    )
+  })
+}
+
+// Caller needs to ensure to pass the input as source
+export function addDataEdge(
+  source: DataEdgeTerminal,
+  target: DataEdgeTerminal,
+  send_notify: boolean = true
+): Promise<void> {
+  const ros_store = useROSStore()
+
+  // Supress notifications for all callbacks
+  let local_notify: (args: object) => void
+  if (send_notify) {
+    local_notify = notify
+  } else {
+    local_notify = (args: object) => console.log(args)
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    ros_store.wire_data_service.callService(
+      {
+        wirings: [
+          {
+            source: {
+              node_id: uuidToRos(source.node.data.node_id),
+              data_kind: source.kind,
+              data_key: source.key
+            },
+            target: {
+              node_id: uuidToRos(target.node.data.node_id),
+              data_kind: target.kind,
+              data_key: target.key
+            }
+          } as Wiring
+        ],
+        ignore_failure: false //TODO what does this do?
+      } as WireNodeDataRequest,
+      (response: WireNodeDataResponse) => {
+        const source_name = source.node.data.name
+        const target_name = target.node.data.name
+        if (response.success) {
+          local_notify({
+            title: 'Added data edge: ' + source_name + ' -> ' + target_name + '!',
+            type: 'success'
+          })
+          resolve()
+        } else {
+          local_notify({
+            title: 'Failed to add data edge: ' + source_name + ' -> ' + target_name + '!',
+            text: response.error_message,
+            type: 'warn'
+          })
+          reject(response.error_message)
+        }
+      },
+      (error: string) => {
+        local_notify({
+          title: 'Failed to call dataWiring service',
           text: error,
           type: 'error'
         })

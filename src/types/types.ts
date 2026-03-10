@@ -161,15 +161,16 @@ export type TreeDataList = {
   tree_data: TreeData[]
 }
 
-export type Tree = {
-  structure?: TreeStructure
-  state?: TreeState
-  data?: TreeData
-}
-
 export type DataEdgePoint = {
   x: number
   y: number
+}
+
+export type IdentifiedDataEdgePoint = DataEdgePoint & {
+  tree_id: UUIDString
+  node_id: UUIDString
+  kind: IOKind
+  key: string
 }
 
 export type DataEdgeTerminal = DataEdgePoint & {
@@ -184,6 +185,12 @@ export const enum IOKind {
   INPUT = 'inputs',
   OUTPUT = 'outputs',
   OTHER = 'other'
+}
+
+export type IdentifiedDataEdge = {
+  p1: IdentifiedDataEdgePoint
+  p2: IdentifiedDataEdgePoint
+  key: string
 }
 
 export type DataEdge = {
@@ -224,6 +231,12 @@ export type BTEditorNode = {
   inputs: TrimmedNodeData[]
   outputs: TrimmedNodeData[]
   options: TrimmedNodeData[]
+
+  // Reference to contained tree, if at all
+  tree_ref: UUIDString | ''
+
+  // Reference to own tree for global identification
+  tree_id: UUIDString
 
   size: { width: number; height: number }
   offset: { x: number; y: number }

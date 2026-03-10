@@ -30,8 +30,9 @@
 <script setup lang="ts">
 import { useEditNodeStore } from '@/stores/edit_node'
 import { useEditorStore } from '@/stores/editor'
-import type { IOData, NodeDataLocation, Wiring } from '@/types/types'
-import { compareRosUuid } from '@/utils'
+import { findNode, findTree } from '@/tree_selection'
+import type { TreeStructure, IOData, NodeDataLocation, Wiring } from '@/types/types'
+import { compareRosUuid, replaceNameIdParts } from '@/utils'
 import { computed } from 'vue'
 
 const props = defineProps<{
@@ -53,11 +54,25 @@ const param = computed<IOData | undefined>(() => {
   }
 })
 
+const display_key = computed<string>(() => {
+  if (param.value === undefined || edit_node_store.selected_node === undefined) {
+    return ''
+  }
+  return replaceNameIdParts(edit_node_store.selected_node?.tree_ref, param.value.key)
+})
+
+const containing_tree = computed<TreeStructure | undefined>(() => {
+  if (edit_node_store.selected_node === undefined) {
+    return undefined
+  }
+  return findTree(editor_store.tree_structure_list, edit_node_store.selected_node_tree_id)
+})
+
 const connected_edges = computed<Wiring[]>(() => {
-  if (editor_store.current_tree.structure === undefined) {
+  if (containing_tree.value === undefined) {
     return []
   }
-  return editor_store.current_tree.structure.data_wirings.filter(
+  return containing_tree.value.data_wirings.filter(
     (wiring) => matchEndpoint(wiring.source) || matchEndpoint(wiring.target)
   )
 })
@@ -74,6 +89,10 @@ function matchEndpoint(endpoint: NodeDataLocation): boolean {
 }
 
 function printOtherEndpoint(wiring: Wiring): string {
+  if (containing_tree.value === undefined) {
+    return 'Other Endpoint'
+  }
+
   let endpoint: NodeDataLocation | null = null
   if (matchEndpoint(wiring.source)) {
     endpoint = wiring.target
@@ -84,9 +103,7 @@ function printOtherEndpoint(wiring: Wiring): string {
   if (endpoint === null) {
     return 'Other Endpoint'
   }
-  const node = editor_store.current_tree.structure!.nodes.find((node) =>
-    compareRosUuid(node.node_id, endpoint.node_id)
-  )
+  const node = findNode(containing_tree.value.nodes, endpoint.node_id)
   if (node === undefined) {
     return 'Other Endpoint'
   }
@@ -97,14 +114,14 @@ function printOtherEndpoint(wiring: Wiring): string {
 <template>
   <div v-if="param !== undefined" class="list-group-item">
     <div class="h5">
-      {{ param.key + ' ' }}
+      {{ display_key }}&ensp;
       <span className="text-muted">(type: {{ param.type }})</span>
     </div>
     <div v-if="connected_edges" class="d-flex flex-wrap m-1">
       <button
         v-for="edge in connected_edges"
         class="btn btn-outline-primary m-1"
-        @click="editor_store.selectEdge(edge)"
+        @click="editor_store.selectEdge(containing_tree!.tree_id, edge)"
       >
         {{ printOtherEndpoint(edge) }}
       </button>

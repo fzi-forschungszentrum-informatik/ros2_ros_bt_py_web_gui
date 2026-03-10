@@ -37,7 +37,7 @@ import { useModal } from 'vue-final-modal'
 import SelectSubtreeModal from './modals/SelectSubtreeModal.vue'
 import { computed } from 'vue'
 import * as uuid from 'uuid'
-import { findNodeForSubtree } from '@/utils'
+import { findNodeForSubtree } from '@/tree_selection'
 
 const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
@@ -49,11 +49,10 @@ const subtree_name = computed<string>(() => {
   if (editor_store.selected_tree === uuid.NIL) {
     return 'Main Tree'
   }
-  const outer_tree = editor_store.findOuterTree(editor_store.selected_tree)
-  if (outer_tree === undefined) {
-    return 'UNKNOWN'
-  }
-  const subtree_node = findNodeForSubtree(outer_tree, editor_store.selected_tree)
+  const subtree_node = findNodeForSubtree(
+    editor_store.tree_structure_list,
+    editor_store.selected_tree
+  )
   if (subtree_node === undefined) {
     return 'UNKNOWN'
   }

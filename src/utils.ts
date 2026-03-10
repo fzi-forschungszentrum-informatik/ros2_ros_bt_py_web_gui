@@ -42,12 +42,13 @@ import type {
   TreeState,
   UUIDMsg,
   UUIDString,
-  TreeStructure,
-  NodeStructure,
   RosTime,
-  PyB64
+  PyB64,
+  Wiring
 } from './types/types'
 import { IOKind } from './types/types'
+import { findNodeInTreeList, getNodeStructures } from './tree_selection'
+import { useEditorStore } from './stores/editor'
 
 export function parseRosTime(time: RosTime): Date {
   return new Date(time.sec * 1000 + time.nanosec / 1000000)
@@ -71,20 +72,35 @@ export function compareRosUuid(u1: UUIDMsg, u2: UUIDMsg): boolean {
   return rosToUuid(u1) === rosToUuid(u2)
 }
 
-export function findNode(tree: TreeStructure, node_id: UUIDString): NodeStructure | undefined {
-  return tree.nodes.find((node) => rosToUuid(node.node_id) === node_id)
+export function replaceNameIdParts(tree_id: UUIDString, name_id_parts: string): string {
+  const editor_store = useEditorStore()
+  return name_id_parts
+    .split('.')
+    .map((name_id) => {
+      // If this is the id of a node, replace it with its name
+      const node = findNodeInTreeList(
+        editor_store.tree_structure_list,
+        getNodeStructures,
+        tree_id,
+        name_id
+      )
+      if (node === undefined) {
+        return name_id
+      }
+      return node.name
+    })
+    .join('.')
 }
 
-export function findNodeForSubtree(
-  tree: TreeStructure,
-  tree_id: UUIDString
-): NodeStructure | undefined {
-  return tree.nodes.find((node) => {
-    if (node.tree_ref === '') {
-      return false
-    }
-    return rosToUuid(node.tree_ref) === tree_id
-  })
+export function compareWirings(w1: Wiring, w2: Wiring): boolean {
+  return (
+    compareRosUuid(w1.source.node_id, w2.source.node_id) &&
+    w1.source.data_kind === w2.source.data_kind &&
+    w1.source.data_key === w2.source.data_key &&
+    compareRosUuid(w1.target.node_id, w2.target.node_id) &&
+    w1.target.data_kind === w2.target.data_kind &&
+    w1.target.data_key === w2.target.data_key
+  )
 }
 
 export function typesCompatible(a: DataEdgeTerminal, b: DataEdgeTerminal) {
@@ -365,4 +381,19 @@ export function parseConflictHandler(handler: NameConflictHandler): [boolean, bo
       break
   }
   return [allow_overwrite, allow_rename]
+}
+
+const treatable_error_prefixes: string[] = [
+  'Expected data to be of type type, got dict instead. Looks like failed jsonpickle decode,',
+  'AttributeError, maybe a ROS Message definition changed.'
+]
+
+export function isLoadErrorTreatable(error: string) {
+  let treatable = false
+  treatable_error_prefixes.forEach((val) => {
+    if (error.startsWith(val)) {
+      treatable = true
+    }
+  })
+  return treatable
 }

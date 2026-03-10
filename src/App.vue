@@ -38,7 +38,6 @@ import { onMounted, ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type {
   MessageTypes,
-  NodeStructure,
   Packages,
   TreeDataList,
   TreeStateList,
@@ -144,25 +143,6 @@ function handleNodeSearchClear(event: KeyboardEvent) {
   }
 }
 
-function findPossibleParents() {
-  if (editor_store.current_tree.structure) {
-    return editor_store.current_tree.structure.nodes
-      .filter(
-        (node: NodeStructure) => node.max_children < 0 || node.child_ids.length < node.max_children
-      )
-      .sort(function (a: NodeStructure, b: NodeStructure) {
-        if (a.name < b.name) {
-          return -1
-        } else if (a.name > b.name) {
-          return 1
-        } else {
-          return 0
-        }
-      })
-  }
-  return []
-}
-
 const nodelist_visible = ref<boolean>(true)
 const node_search = ref<string>('')
 
@@ -213,7 +193,7 @@ onMounted(() => {
         <label class="form-check-label ms-2"> Filter for Current Tree </label>
       </div>
       <LogsDisplay
-        :tree_id="filter_logs ? editor_store.current_tree.structure?.tree_id : undefined"
+        :tree_id="filter_logs ? editor_store.selected_tree : undefined"
         style="max-height: 80vh"
       />
     </div>
@@ -385,7 +365,6 @@ onMounted(() => {
                       edit_node_store.selected_node.node_class
                     : '')
                 "
-                :parents="findPossibleParents()"
               />
               <SelectedNode
                 v-else-if="edit_node_store.last_seletion_source === 'editor'"

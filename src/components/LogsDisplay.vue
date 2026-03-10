@@ -34,6 +34,7 @@ import { useLogsStore } from '@/stores/logs'
 import { LogLevel, type LogMessage, type UUIDString } from '@/types/types'
 import { computed, ref, watch } from 'vue'
 import * as uuid from 'uuid'
+import { findTree } from '@/tree_selection'
 
 const props = defineProps<{
   tree_id?: UUIDString
@@ -131,7 +132,7 @@ function selectTree(log_msg: LogMessage): boolean {
       return false
     }
   }
-  if (editor_store.findTree(log_msg.tree.id) === undefined) {
+  if (findTree(editor_store.tree_structure_list, log_msg.tree.id) === undefined) {
     window.alert("This tree doesn't exist, perhaps the message is outdated?")
     return false
   }
@@ -145,7 +146,8 @@ function selectNode(log_msg: LogMessage): boolean {
   }
   if (selectTree(log_msg)) {
     window.setTimeout(
-      (log_msg: LogMessage) => edit_node_store.editorSelectionChange(log_msg.node!.id),
+      (log_msg: LogMessage) =>
+        edit_node_store.editorSelectionChange(log_msg.tree!.id, log_msg.node!.id),
       100,
       log_msg
     )

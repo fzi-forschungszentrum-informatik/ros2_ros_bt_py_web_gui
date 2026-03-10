@@ -31,19 +31,39 @@
 import type { NodeStructure } from '@/types/types'
 import { rosToUuid } from '@/utils'
 import EditableNode from './EditableNode.vue'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import * as uuid from 'uuid'
 import { useEditNodeStore } from '@/stores/edit_node'
 import { addNode } from '@/tree_manipulation'
+import { findTree } from '@/tree_selection'
+import { useEditorStore } from '@/stores/editor'
 
-const props = defineProps<{
-  parents: NodeStructure[]
-}>()
-
+const editor_store = useEditorStore()
 const edit_node_store = useEditNodeStore()
 
+const possible_parents = computed<NodeStructure[]>(() => {
+  // For now only the main tree can have nodes added to it.
+  const tree_structure = findTree(editor_store.tree_structure_list, uuid.NIL)
+  if (tree_structure !== undefined) {
+    return tree_structure.nodes
+      .filter(
+        (node: NodeStructure) => node.max_children < 0 || node.child_ids.length < node.max_children
+      )
+      .sort(function (a: NodeStructure, b: NodeStructure) {
+        if (a.name < b.name) {
+          return -1
+        } else if (a.name > b.name) {
+          return 1
+        } else {
+          return 0
+        }
+      })
+  }
+  return []
+})
+
 const selected_parent = ref<NodeStructure | null>(
-  props.parents.length > 0 ? props.parents[0] : null
+  possible_parents.value.length > 0 ? possible_parents.value[0] : null
 )
 
 async function addToTree() {
@@ -52,14 +72,14 @@ async function addToTree() {
     return
   }
 
-  const new_node_name = await addNode(
+  const new_node_id = await addNode(
     edit_node_store.buildNodeMsg(),
     selected_parent.value !== null ? rosToUuid(selected_parent.value.node_id) : uuid.NIL,
     -1
   )
 
   edit_node_store.clearNodeHasChanged()
-  edit_node_store.editorSelectionChange(new_node_name)
+  edit_node_store.editorSelectionChange(uuid.NIL, new_node_id)
 }
 </script>
 
@@ -67,7 +87,7 @@ async function addToTree() {
   <div class="d-flex flex-column">
     <button
       class="btn btn-block btn-primary"
-      :disabled="!edit_node_store.node_is_valid"
+      :disabled="!edit_node_store.node_is_valid || editor_store.has_selected_subtree"
       @click="addToTree"
     >
       Add to Tree
@@ -77,9 +97,9 @@ async function addToTree() {
       <select
         v-model="selected_parent"
         class="custom-select d-block"
-        :disabled="parents.length === 0"
+        :disabled="possible_parents.length === 0"
       >
-        <option v-for="parent in parents" :key="rosToUuid(parent.node_id)" :value="parent">
+        <option v-for="parent in possible_parents" :key="rosToUuid(parent.node_id)" :value="parent">
           {{ parent.name }}
         </option>
       </select>
