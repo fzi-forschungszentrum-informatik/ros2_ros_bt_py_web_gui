@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Enable nested tree display by @Doomse in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
+
+
 ## [7.1.0] - 2026-03-04
 
 ### Changed
@@ -422,6 +428,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @Doomse made their first contribution
 
+[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.1.0..HEAD
 [7.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.1..7.1.0
 [7.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.0..7.0.1
 [7.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/6.0.2..7.0.0
