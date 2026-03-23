@@ -26,7 +26,7 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
 <script setup lang="ts">
 import {
   BoolType,
@@ -54,6 +54,8 @@ import SwitchTypeParam from './SwitchTypeParam.vue'
 //import RosTypeParam from './RosTypeParam.vue'
 //import RosNameParam from './RosNameParam.vue'
 import ReferenceParam from './ReferenceParam.vue'
+import ListParam from './ListParam.vue'
+import DictParam from './DictParam.vue'
 
 const props = defineProps<{
   type: DataContainer
@@ -82,10 +84,10 @@ const param_component = computed<Component | undefined>(() => {
     return BytesParam
   }
   if (type instanceof ListType) {
-    return undefined
+    return ListParam
   }
   if (type instanceof DictType) {
-    return undefined
+    return DictParam
   }
   if (type instanceof BuiltinType) {
     return TypeParam

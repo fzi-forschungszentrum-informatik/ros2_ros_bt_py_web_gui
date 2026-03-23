@@ -139,11 +139,11 @@ export class BlankType extends BuiltinContainer<any> {
   }
 
   getSerializedDefault(): string {
-    return this.serializeValue(false)
+    return this.serializeValue({})
   }
 }
 
-export class IntType extends DataContainer<bigint> {
+export class IntType extends BuiltinContainer<number> {
   min_value: bigint
   max_value: bigint
 
@@ -186,16 +186,8 @@ export class IntType extends DataContainer<bigint> {
     return `int(min=${this.min_value},max=${this.max_value})`
   }
 
-  serializeValue(value: bigint): string {
-    return value.toString()
-  }
-
-  parseValue(ser_value: string): bigint {
-    return BigInt(ser_value)
-  }
-
   getSerializedDefault(): string {
-    return this.serializeValue(0n)
+    return this.serializeValue(0)
   }
 }
 
@@ -477,7 +469,7 @@ export class ListType extends BuiltinContainer<any[]> {
     const value_list = JSON.parse(ser_value) as any[]
     const value: any[] = []
     for (const elem of value_list) {
-      value.push(this.element_type.parseValue(JSON.stringify(elem)))
+      value.push(this.element_type.parseValue(elem))
     }
     return value
   }
@@ -492,7 +484,7 @@ export class ListType extends BuiltinContainer<any[]> {
   }
 }
 
-export class DictType extends BuiltinContainer<Map<string, any>> {
+export class DictType extends BuiltinContainer<Record<string, any>> {
   max_length: number
   strict_length: boolean
   element_type: DataContainer
@@ -538,28 +530,28 @@ export class DictType extends BuiltinContainer<Map<string, any>> {
     return prt_str
   }
 
-  serializeValue(value: Map<string, any>): string {
-    const ser_dict = new Map<string, string>()
-    value.forEach((v, k) => ser_dict.set(k, this.element_type!.serializeValue(v)))
+  serializeValue(value: Record<string, any>): string {
+    const ser_dict: Record<string, string> = {}
+    for (const [k, v] of Object.entries(value)) {
+      ser_dict[k] = this.element_type!.serializeValue(v)
+    }
     return super.serializeValue(ser_dict)
   }
 
-  parseValue(ser_value: string): Map<string, any> {
-    if (this.element_type === undefined) {
-      return super.parseValue(ser_value)
+  parseValue(ser_value: string): Record<string, any> {
+    const value_dict = JSON.parse(ser_value) as Record<string, string>
+    const value: Record<string, any> = {}
+    for (const [k, v] of Object.entries(value_dict)) {
+      value[k] = this.element_type.parseValue(v)
     }
-    const value_dict = JSON.parse(ser_value) as any[]
-    const value = new Map<string, any>()
-    for (const [k, v] of Object.entries(value_dict))
-      value.set(k, this.element_type.parseValue(JSON.stringify(v)))
     return value
   }
 
   getSerializedDefault(): string {
     const default_elem = this.element_type.getSerializedDefault()
-    const default_dict = new Map<string, any>()
+    const default_dict: Record<string, any> = {}
     for (let index = 0; index < (this.strict_length ? this.max_length : 1); index++) {
-      default_dict.set(`i${index}`, this.element_type.parseValue(default_elem))
+      default_dict[`i${index}`] = this.element_type.parseValue(default_elem)
     }
     return this.serializeValue(default_dict)
   }

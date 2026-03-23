@@ -28,19 +28,35 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import type { BuiltinOrRosType } from '@/types/data_classes'
-import TypeParam from './TypeParam.vue'
+import type { ListType } from '@/types/data_classes'
+import { computed } from 'vue'
+import JSONInput from '../JSONInput.vue'
 
 const props = defineProps<{
-  type: BuiltinOrRosType
+  type: ListType
 }>()
 
-// Blank statement to satisfy eslint
-props.type.prettyprint()
+const value = defineModel<string, never, any[], any[]>({
+  get(value) {
+    return props.type.parseValue(value)
+  },
+  set(value) {
+    return props.type.serializeValue(value)
+  }
+})
 
-const value = defineModel<string>()
+// We can't directly pass the value through (by doing `v-model="value"`)
+//   because the serialization step for the outer model breaks deep reactivity
+const inner_value = computed<any[]>({
+  get() {
+    return value.value || []
+  },
+  set(val) {
+    value.value = val
+  }
+})
 </script>
 
 <template>
-  <TypeParam v-model="value" :type="type.inner_type" />
+  <JSONInput v-model="inner_value" :type="type" />
 </template>

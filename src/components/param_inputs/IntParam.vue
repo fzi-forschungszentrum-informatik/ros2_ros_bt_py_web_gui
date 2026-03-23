@@ -36,10 +36,10 @@ const props = defineProps<{
 
 const value = defineModel<string, never, bigint, bigint>({
   get(value) {
-    return props.type.parseValue(value)
+    return BigInt(props.type.parseValue(value))
   },
   set(value) {
-    return props.type.serializeValue(value)
+    return props.type.serializeValue(Number(value))
   }
 })
 
