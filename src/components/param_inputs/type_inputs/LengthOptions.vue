@@ -59,7 +59,7 @@ watch(enable_length_limit, (val) => {
         <input v-model="enable_length_limit" type="checkbox" />
       </span>
     </div>
-    <div class="form-check ms-3">
+    <div v-if="value.strict_length !== undefined" class="form-check ms-3">
       <input
         v-model="value.strict_length"
         type="checkbox"

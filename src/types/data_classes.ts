@@ -241,7 +241,6 @@ export class FloatType extends BuiltinContainer<number> {
 
 export class StringType extends BuiltinContainer<string> {
   max_length: number
-  strict_length: boolean
   valid_values: string[]
 
   constructor(type_msg: NodeDataType) {
@@ -250,7 +249,6 @@ export class StringType extends BuiltinContainer<string> {
     }
     super(type_msg)
     this.max_length = type_msg.string_max_length
-    this.strict_length = type_msg.string_strict_length
     this.valid_values = type_msg.serialized_value_options
   }
 
@@ -258,7 +256,6 @@ export class StringType extends BuiltinContainer<string> {
     const type_msg = super.toTypeMsg()
     type_msg.type_identifier = DataTypeValues.STRING_TYPE
     type_msg.string_max_length = this.max_length
-    type_msg.string_strict_length = this.strict_length
     type_msg.serialized_value_options = this.valid_values
     return type_msg
   }
@@ -268,9 +265,6 @@ export class StringType extends BuiltinContainer<string> {
       return false
     }
     if (this.max_length < other.max_length) {
-      return false
-    }
-    if (this.strict_length && !other.strict_length) {
       return false
     }
     if (this.valid_values.length > 0) {
@@ -287,7 +281,7 @@ export class StringType extends BuiltinContainer<string> {
     if (this.max_length === INT_FLOAT_MAX) {
       return 'string'
     }
-    return `string${this.strict_length ? '=' : '<'}=${this.max_length}`
+    return `string<=${this.max_length}`
   }
 
   getSerializedDefault(): string {
@@ -297,7 +291,6 @@ export class StringType extends BuiltinContainer<string> {
 
 export class PathType extends BuiltinContainer<string> {
   max_length: number
-  strict_length: boolean
   valid_values: string[]
 
   constructor(type_msg: NodeDataType) {
@@ -306,14 +299,12 @@ export class PathType extends BuiltinContainer<string> {
     }
     super(type_msg)
     this.max_length = type_msg.string_max_length
-    this.strict_length = type_msg.string_strict_length
     this.valid_values = type_msg.serialized_value_options
   }
 
   toTypeMsg(): NodeDataType {
     const type_msg = super.toTypeMsg()
     type_msg.string_max_length = this.max_length
-    type_msg.string_strict_length = this.strict_length
     type_msg.serialized_value_options = this.valid_values
     return type_msg
   }
@@ -323,9 +314,6 @@ export class PathType extends BuiltinContainer<string> {
       return false
     }
     if (this.max_length < other.max_length) {
-      return false
-    }
-    if (this.strict_length && !other.strict_length) {
       return false
     }
     if (this.valid_values.length > 0) {
@@ -342,7 +330,7 @@ export class PathType extends BuiltinContainer<string> {
     if (this.max_length === INT_FLOAT_MAX) {
       return 'path'
     }
-    return `path${this.strict_length ? '=' : '<'}=${this.max_length}`
+    return `path<=${this.max_length}`
   }
 
   getSerializedDefault(): string {
@@ -352,7 +340,6 @@ export class PathType extends BuiltinContainer<string> {
 
 export class BytesType extends BuiltinContainer<string> {
   max_length: number
-  strict_length: boolean
   valid_values: string[]
 
   constructor(type_msg: NodeDataType) {
@@ -361,14 +348,12 @@ export class BytesType extends BuiltinContainer<string> {
     }
     super(type_msg)
     this.max_length = type_msg.string_max_length
-    this.strict_length = type_msg.string_strict_length
     this.valid_values = type_msg.serialized_value_options
   }
 
   toTypeMsg(): NodeDataType {
     const type_msg = super.toTypeMsg()
     type_msg.string_max_length = this.max_length
-    type_msg.string_strict_length = this.strict_length
     type_msg.serialized_value_options = this.valid_values
     return type_msg
   }
@@ -378,9 +363,6 @@ export class BytesType extends BuiltinContainer<string> {
       return false
     }
     if (this.max_length < other.max_length) {
-      return false
-    }
-    if (this.strict_length && !other.strict_length) {
       return false
     }
     if (this.valid_values.length > 0) {
@@ -394,13 +376,13 @@ export class BytesType extends BuiltinContainer<string> {
   }
 
   prettyprint(): string {
-    if (this.max_length === 1 && this.strict_length) {
+    if (this.max_length === 1) {
       return 'byte'
     }
     if (this.max_length === INT_FLOAT_MAX) {
       return 'bytes'
     }
-    return `bytes${this.strict_length ? '=' : '<'}=${this.max_length}`
+    return `bytes<=${this.max_length}`
   }
 
   getSerializedDefault(): string {

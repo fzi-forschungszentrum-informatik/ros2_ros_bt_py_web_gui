@@ -98,7 +98,6 @@ export type NodeDataType = {
   min_value: string
   max_value: string
   string_max_length: number
-  string_strict_length: boolean
   iterable_max_length: number[]
   iterable_strict_length: boolean[]
   reference_target: string
