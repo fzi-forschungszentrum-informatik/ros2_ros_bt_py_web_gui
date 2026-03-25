@@ -29,8 +29,8 @@
  -->
 <script setup lang="ts">
 import type { BuiltinType } from '@/types/data_classes'
-import TypeParamInner from './type_inputs/TypeParamInner.vue'
 import { ref, watch } from 'vue'
+import TypeParamInner from './type_inputs/TypeParamInner.vue'
 
 const props = defineProps<{
   type: BuiltinType

@@ -27,13 +27,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import type { Channel, Channels, MessageTypes } from '@/types/types'
+import type { MessageType, Channel, Channels, MessageTypes } from '@/types/types'
 import Fuse, { type IFuseOptions } from 'fuse.js'
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 
-export const useMessasgeStore = defineStore('messages', () => {
-  const messages_fuse_options = {
+export const useMessageStore = defineStore('messages', () => {
+  const ros_topic_messages = ref<MessageType[]>([])
+  const ros_service_messages = ref<string[]>([])
+  const ros_action_messages = ref<string[]>([])
+  const ros_all_messages = ref<string[]>([])
+
+  const messages_available = ref<boolean>(false)
+
+  // These additional fuses are meant to substitute/replace the above messages_fuse
+  //  to allow to search specific kinds of ros types dependent on what is needed.
+  const ros_type_fuse_options = {
     shouldSort: true,
     threshold: 0.3,
     location: 0,
@@ -44,17 +53,9 @@ export const useMessasgeStore = defineStore('messages', () => {
     ignoreLocation: true,
     useExtendedSearch: true
   } as IFuseOptions<string>
-  const messages = ref<string[]>([])
-  const messages_fuse = ref<Fuse<string>>(new Fuse([], messages_fuse_options))
-  const messages_available = ref<boolean>(false)
-
-  // These additional fuses are meant to substitute/replace the above messages_fuse
-  //  to allow to search specific kinds of ros types dependent on what is needed.
-  const ros_type_fuse_options = structuredClone(messages_fuse_options)
-  ros_type_fuse_options.keys = []
   // This type conversion is necessary, because we target a different type of data
   const ros_name_fuse_options = structuredClone(
-    messages_fuse_options
+    ros_type_fuse_options
   ) as unknown as IFuseOptions<Channel>
   ros_name_fuse_options.keys = ['name', 'type']
 
@@ -72,38 +73,35 @@ export const useMessasgeStore = defineStore('messages', () => {
     messages_available.value = available
   }
 
-  function addMessageTypes(message: string): void {
-    const message_parts = message.split('/')
-    if (message_parts.length !== 3) {
-      return
-    }
-    messages.value.push(message_parts[0] + '.' + message_parts[1] + '.' + message_parts[2])
-  }
-
   function addServiceMessages(message: string): void {
+    ros_all_messages.value.push(message + '_Request')
+    ros_all_messages.value.push(message + '_Response')
     ros_all_messages_fuse.value.add(message + '_Request')
     ros_all_messages_fuse.value.add(message + '_Response')
   }
 
   function addActionMessages(message: string): void {
+    ros_all_messages.value.push(message + '_Goal')
+    ros_all_messages.value.push(message + '_Result')
+    ros_all_messages.value.push(message + '_Feedback')
     ros_all_messages_fuse.value.add(message + '_Goal')
     ros_all_messages_fuse.value.add(message + '_Result')
     ros_all_messages_fuse.value.add(message + '_Feedback')
   }
 
   function updateAvailableMessages(new_messages: MessageTypes) {
-    messages.value = []
-    ros_topic_type_fuse.value.setCollection(new_messages.topics)
+    ros_topic_messages.value = new_messages.topics
+    ros_service_messages.value = new_messages.services
+    ros_action_messages.value = new_messages.actions
+    ros_all_messages.value = new_messages.topics.map((x) => x.name)
+
+    ros_topic_type_fuse.value.setCollection(new_messages.topics.map((x) => x.name))
     ros_service_type_fuse.value.setCollection(new_messages.services)
     ros_action_type_fuse.value.setCollection(new_messages.actions)
 
-    ros_all_messages_fuse.value.setCollection(new_messages.topics)
+    ros_all_messages_fuse.value.setCollection(new_messages.topics.map((x) => x.name))
     new_messages.services.forEach(addServiceMessages)
     new_messages.actions.forEach(addActionMessages)
-
-    new_messages.topics.forEach(addMessageTypes)
-
-    messages_fuse.value.setCollection(messages.value)
   }
 
   function updateMessageChannels(new_channels: Channels) {
@@ -113,9 +111,11 @@ export const useMessasgeStore = defineStore('messages', () => {
   }
 
   return {
-    messages,
-    messages_fuse,
     messages_available,
+    ros_topic_messages,
+    ros_service_messages,
+    ros_action_messages,
+    ros_all_messages,
     ros_topic_type_fuse,
     ros_service_type_fuse,
     ros_action_type_fuse,

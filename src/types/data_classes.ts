@@ -36,10 +36,12 @@ import {
   IDENTIFIER_KEY,
   INT_FLOAT_MAX,
   INT_LIMITS,
+  RosTypeValues,
   type NodeDataType,
   type TypeValueOption
 } from './data_types'
 import type { NodeData } from './editor_types'
+import { useMessageStore } from '@/stores/message'
 
 export abstract class DataContainer<ValueType = any> {
   allow_dynamic: boolean
@@ -698,7 +700,8 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
     }
     const type_msg = getDefaultTypeMsg()
     for (const [k, v] of Object.entries(value)) {
-      if (k === 'max_length' || k === 'strict_length') {
+      // Map type dict keys to msg type fields
+      if (k === 'max_length') {
         const new_k = `string_${k}`
         type_msg[new_k] = v
       } else {
@@ -713,35 +716,273 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
   }
 
   getSerializedDefault(): string {
-    throw Error('No default for type fields')
+    return this.serializeValue(this.valid_types[0].value)
   }
 }
 
-// TODO Handling of Ros types is missing
-export class BuiltinOrRosType extends DataContainer<any> {
-  inner_type: BuiltinType
+export class RosValueType extends DataContainer<Record<string, any>> {
+  msg_type: string
 
-  get valid_types() {
-    return this.inner_type.valid_types
+  constructor(type_msg: NodeDataType) {
+    if (type_msg.type_identifier !== DataTypeValues.ROS_INTERFACE_VALUE) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for ros value`)
+    }
+    super(type_msg)
+    this.msg_type = type_msg.ros_msg_type
   }
+
+  toTypeMsg(): NodeDataType {
+    const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_VALUE
+    type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
+    type_msg.ros_msg_type = this.msg_type
+    return type_msg
+  }
+
+  isCompatible(other: DataContainer): boolean {
+    if (!(other instanceof RosValueType)) {
+      return false
+    }
+    return this.msg_type === other.msg_type
+  }
+
+  prettyprint(): string {
+    return this.msg_type
+  }
+
+  validate(value: any): string {
+    // TODO Include validation
+    console.log(value)
+    return ''
+  }
+
+  serializeValue(value: Record<string, any>): string {
+    // TODO Include serialization
+    console.log(value)
+    return ''
+  }
+
+  parseValue(ser_value: string): Record<string, any> {
+    // TODO Include deserialization
+    console.log(ser_value)
+    return {}
+  }
+
+  getSerializedDefault(): string {
+    // TODO Construct default value
+    return ''
+  }
+}
+
+export class RosNameType extends BuiltinContainer<string> {
+  interface_kind: RosTypeValues
+  interface_id: number
+
+  constructor(type_msg: NodeDataType) {
+    if (type_msg.type_identifier !== DataTypeValues.ROS_INTERFACE_NAME) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for ros name`)
+    }
+    super(type_msg)
+    this.interface_kind = type_msg.ros_interface_kind
+    this.interface_id = type_msg.interface_id
+  }
+
+  toTypeMsg(): NodeDataType {
+    const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_NAME
+    type_msg.ros_interface_kind = this.interface_kind
+    type_msg.interface_id = this.interface_id
+    return type_msg
+  }
+
+  isCompatible(other: DataContainer): boolean {
+    if (!(other instanceof RosNameType)) {
+      return false
+    }
+    if (this.interface_kind !== other.interface_kind) {
+      return false
+    }
+    if (this.interface_id !== other.interface_id) {
+      return false
+    }
+    return true
+  }
+
+  prettyprint(): string {
+    switch (this.interface_kind) {
+      case RosTypeValues.ROS_TOPIC:
+        return 'topic name'
+      case RosTypeValues.ROS_SERVICE:
+        return 'service name'
+      case RosTypeValues.ROS_ACTION:
+        return 'action name'
+      default:
+        return 'ros name'
+    }
+  }
+
+  validate(value: any): string {
+    if (!(typeof value === 'string')) {
+      return `Value ${value} is not a string`
+    }
+    return ''
+  }
+
+  getSerializedDefault(): string {
+    return this.serializeValue('/foo')
+  }
+}
+
+export class RosTypeType extends DataContainer<string> {
+  interface_kind: RosTypeValues
+  interface_id: number
+
+  constructor(type_msg: NodeDataType) {
+    if (type_msg.type_identifier !== DataTypeValues.ROS_INTERFACE_TYPE) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for ros type`)
+    }
+    super(type_msg)
+    this.interface_kind = type_msg.ros_interface_kind
+    this.interface_id = type_msg.interface_id
+  }
+
+  toTypeMsg(): NodeDataType {
+    const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
+    type_msg.ros_interface_kind = this.interface_kind
+    type_msg.interface_id = this.interface_id
+    return type_msg
+  }
+
+  isCompatible(other: DataContainer): boolean {
+    if (!(other instanceof RosNameType)) {
+      return false
+    }
+    if (this.interface_kind !== other.interface_kind) {
+      return false
+    }
+    if (this.interface_id !== other.interface_id) {
+      return false
+    }
+    return true
+  }
+
+  prettyprint(): string {
+    switch (this.interface_kind) {
+      case RosTypeValues.ROS_TOPIC:
+        return 'topic type'
+      case RosTypeValues.ROS_SERVICE:
+        return 'service type'
+      case RosTypeValues.ROS_ACTION:
+        return 'action type'
+      case RosTypeValues.ROS_COMPONENT:
+        return 'component type'
+      default:
+        return 'ros type'
+    }
+  }
+
+  validate(value: any): string {
+    if (!(typeof value === 'string')) {
+      return `Value ${value} is not a string`
+    }
+    const message_store = useMessageStore()
+    let type_list: string[] = []
+    switch (this.interface_kind) {
+      case RosTypeValues.ROS_TOPIC:
+        type_list = message_store.ros_topic_messages.map((x) => x.name)
+      case RosTypeValues.ROS_SERVICE:
+        type_list = message_store.ros_service_messages
+      case RosTypeValues.ROS_ACTION:
+        type_list = message_store.ros_action_messages
+      case RosTypeValues.ROS_COMPONENT:
+        type_list = message_store.ros_all_messages
+    }
+    if (!type_list.includes(value)) {
+      return `Value ${value} is not a valid type`
+    }
+    return ''
+  }
+
+  serializeValue(value: string): string {
+    return value
+  }
+
+  parseValue(ser_value: string): string {
+    return ser_value
+  }
+
+  getValueField(ser_value: string): DataContainer {
+    console.log(ser_value)
+    const type_msg = getDefaultTypeMsg()
+    type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_VALUE
+    type_msg.ros_interface_kind = this.interface_kind
+    type_msg.ros_msg_type = this.parseValue(ser_value)
+    return getTypeFromMsg(type_msg)
+  }
+
+  getSerializedDefault(): string {
+    const message_store = useMessageStore()
+    let type_list: string[] = []
+    switch (this.interface_kind) {
+      case RosTypeValues.ROS_TOPIC:
+        type_list = message_store.ros_topic_messages.map((x) => x.name)
+      case RosTypeValues.ROS_SERVICE:
+        type_list = message_store.ros_service_messages
+      case RosTypeValues.ROS_ACTION:
+        type_list = message_store.ros_action_messages
+      case RosTypeValues.ROS_COMPONENT:
+        type_list = message_store.ros_all_messages
+    }
+    return this.serializeValue(type_list[0])
+  }
+}
+
+export class BuiltinOrRosType extends DataContainer<any> {
+  inner_type: BuiltinType | RosTypeType
+  valid_types: TypeValueOption[]
 
   constructor(type_msg: NodeDataType) {
     if (type_msg.type_identifier !== DataTypeValues.BUILTIN_OR_ROS_TYPE) {
       throw Error(`Type msg ${type_msg} has incorrect identifier for builtin`)
     }
     super(type_msg)
+    this.valid_types = type_msg.serialized_value_options.map((x) => JSON.parse(x))
     const inner_type_msg = getDefaultTypeMsg()
-    inner_type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
     inner_type_msg.allow_dynamic = type_msg.allow_dynamic
     inner_type_msg.allow_static = type_msg.allow_static
     inner_type_msg.is_static = type_msg.is_static
-    inner_type_msg.serialized_value_options = type_msg.serialized_value_options
-    this.inner_type = new BuiltinType(inner_type_msg)
+    if (type_msg.ros_interface_kind === RosTypeValues.ROS_UNDEFINED) {
+      inner_type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
+      inner_type_msg.serialized_value_options = type_msg.serialized_value_options
+      this.inner_type = new BuiltinType(inner_type_msg)
+    } else {
+      inner_type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
+      inner_type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
+      this.inner_type = new RosTypeType(inner_type_msg)
+    }
+  }
+
+  setInnerType(type: RosTypeValues) {
+    const inner_type_msg = getDefaultTypeMsg()
+    inner_type_msg.allow_dynamic = this.allow_dynamic
+    inner_type_msg.allow_static = this.allow_static
+    inner_type_msg.is_static = this.is_static
+    if (type === RosTypeValues.ROS_UNDEFINED) {
+      inner_type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
+      inner_type_msg.serialized_value_options = this.valid_types.map((x) => JSON.stringify(x))
+      this.inner_type = new BuiltinType(inner_type_msg)
+    } else {
+      inner_type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
+      inner_type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
+      this.inner_type = new RosTypeType(inner_type_msg)
+    }
   }
 
   toTypeMsg(): NodeDataType {
     const type_msg = this.inner_type.toTypeMsg()
     type_msg.type_identifier = DataTypeValues.BUILTIN_OR_ROS_TYPE
+    type_msg.serialized_value_options = this.valid_types.map((x) => JSON.stringify(x))
     return type_msg
   }
 
@@ -773,7 +1014,7 @@ export class BuiltinOrRosType extends DataContainer<any> {
   }
 
   getSerializedDefault(): string {
-    throw Error('No default for type fields')
+    return this.inner_type.getSerializedDefault()
   }
 }
 

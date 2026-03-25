@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { ModalsContainer } from 'vue-final-modal'
 import { useROSStore } from './stores/ros'
-import { useMessasgeStore } from './stores/message'
+import { useMessageStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { useLogsStore } from './stores/logs'
 import { useNodesStore } from './stores/nodes'
@@ -64,7 +64,7 @@ import ConnectionStatus from './components/ConnectionStatus.vue'
 import LogsDisplay from './components/LogsDisplay.vue'
 
 const ros_store = useROSStore()
-const messages_store = useMessasgeStore()
+const messages_store = useMessageStore()
 const packages_store = usePackageStore()
 const logs_store = useLogsStore()
 const nodes_store = useNodesStore()

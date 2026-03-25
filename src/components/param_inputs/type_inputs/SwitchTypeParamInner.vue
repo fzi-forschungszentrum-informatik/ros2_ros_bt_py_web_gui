@@ -28,34 +28,52 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { BuiltinType, type BuiltinOrRosType } from '@/types/data_classes'
-import TypeParam from './TypeParam.vue'
-import RosTypeParam from './RosTypeParam.vue'
-import { RosTypeValues } from '@/types/data_types'
-import { watch } from 'vue'
+import { BuiltinType, RosTypeType, type BuiltinOrRosType } from '@/types/data_classes'
+import TypeParamInner from './TypeParamInner.vue'
+import RosTypeParam from '../RosTypeParam.vue'
+import { DataTypeValues, IDENTIFIER_KEY, MESSAGE_KEY, RosTypeValues } from '@/types/data_types'
+import { ref, watch } from 'vue'
+import { useMessageStore } from '@/stores/message'
 
 const props = defineProps<{
   type: BuiltinOrRosType
 }>()
 
-const value = defineModel<string>()
+const value = defineModel<Record<string, any>>()
 
-watch(
-  () => props.type.inner_type,
-  () => {
-    if (value.value === undefined) {
-      return
-    }
-    value.value = props.type.getSerializedDefault()
+const message_store = useMessageStore()
+let init_ros_value: string = ''
+const init_msg_value = message_store.ros_topic_messages.at(0)
+if (init_msg_value !== undefined) {
+  init_ros_value = init_msg_value.name
+}
+if (value.value![MESSAGE_KEY] !== undefined) {
+  init_ros_value = value.value![MESSAGE_KEY]
+}
+const ros_value = ref<string>(init_ros_value)
+watch(ros_value, (val) => {
+  if (value.value === undefined) {
+    return
   }
-)
+  value.value[MESSAGE_KEY] = val
+})
+
+const is_ros_type = ref<boolean>(props.type.inner_type instanceof RosTypeType)
+watch(is_ros_type, (is_ros) => {
+  if (is_ros) {
+    const val_dict: Record<string, any> = {}
+    val_dict[IDENTIFIER_KEY] = DataTypeValues.ROS_INTERFACE_VALUE
+    val_dict[MESSAGE_KEY] = ros_value.value
+    value.value = val_dict
+  } else {
+    value.value = props.type.valid_types[0].value
+  }
+})
 
 function switchType(event: Event) {
   const target = event.target as HTMLInputElement
-
+  is_ros_type.value = target.checked
   props.type.setInnerType(target.checked ? RosTypeValues.ROS_TOPIC : RosTypeValues.ROS_UNDEFINED)
-
-  value.value = props.type.getSerializedDefault()
 }
 </script>
 
@@ -64,10 +82,6 @@ function switchType(event: Event) {
     <input type="checkbox" class="form-check-input" @change="switchType" />
     <label class="form-check-label">Is ROS Type</label>
   </div>
-  <TypeParam
-    v-if="type.inner_type instanceof BuiltinType"
-    v-model="value"
-    :type="type.inner_type"
-  />
-  <RosTypeParam v-else v-model="value" :type="type.inner_type" />
+  <TypeParamInner v-if="!is_ros_type" v-model="value" :type="(type.inner_type as BuiltinType)" />
+  <RosTypeParam v-else v-model="ros_value" :type="(type.inner_type as RosTypeType)" />
 </template>

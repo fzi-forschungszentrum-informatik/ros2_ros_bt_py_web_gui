@@ -53,6 +53,8 @@ export const IDENTIFIER_KEY = 'type_identifier'
 
 export const ELEMENT_KEY = 'element_type'
 
+export const MESSAGE_KEY = 'ros_msg_type'
+
 export type TypeValueOption = {
   type: string
   value: Record<string, any>

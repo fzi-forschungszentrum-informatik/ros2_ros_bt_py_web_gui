@@ -29,12 +29,12 @@
 -->
 <script setup lang="ts">
 import { useROSStore } from '../stores/ros'
-import { useMessasgeStore } from '@/stores/message'
+import { useMessageStore } from '@/stores/message'
 import { usePackageStore } from '@/stores/package'
 import { computed } from 'vue'
 
 const ros_store = useROSStore()
-const messages_store = useMessasgeStore()
+const messages_store = useMessageStore()
 const packages_store = usePackageStore()
 
 const connection_status_attrs = computed<object>(() => {

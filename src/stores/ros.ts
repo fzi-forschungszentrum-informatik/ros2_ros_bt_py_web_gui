@@ -50,7 +50,7 @@ import type {
 import type { LoadTreeRequest, LoadTreeResponse } from '@/types/services/LoadTree'
 import type { ClearTreeRequest, ClearTreeResponse } from '@/types/services/ClearTree'
 import type { FixYamlRequest, FixYamlResponse } from '@/types/services/FixYaml'
-import { useMessasgeStore } from './message'
+import { useMessageStore } from './message'
 import { usePackageStore } from './package'
 import { notify } from '@kyvg/vue3-notification'
 import type {
@@ -98,7 +98,7 @@ import type { SetLogLevelRequest, SetLogLevelResponse } from '@/types/services/S
 export const useROSStore = defineStore(
   'ros',
   () => {
-    const messages_store = useMessasgeStore()
+    const messages_store = useMessageStore()
     const packages_store = usePackageStore()
     const nodes_store = useNodesStore()
     const editor_store = useEditorStore()

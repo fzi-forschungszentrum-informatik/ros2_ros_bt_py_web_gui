@@ -39,6 +39,7 @@ import {
   ListType,
   PathType,
   ReferenceType,
+  RosTypeType,
   StringType,
   type DataContainer
 } from '@/types/data_classes'
@@ -51,11 +52,10 @@ import FilePathParam from './FilePathParam.vue'
 import BytesParam from './BytesParam.vue'
 import TypeParam from './TypeParam.vue'
 import SwitchTypeParam from './SwitchTypeParam.vue'
-//import RosTypeParam from './RosTypeParam.vue'
-//import RosNameParam from './RosNameParam.vue'
 import ReferenceParam from './ReferenceParam.vue'
 import ListParam from './ListParam.vue'
 import DictParam from './DictParam.vue'
+import RosTypeParam from './RosTypeParam.vue'
 
 const props = defineProps<{
   type: DataContainer
@@ -91,6 +91,9 @@ const param_component = computed<Component | undefined>(() => {
   }
   if (type instanceof BuiltinType) {
     return TypeParam
+  }
+  if (type instanceof RosTypeType) {
+    return RosTypeParam
   }
   if (type instanceof BuiltinOrRosType) {
     return SwitchTypeParam

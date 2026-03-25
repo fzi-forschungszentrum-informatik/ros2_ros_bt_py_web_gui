@@ -41,7 +41,7 @@ const props = defineProps<{
   render_function: (elem: T) => string
 }>()
 
-const selected_value = defineModel<T>({})
+const selected_value = defineModel<T>()
 
 const is_invalid = computed<boolean>(() => {
   if (selected_value.value === undefined) {

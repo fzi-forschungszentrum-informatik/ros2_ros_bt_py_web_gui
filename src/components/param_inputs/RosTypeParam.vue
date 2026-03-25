@@ -29,147 +29,77 @@
 -->
 
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node'
-import { useEditorStore } from '@/stores/editor'
-import { useMessasgeStore } from '@/stores/message'
-import type { RosType } from '@/types/python_types'
-import type { OptionData } from '@/types/types'
-import { getTypeAndInfo } from '@/utils'
+import { useMessageStore } from '@/stores/message'
+import type { RosTypeType } from '@/types/data_classes'
+import SearchableInput from '../SearchableInput.vue'
 import Fuse from 'fuse.js'
-import { computed, ref } from 'vue'
-
-const edit_node_store = useEditNodeStore()
-const editor_store = useEditorStore()
-const messages_store = useMessasgeStore()
+import { RosTypeValues } from '@/types/data_types'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
-  category: 'options'
-  data_key: string
-  type: 'topic' | 'service' | 'action'
+  type: RosTypeType
 }>()
 
-const search_results = ref<string[]>([])
-
-const param = computed<OptionData | undefined>(() =>
-  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
-)
-
-const search_fuse = computed<Fuse<string> | undefined>(() => {
-  if (param.value !== undefined) {
-    const info = getTypeAndInfo(param.value.value.type)[1]
-    if (info === 'full') {
-      return messages_store.ros_all_messages_fuse
-    }
-  }
-  switch (props.type) {
-    case 'topic':
-      return messages_store.ros_topic_type_fuse
-    case 'service':
-      return messages_store.ros_service_type_fuse
-    case 'action':
-      return messages_store.ros_action_type_fuse
-    default:
-      return undefined
+const value = defineModel<string>({
+  get(value) {
+    return props.type.parseValue(value)
+  },
+  set(value) {
+    return props.type.serializeValue(value)
   }
 })
 
-// These track two conditions for displaying the result dropdown.
-//   One is for focusing the input, the other for navigating the result menu
-const hide_results = ref<boolean>(true)
-const keep_results = ref<boolean>(false)
+// We can't directly pass the value through (by doing `v-model="value"`)
+//   because the serialization step for the outer model breaks deep reactivity
+const inner_value = ref<string>(value.value || '')
+watch(
+  inner_value,
+  (val) => {
+    value.value = val
+  },
+  { deep: true }
+)
 
-function onInput(event: Event) {
-  if (param.value === undefined || search_fuse.value === undefined) {
-    console.error('Undefined parameter')
-    return
+const message_store = useMessageStore()
+
+const item_list = computed<string[]>(() => {
+  switch (props.type.interface_kind) {
+    case RosTypeValues.ROS_TOPIC:
+      return message_store.ros_topic_messages.map((x) => x.name)
+    case RosTypeValues.ROS_SERVICE:
+      return message_store.ros_service_messages
+    case RosTypeValues.ROS_ACTION:
+      return message_store.ros_action_messages
+    case RosTypeValues.ROS_COMPONENT:
+      return message_store.ros_all_messages
+    default:
+      return []
   }
+})
 
-  const target = event.target as HTMLInputElement
-  const new_type_name = target.value || ''
-  const results = search_fuse.value.search(new_type_name)
-  search_results.value = results.map((x) => x.item)
-
-  setValue(new_type_name)
-}
-
-function setValue(new_value: string) {
-  if (param.value === undefined) {
-    console.error('Undefined parameter')
-    return
+const search_fuse = computed<Fuse<string>>(() => {
+  switch (props.type.interface_kind) {
+    case RosTypeValues.ROS_TOPIC:
+      return message_store.ros_topic_type_fuse
+    case RosTypeValues.ROS_SERVICE:
+      return message_store.ros_service_type_fuse
+    case RosTypeValues.ROS_ACTION:
+      return message_store.ros_action_type_fuse
+    case RosTypeValues.ROS_COMPONENT:
+      return message_store.ros_all_messages_fuse
+    default:
+      return new Fuse<string>([])
   }
-
-  const type_obj = param.value.value.value as RosType
-  type_obj.type_str = new_value
-
-  edit_node_store.updateParamValue(props.category, props.data_key, type_obj)
-}
-
-function selectSearchResult(search_result: string) {
-  setValue(search_result)
-  releaseDropdown()
-}
-
-function focusInput() {
-  edit_node_store.changeCopyMode(false)
-  hide_results.value = false
-}
-
-function unfocusInput() {
-  hide_results.value = true
-}
-
-function forceDropdown() {
-  keep_results.value = true
-}
-
-function releaseDropdown() {
-  keep_results.value = false
-}
+})
 </script>
 
 <template>
-  <div v-if="param !== undefined" class="form-group">
-    <label class="d-block">
-      {{ param.key }}
-      <input
-        type="text"
-        class="form-control mt-2"
-        :value="(param.value.value as RosType).type_str"
-        :disabled="editor_store.has_selected_subtree"
-        @input="onInput"
-        @focus="focusInput"
-        @blur="unfocusInput"
-        @keyup.esc="
-          () => {
-            unfocusInput()
-            releaseDropdown()
-          }
-        "
-        @keydown.tab="forceDropdown"
-      />
-    </label>
-    <div class="mb-2 search-results">
-      <div
-        class="list-group rounded-top-0"
-        :class="{ 'd-none': hide_results && !keep_results }"
-        @mouseenter="forceDropdown"
-        @mouseleave="releaseDropdown"
-      >
-        <div
-          v-for="result in search_results"
-          :key="result"
-          class="list-group-item search-result"
-          tabindex="0"
-          @click="() => selectSearchResult(result)"
-          @keyup.enter="() => selectSearchResult(result)"
-          @keyup.esc="releaseDropdown"
-        >
-          {{ result }}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div v-else>Error loading param data</div>
+  <SearchableInput
+    v-model="inner_value"
+    :item_list="item_list"
+    :search_fuse="search_fuse"
+    :parse="(x) => x"
+    :search_target="(x) => x"
+    :render_function="(x) => x"
+  />
 </template>
-
-<style scoped lang="scss"></style>

@@ -28,7 +28,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import type { NodeIO, Wiring, NodeDataLocation, WiringData } from './data_types'
+import type { NodeIO, Wiring, NodeDataLocation, WiringData, NodeDataType } from './data_types'
 
 export type UUIDMsg = string
 export type UUIDString = string
@@ -142,8 +142,14 @@ export type Packages = {
   packages: Package[]
 }
 
+export type MessageType = {
+  name: string
+  type: NodeDataType
+  fields: NodeIO[]
+}
+
 export type MessageTypes = {
-  topics: string[]
+  topics: MessageType[]
   services: string[]
   actions: string[]
 }
