@@ -31,7 +31,7 @@
 import { BuiltinOrRosType, type BuiltinType } from '@/types/data_classes'
 import SearchableInput from '../../SearchableInput.vue'
 import Fuse from 'fuse.js'
-import { computed, ref, watch } from 'vue'
+import { computed, ref, toRaw, watch } from 'vue'
 import { DataTypeValues, ELEMENT_KEY, IDENTIFIER_KEY } from '@/types/data_types'
 import IntOptions from './IntOptions.vue'
 import FloatOptions from './FloatOptions.vue'
@@ -59,7 +59,7 @@ watch(chosen_type, (val: string) => {
   if (type_value === undefined) {
     return
   }
-  value.value = type_value.value
+  value.value = structuredClone(toRaw(type_value.value))
 })
 
 const type_has_length = computed<boolean>(() => {

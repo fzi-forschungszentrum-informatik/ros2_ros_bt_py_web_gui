@@ -34,7 +34,6 @@ import { useEditorStore } from './stores/editor'
 import { DataTypeValues, RosTypeValues, type NodeDataType, type Wiring } from './types/data_types'
 import { IOKind, type DataEdgeTerminal, type NodeData } from './types/editor_types'
 import {
-  BlankType,
   BoolType,
   BuiltinOrRosType,
   BuiltinType,
@@ -58,8 +57,6 @@ export function getTypeFromMsg(type_msg: NodeDataType): DataContainer {
   switch (type_msg.type_identifier) {
     case DataTypeValues.BOOL_TYPE:
       return new BoolType(type_msg)
-    case DataTypeValues.BLANK_TYPE:
-      return new BlankType(type_msg)
     case DataTypeValues.INT_TYPE:
       return new IntType(type_msg)
     case DataTypeValues.FLOAT_TYPE:

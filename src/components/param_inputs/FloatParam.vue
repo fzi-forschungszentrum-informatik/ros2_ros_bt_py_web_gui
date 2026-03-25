@@ -46,15 +46,9 @@ const value = defineModel<string, never, number, number>({
 function validate(event: Event) {
   const target = event.target as HTMLInputElement
 
-  let new_val: number
-  try {
-    new_val = Number(target.value)
-  } catch {
-    target.classList.add('is-invalid')
-    return
-  }
+  const new_val = Number(target.value)
 
-  if (new_val < props.type.min_value || new_val > props.type.max_value) {
+  if (props.type.validate(new_val) !== '') {
     target.classList.add('is-invalid')
     return
   }

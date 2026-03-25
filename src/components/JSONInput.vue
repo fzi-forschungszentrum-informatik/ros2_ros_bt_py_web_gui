@@ -42,6 +42,8 @@ const value = defineModel()
 const editor_ref = ref<HTMLDivElement>()
 let editor: JSONEditor | undefined = undefined
 
+const error_msg = ref<string>('')
+
 // We have to watch the `type` prop instead of `value` to not act on our own changes,
 //   since pausing and resuming the watcher doesn't work.
 watch(
@@ -59,9 +61,11 @@ function handleChange() {
     return
   }
   try {
-    value.value = editor.get()
+    const new_val = editor.get()
+    value.value = new_val
+    error_msg.value = props.type.validate(new_val)
   } catch {
-    return
+    error_msg.value = 'Invalid json'
   }
 }
 
@@ -72,7 +76,7 @@ onMounted(() => {
 
   editor = new JSONEditor(editor_ref.value, {
     mode: 'code',
-    onChange: () => handleChange()
+    onChange: handleChange
   })
   editor.aceEditor.setOptions({ maxLines: 100 })
   editor.aceEditor.resize()
@@ -88,5 +92,6 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <div class="mx-2 text-danger">{{ error_msg }}</div>
   <div id="editor" ref="editor_ref"></div>
 </template>

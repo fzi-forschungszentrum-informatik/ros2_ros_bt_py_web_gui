@@ -50,10 +50,7 @@ function validate(event: Event) {
 
   const value = target.value
 
-  if (
-    value.length > props.type.max_length ||
-    (props.type.strict_length && value.length < props.type.max_length)
-  ) {
+  if (props.type.validate(value) !== '') {
     target.classList.add('is-invalid')
     return
   }
@@ -68,7 +65,6 @@ function validate(event: Event) {
     v-model="value"
     type="text"
     class="form-control"
-    :minlength="type.strict_length ? type.max_length : 0"
     :maxlength="type.max_length"
     @input="validate"
   />

@@ -75,8 +75,7 @@ export const enum DataTypeValues {
   BUILTIN_OR_ROS_TYPE = 13,
   REFERENCE_TYPE = 14,
   REFERENCE_LIST_TYPE = 15,
-  REFERENCE_DICT_TYPE = 16,
-  BLANK_TYPE = 17
+  REFERENCE_DICT_TYPE = 16
 }
 
 export const enum RosTypeValues {

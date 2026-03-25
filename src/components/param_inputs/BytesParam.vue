@@ -43,46 +43,49 @@ const value = defineModel<string>({
   }
 })
 
-const nonhex_regex = /[^0-9A-F]/
+const nonhex_regex = /[^0-9A-F]/g
 
 function cleanHexString(input: string): string {
   // Normalize to uppercase and strip non-hex characters
-  input = input.toUpperCase().replaceAll(nonhex_regex, '')
+  let val = input.toUpperCase().replaceAll(nonhex_regex, '')
 
   // If length is odd, prepend a zero
-  if (input.length % 2 !== 0) {
-    input = '0' + input
+  if (val.length % 2 !== 0) {
+    val = '0' + val
   }
 
-  return input
+  return val
 }
 
 function validate(event: Event) {
   const target = event.target as HTMLInputElement
 
-  target.value = cleanHexString(target.value)
-  const value = target.value
+  const value = cleanHexString(target.value)
 
-  if (
-    value.match(nonhex_regex) ||
-    value.length / 2 > props.type.max_length ||
-    (props.type.strict_length && value.length / 2 + 0.5 < props.type.max_length)
-  ) {
+  console.log(props.type.validate(value))
+
+  if (props.type.validate(value) !== '') {
     target.classList.add('is-invalid')
-    return
+  } else {
+    target.classList.remove('is-invalid')
   }
+}
 
-  target.classList.remove('is-invalid')
+function setValue(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  value.value = target.value
 }
 </script>
 
 <template>
   <input
-    v-model="value"
     type="text"
     class="form-control"
-    :minlength="type.strict_length ? type.max_length * 2 - 1 : 0"
+    :value="value"
+    :minlength="type.max_length * 2 - 1"
     :maxlength="type.max_length * 2"
     @input="validate"
+    @change="setValue"
   />
 </template>

@@ -34,39 +34,21 @@ const props = defineProps<{
   type: IntType
 }>()
 
-const value = defineModel<string, never, bigint, bigint>({
+const value = defineModel<string, never, number, number>({
   get(value) {
-    return BigInt(props.type.parseValue(value))
+    return props.type.parseValue(value)
   },
   set(value) {
-    return props.type.serializeValue(Number(value))
+    return props.type.serializeValue(value)
   }
 })
-
-function parseBigInt(string_value: string): bigint | null {
-  let value: bigint
-  try {
-    value = BigInt(string_value)
-  } catch {
-    try {
-      value = BigInt(Number(string_value))
-    } catch {
-      return null
-    }
-  }
-  return value
-}
 
 function validate(event: Event) {
   const target = event.target as HTMLInputElement
 
-  const new_val = parseBigInt(target.value)
-  if (new_val === null) {
-    target.classList.add('is-invalid')
-    return
-  }
+  const new_val = Number(target.value)
 
-  if (new_val < props.type.min_value || new_val > props.type.max_value) {
+  if (props.type.validate(new_val) !== '') {
     target.classList.add('is-invalid')
     return
   }
@@ -76,11 +58,7 @@ function validate(event: Event) {
 function setValue(event: Event) {
   const target = event.target as HTMLInputElement
 
-  const new_val = parseBigInt(target.value)
-  if (new_val === null) {
-    return
-  }
-  value.value = new_val
+  value.value = Number(target.value)
 }
 </script>
 

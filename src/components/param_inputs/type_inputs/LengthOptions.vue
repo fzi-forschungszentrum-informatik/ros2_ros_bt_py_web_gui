@@ -33,16 +33,52 @@ import { ref, watch } from 'vue'
 
 const value = defineModel<Record<string, any>>()
 
-const enable_length_limit = ref<boolean>(value.value!.max_length !== INT_FLOAT_MAX)
+const enable_length_limit = ref<boolean>(false)
+
+watch(
+  () => {
+    if (value.value === undefined) {
+      return undefined
+    }
+    return value.value.max_length
+  },
+  () => {
+    enable_length_limit.value = value.value!.max_length !== INT_FLOAT_MAX
+  },
+  {
+    immediate: true
+  }
+)
+
 watch(enable_length_limit, (val) => {
   if (value.value === undefined) {
     return
   }
   if (!val) {
     value.value.max_length = INT_FLOAT_MAX
-    value.value.strict_length = false
+    if (value.value.strict_length !== undefined) {
+      value.value.strict_length = false
+    }
   }
 })
+
+function validate(event: Event) {
+  const target = event.target as HTMLInputElement
+
+  let new_val: number
+  try {
+    new_val = Number(target.value)
+  } catch {
+    target.classList.add('is-invalid')
+    return
+  }
+
+  if (new_val < 1) {
+    target.classList.add('is-invalid')
+    return
+  }
+  target.classList.remove('is-invalid')
+}
 </script>
 
 <template>
@@ -53,7 +89,9 @@ watch(enable_length_limit, (val) => {
         v-model="value.max_length"
         type="number"
         class="form-control"
+        min="1"
         :disabled="!enable_length_limit"
+        @input="validate"
       />
       <span class="input-group-text">
         <input v-model="enable_length_limit" type="checkbox" />

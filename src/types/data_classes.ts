@@ -64,6 +64,8 @@ export abstract class DataContainer<ValueType = any> {
 
   abstract prettyprint(): string
 
+  abstract validate(value: any): string
+
   abstract serializeValue(value: ValueType): string
 
   abstract parseValue(ser_value: string): ValueType
@@ -111,35 +113,15 @@ export class BoolType extends BuiltinContainer<boolean> {
     return 'bool'
   }
 
+  validate(value: any): string {
+    if (typeof value === 'boolean') {
+      return ''
+    }
+    return `Value ${value} is not a boolean`
+  }
+
   getSerializedDefault(): string {
     return this.serializeValue(false)
-  }
-}
-
-export class BlankType extends BuiltinContainer<any> {
-  constructor(type_msg: NodeDataType) {
-    if (type_msg.type_identifier !== DataTypeValues.BLANK_TYPE) {
-      throw Error(`Type msg ${type_msg} has incorrect identifier for object`)
-    }
-    super(type_msg)
-  }
-
-  toTypeMsg(): NodeDataType {
-    const type_msg = super.toTypeMsg()
-    type_msg.type_identifier = DataTypeValues.BLANK_TYPE
-    return type_msg
-  }
-
-  isCompatible(other: DataContainer): boolean {
-    return other instanceof BlankType
-  }
-
-  prettyprint(): string {
-    return 'object'
-  }
-
-  getSerializedDefault(): string {
-    return this.serializeValue({})
   }
 }
 
@@ -184,6 +166,20 @@ export class IntType extends BuiltinContainer<number> {
       }
     }
     return `int(min=${this.min_value},max=${this.max_value})`
+  }
+
+  validate(value: any): string {
+    if (!Number.isInteger(value)) {
+      return `Value ${value} is not an integer`
+    }
+    const int_value = BigInt(value)
+    if (int_value > this.max_value) {
+      return `Value ${value} is above maximum`
+    }
+    if (int_value < this.min_value) {
+      return `Value ${value} is below minimum`
+    }
+    return ''
   }
 
   getSerializedDefault(): string {
@@ -232,6 +228,19 @@ export class FloatType extends BuiltinContainer<number> {
       }
     }
     return `float(min=${this.min_value},max=${this.max_value})`
+  }
+
+  validate(value: any): string {
+    if (!Number.isFinite(value)) {
+      return `Value ${value} is not a float`
+    }
+    if (value > this.max_value) {
+      return `Value ${value} is above maximum`
+    }
+    if (value < this.min_value) {
+      return `Value ${value} is below minimum`
+    }
+    return ''
   }
 
   getSerializedDefault(): string {
@@ -284,8 +293,26 @@ export class StringType extends BuiltinContainer<string> {
     return `string<=${this.max_length}`
   }
 
+  validate(value: any): string {
+    if (this.valid_values.length > 0) {
+      if (this.valid_values.includes(value)) {
+        return `Value ${value} is not a valid value`
+      }
+    }
+    if (!(typeof value === 'string')) {
+      return `Value ${value} is not a string`
+    }
+    if (value.length > this.max_length) {
+      return `Value ${value} is too long`
+    }
+    return ''
+  }
+
   getSerializedDefault(): string {
-    return this.serializeValue('foo')
+    if (this.valid_values.length > 0) {
+      return this.serializeValue(this.valid_values[0])
+    }
+    return this.serializeValue('foobarbaz'.substring(0, this.max_length))
   }
 }
 
@@ -331,6 +358,21 @@ export class PathType extends BuiltinContainer<string> {
       return 'path'
     }
     return `path<=${this.max_length}`
+  }
+
+  validate(value: any): string {
+    if (this.valid_values.length > 0) {
+      if (this.valid_values.includes(value)) {
+        return `Value ${value} is not a valid value`
+      }
+    }
+    if (!(typeof value === 'string')) {
+      return `Value ${value} is not a string`
+    }
+    if (value.length > this.max_length) {
+      return `Value ${value} is too long`
+    }
+    return ''
   }
 
   getSerializedDefault(): string {
@@ -382,11 +424,35 @@ export class BytesType extends BuiltinContainer<string> {
     if (this.max_length === INT_FLOAT_MAX) {
       return 'bytes'
     }
-    return `bytes<=${this.max_length}`
+    return `bytes==${this.max_length}`
+  }
+
+  validate(value: any): string {
+    if (this.valid_values.length > 0) {
+      if (this.valid_values.includes(value)) {
+        return `Value ${value} is not a valid value`
+      }
+    }
+    if (!(typeof value === 'string')) {
+      return `Value ${value} is not a string`
+    }
+    if (value.length > this.max_length * 2) {
+      return `Value ${value} is too long`
+    }
+    if (value.length < this.max_length * 2) {
+      return `Value ${value} is too short`
+    }
+    if (!value.match(/[0-9A-F]+/)) {
+      return `Value ${value} is not valid hex`
+    }
+    return ''
   }
 
   getSerializedDefault(): string {
-    return this.serializeValue('00')
+    if (this.valid_values.length > 0) {
+      return this.serializeValue(this.valid_values[0])
+    }
+    return this.serializeValue('00'.repeat(this.max_length))
   }
 }
 
@@ -434,6 +500,25 @@ export class ListType extends BuiltinContainer<any[]> {
       prt_str += `${this.strict_length ? '=' : '<'}=${this.max_length}`
     }
     return prt_str
+  }
+
+  validate(value: any): string {
+    if (!(value instanceof Array)) {
+      return `Value ${value} is not an array`
+    }
+    if (value.length > this.max_length) {
+      return `Value ${value} is too long`
+    }
+    if (this.strict_length && value.length < this.max_length) {
+      return `Value ${value} is too short`
+    }
+    for (let index = 0; index < value.length; index++) {
+      const error = this.element_type.validate(value[index])
+      if (error !== '') {
+        return `At index ${index}: ${error}`
+      }
+    }
+    return ''
   }
 
   serializeValue(value: any[]): string {
@@ -512,6 +597,25 @@ export class DictType extends BuiltinContainer<Record<string, any>> {
     return prt_str
   }
 
+  validate(value: any): string {
+    if (!(value instanceof Object)) {
+      return `Value ${value} is not a dict`
+    }
+    if (value.length > this.max_length) {
+      return `Value ${value} is too long`
+    }
+    if (this.strict_length && value.length < this.max_length) {
+      return `Value ${value} is too short`
+    }
+    for (const [k, v] of Object.entries(value)) {
+      const error = this.element_type.validate(v)
+      if (error !== '') {
+        return `At key ${k}: ${error}`
+      }
+    }
+    return ''
+  }
+
   serializeValue(value: Record<string, any>): string {
     const ser_dict: Record<string, string> = {}
     for (const [k, v] of Object.entries(value)) {
@@ -573,6 +677,13 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
 
   prettyprint(): string {
     return 'type'
+  }
+
+  validate(value: any): string {
+    if (this.valid_types.includes(value)) {
+      return `Value ${value} is not a valid type primitive`
+    }
+    return ''
   }
 
   static setTypeMsgFields(value: Record<string, any>): NodeDataType {
@@ -643,6 +754,10 @@ export class BuiltinOrRosType extends DataContainer<any> {
 
   prettyprint(): string {
     return this.inner_type.prettyprint()
+  }
+
+  validate(value: any): string {
+    return this.inner_type.validate(value)
   }
 
   serializeValue(value: any): string {
@@ -719,6 +834,14 @@ export class ReferenceType extends ReferenceContainer {
       return `Value reference (target: ${this.reference})`
     }
     return inner_type.prettyprint() + ` ref(${this.reference})`
+  }
+
+  validate(value: any): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      return `Cannot get inner type for reference ${this.reference}`
+    }
+    return inner_type.validate(value)
   }
 
   serializeValue(value: any): string {
