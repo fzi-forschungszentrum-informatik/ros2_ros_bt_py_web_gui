@@ -751,26 +751,65 @@ export class RosValueType extends DataContainer<Record<string, any>> {
   }
 
   validate(value: any): string {
-    // TODO Include validation
-    console.log(value)
+    const message_store = useMessageStore()
+    const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
+    if (msg_info === undefined) {
+      return `Can't find information for message ${this.msg_type}`
+    }
+    for (const field of msg_info.fields) {
+      const field_type = getTypeFromMsg(field.type)
+      const field_valid = field_type.validate(value[field.key])
+      if (field_valid !== '') {
+        return `Field ${field.key}: ${field_valid}`
+      }
+    }
     return ''
   }
 
   serializeValue(value: Record<string, any>): string {
-    // TODO Include serialization
-    console.log(value)
-    return ''
+    const message_store = useMessageStore()
+    const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
+    if (msg_info === undefined) {
+      throw Error(`Can't find information for message ${this.msg_type}`)
+    }
+    const ser_fields: Record<string, string> = {}
+    for (const field of msg_info.fields) {
+      const field_type = getTypeFromMsg(field.type)
+      const field_value = field_type.serializeValue(value[field.key])
+      ser_fields[field.key] = field_value
+    }
+    return JSON.stringify(ser_fields)
   }
 
   parseValue(ser_value: string): Record<string, any> {
-    // TODO Include deserialization
-    console.log(ser_value)
-    return {}
+    const message_store = useMessageStore()
+    const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
+    if (msg_info === undefined) {
+      throw Error(`Can't find information for message ${this.msg_type}`)
+    }
+    const dict_value = JSON.parse(ser_value)
+    const value: Record<string, any> = {}
+    for (const field of msg_info.fields) {
+      const field_type = getTypeFromMsg(field.type)
+      const field_value = field_type.parseValue(dict_value[field.key])
+      value[field.key] = field_value
+    }
+    return value
   }
 
   getSerializedDefault(): string {
-    // TODO Construct default value
-    return ''
+    const message_store = useMessageStore()
+    const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
+    if (msg_info === undefined) {
+      throw Error(`Can't find information for message ${this.msg_type}`)
+    }
+    const ser_fields: Record<string, string> = {}
+    for (const field of msg_info.fields) {
+      const field_type = getTypeFromMsg(field.type)
+      const field_value = field_type.getSerializedDefault()
+      ser_fields[field.key] = field_value
+    }
+    return JSON.stringify(ser_fields)
   }
 }
 
@@ -913,7 +952,6 @@ export class RosTypeType extends DataContainer<string> {
   }
 
   getValueField(ser_value: string): DataContainer {
-    console.log(ser_value)
     const type_msg = getDefaultTypeMsg()
     type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_VALUE
     type_msg.ros_interface_kind = this.interface_kind
@@ -922,19 +960,17 @@ export class RosTypeType extends DataContainer<string> {
   }
 
   getSerializedDefault(): string {
-    const message_store = useMessageStore()
-    let type_list: string[] = []
     switch (this.interface_kind) {
       case RosTypeValues.ROS_TOPIC:
-        type_list = message_store.ros_topic_messages.map((x) => x.name)
-      case RosTypeValues.ROS_SERVICE:
-        type_list = message_store.ros_service_messages
-      case RosTypeValues.ROS_ACTION:
-        type_list = message_store.ros_action_messages
       case RosTypeValues.ROS_COMPONENT:
-        type_list = message_store.ros_all_messages
+        return 'example_interfaces/msg/Empty'
+      case RosTypeValues.ROS_SERVICE:
+        return 'example_interfaces/srv/Trigger'
+      case RosTypeValues.ROS_ACTION:
+        return 'example_interfaces/action/Fibonacci'
+      default:
+        throw Error('Unknown ros type')
     }
-    return this.serializeValue(type_list[0])
   }
 }
 

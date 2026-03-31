@@ -53,7 +53,9 @@ const is_invalid = computed<boolean>(() => {
   return !props.item_list.includes(selected_value.value)
 })
 
-const search_results = ref<T[]>(getSearchResult(props.parse(''))) as Ref<T[]>
+const search_results = ref<T[]>(getSearchResult(selected_value.value || props.parse(''))) as Ref<
+  T[]
+>
 
 // These track two conditions for displaying the result dropdown.
 //   One is for focusing the input, the other for navigating the result menu

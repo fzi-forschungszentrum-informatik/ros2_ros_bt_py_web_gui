@@ -40,6 +40,7 @@ import {
   PathType,
   ReferenceType,
   RosTypeType,
+  RosValueType,
   StringType,
   type DataContainer
 } from '@/types/data_classes'
@@ -56,6 +57,7 @@ import ReferenceParam from './ReferenceParam.vue'
 import ListParam from './ListParam.vue'
 import DictParam from './DictParam.vue'
 import RosTypeParam from './RosTypeParam.vue'
+import RosValueParam from './RosValueParam.vue'
 
 const props = defineProps<{
   type: DataContainer
@@ -91,6 +93,9 @@ const param_component = computed<Component | undefined>(() => {
   }
   if (type instanceof BuiltinType) {
     return TypeParam
+  }
+  if (type instanceof RosValueType) {
+    return RosValueParam
   }
   if (type instanceof RosTypeType) {
     return RosTypeParam

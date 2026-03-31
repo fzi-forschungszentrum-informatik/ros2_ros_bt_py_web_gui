@@ -33,7 +33,6 @@ import TypeParamInner from './TypeParamInner.vue'
 import RosTypeParam from '../RosTypeParam.vue'
 import { DataTypeValues, IDENTIFIER_KEY, MESSAGE_KEY, RosTypeValues } from '@/types/data_types'
 import { ref, watch } from 'vue'
-import { useMessageStore } from '@/stores/message'
 
 const props = defineProps<{
   type: BuiltinOrRosType
@@ -41,12 +40,7 @@ const props = defineProps<{
 
 const value = defineModel<Record<string, any>>()
 
-const message_store = useMessageStore()
-let init_ros_value: string = ''
-const init_msg_value = message_store.ros_topic_messages.at(0)
-if (init_msg_value !== undefined) {
-  init_ros_value = init_msg_value.name
-}
+let init_ros_value: string = 'example_interfaces/msg/Empty'
 if (value.value![MESSAGE_KEY] !== undefined) {
   init_ros_value = value.value![MESSAGE_KEY]
 }

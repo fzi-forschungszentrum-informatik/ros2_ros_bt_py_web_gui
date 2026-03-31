@@ -51,6 +51,7 @@ import {
   StringType,
   type DataContainer
 } from './types/data_classes'
+import { toRaw } from 'vue'
 
 export function parseRosTime(time: RosTime): Date {
   return new Date(time.sec * 1000 + time.nanosec / 1000000)
@@ -114,7 +115,7 @@ export function getDefaultTypeMsg(): NodeDataType {
 }
 
 export function popFromTypeMessage(msg: NodeDataType): [number, boolean, NodeDataType] {
-  const out_msg = structuredClone(msg)
+  const out_msg = structuredClone(toRaw(msg))
   const max_length = out_msg.iterable_max_length.pop()!
   const strict_length = out_msg.iterable_strict_length.pop()!
   out_msg.type_identifier = out_msg.value_type_identifier.pop()!
@@ -127,7 +128,7 @@ export function pushToTypeMessage(
   strict_length: boolean,
   msg: NodeDataType
 ): NodeDataType {
-  const out_msg = structuredClone(msg)
+  const out_msg = structuredClone(toRaw(msg))
   out_msg.value_type_identifier.push(msg.type_identifier)
   out_msg.type_identifier = identifier
   out_msg.iterable_max_length.push(max_length)
