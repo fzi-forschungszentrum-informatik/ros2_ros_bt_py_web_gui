@@ -32,9 +32,14 @@ import { BuiltinOrRosType, type BuiltinType } from '@/types/data_classes'
 import SearchableInput from '../../SearchableInput.vue'
 import Fuse from 'fuse.js'
 import { computed, ref, toRaw, watch } from 'vue'
-import { DataTypeValues, ELEMENT_KEY, IDENTIFIER_KEY, RosTypeValues } from '@/types/data_types'
-import IntOptions from './IntOptions.vue'
-import FloatOptions from './FloatOptions.vue'
+import {
+  DataTypeValues,
+  ELEMENT_KEY,
+  FLOAT_LIMITS,
+  IDENTIFIER_KEY,
+  INT_LIMITS,
+  RosTypeValues
+} from '@/types/data_types'
 import LengthOptions from './LengthOptions.vue'
 import SwitchTypeParamInner from './SwitchTypeParamInner.vue'
 
@@ -44,23 +49,64 @@ const props = defineProps<{
 
 const value = defineModel<Record<string, any>>()
 
-const type_list = computed<string[]>(() => props.type.valid_types.map((x) => x.type))
+const type_list = computed<string[]>(() => {
+  return props.type.valid_types.flatMap((x) => {
+    if (x.type === 'int') {
+      return Object.keys(INT_LIMITS)
+    }
+    if (x.type === 'float') {
+      return Object.keys(FLOAT_LIMITS)
+    }
+    return x.type
+  })
+})
 
 let init_chosen_type = ''
 const initial_type = props.type.valid_types.find(
   (x) => x.value[IDENTIFIER_KEY] === value.value![IDENTIFIER_KEY]
 )
 if (initial_type !== undefined) {
+  if (initial_type.type === 'int') {
+    for (const [key, [min, max]] of Object.entries(INT_LIMITS)) {
+      if (min.toString() === value.value!.min_value && max.toString() === value.value!.max_value) {
+        init_chosen_type = key
+      }
+    }
+  }
+  if (initial_type.type === 'float') {
+    for (const [key, [min, max]] of Object.entries(FLOAT_LIMITS)) {
+      if (min.toString() === value.value!.min_value && max.toString() === value.value!.max_value) {
+        init_chosen_type = key
+      }
+    }
+  }
   init_chosen_type = initial_type.type
 }
 
 const chosen_type = ref<string>(init_chosen_type)
 watch(chosen_type, (val: string) => {
-  const type_value = props.type.valid_types.find((x) => x.type === val)
+  const type_value = props.type.valid_types.find((x) => val.includes(x.type))
   if (type_value === undefined) {
     return
   }
-  value.value = structuredClone(toRaw(type_value.value))
+  const new_value = structuredClone(toRaw(type_value.value))
+  if (type_value.type === 'int') {
+    if (!Object.keys(INT_LIMITS).includes(val)) {
+      return
+    }
+    const [min, max] = INT_LIMITS[val]
+    new_value.min_value = min.toString()
+    new_value.max_value = max.toString()
+  }
+  if (type_value.type === 'float') {
+    if (!Object.keys(FLOAT_LIMITS).includes(val)) {
+      return
+    }
+    const [min, max] = FLOAT_LIMITS[val]
+    new_value.min_value = min.toString()
+    new_value.max_value = max.toString()
+  }
+  value.value = new_value
 })
 
 const type_has_length = computed<boolean>(() => {
@@ -104,16 +150,6 @@ const nested_type = computed<BuiltinOrRosType>(() => {
     :render_function="(x: string) => x"
   />
   <template v-if="value !== undefined">
-    <IntOptions
-      v-if="value[IDENTIFIER_KEY] === DataTypeValues.INT_TYPE"
-      v-model:min_value="value.min_value"
-      v-model:max_value="value.max_value"
-    />
-    <FloatOptions
-      v-if="value[IDENTIFIER_KEY] === DataTypeValues.FLOAT_TYPE"
-      v-model:min_value="value.min_value"
-      v-model:max_value="value.max_value"
-    />
     <LengthOptions v-if="type_has_length" v-model="value" />
     <div v-if="type_has_nested" class="nested">
       <div>Element type</div>
