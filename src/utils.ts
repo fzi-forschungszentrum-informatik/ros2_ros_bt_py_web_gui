@@ -44,6 +44,8 @@ import {
   ListType,
   PathType,
   ReferenceContainer,
+  ReferenceDictType,
+  ReferenceListType,
   ReferenceType,
   RosNameType,
   RosTypeType,
@@ -87,6 +89,10 @@ export function getTypeFromMsg(type_msg: NodeDataType): DataContainer {
       return new BuiltinOrRosType(type_msg)
     case DataTypeValues.REFERENCE_TYPE:
       return new ReferenceType(type_msg)
+    case DataTypeValues.REFERENCE_LIST_TYPE:
+      return new ReferenceListType(type_msg)
+    case DataTypeValues.REFERENCE_DICT_TYPE:
+      return new ReferenceDictType(type_msg)
     default:
       console.log(type_msg)
       throw Error(`Unrecognized data type ${type_msg}`)

@@ -55,11 +55,11 @@ export abstract class DataContainer<ValueType = any> {
   }
 
   toTypeMsg(): NodeDataType {
-    return {
-      allow_dynamic: this.allow_dynamic,
-      allow_static: this.allow_static,
-      is_static: this.is_static
-    } as NodeDataType
+    const type_msg = getDefaultTypeMsg()
+    type_msg.allow_dynamic = this.allow_dynamic
+    type_msg.allow_static = this.allow_static
+    type_msg.is_static = this.is_static
+    return type_msg
   }
 
   abstract isCompatible(other: DataContainer): boolean
@@ -1069,6 +1069,46 @@ export abstract class ReferenceContainer extends DataContainer<any> {
     return type_msg
   }
 
+  prettyprint(): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      return `Value reference (target: ${this.reference})`
+    }
+    return inner_type.prettyprint() + ` ref(${this.reference})`
+  }
+
+  validate(value: any): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      return `Cannot get inner type for reference ${this.reference}`
+    }
+    return inner_type.validate(value)
+  }
+
+  serializeValue(value: any): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      throw Error('Reference has no valid target')
+    }
+    return inner_type.serializeValue(value)
+  }
+
+  parseValue(value: any): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      throw Error('Reference has no valid target')
+    }
+    return inner_type.parseValue(value)
+  }
+
+  getSerializedDefault(): string {
+    const inner_type = this.getInnerType()
+    if (inner_type === null) {
+      throw Error('Reference has no valid target')
+    }
+    return inner_type.getSerializedDefault()
+  }
+
   setInnerType(inputs: NodeData[]) {
     this.target_type = inputs.find((x) => x.key === this.reference)
   }
@@ -1104,40 +1144,68 @@ export class ReferenceType extends ReferenceContainer {
     }
     return this.reference === other.reference
   }
+}
 
-  prettyprint(): string {
-    const inner_type = this.getInnerType()
-    if (inner_type === null) {
-      return `Value reference (target: ${this.reference})`
+export class ReferenceListType extends ReferenceContainer {
+  constructor(type_msg: NodeDataType) {
+    if (type_msg.type_identifier !== DataTypeValues.REFERENCE_LIST_TYPE) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for reference`)
     }
-    return inner_type.prettyprint() + ` ref(${this.reference})`
+    super(type_msg)
   }
 
-  validate(value: any): string {
-    const inner_type = this.getInnerType()
-    if (inner_type === null) {
-      return `Cannot get inner type for reference ${this.reference}`
-    }
-    return inner_type.validate(value)
+  toTypeMsg(): NodeDataType {
+    const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.REFERENCE_LIST_TYPE
+    return type_msg
   }
 
-  serializeValue(value: any): string {
-    const inner_type = this.getInnerType()
-    if (inner_type === null) {
-      throw Error('Reference has no valid target')
+  isCompatible(other: DataContainer): boolean {
+    if (!(other instanceof ReferenceListType)) {
+      return false
     }
-    return inner_type.serializeValue(value)
+    return this.reference === other.reference
   }
 
-  parseValue(value: any): string {
-    const inner_type = this.getInnerType()
-    if (inner_type === null) {
-      throw Error('Reference has no valid target')
+  getInnerType(): DataContainer | null {
+    const element_type = super.getInnerType()
+    if (element_type === null) {
+      return element_type
     }
-    return inner_type.parseValue(value)
+    let type_msg = element_type.toTypeMsg()
+    type_msg = pushToTypeMessage(DataTypeValues.LIST_TYPE, INT_FLOAT_MAX, false, type_msg)
+    return new ListType(type_msg)
+  }
+}
+
+export class ReferenceDictType extends ReferenceContainer {
+  constructor(type_msg: NodeDataType) {
+    if (type_msg.type_identifier !== DataTypeValues.REFERENCE_DICT_TYPE) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for reference`)
+    }
+    super(type_msg)
   }
 
-  getSerializedDefault(): string {
-    throw Error('No default for type fields')
+  toTypeMsg(): NodeDataType {
+    const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.REFERENCE_DICT_TYPE
+    return type_msg
+  }
+
+  isCompatible(other: DataContainer): boolean {
+    if (!(other instanceof ReferenceDictType)) {
+      return false
+    }
+    return this.reference === other.reference
+  }
+
+  getInnerType(): DataContainer | null {
+    const element_type = super.getInnerType()
+    if (element_type === null) {
+      return element_type
+    }
+    let type_msg = element_type.toTypeMsg()
+    type_msg = pushToTypeMessage(DataTypeValues.DICT_TYPE, INT_FLOAT_MAX, false, type_msg)
+    return new DictType(type_msg)
   }
 }

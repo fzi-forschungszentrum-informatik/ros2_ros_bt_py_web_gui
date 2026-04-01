@@ -38,6 +38,8 @@ import {
   IntType,
   ListType,
   PathType,
+  ReferenceDictType,
+  ReferenceListType,
   ReferenceType,
   RosNameType,
   RosTypeType,
@@ -108,7 +110,11 @@ const param_component = computed<Component | undefined>(() => {
   if (type instanceof BuiltinOrRosType) {
     return SwitchTypeParam
   }
-  if (type instanceof ReferenceType) {
+  if (
+    type instanceof ReferenceType ||
+    type instanceof ReferenceListType ||
+    type instanceof ReferenceDictType
+  ) {
     return ReferenceParam
   }
   return undefined
