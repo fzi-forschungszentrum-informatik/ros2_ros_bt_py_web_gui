@@ -38,6 +38,10 @@ export const useMessageStore = defineStore('messages', () => {
   const ros_action_messages = ref<string[]>([])
   const ros_all_messages = ref<string[]>([])
 
+  const ros_topic_channels = ref<Channel[]>([])
+  const ros_service_channels = ref<Channel[]>([])
+  const ros_action_channels = ref<Channel[]>([])
+
   const messages_available = ref<boolean>(false)
 
   // These additional fuses are meant to substitute/replace the above messages_fuse
@@ -105,6 +109,9 @@ export const useMessageStore = defineStore('messages', () => {
   }
 
   function updateMessageChannels(new_channels: Channels) {
+    ros_topic_channels.value = new_channels.topics
+    ros_service_channels.value = new_channels.services
+    ros_action_channels.value = new_channels.actions
     ros_topic_name_fuse.value.setCollection(new_channels.topics)
     ros_service_name_fuse.value.setCollection(new_channels.services)
     ros_action_name_fuse.value.setCollection(new_channels.actions)
@@ -120,6 +127,9 @@ export const useMessageStore = defineStore('messages', () => {
     ros_service_type_fuse,
     ros_action_type_fuse,
     ros_all_messages_fuse,
+    ros_topic_channels,
+    ros_service_channels,
+    ros_action_channels,
     ros_topic_name_fuse,
     ros_service_name_fuse,
     ros_action_name_fuse,

@@ -29,181 +29,108 @@
 -->
 
 <script setup lang="ts">
-import { useEditNodeStore } from '@/stores/edit_node'
-import { useEditorStore } from '@/stores/editor'
-import { useMessasgeStore } from '@/stores/message'
-import {
-  RosActionType_Name,
-  RosServiceType_Name,
-  RosTopicType_Name,
-  type RosName,
-  type RosType
-} from '@/types/python_types'
-import type { Channel, OptionData } from '@/types/types'
+import { useMessageStore } from '@/stores/message'
+import { RosTypeType, RosNameType } from '@/types/data_classes'
+import { RosTypeValues } from '@/types/data_types'
+import type { Channel } from '@/types/types'
 import Fuse from 'fuse.js'
-import { computed, ref } from 'vue'
-
-const edit_node_store = useEditNodeStore()
-const editor_store = useEditorStore()
-const messages_store = useMessasgeStore()
+import { computed } from 'vue'
+import SearchableInput from '../SearchableInput.vue'
+import { useEditNodeStore } from '@/stores/edit_node'
+import type { NodeData } from '@/types/editor_types'
 
 const props = defineProps<{
-  category: 'options'
-  data_key: string
-  type: 'topic' | 'service' | 'action'
+  type: RosNameType
 }>()
 
-const search_results = ref<Channel[]>([])
-
-const param = computed<OptionData | undefined>(() =>
-  edit_node_store.new_node_options.find((x) => x.key === props.data_key)
-)
-
-// Find a type parameter to reference when searching and set when selecting
-const type_param = computed<OptionData | undefined>(() => {
-  let type_param_name: string
-  switch (props.type) {
-    case 'topic':
-      type_param_name = RosTopicType_Name
-      break
-    case 'service':
-      type_param_name = RosServiceType_Name
-      break
-    case 'action':
-      type_param_name = RosActionType_Name
-      break
-    default:
-      return undefined
-  }
-  return edit_node_store.new_node_options.find((x) => x.value.type === type_param_name)
-})
-
-const search_fuse = computed<Fuse<Channel> | undefined>(() => {
-  switch (props.type) {
-    case 'topic':
-      return messages_store.ros_topic_name_fuse
-    case 'service':
-      return messages_store.ros_service_name_fuse
-    case 'action':
-      return messages_store.ros_action_name_fuse
-    default:
-      return undefined
+const value = defineModel<string>({
+  get(value) {
+    return props.type.parseValue(value)
+  },
+  set(value) {
+    return props.type.serializeValue(value)
   }
 })
 
-// These track two conditions for displaying the result dropdown.
-//   One is for focusing the input, the other for navigating the result menu
-const hide_results = ref<boolean>(true)
-const keep_results = ref<boolean>(false)
+const edit_node_store = useEditNodeStore()
+const message_store = useMessageStore()
 
-function onInput(event: Event) {
-  if (param.value === undefined || search_fuse.value === undefined) {
-    console.error('Undefined parameter')
-    return
+const related_type_field = computed<NodeData | undefined>(() => {
+  if (props.type.interface_id === 0) {
+    return undefined
   }
+  return edit_node_store.new_node_inputs.find((input) => {
+    if (!(input.type instanceof RosTypeType)) {
+      return false
+    }
+    return input.type.interface_id === props.type.interface_id
+  })
+})
 
-  const target = event.target as HTMLInputElement
-  const new_name = target.value || ''
-
-  const results = search_fuse.value.search({ name: new_name })
-
-  search_results.value = results.map((x) => x.item)
-
-  setValue(new_name)
-}
-
-function setValue(new_value: string) {
-  if (param.value === undefined) {
-    console.error('Undefined parameter')
-    return
+const channel_value = computed<Channel>({
+  get() {
+    return { name: value.value || '', type: '' }
+  },
+  set(val) {
+    value.value = val.name
+    if (related_type_field.value !== undefined && val.type !== '') {
+      related_type_field.value.serialized_value = related_type_field.value.type.serializeValue(
+        val.type
+      )
+    }
   }
+})
 
-  const name_obj = param.value.value.value as RosName
-  name_obj.name = new_value
-
-  edit_node_store.updateParamValue(props.category, props.data_key, name_obj)
-}
-
-function setType(new_value: string) {
-  if (type_param.value === undefined) {
-    // No type param to set
-    return
+const item_list = computed<Channel[]>(() => {
+  switch (props.type.interface_kind) {
+    case RosTypeValues.ROS_TOPIC:
+      return message_store.ros_topic_channels
+    case RosTypeValues.ROS_SERVICE:
+      return message_store.ros_service_channels
+    case RosTypeValues.ROS_ACTION:
+      return message_store.ros_action_channels
+    default:
+      return []
   }
+})
 
-  const type_obj = type_param.value.value.value as RosType
-  type_obj.type_str = new_value
+const search_fuse = computed<Fuse<Channel>>(() => {
+  switch (props.type.interface_kind) {
+    case RosTypeValues.ROS_TOPIC:
+      return message_store.ros_topic_name_fuse
+    case RosTypeValues.ROS_SERVICE:
+      return message_store.ros_service_name_fuse
+    case RosTypeValues.ROS_ACTION:
+      return message_store.ros_action_name_fuse
+    default:
+      return new Fuse<Channel>([])
+  }
+})
 
-  edit_node_store.updateParamValue(props.category, type_param.value.key, type_obj)
-}
-
-function selectSearchResult(search_result: Channel) {
-  setValue(search_result.name)
-  setType(search_result.type)
-  releaseDropdown()
-}
-
-function focusInput() {
-  edit_node_store.changeCopyMode(false)
-  hide_results.value = false
-}
-
-function unfocusInput() {
-  hide_results.value = true
-}
-
-function forceDropdown() {
-  keep_results.value = true
-}
-
-function releaseDropdown() {
-  keep_results.value = false
+function renderChannel(channel: Channel) {
+  return `${channel.name}<br /><small>${channel.type}</small>`
 }
 </script>
 
 <template>
-  <div v-if="param !== undefined" class="form-group">
-    <label class="d-block">
-      {{ param.key }}
-      <input
-        type="text"
-        class="form-control mt-2"
-        :value="(param.value.value as RosName).name"
-        :disabled="editor_store.has_selected_subtree"
-        @input="onInput"
-        @focus="focusInput"
-        @blur="unfocusInput"
-        @keyup.esc="
-          () => {
-            unfocusInput()
-            releaseDropdown()
-          }
-        "
-        @keydown.tab="forceDropdown"
-      />
-    </label>
-    <div class="mb-2 search-results">
-      <div
-        class="list-group rounded-top-0"
-        :class="{ 'd-none': hide_results && !keep_results }"
-        @mouseenter="forceDropdown"
-        @mouseleave="releaseDropdown"
-      >
-        <div
-          v-for="result in search_results"
-          :key="result.name"
-          class="list-group-item search-result"
-          tabindex="0"
-          @click="() => selectSearchResult(result)"
-          @keyup.enter="() => selectSearchResult(result)"
-          @keyup.esc="releaseDropdown"
-        >
-          {{ result.name }}<br />
-          <small>{{ result.type }}</small>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div v-else>Error loading param data</div>
+  <SearchableInput
+    v-model="channel_value"
+    :item_list="item_list"
+    :search_fuse="search_fuse"
+    :validate="false"
+    :parse="
+      (x) => {
+        return { name: x, type: '' }
+      }
+    "
+    :search_target="
+      (x) => {
+        return { name: x.name }
+      }
+    "
+    :to_string="(x) => x.name"
+    :render_function="renderChannel"
+  />
 </template>
 
 <style scoped lang="scss"></style>
