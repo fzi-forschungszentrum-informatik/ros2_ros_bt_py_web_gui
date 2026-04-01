@@ -39,6 +39,7 @@ import {
   ListType,
   PathType,
   ReferenceType,
+  RosNameType,
   RosTypeType,
   RosValueType,
   StringType,
@@ -58,6 +59,7 @@ import ListParam from './ListParam.vue'
 import DictParam from './DictParam.vue'
 import RosTypeParam from './RosTypeParam.vue'
 import RosValueParam from './RosValueParam.vue'
+import RosNameParam from './RosNameParam.vue'
 
 const props = defineProps<{
   type: DataContainer
@@ -99,6 +101,9 @@ const param_component = computed<Component | undefined>(() => {
   }
   if (type instanceof RosTypeType) {
     return RosTypeParam
+  }
+  if (type instanceof RosNameType) {
+    return RosNameParam
   }
   if (type instanceof BuiltinOrRosType) {
     return SwitchTypeParam

@@ -73,8 +73,10 @@ function validate(event: Event) {
     v-model="value"
     :item_list="type.valid_values"
     :search_fuse="new Fuse(type.valid_values)"
+    :validate="true"
     :parse="(s: string) => s"
     :search_target="(s: string) => s"
+    :to_string="(s) => s"
     :render_function="(s: string) => s"
   />
 </template>

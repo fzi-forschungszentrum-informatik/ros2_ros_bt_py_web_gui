@@ -36,14 +36,19 @@ import { computed, ref, type Ref } from 'vue'
 const props = defineProps<{
   item_list: T[]
   search_fuse: Fuse<T>
+  validate: boolean
   parse: (input: string) => T
   search_target: (elem: T) => string | Expression
+  to_string: (elem: T) => string
   render_function: (elem: T) => string
 }>()
 
 const selected_value = defineModel<T>()
 
 const is_invalid = computed<boolean>(() => {
+  if (!props.validate) {
+    return false
+  }
   if (selected_value.value === undefined) {
     return true
   }
@@ -108,7 +113,7 @@ function releaseDropdown() {
     type="text"
     class="form-control"
     :class="{ 'is-invalid': is_invalid }"
-    :value="selected_value"
+    :value="selected_value !== undefined ? to_string(selected_value) : ''"
     @input="onInput"
     @focus="focusInput"
     @blur="unfocusInput"

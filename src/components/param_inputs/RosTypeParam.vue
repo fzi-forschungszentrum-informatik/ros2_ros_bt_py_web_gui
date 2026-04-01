@@ -34,7 +34,7 @@ import type { RosTypeType } from '@/types/data_classes'
 import SearchableInput from '../SearchableInput.vue'
 import Fuse from 'fuse.js'
 import { RosTypeValues } from '@/types/data_types'
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps<{
   type: RosTypeType
@@ -51,16 +51,16 @@ const value = defineModel<string>({
 
 // We can't directly pass the value through (by doing `v-model="value"`)
 //   because the serialization step for the outer model breaks deep reactivity
-const inner_value = ref<string>(value.value || '')
-watch(
-  inner_value,
-  (val) => {
+const inner_value = computed<string>({
+  get() {
+    return value.value || ''
+  },
+  set(val) {
     if (props.type.validate(val) === '') {
       value.value = val
     }
-  },
-  { deep: true }
-)
+  }
+})
 
 const message_store = useMessageStore()
 
@@ -100,8 +100,10 @@ const search_fuse = computed<Fuse<string>>(() => {
     v-model="inner_value"
     :item_list="item_list"
     :search_fuse="search_fuse"
+    :validate="true"
     :parse="(x) => x"
     :search_target="(x) => x"
+    :to_string="(x) => x"
     :render_function="(x) => x"
   />
 </template>

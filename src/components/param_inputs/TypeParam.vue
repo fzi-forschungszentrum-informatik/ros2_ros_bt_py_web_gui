@@ -29,7 +29,7 @@
  -->
 <script setup lang="ts">
 import type { BuiltinType } from '@/types/data_classes'
-import { ref, watch } from 'vue'
+import { computed } from 'vue'
 import TypeParamInner from './type_inputs/TypeParamInner.vue'
 
 const props = defineProps<{
@@ -47,14 +47,14 @@ const value = defineModel<string, never, Record<string, any>, Record<string, any
 
 // We can't directly pass the value through (by doing `v-model="value"`)
 //   because the serialization step for the outer model breaks deep reactivity
-const inner_value = ref<Record<string, any>>(value.value || {})
-watch(
-  inner_value,
-  (val) => {
-    value.value = val
+const inner_value = computed<Record<string, any>>({
+  get() {
+    return value.value || {}
   },
-  { deep: true }
-)
+  set(val) {
+    value.value = val
+  }
+})
 </script>
 
 <template>

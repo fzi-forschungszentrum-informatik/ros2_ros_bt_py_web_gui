@@ -93,5 +93,9 @@ onUnmounted(() => {
 
 <template>
   <div class="mx-2 text-danger">{{ error_msg }}</div>
-  <div id="editor" ref="editor_ref"></div>
+  <div
+    id="editor"
+    ref="editor_ref"
+    :class="error_msg !== '' ? 'border border-2 border-danger' : ''"
+  ></div>
 </template>

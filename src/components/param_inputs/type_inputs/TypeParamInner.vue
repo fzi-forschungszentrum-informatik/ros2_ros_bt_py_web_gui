@@ -145,8 +145,10 @@ const nested_type = computed<BuiltinOrRosType>(() => {
     v-model="chosen_type"
     :item_list="type_list"
     :search_fuse="new Fuse(type_list)"
+    :validate="true"
     :parse="(x: string) => x"
     :search_target="(x: string) => x"
+    :to_string="(x) => x"
     :render_function="(x: string) => x"
   />
   <template v-if="value !== undefined">
