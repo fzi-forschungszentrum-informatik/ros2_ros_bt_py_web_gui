@@ -63,8 +63,6 @@ export function addNode(
 ): Promise<UUIDString> {
   const ros_store = useROSStore()
 
-  console.log(msg)
-
   // Supress notifications for all callbacks
   let local_notify: (args: object) => void
   if (send_notify) {

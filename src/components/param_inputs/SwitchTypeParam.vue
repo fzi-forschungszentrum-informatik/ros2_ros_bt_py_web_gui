@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { BuiltinType, type BuiltinOrRosType } from '@/types/data_classes'
+import { BuiltinType, RosTypeType, type BuiltinOrRosType } from '@/types/data_classes'
 import TypeParam from './TypeParam.vue'
 import RosTypeParam from './RosTypeParam.vue'
 import { RosTypeValues } from '@/types/data_types'
@@ -61,7 +61,12 @@ function switchType(event: Event) {
 
 <template>
   <div class="form-check form-switch">
-    <input type="checkbox" class="form-check-input" @change="switchType" />
+    <input
+      type="checkbox"
+      class="form-check-input"
+      :checked="type.inner_type instanceof RosTypeType"
+      @change="switchType"
+    />
     <label class="form-check-label">Is ROS Type</label>
   </div>
   <TypeParam

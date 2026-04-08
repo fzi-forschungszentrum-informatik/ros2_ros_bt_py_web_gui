@@ -526,19 +526,16 @@ export class ListType extends BuiltinContainer<any[]> {
   serializeValue(value: any[]): string {
     const ser_list: any[] = []
     for (const elem of value) {
-      ser_list.push(this.element_type.serializeValue(elem))
+      ser_list.push(JSON.parse(this.element_type.serializeValue(elem)))
     }
     return super.serializeValue(ser_list)
   }
 
   parseValue(ser_value: string): any[] {
-    if (this.element_type === undefined) {
-      return super.parseValue(ser_value)
-    }
-    const value_list = JSON.parse(ser_value) as any[]
+    const value_list = super.parseValue(ser_value) as any[]
     const value: any[] = []
     for (const elem of value_list) {
-      value.push(this.element_type.parseValue(elem))
+      value.push(this.element_type.parseValue(JSON.stringify(elem)))
     }
     return value
   }
@@ -621,16 +618,16 @@ export class DictType extends BuiltinContainer<Record<string, any>> {
   serializeValue(value: Record<string, any>): string {
     const ser_dict: Record<string, string> = {}
     for (const [k, v] of Object.entries(value)) {
-      ser_dict[k] = this.element_type!.serializeValue(v)
+      ser_dict[k] = JSON.parse(this.element_type!.serializeValue(v))
     }
     return super.serializeValue(ser_dict)
   }
 
   parseValue(ser_value: string): Record<string, any> {
-    const value_dict = JSON.parse(ser_value) as Record<string, string>
+    const value_dict = super.parseValue(ser_value) as Record<string, string>
     const value: Record<string, any> = {}
     for (const [k, v] of Object.entries(value_dict)) {
-      value[k] = this.element_type.parseValue(v)
+      value[k] = this.element_type.parseValue(JSON.stringify(v))
     }
     return value
   }
@@ -775,9 +772,10 @@ export class RosValueType extends DataContainer<Record<string, any>> {
     const ser_fields: Record<string, string> = {}
     for (const field of msg_info.fields) {
       const field_type = getTypeFromMsg(field.type)
-      const field_value = field_type.serializeValue(value[field.key])
+      const field_value = JSON.parse(field_type.serializeValue(value[field.key]))
       ser_fields[field.key] = field_value
     }
+    console.log(ser_fields)
     return JSON.stringify(ser_fields)
   }
 
@@ -791,9 +789,10 @@ export class RosValueType extends DataContainer<Record<string, any>> {
     const value: Record<string, any> = {}
     for (const field of msg_info.fields) {
       const field_type = getTypeFromMsg(field.type)
-      const field_value = field_type.parseValue(dict_value[field.key])
+      const field_value = field_type.parseValue(JSON.stringify(dict_value[field.key]))
       value[field.key] = field_value
     }
+    console.log(value)
     return value
   }
 
@@ -803,13 +802,14 @@ export class RosValueType extends DataContainer<Record<string, any>> {
     if (msg_info === undefined) {
       throw Error(`Can't find information for message ${this.msg_type}`)
     }
-    const ser_fields: Record<string, string> = {}
+    const default_fields: Record<string, string> = {}
     for (const field of msg_info.fields) {
       const field_type = getTypeFromMsg(field.type)
-      const field_value = field_type.getSerializedDefault()
-      ser_fields[field.key] = field_value
+      const ser_field_value = field_type.getSerializedDefault()
+      default_fields[field.key] = field_type.parseValue(ser_field_value)
     }
-    return JSON.stringify(ser_fields)
+    console.log(default_fields)
+    return this.serializeValue(default_fields)
   }
 }
 
@@ -872,7 +872,7 @@ export class RosNameType extends BuiltinContainer<string> {
   }
 }
 
-export class RosTypeType extends DataContainer<string> {
+export class RosTypeType extends BuiltinContainer<string> {
   interface_kind: RosTypeValues
   interface_id: number
 
@@ -943,14 +943,6 @@ export class RosTypeType extends DataContainer<string> {
     return ''
   }
 
-  serializeValue(value: string): string {
-    return value
-  }
-
-  parseValue(ser_value: string): string {
-    return ser_value
-  }
-
   getValueField(ser_value: string): DataContainer {
     const type_msg = getDefaultTypeMsg()
     type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_VALUE
@@ -960,17 +952,22 @@ export class RosTypeType extends DataContainer<string> {
   }
 
   getSerializedDefault(): string {
+    let default_interface: string
     switch (this.interface_kind) {
       case RosTypeValues.ROS_TOPIC:
       case RosTypeValues.ROS_COMPONENT:
-        return 'example_interfaces/msg/Empty'
+        default_interface = 'example_interfaces/msg/Empty'
+        break
       case RosTypeValues.ROS_SERVICE:
-        return 'example_interfaces/srv/Trigger'
+        default_interface = 'example_interfaces/srv/Trigger'
+        break
       case RosTypeValues.ROS_ACTION:
-        return 'example_interfaces/action/Fibonacci'
+        default_interface = 'example_interfaces/action/Fibonacci'
+        break
       default:
         throw Error('Unknown ros type')
     }
+    return this.serializeValue(default_interface)
   }
 }
 
