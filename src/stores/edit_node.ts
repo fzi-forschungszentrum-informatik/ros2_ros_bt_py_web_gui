@@ -106,6 +106,7 @@ export const useEditNodeStore = defineStore('edit_node', () => {
     }
     selected_node.value = undefined
     reference_node.value = undefined
+    selected_node_tree_id.value = ''
     selected_node_id_pairs.value = []
     last_seletion_source.value = EditorSelectionSource.NONE
     return true

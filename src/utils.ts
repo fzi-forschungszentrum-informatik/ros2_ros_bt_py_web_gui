@@ -108,7 +108,6 @@ export function getDefaultTypeMsg(): NodeDataType {
     min_value: '',
     max_value: '',
     string_max_length: 0,
-    string_strict_length: false,
     serialized_value_options: [],
     reference_target: '',
     value_type_identifier: [],

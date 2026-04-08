@@ -72,15 +72,15 @@ if (initial_type !== undefined) {
         init_chosen_type = key
       }
     }
-  }
-  if (initial_type.type === 'float') {
+  } else if (initial_type.type === 'float') {
     for (const [key, [min, max]] of Object.entries(FLOAT_LIMITS)) {
       if (min.toString() === value.value!.min_value && max.toString() === value.value!.max_value) {
         init_chosen_type = key
       }
     }
+  } else {
+    init_chosen_type = initial_type.type
   }
-  init_chosen_type = initial_type.type
 }
 
 const chosen_type = ref<string>(init_chosen_type)
