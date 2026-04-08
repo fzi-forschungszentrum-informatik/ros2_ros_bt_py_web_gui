@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { BuiltinType, RosTypeType, type BuiltinOrRosType } from '@/types/data_classes'
 import TypeParamInner from './TypeParamInner.vue'
-import RosTypeParam from '../RosTypeParam.vue'
+import RosTypeParamInner from './RosTypeParamInner.vue'
 import { DataTypeValues, IDENTIFIER_KEY, MESSAGE_KEY, RosTypeValues } from '@/types/data_types'
 import { ref, watch } from 'vue'
 
@@ -77,5 +77,5 @@ function switchType(event: Event) {
     <label class="form-check-label">Is ROS Type</label>
   </div>
   <TypeParamInner v-if="!is_ros_type" v-model="value" :type="(type.inner_type as BuiltinType)" />
-  <RosTypeParam v-else v-model="ros_value" :type="(type.inner_type as RosTypeType)" />
+  <RosTypeParamInner v-else v-model="ros_value" :type="(type.inner_type as RosTypeType)" />
 </template>
