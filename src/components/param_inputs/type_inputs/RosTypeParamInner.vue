@@ -34,13 +34,21 @@ import type { RosTypeType } from '@/types/data_classes'
 import SearchableInput from '../../SearchableInput.vue'
 import Fuse from 'fuse.js'
 import { RosTypeValues } from '@/types/data_types'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 const props = defineProps<{
   type: RosTypeType
 }>()
 
 const value = defineModel<string>()
+
+// Only pass along valid values
+const inner_value = ref<string>(value.value || '')
+watch(inner_value, (val) => {
+  if (props.type.validate(val) === '') {
+    value.value = val
+  }
+})
 
 const message_store = useMessageStore()
 
@@ -77,7 +85,7 @@ const search_fuse = computed<Fuse<string>>(() => {
 
 <template>
   <SearchableInput
-    v-model="value"
+    v-model="inner_value"
     :item_list="item_list"
     :search_fuse="search_fuse"
     :validate="true"

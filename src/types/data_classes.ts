@@ -775,7 +775,6 @@ export class RosValueType extends DataContainer<Record<string, any>> {
       const field_value = JSON.parse(field_type.serializeValue(value[field.key]))
       ser_fields[field.key] = field_value
     }
-    console.log(ser_fields)
     return JSON.stringify(ser_fields)
   }
 
@@ -792,7 +791,6 @@ export class RosValueType extends DataContainer<Record<string, any>> {
       const field_value = field_type.parseValue(JSON.stringify(dict_value[field.key]))
       value[field.key] = field_value
     }
-    console.log(value)
     return value
   }
 
@@ -808,7 +806,6 @@ export class RosValueType extends DataContainer<Record<string, any>> {
       const ser_field_value = field_type.getSerializedDefault()
       default_fields[field.key] = field_type.parseValue(ser_field_value)
     }
-    console.log(default_fields)
     return this.serializeValue(default_fields)
   }
 }

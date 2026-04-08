@@ -50,9 +50,7 @@ const value = defineModel<string>({
 //   because the serialization step for the outer model breaks deep reactivity
 const inner_value = ref<string>(value.value || '')
 watch(inner_value, (val) => {
-  if (props.type.validate(val) === '') {
-    value.value = val
-  }
+  value.value = val
 })
 </script>
 
