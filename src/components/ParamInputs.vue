@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import type { NodeData } from '@/types/editor_types'
 import ParamTypeMultiplexer from './param_inputs/ParamTypeMultiplexer.vue'
@@ -47,6 +47,22 @@ const edit_node_store = useEditNodeStore()
 
 const param = computed<NodeData | undefined>(() =>
   edit_node_store.new_node_inputs.find((x) => x.key === props.data_key)
+)
+watch(
+  () => {
+    if (param.value === undefined) {
+      return undefined
+    }
+    return param.value.type.is_static
+  },
+  (is_static: boolean | undefined) => {
+    if (param.value === undefined) {
+      return
+    }
+    if (is_static && param.value.serialized_value === '') {
+      param.value.serialized_value = param.value.type.getSerializedDefault()
+    }
+  }
 )
 
 const display_key = computed<string>(() => {
