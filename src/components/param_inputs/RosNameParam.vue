@@ -37,7 +37,6 @@ import Fuse from 'fuse.js'
 import { computed } from 'vue'
 import SearchableInput from '../SearchableInput.vue'
 import { useEditNodeStore } from '@/stores/edit_node'
-import type { NodeData } from '@/types/editor_types'
 
 const props = defineProps<{
   type: RosNameType
@@ -55,28 +54,14 @@ const value = defineModel<string>({
 const edit_node_store = useEditNodeStore()
 const message_store = useMessageStore()
 
-const related_type_field = computed<NodeData | undefined>(() => {
-  if (props.type.interface_id === 0) {
-    return undefined
-  }
-  return edit_node_store.new_node_inputs.find((input) => {
-    if (!(input.type instanceof RosTypeType)) {
-      return false
-    }
-    return input.type.interface_id === props.type.interface_id
-  })
-})
-
 const channel_value = computed<Channel>({
   get() {
     return { name: value.value || '', type: '' }
   },
   set(val) {
     value.value = val.name
-    if (related_type_field.value !== undefined && val.type !== '') {
-      related_type_field.value.serialized_value = related_type_field.value.type.serializeValue(
-        val.type
-      )
+    if (val.type !== '') {
+      setTypeValue(val.type)
     }
   }
 })
@@ -106,6 +91,22 @@ const search_fuse = computed<Fuse<Channel>>(() => {
       return new Fuse<Channel>([])
   }
 })
+
+function setTypeValue(value: string) {
+  if (props.type.interface_id === 0) {
+    return
+  }
+  const type_field = edit_node_store.new_node_inputs.find((input) => {
+    if (!(input.type instanceof RosTypeType)) {
+      return false
+    }
+    return input.type.interface_id === props.type.interface_id
+  })
+  if (type_field === undefined) {
+    return
+  }
+  type_field.serialized_value = type_field.type.serializeValue(value)
+}
 
 function renderChannel(channel: Channel) {
   return `${channel.name}<br /><small>${channel.type}</small>`

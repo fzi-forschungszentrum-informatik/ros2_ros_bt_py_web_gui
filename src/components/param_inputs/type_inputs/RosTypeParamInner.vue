@@ -41,12 +41,24 @@ const props = defineProps<{
 }>()
 
 const value = defineModel<string>()
+watch(value, (val) => {
+  if (val === undefined) {
+    return
+  }
+  // Only update inner value on actual changes. Prevents update loop.
+  if (inner_value.value !== val) {
+    inner_value.value = val
+  }
+})
 
 // Only pass along valid values
 const inner_value = ref<string>(value.value || '')
 watch(inner_value, (val) => {
   if (props.type.validate(val) === '') {
-    value.value = val
+    // Only update outer value on actual changes. Prevents update loop.
+    if (value.value !== val) {
+      value.value = val
+    }
   }
 })
 

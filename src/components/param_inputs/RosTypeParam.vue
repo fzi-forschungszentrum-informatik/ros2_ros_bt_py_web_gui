@@ -45,12 +45,24 @@ const value = defineModel<string>({
     return props.type.serializeValue(value)
   }
 })
+watch(value, (val) => {
+  if (val === undefined) {
+    return
+  }
+  // Only update inner value on actual changes. Prevents update loop.
+  if (inner_value.value !== val) {
+    inner_value.value = val
+  }
+})
 
 // We can't directly pass the value through (by doing `v-model="value"`)
 //   because the serialization step for the outer model breaks deep reactivity
 const inner_value = ref<string>(value.value || '')
 watch(inner_value, (val) => {
-  value.value = val
+  // Only update outer value on actual changes. Prevents update loop.
+  if (value.value !== val) {
+    value.value = val
+  }
 })
 </script>
 
