@@ -398,7 +398,7 @@ export class D3TreeDataDisplay {
       .text((d) => replaceNameIdParts(d.node.data.tree_ref, d.key))
     data_vertices
       .select('.' + data_vert_label_type_css_class)
-      .text((d) => '(type: ' + d.type.prettyprint() + ')')
+      .text((d) => '(type: ' + d.type.prettyprint(true) + ')')
 
     // Highlight terminals with duplicate display names
     const display_name_set = new Map<UUIDString, Set<string>>()

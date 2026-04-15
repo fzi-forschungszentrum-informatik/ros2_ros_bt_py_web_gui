@@ -64,13 +64,21 @@ export abstract class DataContainer<ValueType = any> {
 
   abstract isCompatible(other: DataContainer): boolean
 
-  abstract prettyprint(): string
+  abstract prettyprint(brief?: boolean): string
 
   abstract validate(value: any): string
 
-  abstract serializeValue(value: ValueType): string
+  abstract prepareSerialization(value: ValueType): any
 
-  abstract parseValue(ser_value: string): ValueType
+  serializeValue(value: ValueType): string {
+    return JSON.stringify(this.prepareSerialization(value))
+  }
+
+  abstract processParsedValue(value: any): ValueType
+
+  parseValue(ser_value: string): ValueType {
+    return this.processParsedValue(JSON.parse(ser_value))
+  }
 
   abstract getSerializedDefault(): string
 }
@@ -84,12 +92,12 @@ function isTypeContainer(cont: DataContainer): cont is TypeContainer {
 }
 
 abstract class BuiltinContainer<ValueType> extends DataContainer<ValueType> {
-  serializeValue(value: ValueType): string {
-    return JSON.stringify(value)
+  prepareSerialization(value: ValueType): any {
+    return value
   }
 
-  parseValue(ser_value: string): ValueType {
-    return JSON.parse(ser_value)
+  processParsedValue(value: any): ValueType {
+    return value
   }
 }
 
@@ -167,7 +175,23 @@ export class IntType extends BuiltinContainer<number> {
         return key
       }
     }
-    return `int(min=${this.min_value},max=${this.max_value})`
+    let lower = '',
+      upper = '',
+      out_str = 'int'
+    if (this.min_value !== INT_LIMITS.int64[0]) {
+      lower = `min=${this.min_value}`
+    }
+    if (this.max_value !== INT_LIMITS.uint64[1]) {
+      upper = `max=${this.max_value}`
+    }
+    if (lower !== '' && upper !== '') {
+      out_str += `(${lower},${upper})`
+    } else if (lower !== '') {
+      out_str += `(${lower})`
+    } else if (upper !== '') {
+      out_str += `(${upper})`
+    }
+    return out_str
   }
 
   validate(value: any): string {
@@ -229,7 +253,23 @@ export class FloatType extends BuiltinContainer<number> {
         return key
       }
     }
-    return `float(min=${this.min_value},max=${this.max_value})`
+    let lower = '',
+      upper = '',
+      out_str = 'float'
+    if (this.min_value !== FLOAT_LIMITS.float64[0]) {
+      lower = `min=${this.min_value}`
+    }
+    if (this.max_value !== FLOAT_LIMITS.float64[1]) {
+      upper = `max=${this.max_value}`
+    }
+    if (lower !== '' && upper !== '') {
+      out_str += `(${lower},${upper})`
+    } else if (lower !== '') {
+      out_str += `(${lower})`
+    } else if (upper !== '') {
+      out_str += `(${upper})`
+    }
+    return out_str
   }
 
   validate(value: any): string {
@@ -496,8 +536,8 @@ export class ListType extends BuiltinContainer<any[]> {
     return this.element_type.isCompatible(other.element_type)
   }
 
-  prettyprint(): string {
-    let prt_str = `list[${this.element_type.prettyprint()}]`
+  prettyprint(brief?: boolean): string {
+    let prt_str = `list[${this.element_type.prettyprint(brief)}]`
     if (this.max_length !== INT_FLOAT_MAX) {
       prt_str += `${this.strict_length ? '=' : '<'}=${this.max_length}`
     }
@@ -523,19 +563,18 @@ export class ListType extends BuiltinContainer<any[]> {
     return ''
   }
 
-  serializeValue(value: any[]): string {
+  prepareSerialization(value: any[]): any[] {
     const ser_list: any[] = []
     for (const elem of value) {
-      ser_list.push(JSON.parse(this.element_type.serializeValue(elem)))
+      ser_list.push(this.element_type.prepareSerialization(elem))
     }
-    return super.serializeValue(ser_list)
+    return ser_list
   }
 
-  parseValue(ser_value: string): any[] {
-    const value_list = super.parseValue(ser_value) as any[]
+  processParsedValue(ser_value: any[]): any[] {
     const value: any[] = []
-    for (const elem of value_list) {
-      value.push(this.element_type.parseValue(JSON.stringify(elem)))
+    for (const elem of ser_value) {
+      value.push(this.element_type.processParsedValue(elem))
     }
     return value
   }
@@ -588,8 +627,8 @@ export class DictType extends BuiltinContainer<Record<string, any>> {
     return this.element_type.isCompatible(other.element_type)
   }
 
-  prettyprint(): string {
-    let prt_str = `dict[${this.element_type.prettyprint()}]`
+  prettyprint(brief?: boolean): string {
+    let prt_str = `dict[${this.element_type.prettyprint(brief)}]`
     if (this.max_length !== INT_FLOAT_MAX) {
       prt_str += `${this.strict_length ? '=' : '<'}=${this.max_length}`
     }
@@ -615,19 +654,18 @@ export class DictType extends BuiltinContainer<Record<string, any>> {
     return ''
   }
 
-  serializeValue(value: Record<string, any>): string {
+  prepareSerialization(value: Record<string, any>): Record<string, any> {
     const ser_dict: Record<string, string> = {}
     for (const [k, v] of Object.entries(value)) {
-      ser_dict[k] = JSON.parse(this.element_type!.serializeValue(v))
+      ser_dict[k] = this.element_type.prepareSerialization(v)
     }
-    return super.serializeValue(ser_dict)
+    return ser_dict
   }
 
-  parseValue(ser_value: string): Record<string, any> {
-    const value_dict = super.parseValue(ser_value) as Record<string, string>
+  processParsedValue(ser_value: Record<string, any>): Record<string, any> {
     const value: Record<string, any> = {}
-    for (const [k, v] of Object.entries(value_dict)) {
-      value[k] = this.element_type.parseValue(JSON.stringify(v))
+    for (const [k, v] of Object.entries(ser_value)) {
+      value[k] = this.element_type.processParsedValue(v)
     }
     return value
   }
@@ -675,7 +713,7 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
   }
 
   prettyprint(): string {
-    return 'type'
+    return 'builtin type'
   }
 
   validate(value: any): string {
@@ -763,7 +801,7 @@ export class RosValueType extends DataContainer<Record<string, any>> {
     return ''
   }
 
-  serializeValue(value: Record<string, any>): string {
+  prepareSerialization(value: Record<string, any>): Record<string, any> {
     const message_store = useMessageStore()
     const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
     if (msg_info === undefined) {
@@ -772,23 +810,22 @@ export class RosValueType extends DataContainer<Record<string, any>> {
     const ser_fields: Record<string, string> = {}
     for (const field of msg_info.fields) {
       const field_type = getTypeFromMsg(field.type)
-      const field_value = JSON.parse(field_type.serializeValue(value[field.key]))
+      const field_value = field_type.prepareSerialization(value[field.key])
       ser_fields[field.key] = field_value
     }
-    return JSON.stringify(ser_fields)
+    return ser_fields
   }
 
-  parseValue(ser_value: string): Record<string, any> {
+  processParsedValue(ser_value: Record<string, any>): Record<string, any> {
     const message_store = useMessageStore()
     const msg_info = message_store.ros_topic_messages.find((msg) => msg.name === this.msg_type)
     if (msg_info === undefined) {
       throw Error(`Can't find information for message ${this.msg_type}`)
     }
-    const dict_value = JSON.parse(ser_value)
     const value: Record<string, any> = {}
     for (const field of msg_info.fields) {
       const field_type = getTypeFromMsg(field.type)
-      const field_value = field_type.parseValue(JSON.stringify(dict_value[field.key]))
+      const field_value = field_type.processParsedValue(ser_value[field.key])
       value[field.key] = field_value
     }
     return value
@@ -1031,12 +1068,12 @@ export class BuiltinOrRosType extends DataContainer<any> {
     return this.inner_type.validate(value)
   }
 
-  serializeValue(value: any): string {
-    return this.inner_type.serializeValue(value)
+  prepareSerialization(value: any): any {
+    return this.inner_type.prepareSerialization(value)
   }
 
-  parseValue(ser_value: string): any {
-    return this.inner_type.parseValue(ser_value)
+  processParsedValue(ser_value: any): any {
+    return this.inner_type.processParsedValue(ser_value)
   }
 
   getValueField(ser_value: string): DataContainer {
@@ -1063,10 +1100,13 @@ export abstract class ReferenceContainer extends DataContainer<any> {
     return type_msg
   }
 
-  prettyprint(): string {
+  prettyprint(brief?: boolean): string {
     const inner_type = this.getInnerType()
     if (inner_type === null) {
-      return `Value reference (target: ${this.reference})`
+      return `reference (${this.reference})`
+    }
+    if (brief) {
+      return inner_type.prettyprint(brief)
     }
     return inner_type.prettyprint() + ` ref(${this.reference})`
   }
@@ -1079,20 +1119,20 @@ export abstract class ReferenceContainer extends DataContainer<any> {
     return inner_type.validate(value)
   }
 
-  serializeValue(value: any): string {
+  prepareSerialization(value: any): any {
     const inner_type = this.getInnerType()
     if (inner_type === null) {
       throw Error('Reference has no valid target')
     }
-    return inner_type.serializeValue(value)
+    return inner_type.prepareSerialization(value)
   }
 
-  parseValue(value: any): string {
+  processParsedValue(value: any): any {
     const inner_type = this.getInnerType()
     if (inner_type === null) {
       throw Error('Reference has no valid target')
     }
-    return inner_type.parseValue(value)
+    return inner_type.processParsedValue(value)
   }
 
   getSerializedDefault(): string {
