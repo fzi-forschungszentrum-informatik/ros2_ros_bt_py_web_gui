@@ -224,19 +224,6 @@ export function typesCompatible(t1: DataEdgeTerminal, t2: DataEdgeTerminal) {
   return target_type.isCompatible(source_type)
 }
 
-export function getShortDoc(doc: string) {
-  if (!doc || doc == null || doc.length == 0) {
-    return 'No documentation provided'
-  } else {
-    const index = doc.indexOf('**Behavior Tree I/O keys**')
-    if (index < 0) {
-      return doc
-    } else {
-      return doc.substring(0, index).trim()
-    }
-  }
-}
-
 export enum NameConflictHandler {
   ASK = 'Ask before overwrite',
   OVERWRITE = 'Overwrite file',

@@ -28,7 +28,6 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  -->
 <script setup lang="ts">
-import { getShortDoc } from '@/utils'
 import { useEditorStore } from '@/stores/editor'
 import { useEditNodeStore } from '@/stores/edit_node'
 import ParamInputs from './ParamInputs.vue'
@@ -80,9 +79,7 @@ const show_description = ref<boolean>(false)
       </h4>
     </div>
     <div
-      v-if="
-        edit_node_store.reference_node && getShortDoc(edit_node_store.reference_node.doc) !== ''
-      "
+      v-if="edit_node_store.reference_node && edit_node_store.reference_node.doc !== ''"
       class="mb-3"
     >
       <div
@@ -97,7 +94,7 @@ const show_description = ref<boolean>(false)
         />
       </div>
       <div v-if="show_description" class="mx-2">
-        {{ getShortDoc(edit_node_store.reference_node.doc) }}
+        {{ edit_node_store.reference_node.doc }}
       </div>
     </div>
     <div class="mb-3">

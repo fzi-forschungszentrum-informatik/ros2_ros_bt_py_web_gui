@@ -33,7 +33,6 @@ import { computed, ref } from 'vue'
 import { useEditorStore } from '@/stores/editor'
 import IOTableEntry from './IOTableEntry.vue'
 import { useEditNodeStore } from '@/stores/edit_node'
-import { getShortDoc } from '@/utils'
 
 const props = defineProps<{
   node: DocumentedNode
@@ -117,7 +116,7 @@ function onClick() {
         </button>
       </div>-->
       <div class="list-group">
-        <div v-if="getShortDoc(node.doc) !== ''" class="list-group-item">
+        <div v-if="node.doc !== ''" class="list-group-item">
           <div class="d-flex w-100">
             <div class="fs-5">Description</div>
             <FontAwesomeIcon
@@ -128,7 +127,7 @@ function onClick() {
             />
           </div>
           <div v-if="show_description">
-            {{ getShortDoc(node.doc) }}
+            {{ node.doc }}
           </div>
         </div>
         <IOTableEntry
