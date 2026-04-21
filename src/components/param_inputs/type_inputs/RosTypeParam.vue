@@ -31,7 +31,7 @@
 <script setup lang="ts">
 import type { RosTypeType } from '@/types/data_classes'
 import { ref, watch } from 'vue'
-import RosTypeParamInner from './type_inputs/RosTypeParamInner.vue'
+import RosTypeParamInner from './RosTypeParamInner.vue'
 
 const props = defineProps<{
   type: RosTypeType

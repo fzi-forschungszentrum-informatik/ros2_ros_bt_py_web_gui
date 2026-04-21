@@ -126,6 +126,7 @@ export type Wiring = {
 export type WiringData = {
   wiring: Wiring
   serialized_data: string
-  serialized_type: string
-  serialized_expected_type: string
+  is_current: boolean
+  source_type: NodeDataType
+  target_type: NodeDataType
 }

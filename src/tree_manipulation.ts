@@ -279,8 +279,6 @@ export function addDataEdge(
     throw Error(`Given terminals aren't an input output combination: ${t1}, ${t2}`)
   }
 
-  console.log(source, target)
-
   // Supress notifications for all callbacks
   let local_notify: (args: object) => void
   if (send_notify) {

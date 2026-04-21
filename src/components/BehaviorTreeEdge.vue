@@ -35,7 +35,7 @@ import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services
 import { notify } from '@kyvg/vue3-notification'
 import { computed } from 'vue'
 import type { NodeStructure } from '@/types/types'
-import { rosToUuid, replaceNameIdParts } from '@/utils'
+import { rosToUuid, replaceNameIdParts, getTypeFromMsg } from '@/utils'
 import {
   findNodeInTreeList,
   findWiringInTreeList,
@@ -118,6 +118,30 @@ const edge_data = computed<WiringData | undefined>(() => {
   )
 })
 
+function printSourceType(): string {
+  if (edge_data.value === undefined) {
+    return ''
+  }
+  const source_type = getTypeFromMsg(edge_data.value.source_type)
+  return source_type.prettyprint()
+}
+
+function printTargetType(): string {
+  if (edge_data.value === undefined) {
+    return ''
+  }
+  const target_type = getTypeFromMsg(edge_data.value.target_type)
+  return target_type.prettyprint()
+}
+
+function printValue(): string {
+  if (edge_data.value === undefined) {
+    return ''
+  }
+  const source_type = getTypeFromMsg(edge_data.value.source_type)
+  return source_type.parseValue(edge_data.value.serialized_data)
+}
+
 function onClickDelete() {
   const edge = editor_store.selected_edge!
   ros_store.unwire_data_service.callService(
@@ -181,8 +205,8 @@ function selectTargetNode() {
         Delete Edge
       </button>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-3">
-      <div class="">
+    <div class="d-flex justify-content-between align-items-center mb-1">
+      <div>
         <button class="btn btn-outline-contrast" @click="() => selectSourceNode()">
           <span class="text-primary">{{ source_name }}</span
           ><br />
@@ -190,7 +214,7 @@ function selectTargetNode() {
         </button>
       </div>
       <hr class="flex-fill connector" />
-      <div class="">
+      <div>
         <button class="btn btn-outline-contrast" @click="() => selectTargetNode()">
           <span class="text-primary">{{ target_name }}</span
           ><br />
@@ -198,12 +222,17 @@ function selectTargetNode() {
         </button>
       </div>
     </div>
-    <div v-if="edge_data !== undefined" class="mx-auto text-center">
-      Value: {{ edge_data.serialized_data }}
-      <br />
-      of type: {{ edge_data.serialized_type }}
-      <br />
-      expected type: {{ edge_data.serialized_expected_type }}
+    <div v-if="edge_data !== undefined" class="d-flex justify-content-between mb-2">
+      <small class="text-start text-secondary">
+        {{ printSourceType() }}
+      </small>
+      <div class="text-center">
+        <div>{{ printValue() }}</div>
+        <div v-if="!edge_data.is_current" class="text-danger-emphasis">(overwritten)</div>
+      </div>
+      <small class="text-end text-secondary">
+        {{ printTargetType() }}
+      </small>
     </div>
   </div>
 </template>
