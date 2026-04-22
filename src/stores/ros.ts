@@ -57,10 +57,6 @@ import type {
   GetAvailableNodesRequest,
   GetAvailableNodesResponse
 } from '@/types/services/GetAvailableNodes'
-import type {
-  GetMessageFieldsRequest,
-  GetMessageFieldsResponse
-} from '@/types/services/GetMessageFields'
 import type { MorphNodeRequest, MorphNodeResponse } from '@/types/services/MorphNode'
 import type { WireNodeDataRequest, WireNodeDataResponse } from '@/types/services/WireNodeData'
 import type { RemoveNodeRequest, RemoveNodeResponse } from '@/types/services/RemoveNode'
@@ -281,16 +277,6 @@ export const useROSStore = defineStore(
         ros: ros.value,
         name: namespace.value + 'get_available_nodes',
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
-      })
-    )
-
-    const get_message_fields_service = shallowRef<
-      Service<GetMessageFieldsRequest, GetMessageFieldsResponse>
-    >(
-      new Service({
-        ros: ros.value,
-        name: namespace.value + 'get_message_fields',
-        serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
       })
     )
 
@@ -564,12 +550,6 @@ export const useROSStore = defineStore(
         serviceType: 'ros_bt_py_interfaces/srv/GetAvailableNodes'
       })
 
-      get_message_fields_service.value = new Service({
-        ros: ros.value,
-        name: namespace.value + 'get_message_fields',
-        serviceType: 'ros_bt_py_interfaces/srv/GetMessageFields'
-      })
-
       unwire_data_service.value = new Service({
         ros: ros.value,
         name: namespace.value + 'unwire_data',
@@ -720,7 +700,6 @@ export const useROSStore = defineStore(
       control_tree_execution_service,
       clear_tree_service,
       get_available_nodes_service,
-      get_message_fields_service,
       unwire_data_service,
       remove_node_service,
       morph_node_service,
