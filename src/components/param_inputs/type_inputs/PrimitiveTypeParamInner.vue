@@ -28,7 +28,7 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { BuiltinOrRosType, type BuiltinType } from '@/types/data_classes'
+import { GenericType } from '@/types/data_classes'
 import SearchableInput from '../../SearchableInput.vue'
 import Fuse from 'fuse.js'
 import { computed, ref, toRaw, watch } from 'vue'
@@ -41,10 +41,10 @@ import {
   RosTypeValues
 } from '@/types/data_types'
 import LengthOptions from './LengthOptions.vue'
-import SwitchTypeParamInner from './SwitchTypeParamInner.vue'
+import GenericTypeParamInner from './GenericTypeParamInner.vue'
 
 const props = defineProps<{
-  type: BuiltinType
+  type: GenericType
 }>()
 
 const value = defineModel<Record<string, any>>()
@@ -56,6 +56,9 @@ const type_list = computed<string[]>(() => {
     }
     if (x.type === 'float') {
       return Object.keys(FLOAT_LIMITS)
+    }
+    if (x.type === 'object') {
+      return []
     }
     return x.type
   })
@@ -128,15 +131,15 @@ const type_has_nested = computed<boolean>(() => {
   return Object.keys(value.value).includes(ELEMENT_KEY)
 })
 
-const nested_type = computed<BuiltinOrRosType>(() => {
+const nested_type = computed<GenericType>(() => {
   const type_msg = props.type.toTypeMsg()
-  type_msg.type_identifier = DataTypeValues.BUILTIN_OR_ROS_TYPE
+  type_msg.type_identifier = DataTypeValues.GENERIC_TYPE
   if (value.value![ELEMENT_KEY][IDENTIFIER_KEY] === DataTypeValues.ROS_INTERFACE_VALUE) {
     type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
   } else {
     type_msg.ros_interface_kind = RosTypeValues.ROS_UNDEFINED
   }
-  return new BuiltinOrRosType(type_msg)
+  return new GenericType(type_msg)
 })
 </script>
 
@@ -155,7 +158,7 @@ const nested_type = computed<BuiltinOrRosType>(() => {
     <LengthOptions v-if="type_has_length" v-model="value" />
     <div v-if="type_has_nested" class="nested">
       <div>Element type</div>
-      <SwitchTypeParamInner v-model="value[ELEMENT_KEY]" :type="nested_type" />
+      <GenericTypeParamInner v-model="value[ELEMENT_KEY]" :type="nested_type" />
     </div>
   </template>
 </template>

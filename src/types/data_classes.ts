@@ -680,12 +680,12 @@ export class DictType extends BuiltinContainer<Record<string, any>> {
   }
 }
 
-export class BuiltinType extends BuiltinContainer<Record<string, any>> {
+export class GenericType extends BuiltinContainer<Record<string, any>> {
   valid_types: TypeValueOption[]
 
   constructor(type_msg: NodeDataType) {
-    if (type_msg.type_identifier !== DataTypeValues.BUILTIN_TYPE) {
-      throw Error(`Type msg ${type_msg} has incorrect identifier for builtin`)
+    if (type_msg.type_identifier !== DataTypeValues.GENERIC_TYPE) {
+      throw Error(`Type msg ${type_msg} has incorrect identifier for generic type`)
     }
     super(type_msg)
     this.valid_types = type_msg.serialized_value_options.map((x) => JSON.parse(x))
@@ -693,13 +693,13 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
 
   toTypeMsg(): NodeDataType {
     const type_msg = super.toTypeMsg()
-    type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
+    type_msg.type_identifier = DataTypeValues.GENERIC_TYPE
     type_msg.serialized_value_options = this.valid_types.map((x) => JSON.stringify(x))
     return type_msg
   }
 
   isCompatible(other: DataContainer): boolean {
-    if (!(other instanceof BuiltinType)) {
+    if (!(other instanceof GenericType)) {
       return false
     }
     if (this.valid_types.length > 0) {
@@ -713,7 +713,7 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
   }
 
   prettyprint(): string {
-    return 'builtin type'
+    return 'generic type'
   }
 
   validate(value: any): string {
@@ -725,7 +725,7 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
 
   static setTypeMsgFields(value: Record<string, any>): NodeDataType {
     if (Object.keys(value).includes(ELEMENT_KEY)) {
-      const inner_type_msg = BuiltinType.setTypeMsgFields(value[ELEMENT_KEY])
+      const inner_type_msg = GenericType.setTypeMsgFields(value[ELEMENT_KEY])
       return pushToTypeMessage(
         value[IDENTIFIER_KEY],
         value.max_length,
@@ -747,7 +747,7 @@ export class BuiltinType extends BuiltinContainer<Record<string, any>> {
   }
 
   getValueField(ser_value: string): DataContainer {
-    return getTypeFromMsg(BuiltinType.setTypeMsgFields(this.parseValue(ser_value)))
+    return getTypeFromMsg(GenericType.setTypeMsgFields(this.parseValue(ser_value)))
   }
 
   getSerializedDefault(): string {
@@ -1002,86 +1002,6 @@ export class RosTypeType extends BuiltinContainer<string> {
         throw Error('Unknown ros type')
     }
     return this.serializeValue(default_interface)
-  }
-}
-
-export class BuiltinOrRosType extends DataContainer<any> {
-  inner_type: BuiltinType | RosTypeType
-  valid_types: TypeValueOption[]
-
-  constructor(type_msg: NodeDataType) {
-    if (type_msg.type_identifier !== DataTypeValues.BUILTIN_OR_ROS_TYPE) {
-      throw Error(`Type msg ${type_msg} has incorrect identifier for builtin`)
-    }
-    super(type_msg)
-    this.valid_types = type_msg.serialized_value_options.map((x) => JSON.parse(x))
-    const inner_type_msg = getDefaultTypeMsg()
-    inner_type_msg.allow_dynamic = type_msg.allow_dynamic
-    inner_type_msg.allow_static = type_msg.allow_static
-    inner_type_msg.is_static = type_msg.is_static
-    if (type_msg.ros_interface_kind === RosTypeValues.ROS_UNDEFINED) {
-      inner_type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
-      inner_type_msg.serialized_value_options = type_msg.serialized_value_options
-      this.inner_type = new BuiltinType(inner_type_msg)
-    } else {
-      inner_type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
-      inner_type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
-      this.inner_type = new RosTypeType(inner_type_msg)
-    }
-  }
-
-  setInnerType(type: RosTypeValues) {
-    const inner_type_msg = getDefaultTypeMsg()
-    inner_type_msg.allow_dynamic = this.allow_dynamic
-    inner_type_msg.allow_static = this.allow_static
-    inner_type_msg.is_static = this.is_static
-    if (type === RosTypeValues.ROS_UNDEFINED) {
-      inner_type_msg.type_identifier = DataTypeValues.BUILTIN_TYPE
-      inner_type_msg.serialized_value_options = this.valid_types.map((x) => JSON.stringify(x))
-      this.inner_type = new BuiltinType(inner_type_msg)
-    } else {
-      inner_type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
-      inner_type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
-      this.inner_type = new RosTypeType(inner_type_msg)
-    }
-  }
-
-  toTypeMsg(): NodeDataType {
-    const type_msg = this.inner_type.toTypeMsg()
-    type_msg.type_identifier = DataTypeValues.BUILTIN_OR_ROS_TYPE
-    type_msg.serialized_value_options = this.valid_types.map((x) => JSON.stringify(x))
-    return type_msg
-  }
-
-  isCompatible(other: DataContainer): boolean {
-    if (!(other instanceof BuiltinOrRosType)) {
-      return false
-    }
-    return this.inner_type.isCompatible(other.inner_type)
-  }
-
-  prettyprint(): string {
-    return this.inner_type.prettyprint()
-  }
-
-  validate(value: any): string {
-    return this.inner_type.validate(value)
-  }
-
-  prepareSerialization(value: any): any {
-    return this.inner_type.prepareSerialization(value)
-  }
-
-  processParsedValue(ser_value: any): any {
-    return this.inner_type.processParsedValue(ser_value)
-  }
-
-  getValueField(ser_value: string): DataContainer {
-    return this.inner_type.getValueField(ser_value)
-  }
-
-  getSerializedDefault(): string {
-    return this.inner_type.getSerializedDefault()
   }
 }
 

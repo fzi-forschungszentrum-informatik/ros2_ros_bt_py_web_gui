@@ -30,11 +30,10 @@
 <script setup lang="ts">
 import {
   BoolType,
-  BuiltinOrRosType,
-  BuiltinType,
   BytesType,
   DictType,
   FloatType,
+  GenericType,
   IntType,
   ListType,
   PathType,
@@ -54,8 +53,7 @@ import FloatParam from './FloatParam.vue'
 import StringParam from './StringParam.vue'
 import FilePathParam from './FilePathParam.vue'
 import BytesParam from './BytesParam.vue'
-import TypeParam from './type_inputs/TypeParam.vue'
-import SwitchTypeParam from './type_inputs/SwitchTypeParam.vue'
+import GenericTypeParam from './type_inputs/GenericTypeParam.vue'
 import ReferenceParam from './ReferenceParam.vue'
 import ListParam from './ListParam.vue'
 import DictParam from './DictParam.vue'
@@ -95,9 +93,6 @@ const param_component = computed<Component | undefined>(() => {
   if (type instanceof DictType) {
     return DictParam
   }
-  if (type instanceof BuiltinType) {
-    return TypeParam
-  }
   if (type instanceof RosValueType) {
     return RosValueParam
   }
@@ -107,8 +102,8 @@ const param_component = computed<Component | undefined>(() => {
   if (type instanceof RosNameType) {
     return RosNameParam
   }
-  if (type instanceof BuiltinOrRosType) {
-    return SwitchTypeParam
+  if (type instanceof GenericType) {
+    return GenericTypeParam
   }
   if (
     type instanceof ReferenceType ||

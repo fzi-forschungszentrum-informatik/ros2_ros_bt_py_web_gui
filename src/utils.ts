@@ -35,11 +35,10 @@ import { DataTypeValues, RosTypeValues, type NodeDataType, type Wiring } from '.
 import { IOKind, type DataEdgeTerminal, type NodeData } from './types/editor_types'
 import {
   BoolType,
-  BuiltinOrRosType,
-  BuiltinType,
   BytesType,
   DictType,
   FloatType,
+  GenericType,
   IntType,
   ListType,
   PathType,
@@ -77,16 +76,14 @@ export function getTypeFromMsg(type_msg: NodeDataType): DataContainer {
       return new ListType(type_msg)
     case DataTypeValues.DICT_TYPE:
       return new DictType(type_msg)
-    case DataTypeValues.BUILTIN_TYPE:
-      return new BuiltinType(type_msg)
+    case DataTypeValues.GENERIC_TYPE:
+      return new GenericType(type_msg)
     case DataTypeValues.ROS_INTERFACE_VALUE:
       return new RosValueType(type_msg)
     case DataTypeValues.ROS_INTERFACE_NAME:
       return new RosNameType(type_msg)
     case DataTypeValues.ROS_INTERFACE_TYPE:
       return new RosTypeType(type_msg)
-    case DataTypeValues.BUILTIN_OR_ROS_TYPE:
-      return new BuiltinOrRosType(type_msg)
     case DataTypeValues.REFERENCE_TYPE:
       return new ReferenceType(type_msg)
     case DataTypeValues.REFERENCE_LIST_TYPE:

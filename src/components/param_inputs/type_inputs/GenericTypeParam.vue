@@ -1,5 +1,5 @@
 <!--
- *  Copyright 2024-2026 FZI Forschungszentrum Informatik
+ *  Copyright 2026 FZI Forschungszentrum Informatik
  *
  *  Redistribution and use in source and binary forms, with or without
  *  modification, are permitted provided that the following conditions are met:
@@ -26,14 +26,14 @@
  *  CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
- -->
+-->
 <script setup lang="ts">
-import type { BuiltinType } from '@/types/data_classes'
+import { GenericType } from '@/types/data_classes'
 import { ref, watch } from 'vue'
-import TypeParamInner from './TypeParamInner.vue'
+import GenericTypeParamInner from './GenericTypeParamInner.vue'
 
 const props = defineProps<{
-  type: BuiltinType
+  type: GenericType
 }>()
 
 const value = defineModel<string, never, Record<string, any>, Record<string, any>>({
@@ -58,5 +58,5 @@ watch(
 </script>
 
 <template>
-  <TypeParamInner v-model="inner_value" :type="type" />
+  <GenericTypeParamInner v-model="inner_value" :type="type" />
 </template>

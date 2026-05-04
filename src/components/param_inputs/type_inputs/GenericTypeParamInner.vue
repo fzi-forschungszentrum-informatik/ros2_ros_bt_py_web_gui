@@ -28,17 +28,23 @@
  *  POSSIBILITY OF SUCH DAMAGE.
 -->
 <script setup lang="ts">
-import { BuiltinType, RosTypeType, type BuiltinOrRosType } from '@/types/data_classes'
-import TypeParamInner from './TypeParamInner.vue'
+import { GenericType, RosTypeType } from '@/types/data_classes'
+import PrimitiveTypeParamInner from './PrimitiveTypeParamInner.vue'
 import RosTypeParamInner from './RosTypeParamInner.vue'
 import { DataTypeValues, IDENTIFIER_KEY, MESSAGE_KEY, RosTypeValues } from '@/types/data_types'
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { getDefaultTypeMsg } from '@/utils'
 
 const props = defineProps<{
-  type: BuiltinOrRosType
+  type: GenericType
 }>()
 
 const value = defineModel<Record<string, any>>()
+
+const ros_type_msg = getDefaultTypeMsg()
+ros_type_msg.type_identifier = DataTypeValues.ROS_INTERFACE_TYPE
+ros_type_msg.ros_interface_kind = RosTypeValues.ROS_TOPIC
+const ros_topic_type = new RosTypeType(ros_type_msg)
 
 let init_ros_value: string = 'example_interfaces/msg/Empty'
 if (value.value![MESSAGE_KEY] !== undefined) {
@@ -52,30 +58,27 @@ watch(ros_value, (val) => {
   value.value[MESSAGE_KEY] = val
 })
 
-const is_ros_type = ref<boolean>(props.type.inner_type instanceof RosTypeType)
+const allows_ros_values = computed<boolean>(() => {
+  return props.type.valid_types.find((v) => v.type === 'object') !== undefined
+})
+
+const is_ros_type = ref<boolean>(
+  value.value![IDENTIFIER_KEY] === DataTypeValues.ROS_INTERFACE_VALUE
+)
 watch(is_ros_type, (is_ros) => {
   if (is_ros) {
-    const val_dict: Record<string, any> = {}
-    val_dict[IDENTIFIER_KEY] = DataTypeValues.ROS_INTERFACE_VALUE
-    val_dict[MESSAGE_KEY] = ros_value.value
-    value.value = val_dict
+    value.value = props.type.valid_types.find((v) => v.type === 'object')!.value
   } else {
     value.value = props.type.valid_types[0].value
   }
 })
-
-function switchType(event: Event) {
-  const target = event.target as HTMLInputElement
-  is_ros_type.value = target.checked
-  props.type.setInnerType(target.checked ? RosTypeValues.ROS_TOPIC : RosTypeValues.ROS_UNDEFINED)
-}
 </script>
 
 <template>
-  <div class="form-check form-switch">
-    <input type="checkbox" class="form-check-input" @change="switchType" />
+  <div v-if="allows_ros_values" class="form-check form-switch">
+    <input v-model="is_ros_type" type="checkbox" class="form-check-input" />
     <label class="form-check-label">Is ROS Type</label>
   </div>
-  <TypeParamInner v-if="!is_ros_type" v-model="value" :type="(type.inner_type as BuiltinType)" />
-  <RosTypeParamInner v-else v-model="ros_value" :type="(type.inner_type as RosTypeType)" />
+  <PrimitiveTypeParamInner v-if="!is_ros_type" v-model="value" :type="type" />
+  <RosTypeParamInner v-else v-model="ros_value" :type="ros_topic_type" />
 </template>
