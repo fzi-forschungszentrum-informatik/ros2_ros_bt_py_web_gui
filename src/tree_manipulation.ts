@@ -46,7 +46,6 @@ export function buildDefaultNodeMessage(node: DocumentedNode): NodeStructure {
     name: node.node_class,
     module: node.module,
     node_class: node.node_class,
-    version: '',
     max_children: 0,
     child_ids: [],
     inputs: node.inputs,

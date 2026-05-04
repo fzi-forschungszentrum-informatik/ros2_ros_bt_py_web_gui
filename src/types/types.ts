@@ -44,7 +44,6 @@ export type NodeStructure = {
 
   module: string
   node_class: string
-  version: string
 
   max_children: number
   child_ids: UUIDMsg[]
@@ -58,7 +57,6 @@ export type NodeStructure = {
 export type DocumentedNode = {
   module: string
   node_class: string
-  version: string
 
   max_children: number
 

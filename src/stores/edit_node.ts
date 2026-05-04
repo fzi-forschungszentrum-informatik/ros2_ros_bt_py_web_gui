@@ -296,7 +296,6 @@ export const useEditNodeStore = defineStore('edit_node', () => {
       name: new_node_name.value,
       module: new_node_module.value,
       node_class: new_node_class.value,
-      version: '',
       max_children: 0,
       child_ids: [],
       inputs: new_node_inputs.value.map((input) => {
