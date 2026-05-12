@@ -277,7 +277,7 @@ function layoutText(element: SVGGElement, data: d3.HierarchyNode<BTEditorNode>):
     const tspan = name_elem.append('tspan')
     tspan.attr('x', 0)
     if (current_index > 0) {
-      tspan.attr('dy', node_name_height)
+      tspan.attr('dx', node_padding).attr('dy', node_name_height)
     }
 
     // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0
@@ -324,7 +324,7 @@ function layoutText(element: SVGGElement, data: d3.HierarchyNode<BTEditorNode>):
     const tspan = class_elem.append('tspan')
     tspan.attr('x', 0)
     if (current_index > 0) {
-      tspan.attr('dy', node_class_height)
+      tspan.attr('dx', node_padding).attr('dy', node_class_height)
     }
 
     // Since this predicate is guaranteed to hold at some point, next_idx is always >= 0

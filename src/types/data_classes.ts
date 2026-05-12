@@ -373,6 +373,7 @@ export class PathType extends BuiltinContainer<string> {
 
   toTypeMsg(): NodeDataType {
     const type_msg = super.toTypeMsg()
+    type_msg.type_identifier = DataTypeValues.PATH_TYPE
     type_msg.string_max_length = this.max_length
     type_msg.serialized_value_options = this.valid_values
     return type_msg
@@ -964,12 +965,16 @@ export class RosTypeType extends BuiltinContainer<string> {
     switch (this.interface_kind) {
       case RosTypeValues.ROS_TOPIC:
         type_list = message_store.ros_topic_messages.map((x) => x.name)
+        break
       case RosTypeValues.ROS_SERVICE:
         type_list = message_store.ros_service_messages
+        break
       case RosTypeValues.ROS_ACTION:
         type_list = message_store.ros_action_messages
+        break
       case RosTypeValues.ROS_COMPONENT:
         type_list = message_store.ros_all_messages
+        break
     }
     if (!type_list.includes(value)) {
       return `Value ${value} is not a valid type`

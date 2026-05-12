@@ -301,7 +301,7 @@ export function addDataEdge(
             }
           } as Wiring
         ],
-        ignore_failure: false //TODO what does this do?
+        ignore_failure: false
       } as WireNodeDataRequest,
       (response: WireNodeDataResponse) => {
         const source_name = source.node.data.name
