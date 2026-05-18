@@ -18,5 +18,5 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ matrix.bun-version }}
-      - run: bun install --frozen-lockfile --production
+      - run: bun install --frozen-lockfile
       - run: bun run build
