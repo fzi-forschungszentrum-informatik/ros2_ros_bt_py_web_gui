@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Fix issues in the github build file. by @Oberacda
 - Change bun versions. by @Oberacda
 - Adapt github workflows. by @Oberacda
 - Switch to bun for building an packaging. by @Oberacda
