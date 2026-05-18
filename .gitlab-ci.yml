@@ -1,4 +1,4 @@
-image: node:18
+image: oven/bun:1
 
 stages:
   - build
@@ -13,10 +13,10 @@ build:
       - .npmrc
     policy: push
   script:
-    - yarn install
-    - yarn lint
-    - yarn test
-    - yarn build
+    - bun install --frozen-lockfile --production
+    - bun lint
+    - bun test
+    - bun run build
   artifacts:
     expire_in: 1 week
     paths:
