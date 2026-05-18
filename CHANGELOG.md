@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+- Switch to bun for building an packaging. by @Oberacda
 - Enable nested tree display by @Doomse in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
 
 
