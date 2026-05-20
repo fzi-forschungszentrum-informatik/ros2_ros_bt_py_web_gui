@@ -5,31 +5,31 @@ Vue3 implementation of the `ros_bt_py` web gui.
 ## Project Setup
 
 ```sh
-npm install
+bun install
 ```
 
 ### Compile and Hot-Reload for Development
 
 ```sh
-npm run dev
+bun run dev
 ```
 
 ### Type-Check, Compile and Minify for Production
 
 ```sh
-npm run build
+bun run build
 ```
 
 ### Lint with [ESLint](https://eslint.org/)
 
 ```sh
-npm run lint
+bun lint
 ```
 
 ### Format with [Prettier](https://prettier.io/)
 
 ```sh
-npm run format
+bun run format
 ```
 
 ## Development Setup

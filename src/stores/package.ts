@@ -47,7 +47,7 @@ export const usePackageStore = defineStore('packages', () => {
   }
 
   const packages = shallowRef<Package[]>([])
-  const packages_fuse = shallowRef<Fuse<Package>>(new Fuse([], packages_fuse_options))
+  const packages_fuse = shallowRef<Fuse<Package>>(new Fuse<Package>([], packages_fuse_options))
   const packages_available = ref<boolean>(false)
 
   function arePackagesAvailable(available: boolean) {

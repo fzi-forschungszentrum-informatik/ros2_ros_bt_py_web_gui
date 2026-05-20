@@ -12,20 +12,14 @@ jobs:
   pre-commit:
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        node-version: [18.x, 20.x, 22.x, 23.x]
-        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v4
+      - name: Use Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-      - run: npm install
-      - run: npm install -g eslint@9.39.1
+          bun-version: latest
+      - run: bun install  --frozen-lockfile
+      - run: bun add -g eslint@9.39.1
       - name: Install pre-commit
         run: |
           sudo apt-get update

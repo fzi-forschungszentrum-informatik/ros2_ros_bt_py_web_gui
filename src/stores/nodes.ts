@@ -53,7 +53,9 @@ export const useNodesStore = defineStore('nodes', () => {
     useExtendedSearch: true
   }
   const nodes = shallowRef<DocumentedNode[]>([])
-  const nodes_fuse = shallowRef<Fuse<DocumentedNode>>(new Fuse([], nodes_fuse_options))
+  const nodes_fuse = shallowRef<Fuse<DocumentedNode>>(
+    new Fuse<DocumentedNode>([], nodes_fuse_options)
+  )
 
   const filtered_nodes = shallowRef<DocumentedNode[]>([])
 
