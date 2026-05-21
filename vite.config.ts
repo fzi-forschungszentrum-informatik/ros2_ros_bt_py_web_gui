@@ -73,5 +73,13 @@ export default defineConfig({
     outputFile: {
       junit: './test-report.xml'
     }
+  },
+  css: {
+    preprocessorOptions: {
+      scss: {
+        api: 'modern-compiler',
+        silenceDeprecations: ['import', 'color-functions', 'global-builtin', 'if-function']
+      }
+    }
   }
 })

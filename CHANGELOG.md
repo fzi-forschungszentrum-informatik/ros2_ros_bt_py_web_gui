@@ -5,18 +5,47 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [8.0.0] - 2026-05-21
+
+### Added
+- Add reference list and dict types
+- Add ros name param
+- Add handling for ros messages
+- Add handling for ros types
+- Add dict and list json inputs
 
 ### Changed
+- Merge branch 'main' into node-data-rework
 - Update readme. by @Oberacda
 - Fix issues in the github build file. by @Oberacda
 - Change bun versions. by @Oberacda
 - Adapt github workflows. by @Oberacda
 - Switch to bun for building an packaging. by @Oberacda
+- Minor fixes
+- Simplify handling of generic type fields
+- Update WiringData display
+- Fix ros type updates through name field
+- Update data serialization
+- Set default value if input is switched to static
+- Fix ros type validation
+- Fix ros type serialization
+- Update data value serialization
+- Fix node update handling
+- Update type input handling
+- Update builtin type handling
+- Fix tree display and wiring
+- Fix type param handling
+- Handle all simple inputs (no iterables no ros types)
+- Update to new data types, no inputs no ros types
 - Enable nested tree display by @Doomse in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
 
 ### Removed
 - Remove linting from build step. by @Oberacda
+- Remove node versioning
+- Removed unused services
+- Remove getShortDoc utility, IO is no longer included in docstring
+- Remove blank type, improve validation
+- Remove strict length strings
 
 
 ## [7.1.0] - 2026-03-04
@@ -436,7 +465,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @Doomse made their first contribution
 
-[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.1.0..HEAD
+[8.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.1.0..8.0.0
 [7.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.1..7.1.0
 [7.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.0..7.0.1
 [7.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/6.0.2..7.0.0
