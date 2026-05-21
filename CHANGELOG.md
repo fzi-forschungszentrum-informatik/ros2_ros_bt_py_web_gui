@@ -8,44 +8,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [8.0.0] - 2026-05-21
 
 ### Added
-- Add reference list and dict types
-- Add ros name param
-- Add handling for ros messages
-- Add handling for ros types
-- Add dict and list json inputs
+- Add reference list and dict types by @Doomse
+- Add ros name param by @Doomse
+- Add handling for ros messages by @Doomse
+- Add handling for ros types by @Doomse
+- Add dict and list json inputs by @Doomse
 
 ### Changed
-- Merge branch 'main' into node-data-rework
+- Bump to version 8.0.0. by @Oberacda
+- Merge branch 'main' into node-data-rework by @Oberacda
 - Update readme. by @Oberacda
 - Fix issues in the github build file. by @Oberacda
 - Change bun versions. by @Oberacda
 - Adapt github workflows. by @Oberacda
 - Switch to bun for building an packaging. by @Oberacda
-- Minor fixes
-- Simplify handling of generic type fields
-- Update WiringData display
-- Fix ros type updates through name field
-- Update data serialization
-- Set default value if input is switched to static
-- Fix ros type validation
-- Fix ros type serialization
-- Update data value serialization
-- Fix node update handling
-- Update type input handling
-- Update builtin type handling
-- Fix tree display and wiring
-- Fix type param handling
-- Handle all simple inputs (no iterables no ros types)
-- Update to new data types, no inputs no ros types
+- Minor fixes by @Doomse
+- Simplify handling of generic type fields by @Doomse
+- Update WiringData display by @Doomse
+- Fix ros type updates through name field by @Doomse
+- Update data serialization by @Doomse
+- Set default value if input is switched to static by @Doomse
+- Fix ros type validation by @Doomse
+- Fix ros type serialization by @Doomse
+- Update data value serialization by @Doomse
+- Fix node update handling by @Doomse
+- Update type input handling by @Doomse
+- Update builtin type handling by @Doomse
+- Fix tree display and wiring by @Doomse
+- Fix type param handling by @Doomse
+- Handle all simple inputs (no iterables no ros types) by @Doomse
+- Update to new data types, no inputs no ros types by @Doomse
 - Enable nested tree display by @Doomse in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
 
 ### Removed
 - Remove linting from build step. by @Oberacda
-- Remove node versioning
-- Removed unused services
-- Remove getShortDoc utility, IO is no longer included in docstring
-- Remove blank type, improve validation
-- Remove strict length strings
+- Remove node versioning by @Doomse
+- Removed unused services by @Doomse
+- Remove getShortDoc utility, IO is no longer included in docstring by @Doomse
+- Remove blank type, improve validation by @Doomse
+- Remove strict length strings by @Doomse
 
 
 ## [7.1.0] - 2026-03-04
