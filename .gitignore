@@ -28,3 +28,4 @@ coverage
 *.sw?
 .vscode/
 test-report.xml
+.codegraph/
