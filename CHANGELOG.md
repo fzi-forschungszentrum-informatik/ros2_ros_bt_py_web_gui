@@ -5,14 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [8.0.1] - 2026-08-06
+
+### Changed
+- Add codegraph to gitignore. by @Oberacda
+
+### Fixed
+- Handle slow ROS service calls by @Oberacda
+
+
 ## [8.0.0] - 2026-05-21
 
 ### Added
-- Add reference list and dict types by @Doomse
-- Add ros name param by @Doomse
-- Add handling for ros messages by @Doomse
-- Add handling for ros types by @Doomse
-- Add dict and list json inputs by @Doomse
+- Add reference list and dict types
+- Add ros name param
+- Add handling for ros messages
+- Add handling for ros types
+- Add dict and list json inputs
 
 ### Changed
 - Bump to version 8.0.0. by @Oberacda
@@ -22,31 +31,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Change bun versions. by @Oberacda
 - Adapt github workflows. by @Oberacda
 - Switch to bun for building an packaging. by @Oberacda
-- Minor fixes by @Doomse
-- Simplify handling of generic type fields by @Doomse
-- Update WiringData display by @Doomse
-- Fix ros type updates through name field by @Doomse
-- Update data serialization by @Doomse
-- Set default value if input is switched to static by @Doomse
-- Fix ros type validation by @Doomse
-- Fix ros type serialization by @Doomse
-- Update data value serialization by @Doomse
-- Fix node update handling by @Doomse
-- Update type input handling by @Doomse
-- Update builtin type handling by @Doomse
-- Fix tree display and wiring by @Doomse
-- Fix type param handling by @Doomse
-- Handle all simple inputs (no iterables no ros types) by @Doomse
-- Update to new data types, no inputs no ros types by @Doomse
-- Enable nested tree display by @Doomse in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
+- Minor fixes
+- Simplify handling of generic type fields
+- Update WiringData display
+- Fix ros type updates through name field
+- Update data serialization
+- Set default value if input is switched to static
+- Fix ros type validation
+- Fix ros type serialization
+- Update data value serialization
+- Fix node update handling
+- Update type input handling
+- Update builtin type handling
+- Fix tree display and wiring
+- Fix type param handling
+- Handle all simple inputs (no iterables no ros types)
+- Update to new data types, no inputs no ros types
+- Enable nested tree display in [#48](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/48)
 
 ### Removed
 - Remove linting from build step. by @Oberacda
-- Remove node versioning by @Doomse
-- Removed unused services by @Doomse
-- Remove getShortDoc utility, IO is no longer included in docstring by @Doomse
-- Remove blank type, improve validation by @Doomse
-- Remove strict length strings by @Doomse
+- Remove node versioning
+- Removed unused services
+- Remove getShortDoc utility, IO is no longer included in docstring
+- Remove blank type, improve validation
+- Remove strict length strings
 
 
 ## [7.1.0] - 2026-03-04
@@ -55,14 +64,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Bump version. by @Oberacda
 
 ### Removed
-- Remove bad default and auto-update options by @Doomse in [#47](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/47)
+- Remove bad default and auto-update options in [#47](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/47)
 
 
 ## [7.0.1] - 2026-02-17
 
 ### Changed
 - Bump version. by @Oberacda
-- Use new tree_ref to associate nodes and subtrees by @Doomse in [#46](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/46)
+- Use new tree_ref to associate nodes and subtrees in [#46](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/46)
 
 
 ## [7.0.0] - 2026-02-10
@@ -72,7 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Bump verison to 7.0.0 by @Oberacda
-- Logging display by @Doomse in [#45](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/45)
+- Logging display in [#45](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/45)
 
 ## New Contributors
 * @nspielbau made their first contribution in [#43](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/43)
@@ -80,12 +89,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [6.0.2] - 2026-01-27
 
 ### Added
-- Adds support for the `bytes` type by @Doomse in [#42](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/42)
+- Adds support for the `bytes` type in [#42](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/42)
 - Add skip rule for 'Update changelog' message by @Oberacda
 
 ### Changed
 - Bump version. by @Oberacda
-- Use node_id for wiring targets by @Doomse in [#44](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/44)
+- Use node_id for wiring targets in [#44](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/44)
 - Exclude CHANGELOG.md from Prettier checks by @Oberacda
 
 
@@ -103,13 +112,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix changelog. by @Oberacda
 - Disable do not commit to main check. by @Oberacda
 - Fix pre-commit issues. by @Oberacda
-- Use UUIDs for BTNodes by @Doomse in [#38](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/38)
-- Auto connect by @Doomse in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
-- Highlight nodes in broken state by @Doomse in [#41](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/41)
+- Use UUIDs for BTNodes in [#38](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/38)
+- Auto connect in [#40](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/40)
+- Highlight nodes in broken state in [#41](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/41)
 - Merge pull request #39 from Doomse/remove-shutdown-on-save by @Oberacda in [#39](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/39)
 
 ### Removed
-- Remove shutdown call when saving tree by @Doomse
+- Remove shutdown call when saving tree
 
 
 ## [5.0.0] - 2025-09-08
@@ -117,16 +126,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Bump version. by @Oberacda
 - Merge pull request #36 from Doomse/data-vert-update by @Oberacda in [#36](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/36)
-- Correctly id and update data vertices by @Doomse
+- Correctly id and update data vertices
 - Merge pull request #35 from Doomse/quick-save by @Oberacda in [#35](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/35)
-- Update editor store for quickSave by @Doomse
-- Quick save function and icon by @Doomse
-- Initial Quick Save button by @Doomse
+- Update editor store for quickSave
+- Quick save function and icon
+- Initial Quick Save button
 - Merge pull request #34 from Doomse/quick-select-icon-colors by @Oberacda in [#34](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/34)
-- Update vite config to include new module by @Doomse
-- Use updated svgs inline to allow css styling. by @Doomse
+- Update vite config to include new module
+- Use updated svgs inline to allow css styling.
 - Merge pull request #33 from Doomse/pure-svg-editor by @Oberacda in [#33](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/33)
-- Properly redraw tree when display mode changes by @Doomse
+- Properly redraw tree when display mode changes
 
 
 ## [4.1.0] - 2025-08-18
@@ -137,9 +146,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Merge pull request #32 from Doomse/pure-svg-editor by @Oberacda in [#32](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/32)
-- Align root drop target by @Doomse
-- Fix lint issues by @Doomse
-- Merge branch 'main' into pure-svg-editor by @Doomse
+- Align root drop target
+- Fix lint issues
+- Merge branch 'main' into pure-svg-editor
 
 ## New Contributors
 * @github-actions[bot] made their first contribution
@@ -153,8 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [4.0.0] - 2025-05-22
 
 ### Added
-- Add settings panel for configuration, allow toggle for data publishing by @Doomse
-- Add basic output for tree data by @Doomse
+- Add settings panel for configuration, allow toggle for data publishing
+- Add basic output for tree data
 
 ### Changed
 - Increase version to 4.0.0 by @Oberacda
@@ -164,40 +173,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Update nodes fuse. by @Oberacda
 - Update package fuse. by @Oberacda
 - Merge pull request #31 from Doomse/tree-message-rework by @Oberacda in [#31](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/31)
-- Reset persistent editor state on disconnect (assumes backend restart) by @Doomse
-- Always display tree state of main tree by @Doomse
-- Fix linting errors by @Doomse
-- Persist publish settings by @Doomse
-- Handle updated tree topics by @Doomse
-- Tree data subscriber by @Doomse
-- Fix data edge drawing indicator by @Doomse
-- Update linking between selected nodes and edges by @Doomse
-- Seperate IOData and OptionData by @Doomse
-- Revert to explicitly specifying "serialized" on message fields by @Doomse
-- Update message type definitions and basic tree drawing by @Doomse
+- Reset persistent editor state on disconnect (assumes backend restart)
+- Always display tree state of main tree
+- Fix linting errors
+- Persist publish settings
+- Handle updated tree topics
+- Tree data subscriber
+- Fix data edge drawing indicator
+- Update linking between selected nodes and edges
+- Seperate IOData and OptionData
+- Revert to explicitly specifying "serialized" on message fields
+- Update message type definitions and basic tree drawing
 - Merge pull request #30 from Doomse/main by @Oberacda in [#30](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/30)
-- Color data-edge drawing indicator on valid target by @Doomse
-- Simplify node text line breaks by @Doomse
-- Disable text interactions by @Doomse
-- Update resetview function by @Doomse
-- Fix root drop target by @Doomse
-- Line breaks and state icons by @Doomse
-- Simple svg editor nodes by @Doomse
-- Update d3 version by @Doomse
-- Update vue version by @Doomse
-- Major updates that don't cause breaking changes by @Doomse
-- Minor updates, patches and removal of unused packages by @Doomse
-- Specify file extensions in eslint config by @Doomse
-- Update vite config (remove unused package) by @Doomse
-- Fix sizing of editor canvas by @Doomse
-- Second batch of (manual) eslint changes by @Doomse
-- Change casing for fontawesome icon component by @Doomse
-- Use default js extension for eslint by @Doomse
-- First batch of eslint changes by @Doomse
-- Properly specify the use of ESModule js in configs by @Doomse
-- Update GitHub workflow and README by @Doomse
-- Update project configs, mainly eslint by @Doomse
-- Fix width of main column to avoid display issues by @Doomse
+- Color data-edge drawing indicator on valid target
+- Simplify node text line breaks
+- Disable text interactions
+- Update resetview function
+- Fix root drop target
+- Line breaks and state icons
+- Simple svg editor nodes
+- Update d3 version
+- Update vue version
+- Major updates that don't cause breaking changes
+- Minor updates, patches and removal of unused packages
+- Specify file extensions in eslint config
+- Update vite config (remove unused package)
+- Fix sizing of editor canvas
+- Second batch of (manual) eslint changes
+- Change casing for fontawesome icon component
+- Use default js extension for eslint
+- First batch of eslint changes
+- Properly specify the use of ESModule js in configs
+- Update GitHub workflow and README
+- Update project configs, mainly eslint
+- Fix width of main column to avoid display issues
 - Update package versions. by @Oberacda
 
 
@@ -210,71 +219,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [release/3.3.0] - 2025-02-26
 
 ### Added
-- Add Icons for Quick Select by @Doomse
-- Add Quick Select for Flow Control Nodes by @Doomse
-- Add node list icons by @Doomse
-- Add selection color for lightmode by @Doomse
-- Add placeholder text to search bars by @Doomse
-- Add text for node state by @Doomse
-- Add searcher with partial messages by @Doomse
+- Add Icons for Quick Select
+- Add Quick Select for Flow Control Nodes
+- Add node list icons
+- Add selection color for lightmode
+- Add placeholder text to search bars
+- Add text for node state
+- Add searcher with partial messages
 
 ### Changed
 - Merge pull request #29 from Doomse/editor-updates by @Oberacda in [#29](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/29)
-- Update icons, add hover text by @Doomse
-- Update Node with, collapse package loader by @Doomse
-- Update node state icon display by @Doomse
-- Switch to localStorage to persist data by @Doomse
-- Change Decorator definition by @Doomse
-- Fix lint errors by @Doomse
-- Update data edge drawing by @Doomse
-- Update node state display by @Doomse
-- Update node list display and descriptions by @Doomse
-- Update RosType Defaults by @Doomse
-- Compact node list display by @Doomse
+- Update icons, add hover text
+- Update Node with, collapse package loader
+- Update node state icon display
+- Switch to localStorage to persist data
+- Change Decorator definition
+- Fix lint errors
+- Update data edge drawing
+- Update node state display
+- Update node list display and descriptions
+- Update RosType Defaults
+- Compact node list display
 - Merge pull request #28 from Doomse/tree-manip-updates by @Oberacda in [#28](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/28)
-- Typing and linting changes by @Doomse
-- Fix str type for node options by @Doomse
-- Use tree manip helpers in node edit components by @Doomse
-- Use replace service for center drop target by @Doomse
-- Redo node drag handling, center target missing by @Doomse
-- Move service calls to Promise based helper by @Doomse
+- Typing and linting changes
+- Fix str type for node options
+- Use tree manip helpers in node edit components
+- Use replace service for center drop target
+- Redo node drag handling, center target missing
+- Move service calls to Promise based helper
 - Merge pull request #27 from Doomse/enum-values by @Oberacda in [#27](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/27)
 - Merge pull request #26 from Doomse/type-hints by @Oberacda in [#26](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/26)
-- Generic handling for TypeWrapper info by @Doomse
-- Fix rebase issues by @Doomse
-- Handle new type wrapper with support for builtin types and ros dicts by @Doomse
-- Fetch message fields into json editor when appropriate by @Doomse
-- Parse type hints and change search fuse by @Doomse
-- Fully hide type hints in prettyprint by @Doomse
-- Revert changes coming from a different branch/feature by @Doomse
-- Allow node options to give type hints by @Doomse
+- Generic handling for TypeWrapper info
+- Fix rebase issues
+- Handle new type wrapper with support for builtin types and ros dicts
+- Fetch message fields into json editor when appropriate
+- Parse type hints and change search fuse
+- Fully hide type hints in prettyprint
+- Revert changes coming from a different branch/feature
+- Allow node options to give type hints
 
 
 ## [release/3.2.3] - 2025-01-23
 
 ### Added
-- Add tree undefined checks to editor by @Doomse
-- Add state icons by @Doomse
+- Add tree undefined checks to editor
+- Add state icons
 
 ### Changed
 - Merge pull request #22 from Doomse/editor-display by @Oberacda in [#22](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/22)
-- Update colors by @Doomse
-- Nodes have their min-height dynamically changed if their number in- or outputs changes by @Doomse
-- Change initial node list loading to happen after namespace adjustment by @Doomse
-- Update tree editor by @Doomse
+- Update colors
+- Nodes have their min-height dynamically changed if their number in- or outputs changes
+- Change initial node list loading to happen after namespace adjustment
+- Update tree editor
 - Merge pull request #24 from Doomse/main by @Oberacda in [#24](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/24)
-- Fix path building for packages (use name instead of full path) by @Doomse
+- Fix path building for packages (use name instead of full path)
 
 
 ## [release/3.2.2] - 2025-01-14
 
 ### Added
-- Add default values to Ros Message types by @Doomse
+- Add default values to Ros Message types
 
 ### Changed
 - Merge pull request #21 from Doomse/main by @Oberacda in [#21](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/21)
 - Change action default type. by @Oberacda
-- Do not consider current type value when filtering for Names by @Doomse
+- Do not consider current type value when filtering for Names
 
 
 ## [release/3.2.0] - 2025-01-13
@@ -285,88 +294,88 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Merge pull request #20 from Doomse/type_system by @Oberacda in [#20](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/20)
 - Fix node versions in CI. by @Oberacda
-- Fix Math type imports by @Doomse
-- Reduce some lint rules to warnings. by @Doomse
-- Fix file type regex by @Doomse
-- Reapply changes for handling math types by @Doomse
-- Apply lint and format changes by @Doomse
-- Fix setting node options for existing node by @Doomse
-- Update search result display by @Doomse
-- Redo default value registration for python types by @Doomse
-- Update node option handling by @Doomse
-- Unify handling of NodeMsg and builtin types by @Doomse
-- Restructure Message Type publishing by @Doomse
-- Reset names for math types by @Doomse
-- Clone default values when using them by @Doomse
-- Handle Ros Topic types by @Doomse
-- Handle Ros Action types by @Doomse
-- Handle Ros Channel Names by @Doomse
-- Handle Ros Types by @Doomse
-- Apply formatter changes by @Doomse
-- Apply linting changes by @Doomse
-- Move python type information into separate file by @Doomse
-- Use new module for math types by @Doomse
-- Implement FilePath param by @Doomse
+- Fix Math type imports
+- Reduce some lint rules to warnings.
+- Fix file type regex
+- Reapply changes for handling math types
+- Apply lint and format changes
+- Fix setting node options for existing node
+- Update search result display
+- Redo default value registration for python types
+- Update node option handling
+- Unify handling of NodeMsg and builtin types
+- Restructure Message Type publishing
+- Reset names for math types
+- Clone default values when using them
+- Handle Ros Topic types
+- Handle Ros Action types
+- Handle Ros Channel Names
+- Handle Ros Types
+- Apply formatter changes
+- Apply linting changes
+- Move python type information into separate file
+- Use new module for math types
+- Implement FilePath param
 - Merge pull request #16 from Doomse/fix-operation-node by @Oberacda in [#16](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/16)
-- Fix MathOperandType assigning to the wrong param by @Doomse
+- Fix MathOperandType assigning to the wrong param
 - Fix formatting issues. by @Oberacda
 
 ### Removed
-- Remove usage of deleted type by @Doomse
-- Remove GetMessageFields usage by @Doomse
+- Remove usage of deleted type
+- Remove GetMessageFields usage
 
 
 ## [release/3.1.0] - 2024-12-16
 
 ### Added
-- Add multi-delete option by @Doomse
+- Add multi-delete option
 
 ### Changed
 - Update pr script. by @Oberacda
 - Merge pull request #12 from Doomse/main by @Oberacda in [#12](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/12)
-- Fixed handling of zoom when drawing tree by @Doomse
-- Fix node morphing by @Doomse
-- Multi-delete confirmation by @Doomse
-- Disable loadsave when viewing subtrees by @Doomse
-- Filter package folders by @Doomse
-- Minor todos by @Doomse
-- Cleanup editor css by @Doomse
-- Update Edit Node Display by @Doomse
-- Unify Math Node Params by @Doomse
-- Revert "remove unused components" by @Doomse
-- Use scoped styles to avoid interference between components by @Doomse
-- Clean up minor editor todos by @Doomse
-- Delay node dragging start by @Doomse
-- Clean up minor todos by @Doomse
-- Update layout of namespace component by @Doomse
-- Update nodelist layout by @Doomse
-- Update editor color scheme by @Doomse
-- Update editor coloring by @Doomse
-- Tree name and state display consideres selected subtree by @Doomse
-- Update multi-selection by @Doomse
-- Generate and Save Subtrees by @Doomse
-- Update scrollable components by @Doomse
-- Edge select component and highlighting update by @Doomse
+- Fixed handling of zoom when drawing tree
+- Fix node morphing
+- Multi-delete confirmation
+- Disable loadsave when viewing subtrees
+- Filter package folders
+- Minor todos
+- Cleanup editor css
+- Update Edit Node Display
+- Unify Math Node Params
+- Revert "remove unused components"
+- Use scoped styles to avoid interference between components
+- Clean up minor editor todos
+- Delay node dragging start
+- Clean up minor todos
+- Update layout of namespace component
+- Update nodelist layout
+- Update editor color scheme
+- Update editor coloring
+- Tree name and state display consideres selected subtree
+- Update multi-selection
+- Generate and Save Subtrees
+- Update scrollable components
+- Edge select component and highlighting update
 
 ### Fixed
-- Fix top-bar height by @Doomse
+- Fix top-bar height
 
 ### Removed
-- Remove unused component by @Doomse
-- Remove unused components by @Doomse
+- Remove unused component
+- Remove unused components
 
 
 ## [release/3.0.0] - 2024-11-04
 
 ### Added
 - Add PR creation script. by @Oberacda
-- Added save tree modal by @Doomse
-- Add modal specific buttons, clean up type PackageStructure by @Doomse
-- Add ui icons, notes on backend changes by @Doomse
-- Add datadraw indicator and highlights, clean up comments by @Doomse
-- Add listener names by @Doomse
-- Add layer and tree display modes, pending icons by @Doomse
-- Add tree msg subscriber, temporarily remove selected_subtree logic by @Doomse
+- Added save tree modal
+- Add modal specific buttons, clean up type PackageStructure
+- Add ui icons, notes on backend changes
+- Add datadraw indicator and highlights, clean up comments
+- Add listener names
+- Add layer and tree display modes, pending icons
+- Add tree msg subscriber, temporarily remove selected_subtree logic
 - Add license headers for vue files. by @Oberacda
 - Add license headers by @Oberacda
 - Add license header. by @Oberacda
@@ -379,67 +388,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Fix invalid store in BehaviorTreeEdge.vue by @Oberacda
 - Merge pull request #10 from Doomse/dev-vue by @Oberacda in [#10](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/10)
-- Clean up minor todos by @Doomse
-- Enable multi-selecting nodes iteratively by @Doomse
-- Update LoadSave modals by @Doomse
-- Consistent spacing in node list by @Doomse
-- Move scroll component to node list by @Doomse
-- Redo button spacing css by @Doomse
-- Minor styling fix by @Doomse
-- Layout and styling updates, dark mode toggle for window by @Doomse
-- Allow manual changes for tree name, disable auto rename on save by @Doomse
-- Visual update for control bars by @Doomse
-- Update data graph hover highlighting by @Doomse
-- Update fuzzy search functions by @Doomse
-- Reenable svg-use elements, they ignore pointer-events by @Doomse
-- Change data graph display by @Doomse
-- Update JSONInput and ROS Messages by @Doomse
-- Rename tree after saving it by @Doomse
-- Use the new edit_node store in favor over passing props. by @Doomse
-- Move data about selecting and editing nodes into new store by @Doomse
-- Allow to search messages based on ros type (msg/srv/action) by @Doomse
-- Move filtered_nodes logic to nodes_store as it seems more appropriate by @Doomse
-- Update message_type handling by @Doomse
-- The JSONinput is WIP, message fields service is working but results look weird by @Doomse
-- Update load-save modal visuals by @Doomse
-- Reposition notifications, hold them active on hover by @Doomse
-- Load tree modal function by @Doomse
-- Various minor cleanups by @Doomse
-- Normalize logic to always use the Package type by @Doomse
-- Merge branch 'fzi-forschungszentrum-informatik:dev-vue' into dev-vue by @Doomse
+- Clean up minor todos
+- Enable multi-selecting nodes iteratively
+- Update LoadSave modals
+- Consistent spacing in node list
+- Move scroll component to node list
+- Redo button spacing css
+- Minor styling fix
+- Layout and styling updates, dark mode toggle for window
+- Allow manual changes for tree name, disable auto rename on save
+- Visual update for control bars
+- Update data graph hover highlighting
+- Update fuzzy search functions
+- Reenable svg-use elements, they ignore pointer-events
+- Change data graph display
+- Update JSONInput and ROS Messages
+- Rename tree after saving it
+- Use the new edit_node store in favor over passing props.
+- Move data about selecting and editing nodes into new store
+- Allow to search messages based on ros type (msg/srv/action)
+- Move filtered_nodes logic to nodes_store as it seems more appropriate
+- Update message_type handling
+- The JSONinput is WIP, message fields service is working but results look weird
+- Update load-save modal visuals
+- Reposition notifications, hold them active on hover
+- Load tree modal function
+- Various minor cleanups
+- Normalize logic to always use the Package type
+- Merge branch 'fzi-forschungszentrum-informatik:dev-vue' into dev-vue
 - Implement tree editor. by @Oberacda in [#9](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/9)
-- Remote file browser part2 by @Doomse
-- Remote file browser part1 by @Doomse
-- Layout remote file browser by @Doomse
-- Update selected node display by @Doomse
-- Implement OptionRef handling by @Doomse
-- Revert node id change, backend takes care of this by @Doomse
-- Node update component is populated but disabled on subtrees by @Doomse
-- Receive and display subtrees by @Doomse
-- Collect subtree info, enable subtree selection by @Doomse
-- Move d3 relevant css classes to constants by @Doomse
-- Adjust data edge drawing by @Doomse
-- Data edge creation, move hightlighted edge to foreground by @Doomse
-- Set up data for edge drawing, also fix node dropping for siblings by @Doomse
-- Adjust namespace selection to work on init by @Doomse
-- Edit appearence control buttons by @Doomse
-- Adapt curve type by @Doomse
-- Draw data edges, includes mouse events by @Doomse
-- Fix data edge collection by @Doomse
-- Finish data vertex drawing, start data edge collection by @Doomse
-- Draw data graph vertices by @Doomse
-- Allow to move existing nodes by @Doomse
-- Allow click and drag of canvas nodes by @Doomse
-- Fix Editor sizing by @Doomse
-- Drop new nodes into the tree by @Doomse
-- Implement drag&drop for new nodes by @Doomse
-- Auto-draw tree by @Doomse
-- Fix dragging mouseup by @Doomse
-- Draw drop targets by @Doomse
-- Draw tree layout by @Doomse
-- Move more editor styling by @Doomse
-- Shuffle some scss to more fitting places by @Doomse
-- Draw node boxes and names by @Doomse
+- Remote file browser part2
+- Remote file browser part1
+- Layout remote file browser
+- Update selected node display
+- Implement OptionRef handling
+- Revert node id change, backend takes care of this
+- Node update component is populated but disabled on subtrees
+- Receive and display subtrees
+- Collect subtree info, enable subtree selection
+- Move d3 relevant css classes to constants
+- Adjust data edge drawing
+- Data edge creation, move hightlighted edge to foreground
+- Set up data for edge drawing, also fix node dropping for siblings
+- Adjust namespace selection to work on init
+- Edit appearence control buttons
+- Adapt curve type
+- Draw data edges, includes mouse events
+- Fix data edge collection
+- Finish data vertex drawing, start data edge collection
+- Draw data graph vertices
+- Allow to move existing nodes
+- Allow click and drag of canvas nodes
+- Fix Editor sizing
+- Drop new nodes into the tree
+- Implement drag&drop for new nodes
+- Auto-draw tree
+- Fix dragging mouseup
+- Draw drop targets
+- Draw tree layout
+- Move more editor styling
+- Shuffle some scss to more fitting places
+- Draw node boxes and names
 - Revert "Add license headers" by @Oberacda
 - Begin implementing the D3 editor by @Oberacda
 - Implement multiple selection by @Oberacda
@@ -453,19 +462,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Initial commit. by @Oberacda
 
 ### Fixed
-- Fix resolving optionref default values by @Doomse
-- Fix basic paraminputs by @Doomse
-- Fix fuse option config by @Doomse
-- Fix node type-param dropdown by @Doomse
+- Fix resolving optionref default values
+- Fix basic paraminputs
+- Fix fuse option config
+- Fix node type-param dropdown
 
 ### Removed
-- Remove svg-use elements as they break event handlers by @Doomse
-- Remove the now unused components by @Doomse
+- Remove svg-use elements as they break event handlers
+- Remove the now unused components
 
 ## New Contributors
 * @Oberacda made their first contribution
-* @Doomse made their first contribution
+* @ made their first contribution
 
+[8.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/8.0.0..8.0.1
 [8.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.1.0..8.0.0
 [7.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.1..7.1.0
 [7.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.0..7.0.1
