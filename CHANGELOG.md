@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [8.0.1] - 2026-08-06
 
 ### Changed
+- Bump to version 8.0.1 by @Oberacda
 - Add codegraph to gitignore. by @Oberacda
 
 ### Fixed
