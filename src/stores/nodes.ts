@@ -37,6 +37,7 @@ import type {
   GetAvailableNodesResponse
 } from '@/types/services/GetAvailableNodes'
 import { notify } from '@kyvg/vue3-notification'
+import { SLOW_ROS_SERVICE_TIMEOUT_SECONDS } from '@/utils'
 
 export const useNodesStore = defineStore('nodes', () => {
   const ros_store = useROSStore()
@@ -112,7 +113,8 @@ export const useNodesStore = defineStore('nodes', () => {
           text: failed,
           type: 'error'
         })
-      }
+      },
+      SLOW_ROS_SERVICE_TIMEOUT_SECONDS
     )
   }
 

@@ -38,7 +38,7 @@ import type {
 } from '@/types/services/LoadTreeFromPath'
 import { notify } from '@kyvg/vue3-notification'
 import { useEditorStore } from '@/stores/editor'
-import { isLoadErrorTreatable } from '@/utils'
+import { isLoadErrorTreatable, SLOW_ROS_SERVICE_TIMEOUT_SECONDS } from '@/utils'
 
 const props = defineProps<{
   fromPackages: boolean
@@ -60,6 +60,7 @@ const storage_location = ref<string>('')
 const selected_path = ref<string[]>([])
 const is_directory = ref<boolean>(true)
 const search_term = ref<string>('')
+const loading = ref<boolean>(false)
 
 const file_path = computed<string>(() => {
   return (
@@ -80,6 +81,11 @@ function setLoadLocation(path: string[], dir: boolean) {
 }
 
 function loadTree() {
+  if (loading.value) {
+    return
+  }
+
+  loading.value = true
   ros_store.load_tree_from_path_service.callService(
     {
       path: file_path.value,
@@ -92,6 +98,7 @@ function loadTree() {
           type: 'success'
         })
         editor_store.resetQuickSaveLocation()
+        loading.value = false
         emit('close')
       } else {
         notify({
@@ -101,6 +108,7 @@ function loadTree() {
         })
 
         if (!isLoadErrorTreatable(response.error_message)) {
+          loading.value = false
           return
         }
 
@@ -114,6 +122,7 @@ function loadTree() {
             text: 'Loading in permissive mode was rejected.',
             type: 'warn'
           })
+          loading.value = false
           return
         }
 
@@ -129,6 +138,7 @@ function loadTree() {
                 type: 'success'
               })
               editor_store.resetQuickSaveLocation()
+              loading.value = false
               emit('close')
             } else {
               notify({
@@ -136,6 +146,7 @@ function loadTree() {
                 text: response.error_message,
                 type: 'warn'
               })
+              loading.value = false
             }
           },
           (error: string) => {
@@ -144,7 +155,9 @@ function loadTree() {
               text: error,
               type: 'error'
             })
-          }
+            loading.value = false
+          },
+          SLOW_ROS_SERVICE_TIMEOUT_SECONDS
         )
       }
     },
@@ -154,7 +167,9 @@ function loadTree() {
         text: error,
         type: 'error'
       })
-    }
+      loading.value = false
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 </script>
@@ -176,7 +191,7 @@ function loadTree() {
       @select="(path, dir) => setLoadLocation(path, dir)"
     >
       <div class="d-flex justify-content-between mb-3">
-        <button class="btn btn-primary me-2" :disabled="is_directory" @click="loadTree">
+        <button class="btn btn-primary me-2" :disabled="is_directory || loading" @click="loadTree">
           Load
         </button>
         <select v-model="file_filter" class="form-select me-2 w-50">

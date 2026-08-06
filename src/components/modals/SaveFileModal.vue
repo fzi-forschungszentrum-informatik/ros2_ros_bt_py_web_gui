@@ -36,7 +36,12 @@ import { useROSStore } from '@/stores/ros'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { useEditorStore } from '@/stores/editor'
 import { notify } from '@kyvg/vue3-notification'
-import { NameConflictHandler, parseConflictHandler, rosToUuid } from '@/utils'
+import {
+  NameConflictHandler,
+  parseConflictHandler,
+  rosToUuid,
+  SLOW_ROS_SERVICE_TIMEOUT_SECONDS
+} from '@/utils'
 import type { TreeStructure } from '@/types/types'
 
 const emit = defineEmits<{
@@ -166,7 +171,8 @@ function saveTree() {
               text: error,
               type: 'error'
             })
-          }
+          },
+          SLOW_ROS_SERVICE_TIMEOUT_SECONDS
         )
       }
     },
@@ -176,7 +182,8 @@ function saveTree() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 </script>

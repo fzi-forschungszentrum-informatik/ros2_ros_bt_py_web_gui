@@ -39,7 +39,12 @@ import SelectLocationModal from '@/components/modals/SelectLocationModal.vue'
 import { computed, ref } from 'vue'
 import { useEditNodeStore } from '@/stores/edit_node'
 import type { TreeStructure } from '@/types/types'
-import { NameConflictHandler, parseConflictHandler, uuidToRos } from '@/utils'
+import {
+  NameConflictHandler,
+  parseConflictHandler,
+  SLOW_ROS_SERVICE_TIMEOUT_SECONDS,
+  uuidToRos
+} from '@/utils'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { removeNode } from '@/tree_manipulation'
 import { useEditorStore } from '@/stores/editor'
@@ -136,7 +141,8 @@ function generateSubtree() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 
@@ -213,7 +219,8 @@ function saveSubtree(tree: TreeStructure) {
               text: error,
               type: 'error'
             })
-          }
+          },
+          SLOW_ROS_SERVICE_TIMEOUT_SECONDS
         )
       }
     },
@@ -223,7 +230,8 @@ function saveSubtree(tree: TreeStructure) {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 </script>

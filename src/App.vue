@@ -34,7 +34,7 @@ import { useMessageStore } from './stores/message'
 import { usePackageStore } from './stores/package'
 import { useLogsStore } from './stores/logs'
 import { useNodesStore } from './stores/nodes'
-import { onMounted, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 import PackageLoader from './components/PackageLoader.vue'
 import type {
   MessageTypes,
@@ -163,10 +163,6 @@ watch(
     }
   }
 )
-
-onMounted(() => {
-  ros_store.connect()
-})
 </script>
 
 <template>

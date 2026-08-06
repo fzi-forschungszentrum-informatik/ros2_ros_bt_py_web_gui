@@ -43,6 +43,7 @@ import type {
 } from '@/types/services/GetStorageFolders'
 import type { SaveTreeRequest, SaveTreeResponse } from '@/types/services/SaveTree'
 import { findTree } from '@/tree_selection'
+import { SLOW_ROS_SERVICE_TIMEOUT_SECONDS } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -195,7 +196,8 @@ function quickSave() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 
@@ -211,7 +213,8 @@ function getStorageFolders() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 

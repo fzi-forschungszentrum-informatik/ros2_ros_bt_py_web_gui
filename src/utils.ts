@@ -257,6 +257,23 @@ const treatable_error_prefixes: string[] = [
   'AttributeError, maybe a ROS Message definition changed.'
 ]
 
+/**
+ * Timeout (in seconds) for ROS service calls to rosbridge that may involve
+ * filesystem or package introspection (loading/saving trees, listing
+ * available nodes, browsing storage locations). rosbridge's own default
+ * per-call timeout (5s) is too short for these operations on non-trivial
+ * workspaces, which causes premature "Timeout exceeded while waiting for
+ * service response" failures on the backend even though the service call
+ * is still being processed and would otherwise succeed.
+ *
+ * Note: do not raise this above 10 seconds without also raising the
+ * transport-level query timeout on the backend. rmw_zenoh drops service
+ * replies after its `queries_default_timeout` (10s by default), so any
+ * rosbridge-side wait beyond that window cannot succeed and only blocks
+ * the UI until this timeout expires.
+ */
+export const SLOW_ROS_SERVICE_TIMEOUT_SECONDS = 10
+
 export function isLoadErrorTreatable(error: string) {
   let treatable = false
   treatable_error_prefixes.forEach((val) => {

@@ -48,6 +48,7 @@ import type {
   GetPackageStructureResponse
 } from '@/types/services/GetPackageStructure'
 import * as d3 from 'd3'
+import { SLOW_ROS_SERVICE_TIMEOUT_SECONDS } from '@/utils'
 
 const props = defineProps<{
   location: string
@@ -161,7 +162,8 @@ function getStorageFolders() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 
@@ -197,7 +199,8 @@ function getFolderStructure() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 
@@ -224,7 +227,8 @@ function getPackageStructure() {
         text: error,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 

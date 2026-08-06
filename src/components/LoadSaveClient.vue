@@ -43,7 +43,7 @@ import {
   type ControlTreeExecutionResponse
 } from '@/types/services/ControlTreeExecution'
 import { findTree } from '@/tree_selection'
-import { isLoadErrorTreatable } from '@/utils'
+import { isLoadErrorTreatable, SLOW_ROS_SERVICE_TIMEOUT_SECONDS } from '@/utils'
 
 const ros_store = useROSStore()
 const editor_store = useEditorStore()
@@ -148,7 +148,8 @@ function loadTreeMsg(msg: TreeStructure) {
               text: failed,
               type: 'error'
             })
-          }
+          },
+          SLOW_ROS_SERVICE_TIMEOUT_SECONDS
         )
       }
     },
@@ -158,7 +159,8 @@ function loadTreeMsg(msg: TreeStructure) {
         text: failed,
         type: 'error'
       })
-    }
+    },
+    SLOW_ROS_SERVICE_TIMEOUT_SECONDS
   )
 }
 
@@ -223,7 +225,8 @@ function handleFileRead() {
           text: failed,
           type: 'error'
         })
-      }
+      },
+      SLOW_ROS_SERVICE_TIMEOUT_SECONDS
     )
   }
 }

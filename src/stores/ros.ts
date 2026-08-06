@@ -103,10 +103,20 @@ export const useROSStore = defineStore(
     const url = ref<string>('ws://' + window.location.hostname + ':9090')
     const namespace = ref<string>('')
     const available_namespaces = ref<string[]>(['/'])
+    let connection_attempt_in_progress = false
 
     function connect() {
+      if (connected.value || connection_attempt_in_progress) {
+        return
+      }
+
+      clearTimeout(connect_timeout)
+      connection_attempt_in_progress = true
       console.log('Start connect attempt')
-      ros.value.connect(url.value)
+      void ros.value.connect(url.value).catch(() => {
+        connection_attempt_in_progress = false
+        startConnectTimeout()
+      })
     }
 
     const auto_connect = ref<boolean>(true)
@@ -649,6 +659,7 @@ export const useROSStore = defineStore(
     }
 
     function hasConnected() {
+      connection_attempt_in_progress = false
       connected.value = true
       clearTimeout(connect_timeout)
       notify({
@@ -658,6 +669,7 @@ export const useROSStore = defineStore(
     }
 
     function hasDisconnected() {
+      connection_attempt_in_progress = false
       connected.value = false
       messages_store.areMessagesAvailable(false)
       packages_store.arePackagesAvailable(false)
