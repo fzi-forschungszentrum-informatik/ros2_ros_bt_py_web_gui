@@ -51,6 +51,7 @@ const editor_store = useEditorStore()
 const file_input_ref = ref<HTMLInputElement>()
 
 const file_reader = new FileReader()
+const TREE_FILE_VERSION = '1.0.0'
 
 function loadTree(event: Event) {
   const target = event.target as HTMLInputElement
@@ -260,7 +261,7 @@ function saveTree() {
           return
         }
 
-        const msg = jsyaml.dump(tree)
+        const msg = `version: ${TREE_FILE_VERSION}\n${jsyaml.dump(tree)}`
 
         downloadURI('data:text/plain,' + encodeURIComponent(msg), 'tree.yaml')
       } else {
