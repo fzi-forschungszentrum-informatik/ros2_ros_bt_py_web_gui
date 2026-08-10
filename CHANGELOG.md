@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [8.0.2] - 2026-08-10
 
 ### Changed
-- Bump version to 8.0.2
+- Bump version to 8.0.2 by @Oberacda
 - Merge pull request #52 from fzi-forschungszentrum-informatik/fix/256-download-tree-version by @Oberacda in [#52](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/52)
 
 ### Fixed
