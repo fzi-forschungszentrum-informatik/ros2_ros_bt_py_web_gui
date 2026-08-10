@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+- Merge pull request #52 from fzi-forschungszentrum-informatik/fix/256-download-tree-version by @Oberacda in [#52](https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/pull/52)
+
+### Fixed
+- Include version in downloaded trees by @Oberacda
+
+
 ## [8.0.1] - 2026-08-06
 
 ### Changed
@@ -476,6 +485,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 * @Oberacda made their first contribution
 * @ made their first contribution
 
+[unreleased]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/8.0.1..HEAD
 [8.0.1]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/8.0.0..8.0.1
 [8.0.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.1.0..8.0.0
 [7.1.0]: https://github.com/fzi-forschungszentrum-informatik/ros2_ros_bt_py_web_gui/compare/7.0.1..7.1.0
